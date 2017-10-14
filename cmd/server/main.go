@@ -41,7 +41,7 @@ func main() {
 	env.Parse(&cfg)
 
 	logger := golog.New(getLogLevelByEnv(cfg.Env))
-	eventStore := dynamodb.NewEventStore()
+	eventStore := memory.NewEventStore()
 	eventBus := memory.NewEventBus(logger)
 	commandBus := memory.NewCommandBus(logger)
 	jwtService := auth.NewJwtService([]byte(cfg.Secret), time.Hour*24)
