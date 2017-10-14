@@ -48,7 +48,7 @@ Create your local `.env` file from `dist.env` files.
 For each of binaries when building a docker image the enviroment variable file will be passed. This repository contains example `.env` file for `server` binary. There are always two files `.server.env` containing local configurations and is to be git ignored where [dist.server.env](dist.server.env) contains versioned example of configuration.
 
 ### Development
-To setup development enviroment simply run `docker-compose` command. The containers will be set up for each binaries and other services required for application to run.
+To setup development enviroment simply run [docker-compose(https://docs.docker.com/compose/gettingstarted/) command. The containers will be set up for each binaries and other services required for application to run.
 
 ### Deployment
 **Release all binaries**
