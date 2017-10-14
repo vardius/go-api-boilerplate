@@ -13,6 +13,7 @@ Key concepts:
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
 2. [message-bus](https://github.com/vardius/message-bus)
+3. [env](https://github.com/caarlos0/env)
 
 ABOUT
 ==================================================
