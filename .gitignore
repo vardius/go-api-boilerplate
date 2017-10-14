@@ -1,0 +1,11 @@
+.DS_Store
+.idea
+
+.env
+.server.env
+*.log*
+
+cmd/*/app
+cmd/*/debug
+cmd/*/tmp
+cmd/*/vendor

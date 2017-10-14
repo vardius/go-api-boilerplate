@@ -1,0 +1,55 @@
+version: '3.3'
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/log/nginx
+      - /var/run
+    ports:
+      - "${NGINX_PORT}:${NGINX_PORT}"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx-snippets:/etc/nginx/snippets:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - proxy_tier
+    links:
+      - server
+    depends_on:
+      - server
+
+  server:
+    image: golang:latest
+    container_name: server
+    env_file:
+      - .server.env
+    expose:
+      - "${PORT}:${PORT}"
+      - "2345:2345"
+    volumes:
+      - ./cmd/server:/go/src/app/cmd/server
+      - ./pkg:/go/src/app/pkg
+    networks:
+      - back_tier
+    working_dir: /go/src/app/cmd/server
+    command: sh /go/src/app/cmd/server/start.sh
+
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    environment:
+      - SERVICES=dynamodb:${DYNAMODB_PORT}
+    ports:
+      - "8080:8080"
+      - "4567-4582:4567-4582"
+    networks:
+      - back_tier
+
+networks:
+  back_tier:
+    driver: bridge
+  proxy_tier:
+    driver: bridge
