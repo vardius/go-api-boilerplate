@@ -16,7 +16,7 @@ Worth getting to know packages used in this boilerplate:
 
 ABOUT
 ==================================================
-This repository was created for personal use and needs, may contain bugs. If found please report.
+This repository was created for personal use and needs, may contain bugs. If found please report. If you think some things could be done better, or if this repository is missing something feel free to contribute and create pull request.
 
 Contributors:
 
