@@ -33,9 +33,6 @@ tag-version-%:
 # import config
 setup:
 	configfile=.$(BIN).env
-	ifdef cnf
-	configfile=$(cnf)
-	endif
 	include $(configfile)
 	export $(shell sed 's/=.*//' $(configfile))
 
