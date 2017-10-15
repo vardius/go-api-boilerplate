@@ -5,13 +5,6 @@ import (
 	"context"
 )
 
-func registerEventHandlers(eventBus domain.EventBus) {
-	eventBus.Subscribe(WasRegisteredWithEmailType, handleUserWasRegisteredWithEmail)
-	eventBus.Subscribe(WasRegisteredWithGoogleType, handleUserWasRegisteredWithGoogle)
-	eventBus.Subscribe(WasRegisteredWithFacebookType, handleUserWasRegisteredWithFacebook)
-	eventBus.Subscribe(EmailAddressWasChangedType, handleUserEmailAddressWasChanged)
-}
-
 func handleUserWasRegisteredWithEmail(ctx context.Context, event *domain.Event) {
 	// todo: register user and send email with auth token
 	logger.Error(nil, "handle UserWasRegisteredWithEmail %v\n", event)

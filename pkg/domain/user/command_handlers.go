@@ -10,13 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func registerCommandHandlers(commandBus domain.CommandBus, repository *eventSourcedRepository, jwtService auth.JwtService) {
-	commandBus.Subscribe(Domain+"-"+RegisterWithEmail, registerUserWithEmail(repository, jwtService))
-	commandBus.Subscribe(Domain+"-"+RegisterWithGoogle, registerUserWithGoogle(repository))
-	commandBus.Subscribe(Domain+"-"+RegisterWithFacebook, registerUserWithFacebook(repository))
-	commandBus.Subscribe(Domain+"-"+ChangeEmailAddress, changeUserEmailAddress(repository))
-}
-
 func registerUserWithEmail(repository *eventSourcedRepository, jwtService auth.JwtService) domain.CommandHandler {
 	return func(ctx context.Context, payload json.RawMessage, out chan<- error) {
 		c, err := command.NewRegisterUserWithEmail(payload)

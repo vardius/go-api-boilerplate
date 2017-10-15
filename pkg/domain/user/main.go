@@ -21,3 +21,17 @@ func Init(eventStore domain.EventStore, eventBus domain.EventBus, commandBus dom
 	registerCommandHandlers(commandBus, eventSourcedRepository, jwtService)
 	registerEventHandlers(eventBus)
 }
+
+func registerCommandHandlers(commandBus domain.CommandBus, repository *eventSourcedRepository, jwtService auth.JwtService) {
+	commandBus.Subscribe(Domain+"-"+RegisterWithEmail, registerUserWithEmail(repository, jwtService))
+	commandBus.Subscribe(Domain+"-"+RegisterWithGoogle, registerUserWithGoogle(repository))
+	commandBus.Subscribe(Domain+"-"+RegisterWithFacebook, registerUserWithFacebook(repository))
+	commandBus.Subscribe(Domain+"-"+ChangeEmailAddress, changeUserEmailAddress(repository))
+}
+
+func registerEventHandlers(eventBus domain.EventBus) {
+	eventBus.Subscribe(WasRegisteredWithEmailType, handleUserWasRegisteredWithEmail)
+	eventBus.Subscribe(WasRegisteredWithGoogleType, handleUserWasRegisteredWithGoogle)
+	eventBus.Subscribe(WasRegisteredWithFacebookType, handleUserWasRegisteredWithFacebook)
+	eventBus.Subscribe(EmailAddressWasChangedType, handleUserEmailAddressWasChanged)
+}
