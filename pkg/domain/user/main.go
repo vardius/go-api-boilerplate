@@ -10,10 +10,9 @@ import (
 
 var logger golog.Logger
 
-type domainEvent interface {
-	Apply(*User)
-}
+const Domain = "users"
 
+// Init setup domain
 func Init(eventStore domain.EventStore, eventBus domain.EventBus, commandBus domain.CommandBus, jwtService auth.JwtService, log golog.Logger) {
 	logger = log
 	streamName := fmt.Sprintf("%T", User{})

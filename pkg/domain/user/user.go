@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// User aggregate root
 type User struct {
 	id      uuid.UUID
 	version int
@@ -15,6 +16,7 @@ type User struct {
 	email string
 }
 
+// FromHistory loads current aggregate root state by applying all events in order
 func (self *User) FromHistory(events []*domain.Event) {
 	for _, event := range events {
 		self.transition(event.Payload)
@@ -22,14 +24,17 @@ func (self *User) FromHistory(events []*domain.Event) {
 	}
 }
 
+// ID returns aggregate root id
 func (self *User) ID() uuid.UUID {
 	return self.id
 }
 
+// Version returns current aggregate root version
 func (self *User) Version() int {
 	return self.version
 }
 
+// Changes returns all new applied events
 func (self *User) Changes() []*domain.Event {
 	return self.changes
 }
@@ -49,19 +54,19 @@ func (self *User) trackChange(event interface{}) {
 	self.changes = append(self.changes, eventEnvelop)
 }
 
-func (self *User) registerUserWithEmail(id uuid.UUID, email string, authToken string) error {
+func (self *User) registerWithEmail(id uuid.UUID, email string, authToken string) error {
 	self.trackChange(&UserWasRegisteredWithEmail{id, email, authToken})
 
 	return nil
 }
 
-func (self *User) registerUserWithGoogle(id uuid.UUID, email string, authToken string) error {
+func (self *User) registerWithGoogle(id uuid.UUID, email string, authToken string) error {
 	self.trackChange(&UserWasRegisteredWithGoogle{id, email, authToken})
 
 	return nil
 }
 
-func (self *User) registerUserWithFacebook(id uuid.UUID, email string, authToken string) error {
+func (self *User) registerWithFacebook(id uuid.UUID, email string, authToken string) error {
 	self.trackChange(&UserWasRegisteredWithFacebook{id, email, authToken})
 
 	return nil

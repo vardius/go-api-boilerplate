@@ -1,30 +1,33 @@
 package main
 
 import (
-	"net/http"
 	"app/pkg/auth"
 	"app/pkg/controller"
 	"app/pkg/domain/user"
 	"app/pkg/dynamodb"
 	"app/pkg/memory"
 	"app/pkg/middleware"
+	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/caarlos0/env"
 	"github.com/vardius/golog"
 	"github.com/vardius/gorouter"
 )
 
 type config struct {
-	Env      string   `env:"API_ENV" envDefault:"development"`
-	Host     string   `env:"API_HOST" envDefault:"localhost"`
-	Port     int      `env:"PORT" envDefault:"3000"`
-	Realm    string   `env:"API_REALM" envDefault:"API"`
-	CertPath string   `env:"API_CERT_PATH"`
-	KeyPath  string   `env:"API_KEY_PATH"`
-	Secret   string   `env:"API_SECRET" envDefault:"secret"`
-	Origins  []string `env:"API_ORIGINS" envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
+	Env         string   `env:"ENV"          envDefault:"development"`
+	Host        string   `env:"HOST"         envDefault:"localhost"`
+	Port        int      `env:"PORT"         envDefault:"3000"`
+	Realm       string   `env:"REALM"        envDefault:"API"`
+	CertPath    string   `env:"CERT_PATH"`
+	KeyPath     string   `env:"KEY_PATH"`
+	Secret      string   `env:"SECRET"       envDefault:"secret"`
+	Origins     []string `env:"ORIGINS"      envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
+	AwsRegion   string   `env:"AWS_REGION"   envDefault:"us-east-1"`
+	AwsEndpoint string   `env:"AWS_ENDPOINT" envDefault:"http://localstack:4569"`
 }
 
 func getLogLevelByEnv(env string) string {
@@ -40,8 +43,14 @@ func main() {
 	cfg := config{}
 	env.Parse(&cfg)
 
+	awsConfig := &aws.Config{
+		Region:   aws.String(cfg.AwsRegion),
+		Endpoint: aws.String(cfg.AwsEndpoint),
+	}
+
 	logger := golog.New(getLogLevelByEnv(cfg.Env))
-	eventStore := memory.NewEventStore()
+	// logger := golog.NewFileLogger(getLogLevelByEnv(cfg.Env), "/tmp/prod.log")
+	eventStore := dynamodb.NewEventStore("events", awsConfig)
 	eventBus := memory.NewEventBus(logger)
 	commandBus := memory.NewCommandBus(logger)
 	jwtService := auth.NewJwtService([]byte(cfg.Secret), time.Hour*24)

@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"app/pkg/auth"
 	"app/pkg/domain"
 	"app/pkg/domain/user"
 	"app/pkg/middleware"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 )
 
 type oAuthResponse struct {
@@ -35,7 +35,7 @@ func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) h
 		defer close(out)
 
 		go func() {
-			commandBus.Publish(user.Domain+"-"+user.RegisterUserWithFacebook, r.Context(), facebookData, out)
+			commandBus.Publish(user.Domain+"-"+user.RegisterWithFacebook, r.Context(), facebookData, out)
 		}()
 
 		if err = <-out; err != nil {
@@ -68,7 +68,7 @@ func NewGoogleAuth(commandBus domain.CommandBus, jwtService auth.JwtService) htt
 		defer close(out)
 
 		go func() {
-			commandBus.Publish(user.Domain+"-"+user.RegisterUserWithGoogle, r.Context(), googleData, out)
+			commandBus.Publish(user.Domain+"-"+user.RegisterWithGoogle, r.Context(), googleData, out)
 		}()
 
 		if err = <-out; err != nil {

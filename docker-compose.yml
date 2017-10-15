@@ -27,7 +27,8 @@ services:
     env_file:
       - .server.env
     expose:
-      - "${PORT}:${PORT}"
+      - "${SERVER_PORT}"
+    ports:
       - "2345:2345"
     volumes:
       - ./cmd/server:/go/src/app/cmd/server

@@ -2,16 +2,22 @@
 
 
 [[projects]]
+  name = "github.com/aws/aws-sdk-go"
+  packages = ["aws","aws/awserr","aws/credentials","aws/endpoints","internal/shareddefaults"]
+  revision = "7cb0cfd8c7a20efc2ec149e50eb55fc770c673d8"
+  version = "v1.12.10"
+
+[[projects]]
   name = "github.com/caarlos0/env"
   packages = ["."]
   revision = "0cf029d5748c52beb2c9d20c81880cb4bdf8f788"
   version = "v3.0"
 
 [[projects]]
-  name = "github.com/dgrijalva/jwt-go"
+  name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "d2709f9f1f31ebcda9651b03077758c1f3a0018c"
-  version = "v3.0.0"
+  revision = "5b3e00af70a9484542169a976dcab8d03e601a17"
+  version = "v1.30.0"
 
 [[projects]]
   branch = "master"
@@ -20,28 +26,16 @@
   revision = "130e6b02ab059e7b717a096f397c5b60111cae74"
 
 [[projects]]
-  name = "github.com/google/uuid"
-  packages = ["."]
-  revision = "064e2069ce9c359c118179501254f67d7d37ba24"
-  version = "0.2"
-
-[[projects]]
   name = "github.com/vardius/golog"
   packages = ["."]
-  revision = "2eaaaa518a6154b0a20b4a8c88e35743b80be3f4"
-  version = "v1.0.0"
+  revision = "a69ac66deb90f91ab58456ab11310ebb1ab1c0a2"
+  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/vardius/gorouter"
   packages = ["."]
   revision = "9b16ab516357459b53cb80425cf77391d018ce7d"
   version = "v3.0.1"
-
-[[projects]]
-  name = "github.com/vardius/message-bus"
-  packages = ["."]
-  revision = "c1f01b61c37e8992775c53d6be6b61e362adfce2"
-  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -58,6 +52,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cc76e01797bd31e2151846ae7d486b7ea73a20d48b30e61d26d2c27de07b0aa1"
+  inputs-digest = "f66233288d15a9d944459e0a55eb5d84be0a827c8419b46115f45d7304f0a698"
   solver-name = "gps-cdcl"
   solver-version = 1

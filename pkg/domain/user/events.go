@@ -1,45 +1,58 @@
 package user
 
-import "github.com/google/uuid"
+import (
+	"reflect"
 
-type UserWasRegisteredWithEmail struct {
+	"github.com/google/uuid"
+)
+
+var WasRegisteredWithEmailType = reflect.TypeOf((*WasRegisteredWithEmail)(nil)).String()
+var WasRegisteredWithGoogleType = reflect.TypeOf((*WasRegisteredWithGoogle)(nil)).String()
+var WasRegisteredWithFacebookType = reflect.TypeOf((*WasRegisteredWithFacebook)(nil)).String()
+var EmailAddressWasChangedType = reflect.TypeOf((*EmailAddressWasChanged)(nil)).String()
+
+type domainEvent interface {
+	Apply(*User)
+}
+
+type WasRegisteredWithEmail struct {
 	ID        uuid.UUID `json:"id"`
 	Email     string    `json:"email"`
 	AuthToken string    `json:"authToken"`
 }
 
-func (e UserWasRegisteredWithEmail) Apply(u *User) {
+func (e WasRegisteredWithEmail) Apply(u *User) {
 	u.id = e.ID
 	u.email = e.Email
 }
 
-type UserWasRegisteredWithGoogle struct {
+type WasRegisteredWithGoogle struct {
 	ID        uuid.UUID `json:"id"`
 	Email     string    `json:"email"`
 	AuthToken string    `json:"authToken"`
 }
 
-func (e UserWasRegisteredWithGoogle) Apply(u *User) {
+func (e WasRegisteredWithGoogle) Apply(u *User) {
 	u.id = e.ID
 	u.email = e.Email
 }
 
-type UserWasRegisteredWithFacebook struct {
+type WasRegisteredWithFacebook struct {
 	ID        uuid.UUID `json:"id"`
 	Email     string    `json:"email"`
 	AuthToken string    `json:"authToken"`
 }
 
-func (e UserWasRegisteredWithFacebook) Apply(u *User) {
+func (e WasRegisteredWithFacebook) Apply(u *User) {
 	u.id = e.ID
 	u.email = e.Email
 }
 
-type UserEmailAddressWasChanged struct {
+type EmailAddressWasChanged struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
 }
 
-func (e UserEmailAddressWasChanged) Apply(u *User) {
+func (e EmailAddressWasChanged) Apply(u *User) {
 	u.email = e.Email
 }

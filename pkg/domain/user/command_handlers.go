@@ -10,18 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
-const Domain = "users"
-
-const RegisterUserWithEmail string = "register-user-with-email"
-const RegisterUserWithGoogle string = "register-user-with-google"
-const RegisterUserWithFacebook string = "register-user-with-facebook"
-const ChangeUserEmailAddress string = "change-user-email-address"
-
 func registerCommandHandlers(commandBus domain.CommandBus, repository *eventSourcedRepository, jwtService auth.JwtService) {
-	commandBus.Subscribe(Domain+"-"+RegisterUserWithEmail, registerUserWithEmail(repository, jwtService))
-	commandBus.Subscribe(Domain+"-"+RegisterUserWithGoogle, registerUserWithGoogle(repository))
-	commandBus.Subscribe(Domain+"-"+RegisterUserWithFacebook, registerUserWithFacebook(repository))
-	commandBus.Subscribe(Domain+"-"+ChangeUserEmailAddress, changeUserEmailAddress(repository))
+	commandBus.Subscribe(Domain+"-"+RegisterWithEmail, registerUserWithEmail(repository, jwtService))
+	commandBus.Subscribe(Domain+"-"+RegisterWithGoogle, registerUserWithGoogle(repository))
+	commandBus.Subscribe(Domain+"-"+RegisterWithFacebook, registerUserWithFacebook(repository))
+	commandBus.Subscribe(Domain+"-"+ChangeEmailAddress, changeUserEmailAddress(repository))
 }
 
 func registerUserWithEmail(repository *eventSourcedRepository, jwtService auth.JwtService) domain.CommandHandler {
@@ -48,7 +41,7 @@ func registerUserWithEmail(repository *eventSourcedRepository, jwtService auth.J
 		}
 
 		user := New()
-		err = user.registerUserWithEmail(id, c.Email, token)
+		err = user.registerWithEmail(id, c.Email, token)
 		if err != nil {
 			out <- err
 			return
@@ -78,7 +71,7 @@ func registerUserWithGoogle(repository *eventSourcedRepository) domain.CommandHa
 		}
 
 		user := New()
-		err = user.registerUserWithGoogle(id, c.Email, c.AuthToken)
+		err = user.registerWithGoogle(id, c.Email, c.AuthToken)
 		if err != nil {
 			out <- err
 			return
@@ -108,7 +101,7 @@ func registerUserWithFacebook(repository *eventSourcedRepository) domain.Command
 		}
 
 		user := New()
-		err = user.registerUserWithFacebook(id, c.Email, c.AuthToken)
+		err = user.registerWithFacebook(id, c.Email, c.AuthToken)
 		if err != nil {
 			out <- err
 			return

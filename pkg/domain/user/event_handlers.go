@@ -6,16 +6,11 @@ import (
 	"reflect"
 )
 
-var UserWasRegisteredWithEmailType string = reflect.TypeOf((*UserWasRegisteredWithEmail)(nil)).String()
-var UserWasRegisteredWithGoogleType string = reflect.TypeOf((*UserWasRegisteredWithGoogle)(nil)).String()
-var UserWasRegisteredWithFacebookType string = reflect.TypeOf((*UserWasRegisteredWithFacebook)(nil)).String()
-var UserEmailAddressWasChangedType string = reflect.TypeOf((*UserEmailAddressWasChanged)(nil)).String()
-
 func registerEventHandlers(eventBus domain.EventBus) {
-	eventBus.Subscribe(UserWasRegisteredWithEmailType, handleUserWasRegisteredWithEmail)
-	eventBus.Subscribe(UserWasRegisteredWithGoogleType, handleUserWasRegisteredWithGoogle)
-	eventBus.Subscribe(UserWasRegisteredWithFacebookType, handleUserWasRegisteredWithFacebook)
-	eventBus.Subscribe(UserEmailAddressWasChangedType, handleUserEmailAddressWasChanged)
+	eventBus.Subscribe(WasRegisteredWithEmailType, handleUserWasRegisteredWithEmail)
+	eventBus.Subscribe(WasRegisteredWithGoogleType, handleUserWasRegisteredWithGoogle)
+	eventBus.Subscribe(WasRegisteredWithFacebookType, handleUserWasRegisteredWithFacebook)
+	eventBus.Subscribe(EmailAddressWasChangedType, handleUserEmailAddressWasChanged)
 }
 
 func handleUserWasRegisteredWithEmail(ctx context.Context, event *domain.Event) {
