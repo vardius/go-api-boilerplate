@@ -3,14 +3,14 @@ FROM golang:latest AS build-env
 MAINTAINER Rafał Lorenz <vardius@gmail.com>
 
 ARG BIN
+ENV BIN=${BIN}
 
-COPY pkg /go/src/app/pkg
-COPY cmd/$BIN /go/src/app/cmd/$BIN
-WORKDIR /go/src/app/cmd/$BIN
+COPY . /go/src/app
+WORKDIR /go/src/app
 
 RUN go-wrapper download
 RUN go-wrapper install
-RUN go build -o $BIN
+RUN bootstart.sh
 
 FROM scratch
 WORKDIR /app

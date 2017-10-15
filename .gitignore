@@ -5,7 +5,7 @@
 .server.env
 *.log*
 
-cmd/*/app
-cmd/*/debug
-cmd/*/tmp
-cmd/*/vendor
+debug
+vendor
+
+cmd/server/server

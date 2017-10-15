@@ -3,7 +3,6 @@ package user
 import (
 	"app/pkg/domain"
 	"context"
-	"reflect"
 )
 
 func registerEventHandlers(eventBus domain.EventBus) {

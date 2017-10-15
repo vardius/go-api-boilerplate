@@ -27,7 +27,7 @@ type config struct {
 	Secret      string   `env:"SECRET"       envDefault:"secret"`
 	Origins     []string `env:"ORIGINS"      envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
 	AwsRegion   string   `env:"AWS_REGION"   envDefault:"us-east-1"`
-	AwsEndpoint string   `env:"AWS_ENDPOINT" envDefault:"http://localstack:4569"`
+	AwsEndpoint string   `env:"AWS_ENDPOINT" envDefault:"http://localhost:4569"`
 }
 
 func getLogLevelByEnv(env string) string {
@@ -67,8 +67,8 @@ func main() {
 	)
 
 	router.POST("/dispatch/{domain}/{command}", controller.CommandDispatch(commandBus))
-	router.POST("/auth/google/callback", controller.GoogleAuth(commandBus, jwtService))
-	router.POST("/auth/facebook/callback", controller.FacebookAuth(commandBus, jwtService))
+	router.POST("/auth/google/callback", controller.NewGoogleAuth(commandBus, jwtService))
+	router.POST("/auth/facebook/callback", controller.NewFacebookAuth(commandBus, jwtService))
 
 	// Applies middleware to self and all children routes
 	// router.USE(gorouter.POST, "/dispatch", middleware.Bearer(cfg.Realm, jwtService.Authenticate))

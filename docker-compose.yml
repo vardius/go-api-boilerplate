@@ -24,6 +24,8 @@ services:
   server:
     image: golang:latest
     container_name: server
+    environment:
+      - BIN=server
     env_file:
       - .server.env
     expose:
@@ -31,12 +33,12 @@ services:
     ports:
       - "2345:2345"
     volumes:
-      - ./cmd/server:/go/src/app/cmd/server
-      - ./pkg:/go/src/app/pkg
+      - ./:/go/src/app
     networks:
       - back_tier
-    working_dir: /go/src/app/cmd/server
-    command: sh /go/src/app/cmd/server/start.sh
+    working_dir: /go/src/app
+    command: sh bootstart.sh
+    privileged: true
 
   localstack:
     image: localstack/localstack

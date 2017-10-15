@@ -55,25 +55,25 @@ func (self *User) trackChange(event interface{}) {
 }
 
 func (self *User) registerWithEmail(id uuid.UUID, email string, authToken string) error {
-	self.trackChange(&UserWasRegisteredWithEmail{id, email, authToken})
+	self.trackChange(&WasRegisteredWithEmail{id, email, authToken})
 
 	return nil
 }
 
 func (self *User) registerWithGoogle(id uuid.UUID, email string, authToken string) error {
-	self.trackChange(&UserWasRegisteredWithGoogle{id, email, authToken})
+	self.trackChange(&WasRegisteredWithGoogle{id, email, authToken})
 
 	return nil
 }
 
 func (self *User) registerWithFacebook(id uuid.UUID, email string, authToken string) error {
-	self.trackChange(&UserWasRegisteredWithFacebook{id, email, authToken})
+	self.trackChange(&WasRegisteredWithFacebook{id, email, authToken})
 
 	return nil
 }
 
 func (self *User) changeEmailAddress(email string) error {
-	self.trackChange(&UserEmailAddressWasChanged{self.id, email})
+	self.trackChange(&EmailAddressWasChanged{self.id, email})
 
 	return nil
 }
