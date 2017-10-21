@@ -47,10 +47,36 @@ Create your local `.env` file from `dist.env` files.
 
 For each of binaries when building a docker image the enviroment variable file will be passed. This repository contains example `.env` file for `server` binary. There are always two files `.server.env` containing local configurations and is to be git ignored where [dist.server.env](dist.server.env) contains versioned example of configuration.
 
-### Development
+## Development
 To setup development enviroment simply run [docker-compose](https://docs.docker.com/compose/gettingstarted/) command. The containers will be set up for each binaries and other services required for application to run.
 
-### Deployment
+You can debug your program with [Delve](https://github.com/derekparker/delve) which is a debugger for the Go programming language running on port **2345**. Repository includes [VS Code](https://code.visualstudio.com/) settings to enable [remote dubbuging](https://github.com/Microsoft/vscode-go/wiki/Debugging-Go-code-using-VS-Code) within docker containers.
+
+## Deployment
+### Docker
+Each binary will have its own docker container.
+#### Build
+Build the container(s)
+**Build all binaries**
+```sh
+$> make all-build
+```
+**Build single binary**
+```sh
+$> make build-server
+```
+#### Run
+Run container(s) on port configured in `.env`
+**Run all binaries**
+```sh
+$> make all-run
+```
+**Run single binary**
+```sh
+$> make build-run
+```
+#### Release
+build, tag and push the container(s)
 **Release all binaries**
 ```sh
 $> make all-release
@@ -59,4 +85,9 @@ $> make all-release
 ```sh
 $> make release-server
 ```
-Other available commands: `build`, `run`, `stop`, `rm`, `release`, `publish`, `publish-latest`, `publish-version`, `tag`, `tag-latest`, `tag-version`. All comands follow the same convention for all binaries add `all-` prefix, for one binary add `-%` sufix where `%` is a directory name underneath `cmd`. For more informations about commands check [Makefile](Makefile).
+### Makefile
+Available commands:
+
+`build`, `run`, `stop`, `rm`, `release`, `publish`, `publish-latest`, `publish-version`, `tag`, `tag-latest`, `tag-version`
+
+All comands follow the same convention for all binaries add `all-` prefix, for one binary add `-%` sufix where `%` is a directory name underneath `cmd`. For more informations about commands check [Makefile](Makefile).
