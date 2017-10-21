@@ -57,6 +57,7 @@ You can debug your program with [Delve](https://github.com/derekparker/delve) wh
 Each binary will have its own docker container.
 #### Build
 Build the container(s)
+
 **Build all binaries**
 ```sh
 $> make all-build
@@ -67,6 +68,7 @@ $> make build-server
 ```
 #### Run
 Run container(s) on port configured in `.env`
+
 **Run all binaries**
 ```sh
 $> make all-run
@@ -77,6 +79,7 @@ $> make build-run
 ```
 #### Release
 build, tag and push the container(s)
+
 **Release all binaries**
 ```sh
 $> make all-release
