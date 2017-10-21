@@ -35,7 +35,7 @@ HOW TO USE
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
 
-### Repository structer
+### Repository structure
 Repository holds two top-level directories, `pkg` and `cmd`.
 
 `pkg` directory contains directories for each of libraries.
