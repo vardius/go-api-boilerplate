@@ -18,7 +18,7 @@ func (r *eventSourcedRepository) Save(ctx context.Context, u *User) error {
 	r.eventStore.Store(u.Changes())
 
 	for _, event := range u.Changes() {
-		r.eventBus.Publish(event.Metadata.Type, ctx, event)
+		r.eventBus.Publish(event.Metadata.Type, ctx, *event)
 	}
 
 	return nil

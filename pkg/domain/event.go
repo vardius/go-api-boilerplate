@@ -9,9 +9,9 @@ import (
 )
 
 type Event struct {
-	Id       uuid.UUID     `json:"id"`
-	Metadata EventMetaData `json:"metadata"`
-	Payload  interface{}   `json:"payload"`
+	Id       uuid.UUID       `json:"id"`
+	Metadata EventMetaData   `json:"metadata"`
+	Payload  json.RawMessage `json:"payload"`
 }
 
 type EventMetaData struct {
@@ -23,29 +23,34 @@ type EventMetaData struct {
 }
 
 //Create new event
-func NewEvent(streamId uuid.UUID, streamName string, streamVersion int, payload interface{}) *Event {
+func NewEvent(streamId uuid.UUID, streamName string, streamVersion int, data interface{}) (*Event, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 
 	meta := EventMetaData{
-		Type:          reflect.TypeOf(payload).String(),
+		Type:          reflect.TypeOf(data).String(),
 		StreamId:      streamId,
 		StreamName:    streamName,
 		StreamVersion: streamVersion,
 		OccuredAt:     time.Now(),
 	}
 
-	return &Event{id, meta, payload}
+	payload, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Event{id, meta, payload}, nil
 }
 
 //Makes a event object from metadata and payload
-func MakeEvent(meta EventMetaData, payload json.RawMessage) *Event {
+func MakeEvent(meta EventMetaData, payload json.RawMessage) (*Event, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return &Event{id, meta, payload}
+	return &Event{id, meta, payload}, nil
 }

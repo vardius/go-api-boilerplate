@@ -50,7 +50,13 @@ func (self *User) transition(event interface{}) {
 
 func (self *User) trackChange(event interface{}) {
 	self.transition(event)
-	eventEnvelop := domain.NewEvent(self.id, fmt.Sprintf("%T", self), self.version, event)
+	eventEnvelop, err := domain.NewEvent(self.id, fmt.Sprintf("%T", self), self.version, event)
+
+	if err != nil {
+		logger.Error(nil, "Error %v parsing event %v", err, event)
+		return
+	}
+
 	self.changes = append(self.changes, eventEnvelop)
 }
 

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/google/uuid"
 )
@@ -12,14 +13,25 @@ type Identity struct {
 	Roles []string  `json:"roles"`
 }
 
-func NewIdentityFromGoogleData(data json.RawMessage) *Identity {
-	return &Identity{}
+// FromGoogleData sets *i to a copy of data.
+func (i *Identity) FromGoogleData(data json.RawMessage) error {
+	if i == nil {
+		return errors.New("auth.Identity: FromGoogleData on nil pointer")
+	}
+	//todo set props from google data
+	return nil
 }
 
-func NewIdentityFromFacebookData(data json.RawMessage) *Identity {
-	return &Identity{}
+// FromFacebookData sets *i to a copy of data.
+func (i *Identity) FromFacebookData(data json.RawMessage) error {
+	if i == nil {
+		return errors.New("auth.Identity: FromFacebookData on nil pointer")
+	}
+	//todo set props from facebook data
+	return nil
 }
 
+// NewUserIdentity returns a new Identity with empty roles slice.
 func NewUserIdentity(id uuid.UUID, email string) *Identity {
 	return &Identity{id, email, nil}
 }

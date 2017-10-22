@@ -7,12 +7,13 @@ import (
 
 type key struct{}
 
-func NewContext(req *http.Request, i Identity) context.Context {
+// NewContext returns a new Context that carries value i.
+func NewContext(req *http.Request, i *Identity) context.Context {
 	return context.WithValue(req.Context(), key{}, i)
 }
 
-//FromContext extracts the request Identity ctx, if present.
-func FromContext(ctx context.Context) (Identity, bool) {
-	i, ok := ctx.Value(key{}).(Identity)
+//FromContext returns the Identity value stored in ctx, if any.
+func FromContext(ctx context.Context) (*Identity, bool) {
+	i, ok := ctx.Value(key{}).(*Identity)
 	return i, ok
 }

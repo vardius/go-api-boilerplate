@@ -24,7 +24,8 @@ func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) h
 			return
 		}
 
-		identity := auth.NewIdentityFromFacebookData(facebookData)
+		identity := &auth.Identity{}
+		identity.FromFacebookData(facebookData)
 		token, err := jwtService.GenerateToken(identity)
 		if err != nil {
 			r.WithContext(middleware.NewContextWithResponse(r, &middleware.HTTPError{http.StatusInternalServerError, err, "Generate token failure"}))
@@ -35,6 +36,7 @@ func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) h
 		defer close(out)
 
 		go func() {
+			//todo: pass token to command handler
 			commandBus.Publish(user.Domain+"-"+user.RegisterWithFacebook, r.Context(), facebookData, out)
 		}()
 
@@ -57,7 +59,8 @@ func NewGoogleAuth(commandBus domain.CommandBus, jwtService auth.JwtService) htt
 			return
 		}
 
-		identity := auth.NewIdentityFromGoogleData(googleData)
+		identity := &auth.Identity{}
+		identity.FromGoogleData(googleData)
 		token, err := jwtService.GenerateToken(identity)
 		if err != nil {
 			r.WithContext(middleware.NewContextWithResponse(r, &middleware.HTTPError{http.StatusInternalServerError, err, "Generate token failure"}))
@@ -68,6 +71,7 @@ func NewGoogleAuth(commandBus domain.CommandBus, jwtService auth.JwtService) htt
 		defer close(out)
 
 		go func() {
+			//todo: pass token to command handler
 			commandBus.Publish(user.Domain+"-"+user.RegisterWithGoogle, r.Context(), googleData, out)
 		}()
 
