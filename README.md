@@ -57,7 +57,7 @@ Repository holds two top-level directories, `pkg` and `cmd`.
 │   │   ├── /...         # etc.
 │   ├── /domain/         # Domain liblaries
 │   │   ├── /user/       # User domain
-│   │   |   ├── /main.go # Main user domain entrypoint
+│   │   │   ├── /main.go # Main user domain entrypoint
 │   │   ├── /...         # etc.
 │   ├── /middleware/     # Http middlewares
 │   │   ├── /cors.go     # CORS middleware
