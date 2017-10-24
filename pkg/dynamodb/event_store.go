@@ -76,12 +76,12 @@ func (s *eventStore) FindAll() []*domain.Event {
 	return es
 }
 
-func (s *eventStore) GetStream(streamId uuid.UUID, streamName string) []*domain.Event {
+func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.Event {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String(s.tableName),
-		KeyConditionExpression: aws.String("metadata.streamId = :streamId"),
+		KeyConditionExpression: aws.String("metadata.streamID = :streamID"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":streamId": {S: aws.String(streamId.String())},
+			":streamID": {S: aws.String(streamID.String())},
 		},
 		ConsistentRead: aws.Bool(true),
 	}
@@ -117,6 +117,7 @@ func (s *eventStore) query(params *dynamodb.QueryInput) ([]*domain.Event, error)
 	return es, nil
 }
 
+// NewEventStore creates new dynamodb event store
 func NewEventStore(tableName string, config *aws.Config) domain.EventStore {
 	if tableName == "" {
 		tableName = "events"

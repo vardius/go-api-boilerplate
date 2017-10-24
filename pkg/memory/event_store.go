@@ -22,7 +22,7 @@ func (s *eventStore) Store(events []*domain.Event) error {
 
 	// todo check event version
 	for _, e := range events {
-		s.events[e.Id.String()] = e
+		s.events[e.ID.String()] = e
 	}
 
 	return nil
@@ -47,12 +47,12 @@ func (s *eventStore) FindAll() []*domain.Event {
 	return es
 }
 
-func (s *eventStore) GetStream(streamId uuid.UUID, streamName string) []*domain.Event {
+func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.Event {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	e := make([]*domain.Event, 0, 0)
 	for _, val := range s.events {
-		if val.Metadata.StreamName == streamName && val.Metadata.StreamId == streamId {
+		if val.Metadata.StreamName == streamName && val.Metadata.StreamID == streamID {
 			e = append(e, val)
 		}
 	}
