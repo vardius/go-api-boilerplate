@@ -1,4 +1,4 @@
-Golang API boilerplate
+Golang API Starter Kit
 ================
 
 Go Server/API boilerplate using best practices, DDD, CQRS, ES.
@@ -41,6 +41,34 @@ Repository holds two top-level directories, `pkg` and `cmd`.
 `pkg` directory contains directories for each of libraries.
 
 `cmd` directory contains directories for each of binaries.
+
+#### Directory Layout
+```bash
+.
+├── /.vscode/            # Visual Studio Code remote debugging setttings
+├── /nginx/              # Nginx docker container configuration
+├── /cmd/                # Binaries
+│   ├── /server/         # Server binary
+│   │   └── /main.go     # Server application - glues together liblaries
+│   ├── /...             # etc.
+├── /pkg/                # Liblaries
+│   ├── /controller/     # Http handlers
+│   │   ├── /dispatch.go # Dispatch command endpoint
+│   │   ├── /...         # etc.
+│   ├── /domain/         # Domain liblaries
+│   │   ├── /user/       # User domain
+│   │   |   ├── /main.go # Main user domain entrypoint
+│   │   ├── /...         # etc.
+│   ├── /middleware/     # Http middlewares
+│   │   ├── /cors.go     # CORS middleware
+│   │   ├── /...         # etc.
+├── /vendor/             # Vendor liblaries
+├── docker-compose.yml   # Defines Docker services, networks and volumes per developer environment
+├── Dockerfile           # Docker image for production
+├── Makefile             # Commands for building a Docker image for production and deployment
+├── .env                 # Enviroment configuration
+└── bootstart.sh         # Configuration script for docker containers
+```
 
 ### Configuration
 Create your local `.env` file from `dist.env` files.
