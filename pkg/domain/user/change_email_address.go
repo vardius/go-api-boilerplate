@@ -12,8 +12,8 @@ import (
 const ChangeEmailAddress = "change-email-address"
 
 type changeEmailAddress struct {
-	id    uuid.UUID `json:"id"`
-	email string    `json:"email"`
+	ID    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
 }
 
 func (c *changeEmailAddress) fromJSON(payload json.RawMessage) error {
@@ -31,8 +31,8 @@ func onChangeEmailAddress(repository *eventSourcedRepository) domain.CommandHand
 
 		//todo: validate if email is taken
 
-		u := repository.Get(c.id)
-		err = u.ChangeEmailAddress(c.email)
+		u := repository.Get(c.ID)
+		err = u.ChangeEmailAddress(c.Email)
 		if err != nil {
 			out <- err
 			return
