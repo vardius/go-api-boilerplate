@@ -21,7 +21,7 @@ type EventMetaData struct {
 	StreamID      uuid.UUID `json:"stream_id"`
 	StreamName    string    `json:"stream_name"`
 	StreamVersion int       `json:"stream_version"`
-	OccuredAt     time.Time `json:"occured_at"`
+	OccurredAt    time.Time `json:"occurred_at"`
 }
 
 // NewEvent create new event
@@ -36,7 +36,7 @@ func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, data int
 		StreamID:      streamID,
 		StreamName:    streamName,
 		StreamVersion: streamVersion,
-		OccuredAt:     time.Now(),
+		occurredAt:    time.Now(),
 	}
 
 	payload, err := json.Marshal(data)

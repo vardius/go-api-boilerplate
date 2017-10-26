@@ -24,7 +24,7 @@ Directory Layout:
   ├── docker-compose.yml   # Defines Docker services, networks and volumes per developer environment
   ├── Dockerfile           # Docker image for production
   ├── Makefile             # Commands for building a Docker image for production and deployment
-  ├── .env                 # Enviroment configuration
+  ├── .env                 # Environment configuration
   └── bootstart.sh         # Configuration script for docker containers
 */
 package goapiboilerplate

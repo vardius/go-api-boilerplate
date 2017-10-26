@@ -73,17 +73,17 @@ Repository holds two top-level directories, `pkg` and `cmd`.
 ├── docker-compose.yml   # Defines Docker services, networks and volumes per developer environment
 ├── Dockerfile           # Docker image for production
 ├── Makefile             # Commands for building a Docker image for production and deployment
-├── .env                 # Enviroment configuration
+├── .env                 # Environment configuration
 └── bootstart.sh         # Configuration script for docker containers
 ```
 
 ### Configuration
 Create your local `.env` file from `dist.env` files.
 
-For each of binaries when building a docker image the enviroment variable file will be passed. This repository contains example `.env` file for `server` binary. There are always two files `.server.env` containing local configurations and is to be git ignored where [dist.server.env](dist.server.env) contains versioned example of configuration.
+For each of binaries when building a docker image the environment variable file will be passed. This repository contains example `.env` file for `server` binary. There are always two files `.server.env` containing local configurations and is to be git ignored where [dist.server.env](dist.server.env) contains versioned example of configuration.
 
 ## Development
-To setup development enviroment simply run [docker-compose](https://docs.docker.com/compose/gettingstarted/) command. The containers will be set up for each binaries and other services required for application to run.
+To setup development environment simply run [docker-compose](https://docs.docker.com/compose/gettingstarted/) command. The containers will be set up for each binaries and other services required for application to run.
 
 You can debug your program with [Delve](https://github.com/derekparker/delve) which is a debugger for the Go programming language running on port **2345**. Repository includes [VS Code](https://code.visualstudio.com/) settings to enable [remote dubbuging](https://github.com/Microsoft/vscode-go/wiki/Debugging-Go-code-using-VS-Code) within docker containers.
 
