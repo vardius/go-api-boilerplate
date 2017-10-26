@@ -37,7 +37,7 @@ func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) h
 
 		go func() {
 			//todo: pass token to command handler
-			commandBus.Publish(user.Domain+"-"+user.RegisterWithFacebook, r.Context(), facebookData, out)
+			commandBus.Publish(user.Domain+user.RegisterWithFacebook, r.Context(), facebookData, out)
 		}()
 
 		if err = <-out; err != nil {
@@ -72,7 +72,7 @@ func NewGoogleAuth(commandBus domain.CommandBus, jwtService auth.JwtService) htt
 
 		go func() {
 			//todo: pass token to command handler
-			commandBus.Publish(user.Domain+"-"+user.RegisterWithGoogle, r.Context(), googleData, out)
+			commandBus.Publish(user.Domain+user.RegisterWithGoogle, r.Context(), googleData, out)
 		}()
 
 		if err = <-out; err != nil {

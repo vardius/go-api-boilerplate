@@ -13,7 +13,7 @@ type eventSourcedRepository struct {
 	eventBus   domain.EventBus
 }
 
-// Save current aggregate root changes to event store and publish each event with event bus
+// Save current user changes to event store and publish each event with an event bus
 func (r *eventSourcedRepository) Save(ctx context.Context, u *User) error {
 	r.eventStore.Store(u.Changes())
 
@@ -24,16 +24,16 @@ func (r *eventSourcedRepository) Save(ctx context.Context, u *User) error {
 	return nil
 }
 
-// Get aggregate root with current state applied
+// Get user with current state applied
 func (r *eventSourcedRepository) Get(id uuid.UUID) *User {
 	events := r.eventStore.GetStream(id, r.streamName)
 
-	aggregateRoot := New()
-	aggregateRoot.FromHistory(events)
+	user := New()
+	user.FromHistory(events)
 
-	return aggregateRoot
+	return user
 }
 
-func newEventSourcedRepository(streamName string, store domain.EventStore, bus domain.EventBus) *eventSourcedRepository {
+func newRepository(streamName string, store domain.EventStore, bus domain.EventBus) *eventSourcedRepository {
 	return &eventSourcedRepository{streamName, store, bus}
 }

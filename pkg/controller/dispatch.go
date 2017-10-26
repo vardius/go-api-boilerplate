@@ -36,7 +36,7 @@ func CommandDispatch(commandBus domain.CommandBus) http.HandlerFunc {
 
 		go func() {
 			commandBus.Publish(
-				params.Value("domain")+"-"+params.Value("command"),
+				params.Value("domain")+params.Value("command"),
 				r.Context(),
 				body,
 				out,

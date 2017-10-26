@@ -2,18 +2,20 @@ package domain
 
 import (
 	"encoding/json"
-	"reflect"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
 
+// Event contains id, payload and metadata
 type Event struct {
 	ID       uuid.UUID       `json:"id"`
 	Metadata EventMetaData   `json:"metadata"`
 	Payload  json.RawMessage `json:"payload"`
 }
 
+// EventMetaData for Event
 type EventMetaData struct {
 	Type          string    `json:"type"`
 	StreamID      uuid.UUID `json:"stream_id"`
@@ -30,7 +32,7 @@ func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, data int
 	}
 
 	meta := EventMetaData{
-		Type:          reflect.TypeOf(data).String(),
+		Type:          fmt.Sprintf("%T", data),
 		StreamID:      streamID,
 		StreamName:    streamName,
 		StreamVersion: streamVersion,

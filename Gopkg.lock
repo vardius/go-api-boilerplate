@@ -4,14 +4,14 @@
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/json/jsonutil","private/protocol/jsonrpc","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/xml/xmlutil","service/dynamodb","service/dynamodb/dynamodbattribute","service/sts"]
-  revision = "0b712b483e38c7e1efe9c3e0249de0a8f131cb4e"
-  version = "v1.12.15"
+  revision = "f426770fd5a4bae6186b280d4af7dca83a4cdef4"
+  version = "v1.12.17"
 
 [[projects]]
   name = "github.com/caarlos0/env"
   packages = ["."]
-  revision = "0cf029d5748c52beb2c9d20c81880cb4bdf8f788"
-  version = "v3.0"
+  revision = "d29d8d23e95ae07cc6fafc53154f8456820ad9f2"
+  version = "v3.1"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -64,7 +64,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "cd69bc3fc700721b709c3a59e16e24c67b58f6ff"
+  revision = "4b14673ba32bee7f5ac0f990a48f033919fd418b"
 
 [[projects]]
   name = "google.golang.org/appengine"

@@ -55,7 +55,7 @@ func main() {
 	commandBus := memory.NewCommandBus(logger)
 	jwtService := auth.NewJwtService([]byte(cfg.Secret), time.Hour*24)
 
-	user.Init(eventStore, eventBus, commandBus, jwtService, logger)
+	user.Init(eventStore, eventBus, commandBus, jwtService)
 
 	router := gorouter.New(
 		middleware.NewLogger(logger),
