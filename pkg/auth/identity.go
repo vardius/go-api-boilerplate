@@ -9,7 +9,7 @@ import (
 
 // Identity data to be encode in auth token
 type Identity struct {
-	Id    uuid.UUID `json:"id"`
+	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
 	Roles []string  `json:"roles"`
 }
@@ -32,7 +32,7 @@ func (i *Identity) FromFacebookData(data json.RawMessage) error {
 	return nil
 }
 
-// NewUserIdentity returns a new Identity with empty roles slice.
+// NewUserIdentity returns a new Identity with empty roles slice
 func NewUserIdentity(id uuid.UUID, email string) *Identity {
 	return &Identity{id, email, nil}
 }

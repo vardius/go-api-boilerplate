@@ -5,14 +5,20 @@ import (
 	"app/pkg/domain"
 	"app/pkg/domain/user"
 	"app/pkg/middleware"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 )
 
-type oAuthResponse struct {
+type authResponse struct {
 	AuthToken string         `json:"authToken"`
 	Identity  *auth.Identity `json:"identity"`
+}
+
+type authCommandPayload struct {
+	AuthToken string          `json:"authToken"`
+	Data      json.RawMessage `json:"data"`
 }
 
 // NewFacebookAuth creates facebook auth handler
@@ -27,6 +33,7 @@ func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) h
 
 		identity := &auth.Identity{}
 		identity.FromFacebookData(facebookData)
+
 		token, err := jwtService.GenerateToken(identity)
 		if err != nil {
 			r.WithContext(middleware.NewContextWithResponse(r, &middleware.HTTPError{http.StatusInternalServerError, err, "Generate token failure"}))
@@ -37,8 +44,7 @@ func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) h
 		defer close(out)
 
 		go func() {
-			//todo: pass token to command handler
-			commandBus.Publish(user.Domain+user.RegisterWithFacebook, r.Context(), facebookData, out)
+			commandBus.Publish(user.Domain+user.RegisterWithFacebook, r.Context(), &authCommandPayload{token, facebookData}, out)
 		}()
 
 		if err = <-out; err != nil {
@@ -46,7 +52,7 @@ func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) h
 			return
 		}
 
-		r.WithContext(middleware.NewContextWithResponse(r, oAuthResponse{token, identity}))
+		r.WithContext(middleware.NewContextWithResponse(r, authResponse{token, identity}))
 		return
 	}
 }
@@ -63,6 +69,7 @@ func NewGoogleAuth(commandBus domain.CommandBus, jwtService auth.JwtService) htt
 
 		identity := &auth.Identity{}
 		identity.FromGoogleData(googleData)
+
 		token, err := jwtService.GenerateToken(identity)
 		if err != nil {
 			r.WithContext(middleware.NewContextWithResponse(r, &middleware.HTTPError{http.StatusInternalServerError, err, "Generate token failure"}))
@@ -73,8 +80,7 @@ func NewGoogleAuth(commandBus domain.CommandBus, jwtService auth.JwtService) htt
 		defer close(out)
 
 		go func() {
-			//todo: pass token to command handler
-			commandBus.Publish(user.Domain+user.RegisterWithGoogle, r.Context(), googleData, out)
+			commandBus.Publish(user.Domain+user.RegisterWithGoogle, r.Context(), &authCommandPayload{token, googleData}, out)
 		}()
 
 		if err = <-out; err != nil {
@@ -82,7 +88,7 @@ func NewGoogleAuth(commandBus domain.CommandBus, jwtService auth.JwtService) htt
 			return
 		}
 
-		r.WithContext(middleware.NewContextWithResponse(r, oAuthResponse{token, identity}))
+		r.WithContext(middleware.NewContextWithResponse(r, authResponse{token, identity}))
 		return
 	}
 }
