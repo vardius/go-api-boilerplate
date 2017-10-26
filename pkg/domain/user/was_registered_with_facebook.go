@@ -3,6 +3,7 @@ package user
 import (
 	"app/pkg/domain"
 	"context"
+	"log"
 
 	"github.com/google/uuid"
 )
@@ -16,4 +17,5 @@ type WasRegisteredWithFacebook struct {
 
 func onWasRegisteredWithFacebook(ctx context.Context, event domain.Event) {
 	// todo: register user
+	log.Printf("handle %v", event)
 }

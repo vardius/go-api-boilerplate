@@ -3,6 +3,7 @@ package user
 import (
 	"app/pkg/domain"
 	"context"
+	"log"
 
 	"github.com/google/uuid"
 )
@@ -16,4 +17,5 @@ type WasRegisteredWithEmail struct {
 
 func onWasRegisteredWithEmail(ctx context.Context, event domain.Event) {
 	// todo: register user and send email with auth token
+	log.Printf("handle %v", event)
 }
