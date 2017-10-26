@@ -59,6 +59,7 @@ func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.
 	return e
 }
 
+// NewEventStore creates in memory event store
 func NewEventStore() domain.EventStore {
 	return &eventStore{
 		events: make(map[string]*domain.Event),

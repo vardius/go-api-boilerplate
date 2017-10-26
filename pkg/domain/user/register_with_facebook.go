@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// RegisterWithFacebook command bus contract
 const RegisterWithFacebook = "register_with_facebook"
 
 type registerWithFacebook struct {

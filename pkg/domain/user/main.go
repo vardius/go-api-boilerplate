@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// Domain name
 const Domain = "users"
 
 func registerCommandHandlers(commandBus domain.CommandBus, repository *eventSourcedRepository, jwtService auth.JwtService) {

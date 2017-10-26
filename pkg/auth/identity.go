@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Identity data to be encode in auth token
 type Identity struct {
 	Id    uuid.UUID `json:"id"`
 	Email string    `json:"email"`

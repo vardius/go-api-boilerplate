@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// ChangeEmailAddress command bus contract
 const ChangeEmailAddress = "change-email-address"
 
 type changeEmailAddress struct {

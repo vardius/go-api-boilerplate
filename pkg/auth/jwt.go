@@ -10,6 +10,7 @@ import (
 
 const identityClaimKey = "identity"
 
+// JwtService allows to encode/decode jwt tokens
 type JwtService interface {
 	GenerateToken(*Identity) (string, error)
 	Authenticate(token string) (*Identity, error)
@@ -48,11 +49,12 @@ func (s *jwtService) Authenticate(token string) (*Identity, error) {
 
 	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
 		return claims[identityClaimKey].(*Identity), nil
-	} else {
-		return nil, errors.New("Error parsing token")
 	}
+
+	return nil, errors.New("Error parsing token")
 }
 
+// NewJwtService return new instance of JwtService
 func NewJwtService(signinKey []byte, expiration time.Duration) JwtService {
 	return &jwtService{signinKey, expiration}
 }

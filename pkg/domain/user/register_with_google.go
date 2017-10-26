@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// RegisterWithGoogle command bus contract
 const RegisterWithGoogle = "register_with_google"
 
 type registerWithGoogle struct {

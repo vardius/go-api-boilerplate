@@ -9,6 +9,7 @@ import (
 	"github.com/vardius/gorouter"
 )
 
+// CommandDispatch creates handler for command bus
 func CommandDispatch(commandBus domain.CommandBus) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error

@@ -28,6 +28,7 @@ func (bus *eventBus) Unsubscribe(eventType string, fn domain.EventHandler) error
 	return bus.messageBus.Unsubscribe(eventType, fn)
 }
 
+// NewEventBus creates in memory event bus
 func NewEventBus(log golog.Logger) domain.EventBus {
 	return &eventBus{messageBus, log}
 }

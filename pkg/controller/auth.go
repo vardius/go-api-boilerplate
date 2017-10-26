@@ -15,6 +15,7 @@ type oAuthResponse struct {
 	Identity  *auth.Identity `json:"identity"`
 }
 
+// NewFacebookAuth creates facebook auth handler
 func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		accessToken := r.FormValue("accessToken")
@@ -50,6 +51,7 @@ func NewFacebookAuth(commandBus domain.CommandBus, jwtService auth.JwtService) h
 	}
 }
 
+// NewGoogleAuth creates google auth handler
 func NewGoogleAuth(commandBus domain.CommandBus, jwtService auth.JwtService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		accessToken := r.FormValue("accessToken")
