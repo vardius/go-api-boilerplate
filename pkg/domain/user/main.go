@@ -1,16 +1,16 @@
 package user
 
 import (
-	"app/pkg/auth"
 	"app/pkg/domain"
+	"app/pkg/jwt"
 	"fmt"
 )
 
 // Domain name
 const Domain = "users"
 
-func registerCommandHandlers(commandBus domain.CommandBus, repository *eventSourcedRepository, jwtService auth.JwtService) {
-	commandBus.Subscribe(Domain+RegisterWithEmail, onRegisterWithEmail(repository, jwtService))
+func registerCommandHandlers(commandBus domain.CommandBus, repository *eventSourcedRepository, j jwt.Jwt) {
+	commandBus.Subscribe(Domain+RegisterWithEmail, onRegisterWithEmail(repository, j))
 	commandBus.Subscribe(Domain+RegisterWithGoogle, onRegisterWithGoogle(repository))
 	commandBus.Subscribe(Domain+RegisterWithFacebook, onRegisterWithFacebook(repository))
 	commandBus.Subscribe(Domain+ChangeEmailAddress, onChangeEmailAddress(repository))
@@ -24,9 +24,9 @@ func registerEventHandlers(eventBus domain.EventBus) {
 }
 
 // Init user domain
-func Init(eventStore domain.EventStore, eventBus domain.EventBus, commandBus domain.CommandBus, jwtService auth.JwtService) {
+func Init(eventStore domain.EventStore, eventBus domain.EventBus, commandBus domain.CommandBus, j jwt.Jwt) {
 	repository := newRepository(fmt.Sprintf("%T", User{}), eventStore, eventBus)
 
-	registerCommandHandlers(commandBus, repository, jwtService)
+	registerCommandHandlers(commandBus, repository, j)
 	registerEventHandlers(eventBus)
 }

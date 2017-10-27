@@ -1,4 +1,4 @@
-package middleware
+package err
 
 import (
 	"encoding/json"

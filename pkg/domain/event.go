@@ -36,7 +36,7 @@ func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, data int
 		StreamID:      streamID,
 		StreamName:    streamName,
 		StreamVersion: streamVersion,
-		occurredAt:    time.Now(),
+		OccurredAt:    time.Now(),
 	}
 
 	payload, err := json.Marshal(data)

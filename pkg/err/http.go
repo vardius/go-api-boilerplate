@@ -1,4 +1,4 @@
-package middleware
+package err
 
 // HTTPError allows you yo return nice error responses
 type HTTPError struct {

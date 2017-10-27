@@ -1,18 +1,6 @@
-package middleware
+package nosniff
 
-import (
-	"net/http"
-)
-
-// JSONHeader sets json response header type
-func JSONHeader(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		next.ServeHTTP(w, r)
-	}
-
-	return http.HandlerFunc(fn)
-}
+import "net/http"
 
 // XSSHeader sets xss response header types
 func XSSHeader(next http.Handler) http.Handler {

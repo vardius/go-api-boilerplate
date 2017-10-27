@@ -1,8 +1,9 @@
 package user
 
 import (
-	"app/pkg/auth"
 	"app/pkg/domain"
+	"app/pkg/identity"
+	"app/pkg/jwt"
 	"context"
 	"encoding/json"
 
@@ -20,7 +21,7 @@ func (c *registerWithEmail) fromJSON(payload json.RawMessage) error {
 	return json.Unmarshal(payload, c)
 }
 
-func onRegisterWithEmail(repository *eventSourcedRepository, jwtService auth.JwtService) domain.CommandHandler {
+func onRegisterWithEmail(repository *eventSourcedRepository, j jwt.Jwt) domain.CommandHandler {
 	return func(ctx context.Context, payload json.RawMessage, out chan<- error) {
 		c := &registerWithEmail{}
 		err := c.fromJSON(payload)
@@ -37,8 +38,8 @@ func onRegisterWithEmail(repository *eventSourcedRepository, jwtService auth.Jwt
 			return
 		}
 
-		identity := auth.NewUserIdentity(id, c.Email)
-		token, err := jwtService.GenerateToken(identity)
+		i := identity.New(id, c.Email, nil)
+		token, err := j.GenerateToken(i)
 		if err != nil {
 			out <- err
 			return

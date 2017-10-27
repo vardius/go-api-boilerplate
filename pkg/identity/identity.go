@@ -1,4 +1,4 @@
-package auth
+package identity
 
 import (
 	"encoding/json"
@@ -32,7 +32,7 @@ func (i *Identity) FromFacebookData(data json.RawMessage) error {
 	return nil
 }
 
-// NewUserIdentity returns a new Identity with empty roles slice
-func NewUserIdentity(id uuid.UUID, email string) *Identity {
-	return &Identity{id, email, nil}
+// New returns a new Identity
+func New(id uuid.UUID, email string, roles []string) *Identity {
+	return &Identity{id, email, roles}
 }

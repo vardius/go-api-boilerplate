@@ -2,18 +2,23 @@ package main
 
 import (
 	"app/pkg/auth"
-	"app/pkg/controller"
+	"app/pkg/domain"
 	"app/pkg/domain/user"
 	"app/pkg/dynamodb"
+	"app/pkg/err"
+	"app/pkg/json"
+	"app/pkg/jwt"
+	"app/pkg/log"
 	"app/pkg/memory"
-	"app/pkg/middleware"
+	"app/pkg/nosniff"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/caarlos0/env"
-	"github.com/vardius/golog"
+	"github.com/justinas/nosurf"
+	"github.com/rs/cors"
 	"github.com/vardius/gorouter"
 )
 
@@ -30,15 +35,6 @@ type config struct {
 	AwsEndpoint string   `env:"AWS_ENDPOINT" envDefault:"http://localhost:4569"`
 }
 
-func getLogLevelByEnv(env string) string {
-	logLevel := "info"
-	if env == "development" {
-		logLevel = "debug"
-	}
-
-	return logLevel
-}
-
 func main() {
 	cfg := config{}
 	env.Parse(&cfg)
@@ -48,30 +44,29 @@ func main() {
 		Endpoint: aws.String(cfg.AwsEndpoint),
 	}
 
-	logger := golog.New(getLogLevelByEnv(cfg.Env))
-	// logger := golog.NewFileLogger(getLogLevelByEnv(cfg.Env), "/tmp/prod.log")
+	logger := log.New(cfg.Env)
+	j := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	eventStore := dynamodb.NewEventStore("events", awsConfig)
 	eventBus := memory.NewEventBus(logger)
 	commandBus := memory.NewCommandBus(logger)
-	jwtService := auth.NewJwtService([]byte(cfg.Secret), time.Hour*24)
 
-	user.Init(eventStore, eventBus, commandBus, jwtService)
+	user.Init(eventStore, eventBus, commandBus, j)
 
 	router := gorouter.New(
-		middleware.NewLogger(logger),
-		// middleware.NewCors(cfg.Origins), //todo: uncomment
-		middleware.XSSHeader,
-		middleware.JSONHeader,
-		middleware.JSONBody,
-		middleware.NewPanicRecover(logger),
+		logger.LogRequest,
+		cors.Default().Handler,
+		nosurf.NewPure,
+		nosniff.XSSHeader,
+		json.Parse,
+		err.NewPanicRecover(logger),
 	)
 
-	router.POST("/dispatch/{domain}/{command}", controller.CommandDispatch(commandBus))
-	router.POST("/auth/google/callback", controller.NewGoogleAuth(commandBus, jwtService))
-	router.POST("/auth/facebook/callback", controller.NewFacebookAuth(commandBus, jwtService))
+	router.POST("/dispatch/{domain}/{command}", domain.NewDispatcher(commandBus))
+	router.POST("/auth/google/callback", auth.NewGoogleAuth(commandBus, j))
+	router.POST("/auth/facebook/callback", auth.NewFacebookAuth(commandBus, j))
 
 	// Applies middleware to self and all children routes
-	// router.USE(gorouter.POST, "/dispatch", middleware.Bearer(cfg.Realm, jwtService.Authenticate))
+	// router.USE(gorouter.POST, "/dispatch", auth.Bearer(cfg.Realm, j.Authenticate))
 
 	if cfg.CertPath != "" && cfg.KeyPath != "" {
 		logger.Critical(nil, "%v\n", http.ListenAndServeTLS(":"+strconv.Itoa(cfg.Port), cfg.CertPath, cfg.KeyPath, router))
