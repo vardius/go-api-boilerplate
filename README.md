@@ -59,7 +59,7 @@ Repository holds two top-level directories, `pkg` and `cmd`.
 │   │   └── /main.go     # Server application - glues together libraries
 │   ├── /...             # etc.
 ├── /pkg/                # Libraries
-│   ├── /auth/           # Authorizatiob tools
+│   ├── /auth/           # Authorization tools
 │   ├── /...             # etc.
 │   ├── /domain/         # Domain libraries
 │   │   ├── /user/       # User domain

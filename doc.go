@@ -10,7 +10,7 @@ Directory Layout:
   │   │   └── /main.go     # Server application - glues together libraries
   │   ├── /...             # etc.
   ├── /pkg/                # Libraries
-  │   ├── /auth/           # Authorizatiob tools
+  │   ├── /auth/           # Authorization tools
   │   ├── /...             # etc.
   │   ├── /domain/         # Domain libraries
   │   │   ├── /user/       # User domain
