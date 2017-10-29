@@ -1,7 +1,7 @@
 package user
 
 import (
-	"app/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"context"
 	"log"
 

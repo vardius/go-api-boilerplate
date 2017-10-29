@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"app/pkg/auth/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"errors"
 	"fmt"
 	"time"

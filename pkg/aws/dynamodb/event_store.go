@@ -1,7 +1,7 @@
 package dynamodb
 
 import (
-	"app/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"

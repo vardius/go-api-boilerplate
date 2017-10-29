@@ -26,7 +26,6 @@ services:
     container_name: server
     environment:
       - BIN=server
-      - PKG=github.com/vardius/gi-api-boilerplate
     env_file:
       - .server.env
     expose:
@@ -34,11 +33,11 @@ services:
     ports:
       - "2345:2345"
     volumes:
-      - ./:/go/src/app
+      - ./:/go/src/${PKG}
     networks:
       - back_tier
-    working_dir: /go/src/app
-    command: sh bootstart.sh
+    working_dir: /go/src/${PKG}
+    command: sh dev.sh
     privileged: true
 
   localstack:

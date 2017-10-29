@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"app/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"context"
 
 	"github.com/vardius/golog"

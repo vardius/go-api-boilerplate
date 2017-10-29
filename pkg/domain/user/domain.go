@@ -1,8 +1,8 @@
 package user
 
 import (
-	"app/pkg/auth/jwt"
-	"app/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"fmt"
 )
 

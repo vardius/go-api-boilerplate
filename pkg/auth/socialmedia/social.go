@@ -1,7 +1,7 @@
 package socialmedia
 
 import (
-	"app/pkg/auth/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"

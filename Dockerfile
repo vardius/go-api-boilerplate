@@ -15,7 +15,7 @@ RUN go get -u github.com/golang/dep/cmd/dep
 RUN dep init
 RUN dep ensure -update
 
-RUN bootstart.sh
+RUN go build -o ./cmd/"$BIN"/"$BIN" ./cmd/"$BIN"
 
 FROM scratch
 WORKDIR /app

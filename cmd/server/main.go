@@ -1,19 +1,20 @@
 package main
 
 import (
-	"app/pkg/auth"
-	"app/pkg/auth/jwt"
-	"app/pkg/auth/socialmedia"
-	"app/pkg/aws/dynamodb"
-	"app/pkg/domain"
-	"app/pkg/domain/user"
-	"app/pkg/http/recover"
-	"app/pkg/http/response"
-	"app/pkg/log"
-	"app/pkg/memory"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/vardius/go-api-boilerplate/pkg/auth"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/socialmedia"
+	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/http/recover"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/memory"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/caarlos0/env"

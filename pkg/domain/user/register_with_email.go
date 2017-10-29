@@ -1,9 +1,9 @@
 package user
 
 import (
-	"app/pkg/auth/identity"
-	"app/pkg/auth/jwt"
-	"app/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"context"
 	"encoding/json"
 

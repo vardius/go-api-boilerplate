@@ -1,6 +1,5 @@
 # This version-strategy uses git tags to set the version string
 VERSION := $(shell git describe --tags --always --dirty)
-PKG := github.com/vardius/gi-api-boilerplate
 
 # GENERIC TASKS
 all-%:
@@ -33,6 +32,9 @@ tag-version-%:
 # CONFIG TASK
 # import config
 setup:
+	configfile=.env
+	include $(configfile)
+	export $(shell sed 's/=.*//' $(configfile))
 	configfile=.$(BIN).env
 	include $(configfile)
 	export $(shell sed 's/=.*//' $(configfile))

@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"app/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"errors"
 	"io/ioutil"
 	"net/http"
