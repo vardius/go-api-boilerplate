@@ -1,6 +1,7 @@
-package err
+package recover
 
 import (
+	"app/pkg/http/response"
 	"encoding/json"
 	"net/http"
 
@@ -8,8 +9,8 @@ import (
 	"github.com/vardius/gorouter"
 )
 
-// NewPanicRecover creates new panic recover middleware
-func NewPanicRecover(log golog.Logger) gorouter.MiddlewareFunc {
+// New creates new panic recover middleware
+func New(log golog.Logger) gorouter.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
@@ -17,7 +18,7 @@ func NewPanicRecover(log golog.Logger) gorouter.MiddlewareFunc {
 					log.Critical(r.Context(), "Recovered in f %v", rec)
 
 					w.WriteHeader(http.StatusInternalServerError)
-					json.NewEncoder(w).Encode(HTTPError{
+					json.NewEncoder(w).Encode(response.HTTPError{
 						Code:    http.StatusInternalServerError,
 						Message: http.StatusText(http.StatusInternalServerError),
 					})

@@ -2,7 +2,7 @@ package user
 
 import (
 	"app/pkg/domain"
-	"app/pkg/jwt"
+	"app/pkg/auth/jwt"
 	"fmt"
 )
 

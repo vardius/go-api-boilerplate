@@ -1,51 +1,37 @@
-package json
+package response
 
 import (
-	"app/pkg/err"
-	"context"
-	baseJson "encoding/json"
+	"encoding/json"
 	"net/http"
 )
 
-type responseKey struct{}
-
-// WithResponse adds response to request context allowing to middleware take care of it
-func WithResponse(req *http.Request, i interface{}) context.Context {
-	return context.WithValue(req.Context(), responseKey{}, i)
-}
-
-func fromContext(ctx context.Context) (interface{}, bool) {
-	i := ctx.Value(responseKey{})
-	return i, i != nil
-}
-
-// Parse response to json body
-func Parse(next http.Handler) http.Handler {
+// JSON wraps handler and parse payload to json response
+func JSON(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		next.ServeHTTP(w, r)
 
 		if response, ok := fromContext(r.Context()); ok {
-			encoder := baseJson.NewEncoder(w)
+			encoder := json.NewEncoder(w)
 			encoder.SetEscapeHTML(true)
 			encoder.SetIndent("", "")
 
-			e := encoder.Encode(response)
-			if e != nil {
+			err := encoder.Encode(response)
+			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				baseJson.NewEncoder(w).Encode(err.HTTPError{
+				json.NewEncoder(w).Encode(HTTPError{
 					Code:    http.StatusInternalServerError,
-					Error:   e,
+					Error:   err,
 					Message: http.StatusText(http.StatusInternalServerError),
 				})
 				return
 			}
 
 			switch t := response.(type) {
-			case err.HTTPError:
+			case HTTPError:
 				w.WriteHeader(t.Code)
-			case *err.HTTPError:
+			case *HTTPError:
 				w.WriteHeader(t.Code)
 			default:
 				if f, ok := w.(http.Flusher); ok {

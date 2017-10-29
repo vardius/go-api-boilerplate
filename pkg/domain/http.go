@@ -1,8 +1,7 @@
 package domain
 
 import (
-	"app/pkg/err"
-	"app/pkg/json"
+	"app/pkg/http/response"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -24,20 +23,20 @@ func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var e error
 
 	if r.Body == nil {
-		r.WithContext(json.WithResponse(r, &err.HTTPError{http.StatusBadRequest, ErrEmptyRequestBody, "Empty request body"}))
+		r.WithContext(response.WithPayload(r, &response.HTTPError{http.StatusBadRequest, ErrEmptyRequestBody, "Empty request body"}))
 		return
 	}
 
 	params, ok := gorouter.FromContext(r.Context())
 	if !ok {
-		r.WithContext(json.WithResponse(r, &err.HTTPError{http.StatusBadRequest, ErrInvalidURLParams, "Invalid URL params"}))
+		r.WithContext(response.WithPayload(r, &response.HTTPError{http.StatusBadRequest, ErrInvalidURLParams, "Invalid URL params"}))
 		return
 	}
 
 	defer r.Body.Close()
 	body, e := ioutil.ReadAll(r.Body)
 	if e != nil {
-		r.WithContext(json.WithResponse(r, &err.HTTPError{http.StatusBadRequest, e, "Invalid request body"}))
+		r.WithContext(response.WithPayload(r, &response.HTTPError{http.StatusBadRequest, e, "Invalid request body"}))
 		return
 	}
 
@@ -54,7 +53,7 @@ func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if e = <-out; e != nil {
-		r.WithContext(json.WithResponse(r, &err.HTTPError{http.StatusBadRequest, e, "Invalid request"}))
+		r.WithContext(response.WithPayload(r, &response.HTTPError{http.StatusBadRequest, e, "Invalid request"}))
 		return
 	}
 

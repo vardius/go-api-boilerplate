@@ -1,24 +1,24 @@
 package auth
 
 import (
-	"app/pkg/identity"
+	"app/pkg/auth/identity"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 )
 
-type authResponse struct {
+type responsePayload struct {
 	AuthToken string             `json:"authToken"`
 	Identity  *identity.Identity `json:"identity"`
 }
 
-type authCommandPayload struct {
+type commandPayload struct {
 	AuthToken string          `json:"authToken"`
 	Data      json.RawMessage `json:"data"`
 }
 
-func (p *authCommandPayload) toJSON() json.RawMessage {
+func (p *commandPayload) toJSON() json.RawMessage {
 	b, err := json.Marshal(p)
 	if err != nil {
 		return nil
@@ -27,7 +27,7 @@ func (p *authCommandPayload) toJSON() json.RawMessage {
 	return b
 }
 
-func authCallback(accessToken, apiUrl string) ([]byte, error) {
+func getProfile(accessToken, apiUrl string) ([]byte, error) {
 	resp, e := http.Get(apiUrl + "?access_token=" + url.QueryEscape(accessToken))
 	if e != nil {
 		return nil, e

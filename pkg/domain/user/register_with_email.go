@@ -2,8 +2,8 @@ package user
 
 import (
 	"app/pkg/domain"
-	"app/pkg/identity"
-	"app/pkg/jwt"
+	"app/pkg/auth/identity"
+	"app/pkg/auth/jwt"
 	"context"
 	"encoding/json"
 

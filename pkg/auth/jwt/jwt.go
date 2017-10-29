@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"app/pkg/identity"
+	"app/pkg/auth/identity"
 	"errors"
 	"fmt"
 	"time"

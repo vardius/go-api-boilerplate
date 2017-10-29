@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"app/pkg/identity"
+	"app/pkg/auth/identity"
 	"encoding/base64"
 	"net/http"
 	"strings"

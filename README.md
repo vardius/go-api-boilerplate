@@ -59,10 +59,14 @@ Repository holds two top-level directories, `pkg` and `cmd`.
 │   │   └── /main.go     # Server application - glues together libraries
 │   ├── /...             # etc.
 ├── /pkg/                # Libraries
+│   ├── /auth/           # Authorizatiob tools
+│   ├── /...             # etc.
 │   ├── /domain/         # Domain libraries
 │   │   ├── /user/       # User domain
 │   │   │   ├── /main.go # Main user domain entrypoint
 │   │   ├── /...         # etc.
+│   ├── /http/           # Http utils
+│   ├── /...             # etc.
 │   ├── /...             # More internal libraries
 ├── /vendor/             # Vendor libraries
 ├── docker-compose.yml   # Defines Docker services, networks and volumes per developer environment

@@ -1,48 +1,54 @@
 package auth
 
 import (
+	"app/pkg/auth/identity"
+	"app/pkg/auth/jwt"
 	"app/pkg/domain"
 	"app/pkg/domain/user"
-	"app/pkg/err"
-	"app/pkg/identity"
-	"app/pkg/json"
-	"app/pkg/jwt"
+	"app/pkg/http/response"
 	"net/http"
 )
 
-// NewFacebookAuth creates facebook auth handler
-func NewFacebookAuth(commandBus domain.CommandBus, j jwt.Jwt) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		accessToken := r.FormValue("accessToken")
-		facebookData, e := authCallback(accessToken, "https://graph.facebook.com/me")
-		if e != nil {
-			r.WithContext(json.WithResponse(r, &err.HTTPError{http.StatusBadRequest, e, "Invalid access token"}))
-			return
-		}
+type facebook struct {
+	commandBus domain.CommandBus
+	jwt        jwt.Jwt
+}
 
-		identity := &identity.Identity{}
-		identity.FromFacebookData(facebookData)
-
-		token, e := j.GenerateToken(identity)
-		if e != nil {
-			r.WithContext(json.WithResponse(r, &err.HTTPError{http.StatusInternalServerError, e, "Generate token failure"}))
-			return
-		}
-
-		out := make(chan error)
-		defer close(out)
-
-		go func() {
-			payload := &authCommandPayload{token, facebookData}
-			commandBus.Publish(user.Domain+user.RegisterWithFacebook, r.Context(), payload.toJSON(), out)
-		}()
-
-		if e = <-out; e != nil {
-			r.WithContext(json.WithResponse(r, &err.HTTPError{http.StatusBadRequest, e, "Invalid request"}))
-			return
-		}
-
-		r.WithContext(json.WithResponse(r, authResponse{token, identity}))
+func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	accessToken := r.FormValue("accessToken")
+	data, e := getProfile(accessToken, "https://graph.facebook.com/me")
+	if e != nil {
+		r.WithContext(response.WithError(r, response.HTTPError{http.StatusBadRequest, e, "Invalid access token"}))
 		return
 	}
+
+	identity := &identity.Identity{}
+	identity.FromFacebookData(data)
+
+	token, e := f.jwt.GenerateToken(identity)
+	if e != nil {
+		r.WithContext(response.WithError(r, response.HTTPError{http.StatusInternalServerError, e, "Generate token failure"}))
+		return
+	}
+
+	out := make(chan error)
+	defer close(out)
+
+	go func() {
+		payload := &commandPayload{token, data}
+		f.commandBus.Publish(user.Domain+user.RegisterWithFacebook, r.Context(), payload.toJSON(), out)
+	}()
+
+	if e = <-out; e != nil {
+		r.WithContext(response.WithError(r, response.HTTPError{http.StatusBadRequest, e, "Invalid request"}))
+		return
+	}
+
+	r.WithContext(response.WithPayload(r, responsePayload{token, identity}))
+	return
+}
+
+// NewFacebookAuth creates facebook auth handler
+func NewFacebook(cb domain.CommandBus, j jwt.Jwt) http.Handler {
+	return &facebook{cb, j}
 }

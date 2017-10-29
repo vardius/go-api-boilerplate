@@ -2,15 +2,14 @@ package main
 
 import (
 	"app/pkg/auth"
+	"app/pkg/auth/jwt"
 	"app/pkg/domain"
 	"app/pkg/domain/user"
 	"app/pkg/dynamodb"
-	"app/pkg/err"
-	"app/pkg/json"
-	"app/pkg/jwt"
+	"app/pkg/http/recover"
+	"app/pkg/http/response"
 	"app/pkg/log"
 	"app/pkg/memory"
-	"app/pkg/nosniff"
 	"net/http"
 	"strconv"
 	"time"
@@ -56,14 +55,14 @@ func main() {
 		logger.LogRequest,
 		cors.Default().Handler,
 		nosurf.NewPure,
-		nosniff.XSSHeader,
-		json.Parse,
-		err.NewPanicRecover(logger),
+		response.XSS,
+		response.JSON,
+		recover.New(logger),
 	)
 
 	router.POST("/dispatch/{domain}/{command}", domain.NewDispatcher(commandBus))
-	router.POST("/auth/google/callback", auth.NewGoogleAuth(commandBus, j))
-	router.POST("/auth/facebook/callback", auth.NewFacebookAuth(commandBus, j))
+	router.POST("/auth/google/callback", auth.NewGoogle(commandBus, j))
+	router.POST("/auth/facebook/callback", auth.NewFacebook(commandBus, j))
 
 	// Applies middleware to self and all children routes
 	// router.USE(gorouter.POST, "/dispatch", auth.Bearer(cfg.Realm, j.Authenticate))
