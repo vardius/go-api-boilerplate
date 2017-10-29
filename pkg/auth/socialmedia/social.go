@@ -1,4 +1,4 @@
-package auth
+package socialmedia
 
 import (
 	"app/pkg/auth/identity"

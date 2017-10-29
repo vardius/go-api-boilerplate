@@ -26,6 +26,7 @@ services:
     container_name: server
     environment:
       - BIN=server
+      - PKG=github.com/vardius/gi-api-boilerplate
     env_file:
       - .server.env
     expose:

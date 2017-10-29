@@ -1,9 +1,9 @@
 package user
 
 import (
-	"app/pkg/domain"
 	"app/pkg/auth/identity"
 	"app/pkg/auth/jwt"
+	"app/pkg/domain"
 	"context"
 	"encoding/json"
 
@@ -39,7 +39,7 @@ func onRegisterWithEmail(repository *eventSourcedRepository, j jwt.Jwt) domain.C
 		}
 
 		i := identity.New(id, c.Email, nil)
-		token, err := j.GenerateToken(i)
+		token, err := j.Encode(i)
 		if err != nil {
 			out <- err
 			return

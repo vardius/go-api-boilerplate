@@ -11,10 +11,10 @@ import (
 
 const identityClaimKey = "identity"
 
-// Jwt allows to encode/decode jwt tokens with identity
+// Jwt allows to encode/decode identity to jwt tokens
 type Jwt interface {
-	GenerateToken(*identity.Identity) (string, error)
-	Authenticate(token string) (*identity.Identity, error)
+	Encode(*identity.Identity) (string, error)
+	Decode(token string) (*identity.Identity, error)
 }
 
 type jwtService struct {
@@ -22,7 +22,8 @@ type jwtService struct {
 	expiration time.Duration
 }
 
-func (s *jwtService) GenerateToken(i *identity.Identity) (string, error) {
+// Encode creates JWT token with encoded identity
+func (s *jwtService) Encode(i *identity.Identity) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		identityClaimKey: i,
 		"nbf":            time.Now().Add(s.expiration).Unix(),
@@ -36,7 +37,8 @@ func (s *jwtService) GenerateToken(i *identity.Identity) (string, error) {
 	return tokenString, nil
 }
 
-func (s *jwtService) Authenticate(token string) (*identity.Identity, error) {
+// Decode decodes given token and returns identity, imlpements TokenAuthFunc type
+func (s *jwtService) Decode(token string) (*identity.Identity, error) {
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])

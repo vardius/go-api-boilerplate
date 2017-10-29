@@ -5,14 +5,19 @@ MAINTAINER Rafał Lorenz <vardius@gmail.com>
 ARG BIN
 ENV BIN=${BIN}
 
-COPY . /go/src/app
-WORKDIR /go/src/app
+ARG PKG
+ENV PKG=${PKG}
 
-RUN go-wrapper download
-RUN go-wrapper install
+COPY . /go/src/$PKG
+WORKDIR /go/src/$PKG
+
+RUN go get -u github.com/golang/dep/cmd/dep
+RUN dep init
+RUN dep ensure -update
+
 RUN bootstart.sh
 
 FROM scratch
 WORKDIR /app
-COPY --from=build-env /go/src/cmd/$BIN/$BIN /app/$BIN
+COPY --from=build-env /go/src/$PKG/cmd/$BIN/$BIN /app/$BIN
 ENTRYPOINT ["./$BIN"]

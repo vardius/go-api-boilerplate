@@ -1,8 +1,8 @@
 package user
 
 import (
-	"app/pkg/domain"
 	"app/pkg/auth/jwt"
+	"app/pkg/domain"
 	"fmt"
 )
 

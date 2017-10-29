@@ -3,9 +3,10 @@ package main
 import (
 	"app/pkg/auth"
 	"app/pkg/auth/jwt"
+	"app/pkg/auth/socialmedia"
+	"app/pkg/aws/dynamodb"
 	"app/pkg/domain"
 	"app/pkg/domain/user"
-	"app/pkg/dynamodb"
 	"app/pkg/http/recover"
 	"app/pkg/http/response"
 	"app/pkg/log"
@@ -44,13 +45,15 @@ func main() {
 	}
 
 	logger := log.New(cfg.Env)
-	j := jwt.New([]byte(cfg.Secret), time.Hour*24)
+	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	eventStore := dynamodb.NewEventStore("events", awsConfig)
 	eventBus := memory.NewEventBus(logger)
 	commandBus := memory.NewCommandBus(logger)
 
-	user.Init(eventStore, eventBus, commandBus, j)
+	// Domains
+	user.Init(eventStore, eventBus, commandBus, jwtService)
 
+	// Global middleware
 	router := gorouter.New(
 		logger.LogRequest,
 		cors.Default().Handler,
@@ -60,12 +63,16 @@ func main() {
 		recover.New(logger),
 	)
 
+	// Routes
+	// Social media auth routes
+	router.POST("/auth/google/callback", socialmedia.NewGoogle(commandBus, jwtService))
+	router.POST("/auth/facebook/callback", socialmedia.NewFacebook(commandBus, jwtService))
+	// Command dispatch route
 	router.POST("/dispatch/{domain}/{command}", domain.NewDispatcher(commandBus))
-	router.POST("/auth/google/callback", auth.NewGoogle(commandBus, j))
-	router.POST("/auth/facebook/callback", auth.NewFacebook(commandBus, j))
 
-	// Applies middleware to self and all children routes
-	// router.USE(gorouter.POST, "/dispatch", auth.Bearer(cfg.Realm, j.Authenticate))
+	// Routes middleware
+	// Applies middleware to itself and all children routes
+	router.USE(gorouter.POST, "/dispatch/"+user.Domain+"/"+user.ChangeEmailAddress, auth.Bearer(cfg.Realm, jwtService.Decode))
 
 	if cfg.CertPath != "" && cfg.KeyPath != "" {
 		logger.Critical(nil, "%v\n", http.ListenAndServeTLS(":"+strconv.Itoa(cfg.Port), cfg.CertPath, cfg.KeyPath, router))

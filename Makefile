@@ -1,5 +1,6 @@
 # This version-strategy uses git tags to set the version string
 VERSION := $(shell git describe --tags --always --dirty)
+PKG := github.com/vardius/gi-api-boilerplate
 
 # GENERIC TASKS
 all-%:
@@ -49,7 +50,7 @@ cert:
 # DOCKER TASKS
 # Build the container
 build:
-	docker build --no-cache --build-arg BIN=$(BIN) -t $(BIN) .
+	docker build --no-cache --build-arg BIN=$(BIN) PKG=$(PKG) -t $(BIN) .
 
 # Run container on port configured in `.env`
 run:

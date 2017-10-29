@@ -1,4 +1,4 @@
-package auth
+package socialmedia
 
 import (
 	"app/pkg/auth/identity"
@@ -9,23 +9,23 @@ import (
 	"net/http"
 )
 
-type facebook struct {
+type google struct {
 	commandBus domain.CommandBus
 	jwt        jwt.Jwt
 }
 
-func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.FormValue("accessToken")
-	data, e := getProfile(accessToken, "https://graph.facebook.com/me")
+	data, e := getProfile(accessToken, "https://www.googleapis.com/oauth2/v2/userinfo")
 	if e != nil {
 		r.WithContext(response.WithError(r, response.HTTPError{http.StatusBadRequest, e, "Invalid access token"}))
 		return
 	}
 
 	identity := &identity.Identity{}
-	identity.FromFacebookData(data)
+	identity.FromGoogleData(data)
 
-	token, e := f.jwt.GenerateToken(identity)
+	token, e := g.jwt.Encode(identity)
 	if e != nil {
 		r.WithContext(response.WithError(r, response.HTTPError{http.StatusInternalServerError, e, "Generate token failure"}))
 		return
@@ -36,7 +36,7 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		payload := &commandPayload{token, data}
-		f.commandBus.Publish(user.Domain+user.RegisterWithFacebook, r.Context(), payload.toJSON(), out)
+		g.commandBus.Publish(user.Domain+user.RegisterWithGoogle, r.Context(), payload.toJSON(), out)
 	}()
 
 	if e = <-out; e != nil {
@@ -44,11 +44,11 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.WithContext(response.WithPayload(r, responsePayload{token, identity}))
+	r.WithContext(response.WithPayload(r, &responsePayload{token, identity}))
 	return
 }
 
-// NewFacebookAuth creates facebook auth handler
-func NewFacebook(cb domain.CommandBus, j jwt.Jwt) http.Handler {
-	return &facebook{cb, j}
+// NewGoogle creates google auth handler
+func NewGoogle(cb domain.CommandBus, j jwt.Jwt) http.Handler {
+	return &google{cb, j}
 }
