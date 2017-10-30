@@ -1,10 +1,10 @@
 package memory
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
 
 type eventStore struct {

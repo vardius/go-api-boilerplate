@@ -3,11 +3,11 @@ package user
 import (
 	"context"
 	"encoding/json"
+
+	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-
-	"github.com/google/uuid"
 )
 
 // RegisterWithEmail command bus contract

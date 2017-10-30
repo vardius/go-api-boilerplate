@@ -3,10 +3,10 @@ package jwt
 import (
 	"errors"
 	"fmt"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 )
 
 const identityClaimKey = "identity"

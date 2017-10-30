@@ -2,9 +2,9 @@ package user
 
 import (
 	"fmt"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
 
 	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
 
 // User aggregate root

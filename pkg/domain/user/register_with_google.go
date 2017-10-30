@@ -3,9 +3,9 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
 
 	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
 
 // RegisterWithGoogle command bus contract

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-
 	"github.com/vardius/golog"
 	messagebus "github.com/vardius/message-bus"
 )

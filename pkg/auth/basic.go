@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"github.com/vardius/gorouter"
 )
 

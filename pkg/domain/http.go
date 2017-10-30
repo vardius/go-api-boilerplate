@@ -2,10 +2,10 @@ package domain
 
 import (
 	"errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"io/ioutil"
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/gorouter"
 )
 

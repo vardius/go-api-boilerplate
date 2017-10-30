@@ -2,10 +2,11 @@ package socialmedia
 
 import (
 	"encoding/json"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 )
 
 type responsePayload struct {

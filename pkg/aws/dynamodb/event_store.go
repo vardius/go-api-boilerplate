@@ -1,14 +1,13 @@
 package dynamodb
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
 
 type eventStore struct {

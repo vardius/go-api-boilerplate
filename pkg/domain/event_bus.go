@@ -1,8 +1,6 @@
 package domain
 
-import (
-	"context"
-)
+import "context"
 
 // EventHandler function
 type EventHandler func(ctx context.Context, event Event)

@@ -2,9 +2,9 @@ package recover
 
 import (
 	"encoding/json"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/golog"
 	"github.com/vardius/gorouter"
 )

@@ -2,10 +2,10 @@ package user
 
 import (
 	"context"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"log"
 
 	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
 
 // EmailAddressWasChanged event
