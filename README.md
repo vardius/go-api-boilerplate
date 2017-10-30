@@ -57,6 +57,7 @@ Repository holds two top-level directories, `pkg` and `cmd`.
 ├── /cmd/                # Binaries
 │   ├── /server/         # Server binary
 │   │   └── /main.go     # Server application - glues together libraries
+│   │   └── /.env        # Binary enviroment per binary configuration
 │   ├── /...             # etc.
 ├── /pkg/                # Libraries
 │   ├── /auth/           # Authorization tools
@@ -72,14 +73,14 @@ Repository holds two top-level directories, `pkg` and `cmd`.
 ├── docker-compose.yml   # Defines Docker services, networks and volumes per developer environment
 ├── Dockerfile           # Docker image for production
 ├── Makefile             # Commands for building a Docker image for production and deployment
-├── .env                 # Environment configuration
+├── .env                 # Project environment configuration
 └── bootstart.sh         # Configuration script for docker containers
 ```
 
 ### Configuration
 Create your local `.env` file from `dist.env` files.
 
-For each of binaries when building a docker image the environment variable file will be passed. This repository contains example `.env` file for `server` binary. There are always two files `.server.env` containing local configurations and is to be git ignored where [dist.server.env](dist.server.env) contains versioned example of configuration.
+For each of binaries when building a docker image the environment variable file will be passed (Located in the binary directory). This repository contains example `.env` file for `server` binary. There is also `.env` file containing local configurations and is to be git ignored where [dist.env](dist.env) contains versioned example of project configuration.
 
 Remember to set `PKG` variable pointing to your repository, also change all imports from `github.com/vardius/go-api-boilerplate/*` to `your-repository/*`
 

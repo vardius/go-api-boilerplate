@@ -35,7 +35,7 @@ setup:
 	configfile=.env
 	include $(configfile)
 	export $(shell sed 's/=.*//' $(configfile))
-	configfile=.$(BIN).env
+	configfile=./cmd/$(BIN)/.env
 	include $(configfile)
 	export $(shell sed 's/=.*//' $(configfile))
 
@@ -56,7 +56,7 @@ build:
 
 # Run container on port configured in `.env`
 run:
-	docker run -i -t --rm --env-file=./.env -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN))
+	docker run -i -t --rm --env-file=./cmd/$(BIN)/.env -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN))
 
 stop:
 	docker stop $(BIN)

@@ -27,7 +27,7 @@ services:
     environment:
       - BIN=server
     env_file:
-      - .server.env
+      - cmd/server/.env
     expose:
       - "${SERVER_PORT}"
     ports:

@@ -2,7 +2,7 @@
 .idea
 
 .env
-.server.env
+cmd/**/.env
 *.log*
 
 debug

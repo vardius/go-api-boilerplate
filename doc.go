@@ -8,6 +8,7 @@ Directory Layout:
   ├── /cmd/                # Binaries
   │   ├── /server/         # Server binary
   │   │   └── /main.go     # Server application - glues together libraries
+  │   │   └── /.env        # Binary enviroment per binary configuration
   │   ├── /...             # etc.
   ├── /pkg/                # Libraries
   │   ├── /auth/           # Authorization tools
@@ -23,7 +24,7 @@ Directory Layout:
   ├── docker-compose.yml   # Defines Docker services, networks and volumes per developer environment
   ├── Dockerfile           # Docker image for production
   ├── Makefile             # Commands for building a Docker image for production and deployment
-  ├── .env                 # Environment configuration
+  ├── .env                 # Project environment configuration
   └── bootstart.sh         # Configuration script for docker containers
 */
 package goapiboilerplate
