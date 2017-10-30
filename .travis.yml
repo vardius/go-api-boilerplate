@@ -16,7 +16,7 @@ script:
   - go build
   # - go test ./... -v -cover -race -covermode=atomic
   - |
-      echo -e "set -e
+      bash "set -e
         echo "" > coverage.txt
         for d in $(go list ./... | grep -v vendor); do
           go test -race -coverprofile=profile.out -covermode=atomic $d
