@@ -15,7 +15,7 @@ before_script:
 script:
   - go build
   # - go test ./... -v -cover -race -covermode=atomic
-  - set -e
+  - 'set -e
     echo "" > coverage.txt
 
     for d in $(go list ./... | grep -v vendor); do
@@ -24,6 +24,6 @@ script:
             cat profile.out >> coverage.txt
             rm profile.out
         fi
-    done
+    done'
 after_script:
   - bash <(curl -s https://codecov.io/bash)
