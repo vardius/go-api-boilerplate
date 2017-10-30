@@ -1,4 +1,5 @@
 language: go
+sudo: false
 go:
   - 1.9
   - tip
@@ -13,6 +14,6 @@ before_script:
   - go vet ./...
 script:
   - go build
-  - ./travis.sh
+  - bash ./travis.sh
 after_script:
   - bash <(curl -s https://codecov.io/bash)
