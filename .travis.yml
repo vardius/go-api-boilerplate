@@ -15,6 +15,6 @@ before_script:
   - go vet ./...
 script:
   - go build
-  - go test ./... -v -cover -race -coverprofile=coverage.txt -covermode=atomic
+  - go test ./... -v -cover -race -covermode=atomic
 after_script:
   - bash <(curl -s https://codecov.io/bash)
