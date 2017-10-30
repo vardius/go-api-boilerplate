@@ -15,7 +15,7 @@ type commandBus struct {
 	logger     golog.Logger
 }
 
-func (bus *commandBus) Publish(command string, ctx context.Context, payload json.RawMessage, out chan<- error) {
+func (bus *commandBus) Publish(ctx context.Context, command string, payload json.RawMessage, out chan<- error) {
 	bus.logger.Debug(ctx, "[API CommandBus|Publish]: %s %q\n", command, payload)
 	bus.messageBus.Publish(command, ctx, payload, out)
 }

@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"errors"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"io/ioutil"
 	"net/http"
 
@@ -45,8 +45,8 @@ func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		d.commandBus.Publish(
-			params.Value("domain")+params.Value("command"),
 			r.Context(),
+			params.Value("domain")+params.Value("command"),
 			body,
 			out,
 		)

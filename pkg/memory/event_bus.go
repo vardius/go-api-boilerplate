@@ -1,8 +1,9 @@
 package memory
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"context"
+
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 
 	"github.com/vardius/golog"
 	messagebus "github.com/vardius/message-bus"
@@ -13,7 +14,7 @@ type eventBus struct {
 	logger     golog.Logger
 }
 
-func (bus *eventBus) Publish(eventType string, ctx context.Context, event domain.Event) {
+func (bus *eventBus) Publish(ctx context.Context, eventType string, event domain.Event) {
 	bus.logger.Debug(ctx, "[API EventBus|Publish]: %s %q\n", eventType, event.Payload)
 	bus.messageBus.Publish(eventType, ctx, event)
 }

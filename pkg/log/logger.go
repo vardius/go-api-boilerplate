@@ -2,6 +2,7 @@ package log
 
 import "github.com/vardius/golog"
 
+// Logger allow to create logger based on env setting
 type Logger struct {
 	golog.Logger
 }
@@ -15,7 +16,7 @@ func getLogLevelByEnv(env string) string {
 	return logLevel
 }
 
-// New creates new logger based on enviroment
+// New creates new logger based on environment
 func New(env string) *Logger {
 	var l golog.Logger
 	if env == "development" {

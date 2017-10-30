@@ -1,8 +1,8 @@
 package recover
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"encoding/json"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"net/http"
 
 	"github.com/vardius/golog"

@@ -1,9 +1,9 @@
 package user
 
 import (
+	"fmt"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"fmt"
 )
 
 // Domain name

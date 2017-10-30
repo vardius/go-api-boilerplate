@@ -1,9 +1,9 @@
 package jwt
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"errors"
 	"fmt"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"

@@ -8,7 +8,7 @@ Directory Layout:
   ├── /cmd/                # Binaries
   │   ├── /server/         # Server binary
   │   │   └── /main.go     # Server application - glues together libraries
-  │   │   └── /.env        # Binary enviroment per binary configuration
+  │   │   └── /.env        # Binary environment per binary configuration
   │   ├── /...             # etc.
   ├── /pkg/                # Libraries
   │   ├── /auth/           # Authorization tools

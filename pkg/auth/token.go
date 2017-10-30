@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"encoding/base64"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"net/http"
 	"strings"
 

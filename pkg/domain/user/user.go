@@ -1,8 +1,8 @@
 package user
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"fmt"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 
 	"github.com/google/uuid"
 )

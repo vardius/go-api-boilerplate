@@ -10,7 +10,7 @@ type CommandHandler func(ctx context.Context, payload json.RawMessage, out chan<
 
 // CommandBus allows to subscribe/dispatch commands
 type CommandBus interface {
-	Publish(command string, ctx context.Context, payload json.RawMessage, out chan<- error)
+	Publish(ctx context.Context, command string, payload json.RawMessage, out chan<- error)
 	Subscribe(command string, fn CommandHandler) error
 	Unsubscribe(command string, fn CommandHandler) error
 }

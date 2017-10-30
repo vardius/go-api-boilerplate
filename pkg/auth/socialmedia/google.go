@@ -36,7 +36,7 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		payload := &commandPayload{token, data}
-		g.commandBus.Publish(user.Domain+user.RegisterWithGoogle, r.Context(), payload.toJSON(), out)
+		g.commandBus.Publish(r.Context(), user.Domain+user.RegisterWithGoogle, payload.toJSON(), out)
 	}()
 
 	if e = <-out; e != nil {

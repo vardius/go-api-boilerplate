@@ -1,12 +1,13 @@
 package socialmedia
 
 import (
+	"net/http"
+
 	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
-	"net/http"
 )
 
 type facebook struct {
@@ -36,7 +37,7 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		payload := &commandPayload{token, data}
-		f.commandBus.Publish(user.Domain+user.RegisterWithFacebook, r.Context(), payload.toJSON(), out)
+		f.commandBus.Publish(r.Context(), user.Domain+user.RegisterWithFacebook, payload.toJSON(), out)
 	}()
 
 	if e = <-out; e != nil {
@@ -48,7 +49,7 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// NewFacebookAuth creates facebook auth handler
+// NewFacebook creates facebook auth handler
 func NewFacebook(cb domain.CommandBus, j jwt.Jwt) http.Handler {
 	return &facebook{cb, j}
 }
