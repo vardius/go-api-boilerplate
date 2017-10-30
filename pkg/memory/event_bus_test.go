@@ -1,12 +1,13 @@
 package memory
 
 import (
-	"log"
 	"testing"
+
+	"github.com/vardius/golog"
 )
 
 func TestNewEventBus(t *testing.T) {
-	logger := log.New("development")
+	logger := golog.New("debug")
 	bus := NewEventBus(logger)
 
 	if bus == nil {

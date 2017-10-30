@@ -1,12 +1,13 @@
 package memory
 
 import (
-	"log"
 	"testing"
+
+	"github.com/vardius/golog"
 )
 
 func TestNewCommandBus(t *testing.T) {
-	logger := log.New("development")
+	logger := golog.New("debug")
 	bus := NewCommandBus(logger)
 
 	if bus == nil {
