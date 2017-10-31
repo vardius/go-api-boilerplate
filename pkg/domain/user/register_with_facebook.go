@@ -46,7 +46,6 @@ func onRegisterWithFacebook(repository *eventSourcedRepository) domain.CommandHa
 
 		out <- nil
 
-		// todo add live flag to context
-		repository.Save(ctx, user)
+		repository.Save(domain.ContextWithFlag(ctx, domain.LIVE), user)
 	}
 }

@@ -22,7 +22,7 @@ func BasicAuth(afn BasicAuthFunc) gorouter.MiddlewareFunc {
 					return
 				}
 
-				next.ServeHTTP(w, r.WithContext(identity.NewContext(r, i)))
+				next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
 				return
 			}
 

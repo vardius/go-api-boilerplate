@@ -26,7 +26,7 @@ func Bearer(realm string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
 						return
 					}
 
-					next.ServeHTTP(w, r.WithContext(identity.NewContext(r, i)))
+					next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
 					return
 				}
 			}
@@ -54,7 +54,7 @@ func Query(name string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
 				return
 			}
 
-			next.ServeHTTP(w, r.WithContext(identity.NewContext(r, i)))
+			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
 		}
 
 		return http.HandlerFunc(fn)

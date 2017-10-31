@@ -10,8 +10,8 @@
 [[projects]]
   name = "github.com/caarlos0/env"
   packages = ["."]
-  revision = "d29d8d23e95ae07cc6fafc53154f8456820ad9f2"
-  version = "v3.1"
+  revision = "9de094f90fa8a13dc162e10ae8a3b95c0c2c33e1"
+  version = "v3.1.1"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"

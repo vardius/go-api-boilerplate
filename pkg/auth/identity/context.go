@@ -1,15 +1,12 @@
 package identity
 
-import (
-	"context"
-	"net/http"
-)
+import "context"
 
 type key struct{}
 
-// NewContext returns a new Context that carries value i.
-func NewContext(req *http.Request, i *Identity) context.Context {
-	return context.WithValue(req.Context(), key{}, i)
+// ContextWithIdentity returns a new Context that carries value i.
+func ContextWithIdentity(ctx context.Context, i *Identity) context.Context {
+	return context.WithValue(ctx, key{}, i)
 }
 
 //FromContext returns the Identity value stored in ctx, if any.

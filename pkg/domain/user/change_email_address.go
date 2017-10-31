@@ -31,8 +31,8 @@ func onChangeEmailAddress(repository *eventSourcedRepository) domain.CommandHand
 
 		//todo: validate if email is taken
 
-		u := repository.Get(c.ID)
-		err = u.ChangeEmailAddress(c.Email)
+		user := repository.Get(c.ID)
+		err = user.ChangeEmailAddress(c.Email)
 		if err != nil {
 			out <- err
 			return
@@ -40,7 +40,6 @@ func onChangeEmailAddress(repository *eventSourcedRepository) domain.CommandHand
 
 		out <- nil
 
-		//todo add live flag to context
-		repository.Save(ctx, u)
+		repository.Save(domain.ContextWithFlag(ctx, domain.LIVE), user)
 	}
 }

@@ -54,7 +54,6 @@ func onRegisterWithEmail(repository *eventSourcedRepository, j jwt.Jwt) domain.C
 
 		out <- nil
 
-		// todo add live flag to context
-		repository.Save(ctx, user)
+		repository.Save(domain.ContextWithFlag(ctx, domain.LIVE), user)
 	}
 }
