@@ -19,7 +19,21 @@ func (i *Identity) FromGoogleData(data json.RawMessage) error {
 	if i == nil {
 		return errors.New("auth.Identity: FromGoogleData on nil pointer")
 	}
-	//todo set props from google data
+
+	err := json.Unmarshal(data, i)
+	if err != nil {
+		return err
+	}
+
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return err
+	}
+
+	var defaultRoles []string
+	i.ID = id
+	i.Roles = defaultRoles
+
 	return nil
 }
 
@@ -28,7 +42,21 @@ func (i *Identity) FromFacebookData(data json.RawMessage) error {
 	if i == nil {
 		return errors.New("auth.Identity: FromFacebookData on nil pointer")
 	}
-	//todo set props from facebook data
+
+	err := json.Unmarshal(data, i)
+	if err != nil {
+		return err
+	}
+
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return err
+	}
+
+	var defaultRoles []string
+	i.ID = id
+	i.Roles = defaultRoles
+
 	return nil
 }
 
