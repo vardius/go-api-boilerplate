@@ -5,21 +5,21 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/caarlos0/env"
+	"github.com/justinas/nosurf"
+	"github.com/rs/cors"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/socialmedia"
-	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb"
+	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/recover"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
-	"github.com/vardius/go-api-boilerplate/pkg/memory"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/caarlos0/env"
-	"github.com/justinas/nosurf"
-	"github.com/rs/cors"
+	"github.com/vardius/go-api-boilerplate/pkg/memory/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/memory/eventbus"
 	"github.com/vardius/gorouter"
 )
 
@@ -47,9 +47,9 @@ func main() {
 
 	logger := log.New(cfg.Env)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
-	eventStore := dynamodb.NewEventStore("events", awsConfig)
-	eventBus := memory.NewEventBus(logger)
-	commandBus := memory.NewCommandBus(logger)
+	eventStore := eventstore.New("events", awsConfig)
+	eventBus := eventbus.WithLogger(eventbus.New(), logger)
+	commandBus := commandbus.WithLogger(commandbus.New(), logger)
 
 	// Domains
 	user.Init(eventStore, eventBus, commandBus, jwtService)
@@ -61,7 +61,7 @@ func main() {
 		nosurf.NewPure,
 		response.XSS,
 		response.JSON,
-		recover.New(logger),
+		recover.WithLogger(logger),
 	)
 
 	// Routes

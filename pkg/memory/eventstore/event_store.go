@@ -1,4 +1,4 @@
-package memory
+package eventstore
 
 import (
 	"sync"
@@ -59,8 +59,8 @@ func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.
 	return e
 }
 
-// NewEventStore creates in memory event store
-func NewEventStore() domain.EventStore {
+// New creates in memory event store
+func New() domain.EventStore {
 	return &eventStore{
 		events: make(map[string]*domain.Event),
 	}

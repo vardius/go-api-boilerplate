@@ -1,4 +1,4 @@
-package dynamodb
+package eventstore
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -116,8 +116,8 @@ func (s *eventStore) query(params *dynamodb.QueryInput) ([]*domain.Event, error)
 	return es, nil
 }
 
-// NewEventStore creates new dynamodb event store
-func NewEventStore(tableName string, config *aws.Config) domain.EventStore {
+// New creates new dynamodb event store
+func New(tableName string, config *aws.Config) domain.EventStore {
 	if tableName == "" {
 		tableName = "events"
 	}
