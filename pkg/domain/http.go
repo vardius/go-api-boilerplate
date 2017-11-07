@@ -26,7 +26,7 @@ func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.WithContext(response.WithPayload(r, response.HTTPError{
 			Code:    http.StatusBadRequest,
 			Error:   ErrEmptyRequestBody,
-			Message: ErrEmptyRequestBody.Error,
+			Message: ErrEmptyRequestBody.Error(),
 		}))
 		return
 	}
@@ -36,7 +36,7 @@ func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.WithContext(response.WithPayload(r, response.HTTPError{
 			Code:    http.StatusBadRequest,
 			Error:   ErrInvalidURLParams,
-			Message: ErrInvalidURLParams.Error,
+			Message: ErrInvalidURLParams.Error(),
 		}))
 		return
 	}
