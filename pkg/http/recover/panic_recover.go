@@ -1,6 +1,7 @@
 package recover
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -9,48 +10,60 @@ import (
 )
 
 // A Recover recovers http handler from panic
-type Recover func(next http.Handler) http.Handler
+type Recover interface {
+	WrapHandler(next http.Handler) http.Handler
+}
+
+func writeError(ctx context.Context, w http.ResponseWriter) {
+	w.WriteHeader(http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(response.HTTPError{
+		Code:    http.StatusInternalServerError,
+		Message: http.StatusText(http.StatusInternalServerError),
+	})
+}
+
+type defaultRecover int
+
+func (r *defaultRecover) WrapHandler(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, req *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				writeError(req.Context(), w)
+			}
+		}()
+
+		next.ServeHTTP(w, req)
+	}
+
+	return http.HandlerFunc(fn)
+}
 
 // New creates new panic recover middleware
 func New() Recover {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				if rec := recover(); rec != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					json.NewEncoder(w).Encode(response.HTTPError{
-						Code:    http.StatusInternalServerError,
-						Message: http.StatusText(http.StatusInternalServerError),
-					})
-				}
-			}()
-
-			next.ServeHTTP(w, r)
-		}
-
-		return http.HandlerFunc(fn)
-	}
+	return new(defaultRecover)
 }
 
-// WithLogger returns which deffered panic will be also logged
-func WithLogger(log golog.Logger) Recover {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				if rec := recover(); rec != nil {
-					log.Critical(r.Context(), "Recovered in f %v", rec)
+type loggableRecover struct {
+	recover Recover
+	log     golog.Logger
+}
 
-					w.WriteHeader(http.StatusInternalServerError)
-					json.NewEncoder(w).Encode(response.HTTPError{
-						Code:    http.StatusInternalServerError,
-						Message: http.StatusText(http.StatusInternalServerError),
-					})
-				}
-			}()
+func (r *loggableRecover) WrapHandler(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, req *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				r.log.Critical(req.Context(), "Recovered in f %v", rec)
+				writeError(req.Context(), w)
+			}
+		}()
 
-			next.ServeHTTP(w, r)
-		}
-
-		return http.HandlerFunc(fn)
+		next.ServeHTTP(w, req)
 	}
+
+	return http.HandlerFunc(fn)
+}
+
+// WithLogger returns copy of parent recover will also log info
+func WithLogger(parent Recover, log golog.Logger) Recover {
+	return &loggableRecover{parent, log}
 }
