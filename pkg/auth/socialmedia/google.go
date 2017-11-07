@@ -19,7 +19,11 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.FormValue("accessToken")
 	data, e := getProfile(accessToken, "https://www.googleapis.com/oauth2/v2/userinfo")
 	if e != nil {
-		r.WithContext(response.WithError(r, response.HTTPError{http.StatusBadRequest, e, "Invalid access token"}))
+		r.WithContext(response.WithError(r, response.HTTPError{
+			Code:    http.StatusBadRequest,
+			Error:   e,
+			Message: "Invalid access token",
+		}))
 		return
 	}
 
@@ -28,7 +32,11 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, e := g.jwt.Encode(identity)
 	if e != nil {
-		r.WithContext(response.WithError(r, response.HTTPError{http.StatusInternalServerError, e, "Generate token failure"}))
+		r.WithContext(response.WithError(r, response.HTTPError{
+			Code:    http.StatusInternalServerError,
+			Error:   e,
+			Message: "Generate token failure",
+		}))
 		return
 	}
 
@@ -41,7 +49,11 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if e = <-out; e != nil {
-		r.WithContext(response.WithError(r, response.HTTPError{http.StatusBadRequest, e, "Invalid request"}))
+		r.WithContext(response.WithError(r, response.HTTPError{
+			Code:    http.StatusBadRequest,
+			Error:   e,
+			Message: "Invalid request",
+		}))
 		return
 	}
 

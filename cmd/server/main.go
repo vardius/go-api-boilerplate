@@ -61,7 +61,7 @@ func main() {
 		nosurf.NewPure,
 		response.XSS,
 		response.JSON,
-		recover.WithLogger(logger),
+		gorouter.MiddlewareFunc(recover.WithLogger(logger)),
 	)
 
 	// Routes
