@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/gorouter"
 )
@@ -16,7 +17,7 @@ var ErrEmptyRequestBody = errors.New("Empty request body")
 var ErrInvalidURLParams = errors.New("Invalid request URL params")
 
 type dispatcher struct {
-	commandBus CommandBus
+	commandBus domain.CommandBus
 }
 
 func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -79,6 +80,6 @@ func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewDispatcher creates handler for command bus
-func NewDispatcher(cb CommandBus) http.Handler {
+func NewDispatcher(cb domain.CommandBus) http.Handler {
 	return &dispatcher{cb}
 }
