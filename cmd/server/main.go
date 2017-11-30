@@ -13,7 +13,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/socialmedia"
 	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/eventstore"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/recover"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -68,12 +67,12 @@ func main() {
 	// Social media auth routes
 	router.POST("/auth/google/callback", socialmedia.NewGoogle(commandBus, jwtService))
 	router.POST("/auth/facebook/callback", socialmedia.NewFacebook(commandBus, jwtService))
-	// Command dispatch route
-	router.POST("/dispatch/{domain}/{command}", domain.NewDispatcher(commandBus))
 
-	// Routes middleware
+	// User domain
+	router.POST("/dispatch/users/{command}", user.NewDispatcher(commandBus))
+	// User domain routes middleware
 	// Applies middleware to itself and all children routes
-	router.USE(gorouter.POST, "/dispatch/"+user.Domain+"/"+user.ChangeEmailAddress, auth.Bearer(cfg.Realm, jwtService.Decode))
+	router.USE(gorouter.POST, "/dispatch/users/"+user.ChangeEmailAddress, auth.Bearer(cfg.Realm, jwtService.Decode))
 
 	if cfg.CertPath != "" && cfg.KeyPath != "" {
 		logger.Critical(nil, "%v\n", http.ListenAndServeTLS(":"+strconv.Itoa(cfg.Port), cfg.CertPath, cfg.KeyPath, router))

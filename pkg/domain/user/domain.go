@@ -7,14 +7,13 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
 
-// Domain name
-const Domain = "users"
+const commandPrefix = "users"
 
 func registerCommandHandlers(commandBus domain.CommandBus, repository *eventSourcedRepository, j jwt.Jwt) {
-	commandBus.Subscribe(Domain+RegisterWithEmail, onRegisterWithEmail(repository, j))
-	commandBus.Subscribe(Domain+RegisterWithGoogle, onRegisterWithGoogle(repository))
-	commandBus.Subscribe(Domain+RegisterWithFacebook, onRegisterWithFacebook(repository))
-	commandBus.Subscribe(Domain+ChangeEmailAddress, onChangeEmailAddress(repository))
+	commandBus.Subscribe(commandPrefix+RegisterWithEmail, onRegisterWithEmail(repository, j))
+	commandBus.Subscribe(commandPrefix+RegisterWithGoogle, onRegisterWithGoogle(repository))
+	commandBus.Subscribe(commandPrefix+RegisterWithFacebook, onRegisterWithFacebook(repository))
+	commandBus.Subscribe(commandPrefix+ChangeEmailAddress, onChangeEmailAddress(repository))
 }
 
 func registerEventHandlers(eventBus domain.EventBus) {

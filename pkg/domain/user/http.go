@@ -1,4 +1,4 @@
-package domain
+package user
 
 import (
 	"errors"
@@ -58,7 +58,7 @@ func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		d.commandBus.Publish(
 			r.Context(),
-			params.Value("domain")+params.Value("command"),
+			commandPrefix+params.Value("command"),
 			body,
 			out,
 		)
