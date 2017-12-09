@@ -9,7 +9,7 @@ import (
 )
 
 // RegisterWithGoogle command bus contract
-const RegisterWithGoogle = "register_with_google"
+const RegisterWithGoogle = "register-user-with-google"
 
 type registerWithGoogle struct {
 	Email     string `json:"email"`

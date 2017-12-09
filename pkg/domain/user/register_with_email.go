@@ -11,7 +11,7 @@ import (
 )
 
 // RegisterWithEmail command bus contract
-const RegisterWithEmail = "register_with_email"
+const RegisterWithEmail = "register-user-with-email"
 
 type registerWithEmail struct {
 	Email string `json:"email"`

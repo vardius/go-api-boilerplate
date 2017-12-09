@@ -9,7 +9,7 @@ import (
 )
 
 // RegisterWithFacebook command bus contract
-const RegisterWithFacebook = "register_with_facebook"
+const RegisterWithFacebook = "register-user-with-facebook"
 
 type registerWithFacebook struct {
 	Email     string `json:"email"`

@@ -9,7 +9,6 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/justinas/nosurf"
 	"github.com/rs/cors"
-	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/socialmedia"
 	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/eventstore"
@@ -50,9 +49,6 @@ func main() {
 	eventBus := eventbus.WithLogger(eventbus.New(), logger)
 	commandBus := commandbus.WithLogger(commandbus.New(), logger)
 
-	// Domains
-	user.Init(eventStore, eventBus, commandBus, jwtService)
-
 	// Global middleware
 	router := gorouter.New(
 		logger.LogRequest,
@@ -63,16 +59,20 @@ func main() {
 		recover.WithLogger(recover.New(), logger).WrapHandler,
 	)
 
+	userDomain := user.NewDomain(
+		cfg.Realm,
+		commandBus,
+		eventBus,
+		eventStore,
+		jwtService,
+	)
+	// User domain
+	router.Mount("/users", userDomain.AsRouter())
+
 	// Routes
 	// Social media auth routes
 	router.POST("/auth/google/callback", socialmedia.NewGoogle(commandBus, jwtService))
 	router.POST("/auth/facebook/callback", socialmedia.NewFacebook(commandBus, jwtService))
-
-	// User domain
-	router.POST("/dispatch/users/{command}", user.NewDispatcher(commandBus))
-	// User domain routes middleware
-	// Applies middleware to itself and all children routes
-	router.USE(gorouter.POST, "/dispatch/users/"+user.ChangeEmailAddress, auth.Bearer(cfg.Realm, jwtService.Decode))
 
 	if cfg.CertPath != "" && cfg.KeyPath != "" {
 		logger.Critical(nil, "%v\n", http.ListenAndServeTLS(":"+strconv.Itoa(cfg.Port), cfg.CertPath, cfg.KeyPath, router))

@@ -45,7 +45,7 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		payload := &commandPayload{token, data}
-		f.commandBus.Publish(r.Context(), user.Domain+user.RegisterWithFacebook, payload.toJSON(), out)
+		f.commandBus.Publish(r.Context(), user.RegisterWithFacebook, payload.toJSON(), out)
 	}()
 
 	if e = <-out; e != nil {

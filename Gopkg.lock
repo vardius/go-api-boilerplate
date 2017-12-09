@@ -4,8 +4,8 @@
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/json/jsonutil","private/protocol/jsonrpc","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/xml/xmlutil","service/dynamodb","service/dynamodb/dynamodbattribute","service/sts"]
-  revision = "6061953e33da7e141a16c70ec9535467ce7f189a"
-  version = "v1.12.24"
+  revision = "6e00e954421b0deeec5b07d99f256f58eda69907"
+  version = "v1.12.44"
 
 [[projects]]
   name = "github.com/caarlos0/env"
@@ -22,14 +22,14 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "f280b3ba517bf5fc98922624f21fb0e7a92adaec"
-  version = "v1.30.3"
+  revision = "32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a"
+  version = "v1.32.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
   name = "github.com/google/uuid"
@@ -63,8 +63,8 @@
 [[projects]]
   name = "github.com/vardius/gorouter"
   packages = ["."]
-  revision = "9b16ab516357459b53cb80425cf77391d018ce7d"
-  version = "v3.0.1"
+  revision = "ba09a20722d43f5e8943a2f2a2cb8f0369c86f4b"
+  version = "v3.0.2"
 
 [[projects]]
   name = "github.com/vardius/message-bus"
@@ -76,7 +76,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "a337091b0525af65de94df2eb7e98bd9962dcbe2"
+  revision = "dc871a5d77e227f5bbf6545176ef3eeebf87e76e"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -87,6 +87,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ccbf042e3e14cb0a51ddbd1093eb46872c6145cf5f1120b50ba51f70aac5d522"
+  inputs-digest = "43019d85d41f1ec9a1b307895e21f7a6a06f789858e4ad57652626bbc286a593"
   solver-name = "gps-cdcl"
   solver-version = 1

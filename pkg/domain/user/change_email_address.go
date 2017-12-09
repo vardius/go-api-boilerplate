@@ -9,7 +9,7 @@ import (
 )
 
 // ChangeEmailAddress command bus contract
-const ChangeEmailAddress = "change-email-address"
+const ChangeEmailAddress = "change-user-email-address"
 
 type changeEmailAddress struct {
 	ID    uuid.UUID `json:"id"`
