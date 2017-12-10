@@ -33,5 +33,3 @@ services:
 networks:
   back_tier:
     driver: bridge
-  proxy_tier:
-    driver: bridge

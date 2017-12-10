@@ -10,6 +10,7 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/justinas/nosurf"
 	"github.com/rs/cors"
+	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/socialmedia"
 	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/eventstore"
@@ -57,8 +58,8 @@ func main() {
 		response.XSS,
 		response.HSTS,
 		response.JSON,
-		auth.Bearer("API", jwtService.Decode)
-		auth.Query("authToken", jwtService.Decode)
+		auth.Bearer("API", jwtService.Decode),
+		auth.Query("authToken", jwtService.Decode),
 		recover.WithLogger(recover.New(), logger).WrapHandler,
 	)
 
@@ -102,5 +103,5 @@ func main() {
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
 
-	logger.Critical(nil, "%v\n", server.ListenAndServeTLS("", ""))
+	logger.Critical(nil, "%v\n", srv.ListenAndServeTLS("", ""))
 }
