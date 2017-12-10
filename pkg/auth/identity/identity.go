@@ -60,7 +60,30 @@ func (i *Identity) FromFacebookData(data json.RawMessage) error {
 	return nil
 }
 
-// New returns a new Identity
-func New(id uuid.UUID, email string, roles []string) *Identity {
+// WithEmail returns a new Identity with given email value
+func WithEmail(email string) (*Identity, error) {
+	i, err := New()
+	if err != nil {
+		return nil, err
+	}
+	i.Email = email
+
+	return i, nil
+}
+
+// WithValues returns a new Identity for given values
+func WithValues(id uuid.UUID, email string, roles []string) *Identity {
 	return &Identity{id, email, roles}
+}
+
+// New returns a new Identity
+func New() (*Identity, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Identity{
+		ID: id,
+	}, nil
 }

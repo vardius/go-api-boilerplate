@@ -38,7 +38,7 @@ func onRegisterWithEmail(repository *eventSourcedRepository, j jwt.Jwt) domain.C
 			return
 		}
 
-		i := identity.New(id, c.Email, nil)
+		i := identity.WithValues(id, c.Email, nil)
 		token, err := j.Encode(i)
 		if err != nil {
 			out <- err

@@ -18,6 +18,7 @@ func BasicAuth(afn BasicAuthFunc) gorouter.MiddlewareFunc {
 			if hasAuth {
 				i, err := afn(username, password)
 				if err != nil {
+					w.Header().Set("WWW-Authenticate", `Basic`)
 					http.Error(w, err.Error(), http.StatusUnauthorized)
 					return
 				}
@@ -26,7 +27,7 @@ func BasicAuth(afn BasicAuthFunc) gorouter.MiddlewareFunc {
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			next.ServeHTTP(w, r)
 		}
 
 		return http.HandlerFunc(fn)

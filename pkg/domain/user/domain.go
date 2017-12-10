@@ -21,7 +21,6 @@ var ErrInvalidURLParams = errors.New("Invalid request URL params")
 
 // UserDomain stores services and data required for user domain to work correctly
 type UserDomain struct {
-	realm      string
 	commandBus domain.CommandBus
 	eventBus   domain.EventBus
 	eventStore domain.EventStore
@@ -52,7 +51,7 @@ func (d *UserDomain) AsRouter() gorouter.Router {
 	router := gorouter.New()
 
 	router.POST("/dispatch/{command}", d)
-	router.USE(gorouter.POST, "/dispatch/"+ChangeEmailAddress, auth.Bearer(d.realm, d.jwt.Decode))
+	router.USE(gorouter.POST, "/dispatch/"+ChangeEmailAddress, auth.Firewall("USER"))
 
 	return router
 }
@@ -120,6 +119,6 @@ func (d *UserDomain) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // NewDomain returns new user domain object allowing to register
 // command and event handlers
 // http routes as gorouter.Router
-func NewDomain(r string, cb domain.CommandBus, eb domain.EventBus, es domain.EventStore, j jwt.Jwt) *UserDomain {
-	return &UserDomain{r, cb, eb, es, j}
+func NewDomain(cb domain.CommandBus, eb domain.EventBus, es domain.EventStore, j jwt.Jwt) *UserDomain {
+	return &UserDomain{cb, eb, es, j}
 }
