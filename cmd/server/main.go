@@ -14,6 +14,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/socialmedia"
 	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/eventstore"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/recover"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -27,7 +28,7 @@ import (
 type config struct {
 	Env          string   `env:"ENV"          envDefault:"development"`
 	Host         string   `env:"HOST"         envDefault:"localhost"`
-	Port         int      `env:"PORT"         envDefault:"3000"`
+	Port         int      `env:"PORT"         envDefault:"443"`
 	CertDirCache string   `env:"CERT_DIR_CACHE"`
 	Secret       string   `env:"SECRET"       envDefault:"secret"`
 	Origins      []string `env:"ORIGINS"      envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
@@ -35,21 +36,7 @@ type config struct {
 	AwsEndpoint  string   `env:"AWS_ENDPOINT" envDefault:"http://localhost:4569"`
 }
 
-func main() {
-	cfg := config{}
-	env.Parse(&cfg)
-
-	awsConfig := &aws.Config{
-		Region:   aws.String(cfg.AwsRegion),
-		Endpoint: aws.String(cfg.AwsEndpoint),
-	}
-
-	logger := log.New(cfg.Env)
-	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
-	eventStore := eventstore.New("events", awsConfig)
-	eventBus := eventbus.WithLogger(eventbus.New(), logger)
-	commandBus := commandbus.WithLogger(commandbus.New(), logger)
-
+func setupRouter(cfg *config, logger *log.Logger, jwtService jwt.Jwt, commandBus domain.CommandBus, userDomain *user.UserDomain) gorouter.Router {
 	// Global middleware
 	router := gorouter.New(
 		logger.LogRequest,
@@ -63,12 +50,6 @@ func main() {
 		recover.WithLogger(recover.New(), logger).WrapHandler,
 	)
 
-	userDomain := user.NewDomain(
-		commandBus,
-		eventBus,
-		eventStore,
-		jwtService,
-	)
 	// User domain
 	router.Mount("/users", userDomain.AsRouter())
 
@@ -77,6 +58,10 @@ func main() {
 	router.POST("/auth/google/callback", socialmedia.NewGoogle(commandBus, jwtService))
 	router.POST("/auth/facebook/callback", socialmedia.NewFacebook(commandBus, jwtService))
 
+	return router
+}
+
+func setupServer(cfg *config, router gorouter.Router) *http.Server {
 	certManager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(cfg.Host),
@@ -102,6 +87,41 @@ func main() {
 		TLSConfig:    tlsConfig,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
+
+	return srv
+}
+
+func main() {
+	cfg := config{}
+	env.Parse(&cfg)
+
+	awsConfig := &aws.Config{
+		Region:   aws.String(cfg.AwsRegion),
+		Endpoint: aws.String(cfg.AwsEndpoint),
+	}
+
+	logger := log.New(cfg.Env)
+	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
+	eventStore := eventstore.New("events", awsConfig)
+	eventBus := eventbus.WithLogger(eventbus.New(), logger)
+	commandBus := commandbus.WithLogger(commandbus.New(), logger)
+
+	userDomain := user.NewDomain(
+		commandBus,
+		eventBus,
+		eventStore,
+		jwtService,
+	)
+
+	router := setupRouter(
+		&cfg,
+		logger,
+		jwtService,
+		commandBus,
+		userDomain,
+	)
+
+	srv := setupServer(&cfg, router)
 
 	logger.Critical(nil, "%v\n", srv.ListenAndServeTLS("", ""))
 }
