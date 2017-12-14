@@ -1,15 +1,15 @@
-package auth
+package firewall
 
 import (
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
-	"github.com/vardius/gorouter"
+	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
-// Firewall returns Status Unauthorized if Identity not set within request's context
+// GrantAccessFor returns Status Unauthorized if
+// Identity not set within request's context
 // or user does not have required role
-func Firewall(role string) gorouter.MiddlewareFunc {
+func GrantAccessFor(role string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			i, ok := identity.FromContext(r.Context())

@@ -1,19 +1,32 @@
-package auth
+package authenticator
 
 import (
 	"encoding/base64"
 	"net/http"
 	"strings"
 
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
-	"github.com/vardius/gorouter"
+	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
-// TokenAuthFunc returns Identity from auth token
+// TokenAuthFunc returns Identity from token
 type TokenAuthFunc func(token string) (*identity.Identity, error)
 
-// Bearer guard request using bearer token for authentication
-func Bearer(realm string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
+// TokenAuthenticator authorize by token
+// and adds Identity to request's Context
+type TokenAuthenticator interface {
+	// FromHeader authorize by the token provided in the request's Authorization header
+	FromHeader(realm string) func(next http.Handler) http.Handler
+	// FromQuery authorize by the token provided in the request's query parameter
+	FromQuery(name string) func(next http.Handler) http.Handler
+	// FromCookie authorize by the token provided in the request's cookie
+	FromCookie(name string) func(next http.Handler) http.Handler
+}
+
+type tokenAuth struct {
+	afn TokenAuthFunc
+}
+
+func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.Header.Get("Authorization")
@@ -24,7 +37,7 @@ func Bearer(realm string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
 
 			if strings.HasPrefix(token, "Bearer ") {
 				if bearer, err := base64.StdEncoding.DecodeString(token[7:]); err == nil {
-					i, err := afn(string(bearer))
+					i, err := a.afn(string(bearer))
 					if err != nil {
 						w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
 						http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -47,8 +60,7 @@ func Bearer(realm string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
 	}
 }
 
-// Query guard request using query token for authentication
-func Query(name string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
+func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.URL.Query().Get(name)
@@ -57,7 +69,7 @@ func Query(name string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
 				return
 			}
 
-			i, err := afn(token)
+			i, err := a.afn(token)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
@@ -70,8 +82,7 @@ func Query(name string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
 	}
 }
 
-// Cookie guard request using token for authentication
-func Cookie(name string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
+func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(name)
@@ -80,7 +91,7 @@ func Cookie(name string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
 				return
 			}
 
-			i, err := afn(cookie.Value)
+			i, err := a.afn(cookie.Value)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
@@ -90,5 +101,12 @@ func Cookie(name string, afn TokenAuthFunc) gorouter.MiddlewareFunc {
 		}
 
 		return http.HandlerFunc(fn)
+	}
+}
+
+// WithToken returns new token authenticator
+func WithToken(afn TokenAuthFunc) TokenAuthenticator {
+	return &tokenAuth{
+		afn: afn,
 	}
 }

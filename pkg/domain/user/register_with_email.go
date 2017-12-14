@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
 // RegisterWithEmail command bus contract

@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/auth"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/security/firewall"
 	"github.com/vardius/gorouter"
 )
 
@@ -51,7 +51,7 @@ func (d *UserDomain) AsRouter() gorouter.Router {
 	router := gorouter.New()
 
 	router.POST("/dispatch/{command}", d)
-	router.USE(gorouter.POST, "/dispatch/"+ChangeEmailAddress, auth.Firewall("USER"))
+	router.USE(gorouter.POST, "/dispatch/"+ChangeEmailAddress, firewall.GrantAccessFor("USER"))
 
 	return router
 }

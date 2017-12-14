@@ -6,7 +6,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
 const identityClaimKey = "identity"

@@ -11,7 +11,7 @@ import (
 
 // A Recover recovers http handler from panic
 type Recover interface {
-	WrapHandler(next http.Handler) http.Handler
+	RecoverHandler(next http.Handler) http.Handler
 }
 
 func writeError(ctx context.Context, w http.ResponseWriter) {
@@ -24,7 +24,7 @@ func writeError(ctx context.Context, w http.ResponseWriter) {
 
 type defaultRecover int
 
-func (r *defaultRecover) WrapHandler(next http.Handler) http.Handler {
+func (r *defaultRecover) RecoverHandler(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
 			if rec := recover(); rec != nil {
@@ -48,7 +48,7 @@ type loggableRecover struct {
 	log     golog.Logger
 }
 
-func (r *loggableRecover) WrapHandler(next http.Handler) http.Handler {
+func (r *loggableRecover) RecoverHandler(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
 			if rec := recover(); rec != nil {

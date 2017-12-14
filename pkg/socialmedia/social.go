@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
 type responsePayload struct {

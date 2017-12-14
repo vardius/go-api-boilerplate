@@ -3,11 +3,11 @@ package socialmedia
 import (
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/auth/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
 type facebook struct {
