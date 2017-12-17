@@ -6,6 +6,21 @@ import (
 	"testing"
 )
 
+func TestWithPayloadPanic(t *testing.T) {
+	req, err := http.NewRequest("GET", "/x", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("WithPayload should panic if contextWithResponse was not called first")
+		}
+	}()
+
+	WithPayload(req.Context(), nil)
+}
+
 func TestWithPayload(t *testing.T) {
 	req, err := http.NewRequest("GET", "/x", nil)
 	if err != nil {
