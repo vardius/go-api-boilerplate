@@ -23,7 +23,7 @@ func ContextWithFlag(ctx context.Context, flag string) context.Context {
 	return context.WithValue(ctx, key{}, flags)
 }
 
-//HasFlag returns the bool value based on flag occurrence in context.
+// HasFlag returns the bool value based on flag occurrence in context.
 func HasFlag(ctx context.Context, flag string) bool {
 	flags, ok := ctx.Value(key{}).(flagMap)
 	if !ok {
@@ -34,7 +34,7 @@ func HasFlag(ctx context.Context, flag string) bool {
 	return ok
 }
 
-//FlagsFromContext returns the slice of flags stored in ctx
+// FlagsFromContext returns the slice of flags stored in ctx
 func FlagsFromContext(ctx context.Context) []string {
 	var emptyFlags []string
 

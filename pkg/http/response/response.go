@@ -29,7 +29,7 @@ func fromContext(ctx context.Context) (*response, bool) {
 func WithPayload(ctx context.Context, payload interface{}) {
 	response, ok := fromContext(ctx)
 	if !ok {
-		panic("Faild to write payload. Use one of response middlewares first")
+		panic("Faild to write payload. Use one of response's As*** middlewares first")
 	}
 
 	response.write(payload)
