@@ -10,11 +10,11 @@ func AsJSON(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		r = r.WithContext(contextWithResponse(r.Context()))
+		ctx := contextWithResponse(r.Context())
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctx))
 
-		if response, ok := fromContext(r.Context()); ok {
+		if response, ok := fromContext(ctx); ok {
 			encoder := json.NewEncoder(w)
 			encoder.SetEscapeHTML(true)
 			encoder.SetIndent("", "")

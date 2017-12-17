@@ -9,7 +9,7 @@ func ContextWithIdentity(ctx context.Context, i *Identity) context.Context {
 	return context.WithValue(ctx, key{}, i)
 }
 
-//FromContext returns the Identity value stored in ctx, if any.
+// FromContext returns the Identity value stored in ctx, if any.
 func FromContext(ctx context.Context) (*Identity, bool) {
 	i, ok := ctx.Value(key{}).(*Identity)
 	return i, ok

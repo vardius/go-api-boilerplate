@@ -1,39 +1,29 @@
 package response
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"testing"
 )
 
 func TestWithPayloadPanic(t *testing.T) {
-	req, err := http.NewRequest("GET", "/x", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("WithPayload should panic if contextWithResponse was not called first")
 		}
 	}()
 
-	WithPayload(req.Context(), nil)
+	WithPayload(context.Background(), nil)
 }
 
 func TestWithPayload(t *testing.T) {
-	req, err := http.NewRequest("GET", "/x", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	req = req.WithContext(contextWithResponse(req.Context()))
-
+	ctx := contextWithResponse(context.Background())
 	response := "test"
 
-	WithPayload(req.Context(), response)
+	WithPayload(ctx, response)
 
-	resp, ok := fromContext(req.Context())
+	resp, ok := fromContext(ctx)
 	if ok && resp.payload == response {
 		return
 	}
@@ -42,22 +32,16 @@ func TestWithPayload(t *testing.T) {
 }
 
 func TestWithError(t *testing.T) {
-	req, err := http.NewRequest("GET", "/x", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	req = req.WithContext(contextWithResponse(req.Context()))
-
+	ctx := contextWithResponse(context.Background())
 	respErr := HTTPError{
 		Code:    http.StatusBadRequest,
 		Error:   errors.New("response error"),
 		Message: "Invalid request",
 	}
 
-	WithError(req.Context(), respErr)
+	WithError(ctx, respErr)
 
-	resp, ok := fromContext(req.Context())
+	resp, ok := fromContext(ctx)
 	if ok && resp.payload == respErr {
 		return
 	}
