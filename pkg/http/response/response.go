@@ -2,7 +2,6 @@ package response
 
 import (
 	"context"
-	"errors"
 )
 
 type responseKey struct{}
@@ -26,23 +25,18 @@ func fromContext(ctx context.Context) (*response, bool) {
 }
 
 // WithPayload adds payload to context for response
-func WithPayload(ctx context.Context, payload interface{}) error {
+// Will panic if response middleware wasned used first
+func WithPayload(ctx context.Context, payload interface{}) {
 	response, ok := fromContext(ctx)
 	if !ok {
-		return errors.New("Faild to write payload")
+		panic("Faild to write payload. Use one of response middlewares first")
 	}
 
 	response.write(payload)
-
-	return nil
 }
 
 // WithError adds error to context for response
-func WithError(ctx context.Context, err HTTPError) error {
-	e := WithPayload(ctx, err)
-	if e != nil {
-		return errors.New("Faild to write error")
-	}
-
-	return nil
+// Will panic if response middleware wasned used first
+func WithError(ctx context.Context, err HTTPError) {
+	WithPayload(ctx, err)
 }

@@ -16,10 +16,7 @@ func TestWithPayload(t *testing.T) {
 
 	response := "test"
 
-	err = WithPayload(req.Context(), response)
-	if err != nil {
-		t.Errorf("%s", err)
-	}
+	WithPayload(req.Context(), response)
 
 	resp, ok := fromContext(req.Context())
 	if ok && resp.payload == response {
@@ -43,10 +40,7 @@ func TestWithError(t *testing.T) {
 		Message: "Invalid request",
 	}
 
-	err = WithError(req.Context(), respErr)
-	if err != nil {
-		t.Errorf("%s", err)
-	}
+	WithError(req.Context(), respErr)
 
 	resp, ok := fromContext(req.Context())
 	if ok && resp.payload == respErr {

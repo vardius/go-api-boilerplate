@@ -13,11 +13,7 @@ type jsonResponse struct {
 
 func TestAsJSON(t *testing.T) {
 	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		err := WithPayload(r.Context(), jsonResponse{"John"})
-
-		if err != nil {
-			t.Errorf("%s", err)
-		}
+		WithPayload(r.Context(), jsonResponse{"John"})
 	}))
 
 	w := httptest.NewRecorder()
