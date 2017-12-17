@@ -10,6 +10,8 @@ func AsJSON(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
+		r = r.WithContext(contextWithResponse(r.Context()))
+
 		next.ServeHTTP(w, r)
 
 		if response, ok := fromContext(r.Context()); ok {
@@ -17,7 +19,7 @@ func AsJSON(next http.Handler) http.Handler {
 			encoder.SetEscapeHTML(true)
 			encoder.SetIndent("", "")
 
-			err := encoder.Encode(response)
+			err := encoder.Encode(response.payload)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(HTTPError{
@@ -28,7 +30,7 @@ func AsJSON(next http.Handler) http.Handler {
 				return
 			}
 
-			switch t := response.(type) {
+			switch t := response.payload.(type) {
 			case HTTPError:
 				w.WriteHeader(t.Code)
 			case *HTTPError:

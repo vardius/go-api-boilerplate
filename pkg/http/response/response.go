@@ -2,22 +2,47 @@ package response
 
 import (
 	"context"
-	"net/http"
+	"errors"
 )
 
 type responseKey struct{}
 
-// WithPayload add payload for ersponse
-func WithPayload(req *http.Request, payload interface{}) context.Context {
-	return context.WithValue(req.Context(), responseKey{}, payload)
+type response struct {
+	payload interface{}
 }
 
-// WithError add error for ersponse
-func WithError(req *http.Request, err HTTPError) context.Context {
-	return context.WithValue(req.Context(), responseKey{}, err)
+func (r *response) write(payload interface{}) {
+	r.payload = payload
 }
 
-func fromContext(ctx context.Context) (interface{}, bool) {
-	i := ctx.Value(responseKey{})
-	return i, i != nil
+func contextWithResponse(ctx context.Context) context.Context {
+	return context.WithValue(ctx, responseKey{}, &response{})
+}
+
+func fromContext(ctx context.Context) (*response, bool) {
+	r, ok := ctx.Value(responseKey{}).(*response)
+
+	return r, ok
+}
+
+// WithPayload adds payload to context for response
+func WithPayload(ctx context.Context, payload interface{}) error {
+	response, ok := fromContext(ctx)
+	if !ok {
+		return errors.New("Faild to write payload")
+	}
+
+	response.write(payload)
+
+	return nil
+}
+
+// WithError adds error to context for response
+func WithError(ctx context.Context, err HTTPError) error {
+	e := WithPayload(ctx, err)
+	if e != nil {
+		return errors.New("Faild to write error")
+	}
+
+	return nil
 }
