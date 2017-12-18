@@ -15,6 +15,13 @@ func AsJSON(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 
 		if response, ok := fromContext(ctx); ok {
+			switch t := response.payload.(type) {
+			case HTTPError:
+				w.WriteHeader(t.Code)
+			case *HTTPError:
+				w.WriteHeader(t.Code)
+			}
+
 			encoder := json.NewEncoder(w)
 			encoder.SetEscapeHTML(true)
 			encoder.SetIndent("", "")
@@ -30,18 +37,11 @@ func AsJSON(next http.Handler) http.Handler {
 				return
 			}
 
-			switch t := response.payload.(type) {
-			case HTTPError:
-				w.WriteHeader(t.Code)
-			case *HTTPError:
-				w.WriteHeader(t.Code)
-			default:
-				if f, ok := w.(http.Flusher); ok {
-					f.Flush()
-				} else {
-					// Write nil in case of setting http.StatusOK header if header not set
-					w.Write(nil)
-				}
+			if f, ok := w.(http.Flusher); ok {
+				f.Flush()
+			} else {
+				// Write nil in case of setting http.StatusOK header if header not set
+				w.Write(nil)
 			}
 		}
 	}
