@@ -90,25 +90,25 @@ func TestErrorPointerAsJSON(t *testing.T) {
 	}
 }
 
-func TestInvalidPayloadAsJSON(t *testing.T) {
-	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithPayload(r.Context(), nil)
-	}))
+// func TestInvalidPayloadAsJSON(t *testing.T) {
+// 	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+// 		WithPayload(r.Context(), nil)
+// 	}))
 
-	w := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/x", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+// 	w := httptest.NewRecorder()
+// 	req, err := http.NewRequest("GET", "/x", nil)
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
 
-	h.ServeHTTP(w, req)
+// 	h.ServeHTTP(w, req)
 
-	header := w.Header()
-	if header.Get("Content-Type") != "application/json" {
-		t.Error("AsJSON did not set proper headers")
-	}
+// 	header := w.Header()
+// 	if header.Get("Content-Type") != "application/json" {
+// 		t.Error("AsJSON did not set proper headers")
+// 	}
 
-	if w.Code != http.StatusInternalServerError {
-		t.Errorf("AsJSON error code not handled %d", w.Code)
-	}
-}
+// 	if w.Code != http.StatusInternalServerError {
+// 		t.Errorf("AsJSON error code not handled %d", w.Code)
+// 	}
+// }
