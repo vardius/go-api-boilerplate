@@ -1,6 +1,9 @@
 .DS_Store
 .idea
 
+profile.out
+coverage.txt
+
 .env
 cmd/**/.env
 *.log*
