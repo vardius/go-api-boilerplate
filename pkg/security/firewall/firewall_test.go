@@ -6,13 +6,15 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
 func TestDoNotGrantAccessFor(t *testing.T) {
-	h := GrantAccessFor("user")(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Error("Should not get access here")
-	}))
+	})
+	h := response.AsJSON(GrantAccessFor("user")(handler))
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -32,9 +34,10 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 
 func TestGrantAccessFor(t *testing.T) {
 	served := false
-	h := GrantAccessFor("user")(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		served = true
-	}))
+	})
+	h := response.AsJSON(GrantAccessFor("user")(handler))
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
