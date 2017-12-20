@@ -2,9 +2,11 @@ package authenticator
 
 import (
 	"encoding/base64"
+	"errors"
 	"net/http"
 	"strings"
 
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
@@ -40,7 +42,11 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 					i, err := a.afn(string(bearer))
 					if err != nil {
 						w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-						http.Error(w, err.Error(), http.StatusUnauthorized)
+						response.WithError(r.Context(), response.HTTPError{
+							Code:    http.StatusUnauthorized,
+							Error:   err,
+							Message: http.StatusText(http.StatusUnauthorized),
+						})
 						return
 					}
 
@@ -50,10 +56,11 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 			}
 
 			w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-			http.Error(w,
-				http.StatusText(http.StatusUnauthorized),
-				http.StatusUnauthorized,
-			)
+			response.WithError(r.Context(), response.HTTPError{
+				Code:    http.StatusUnauthorized,
+				Error:   errors.New(http.StatusText(http.StatusUnauthorized)),
+				Message: http.StatusText(http.StatusUnauthorized),
+			})
 		}
 
 		return http.HandlerFunc(fn)
@@ -71,7 +78,11 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 
 			i, err := a.afn(token)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
+				response.WithError(r.Context(), response.HTTPError{
+					Code:    http.StatusUnauthorized,
+					Error:   err,
+					Message: http.StatusText(http.StatusUnauthorized),
+				})
 				return
 			}
 
@@ -93,7 +104,11 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 
 			i, err := a.afn(cookie.Value)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
+				response.WithError(r.Context(), response.HTTPError{
+					Code:    http.StatusUnauthorized,
+					Error:   err,
+					Message: http.StatusText(http.StatusUnauthorized),
+				})
 				return
 			}
 

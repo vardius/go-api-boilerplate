@@ -1,8 +1,10 @@
 package firewall
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
@@ -22,10 +24,11 @@ func GrantAccessFor(role string) func(next http.Handler) http.Handler {
 				}
 			}
 
-			http.Error(w,
-				http.StatusText(http.StatusUnauthorized),
-				http.StatusUnauthorized,
-			)
+			response.WithError(r.Context(), response.HTTPError{
+				Code:    http.StatusUnauthorized,
+				Error:   errors.New(http.StatusText(http.StatusUnauthorized)),
+				Message: http.StatusText(http.StatusUnauthorized),
+			})
 		}
 
 		return http.HandlerFunc(fn)
