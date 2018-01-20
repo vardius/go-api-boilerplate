@@ -8,7 +8,7 @@ Golang API Starter Kit
 [![Beerpay](https://beerpay.io/vardius/go-api-boilerplate/badge.svg?style=beer-square)](https://beerpay.io/vardius/go-api-boilerplate)
 [![Beerpay](https://beerpay.io/vardius/go-api-boilerplate/make-wish.svg?style=flat-square)](https://beerpay.io/vardius/go-api-boilerplate?focus=wish)
 
-Go Server/API boilerplate using best practices, DDD, CQRS, ES.
+Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
 Key concepts:
 1. Rest API
