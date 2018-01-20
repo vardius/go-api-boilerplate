@@ -1,9 +1,9 @@
 package user
 
 import (
+	"fmt"
 	"context"
 	"encoding/json"
-
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
@@ -20,7 +20,10 @@ func (c *changeEmailAddress) fromJSON(payload json.RawMessage) error {
 	return json.Unmarshal(payload, c)
 }
 
-func onChangeEmailAddress(repository *eventSourcedRepository) domain.CommandHandler {
+// OnChangeEmailAddress creates command handler
+func OnChangeEmailAddress(es domain.EventStore, eb domain.EventBus) domain.CommandHandler {
+	repository := newRepository(fmt.Sprintf("%T", User{}), es, eb)
+
 	return func(ctx context.Context, payload json.RawMessage, out chan<- error) {
 		c := &changeEmailAddress{}
 		err := c.fromJSON(payload)

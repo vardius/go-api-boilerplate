@@ -3,20 +3,16 @@ package main
 import (
 	"crypto/tls"
 	"net/http"
+	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/caarlos0/env"
 	"github.com/justinas/nosurf"
 	"github.com/rs/cors"
-	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/eventstore"
-	"github.com/vardius/go-api-boilerplate/pkg/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/internal/userclient"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
-	"github.com/vardius/go-api-boilerplate/pkg/memory/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/memory/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/recover"
 	"github.com/vardius/go-api-boilerplate/pkg/security/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/socialmedia"
@@ -25,14 +21,14 @@ import (
 )
 
 type config struct {
-	Env          string   `env:"ENV"          envDefault:"development"`
-	Host         string   `env:"HOST"         envDefault:"localhost"`
-	Port         int      `env:"PORT"         envDefault:"443"`
-	CertDirCache string   `env:"CERT_DIR_CACHE"`
-	Secret       string   `env:"SECRET"       envDefault:"secret"`
-	Origins      []string `env:"ORIGINS"      envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
-	AwsRegion    string   `env:"AWS_REGION"   envDefault:"us-east-1"`
-	AwsEndpoint  string   `env:"AWS_ENDPOINT" envDefault:"http://localhost:4569"`
+	Env            string   `env:"ENV"              envDefault:"development"`
+	Host           string   `env:"HOST"             envDefault:"localhost"`
+	Port           int      `env:"PORT"             envDefault:"443"`
+	UserServerHost string   `env:"USER_SERVER_HOST"`
+	UserServerPort int      `env:"USER_SERVER_PORT"`
+	CertDirCache   string   `env:"CERT_DIR_CACHE"`
+	Secret         string   `env:"SECRET"           envDefault:"secret"`
+	Origins        []string `env:"ORIGINS"          envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
 }
 
 func setupServer(cfg *config, router gorouter.Router) *http.Server {
@@ -69,18 +65,11 @@ func main() {
 	cfg := config{}
 	env.Parse(&cfg)
 
-	awsConfig := &aws.Config{
-		Region:   aws.String(cfg.AwsRegion),
-		Endpoint: aws.String(cfg.AwsEndpoint),
-	}
-
 	logger := log.New(cfg.Env)
 	rec := recover.WithLogger(recover.New(), logger)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
-	eventStore := eventstore.New("events", awsConfig)
-	eventBus := eventbus.WithLogger(eventbus.New(), logger)
-	commandBus := commandbus.WithLogger(commandbus.New(), logger)
+	userClient := userclient.New(fmt.Sprintf("%s:%d", cfg.UserServerHost, cfg.UserServerPort))
 
 	// Global middleware
 	router := gorouter.New(
@@ -97,18 +86,10 @@ func main() {
 
 	// Routes
 	// Social media auth routes
-	router.POST("/auth/google/callback", socialmedia.NewGoogle(commandBus, jwtService))
-	router.POST("/auth/facebook/callback", socialmedia.NewFacebook(commandBus, jwtService))
-
-	userDomain := user.NewDomain(
-		commandBus,
-		eventBus,
-		eventStore,
-		jwtService,
-	)
-
+	router.POST("/auth/google/callback", socialmedia.NewGoogle(userClient, jwtService))
+	router.POST("/auth/facebook/callback", socialmedia.NewFacebook(userClient, jwtService))
 	// User domain
-	router.Mount("/users", userDomain.AsRouter())
+	router.Mount("/users", userClient.AsRouter())
 
 	srv := setupServer(&cfg, router)
 

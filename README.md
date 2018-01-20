@@ -16,6 +16,7 @@ Key concepts:
 3. [CQRS](https://martinfowler.com/bliki/CQRS.html)
 4. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
 5. [Docker](https://www.docker.com/what-docker)
+5. [gRPC](https://grpc.io/docs/)
 
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
@@ -41,4 +42,11 @@ HOW TO USE
 ## Getting started
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
+### Vendor
+To update vendors run
+```bash
+go get -u github.com/golang/dep/cmd/dep
+dep init
+dep ensure -update
+```
 ### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)

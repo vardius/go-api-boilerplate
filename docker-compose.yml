@@ -1,12 +1,12 @@
 version: '3.3'
 services:
-  server:
+  apiserver:
     image: golang:latest
-    container_name: server
+    container_name: apiserver
     environment:
-      - BIN=server
+      - BIN=apiserver
     env_file:
-      - cmd/server/.env
+      - cmd/apiserver/.env
     expose:
       - "${SERVER_PORT}"
     ports:
@@ -14,9 +14,29 @@ services:
     volumes:
       - ./:/go/src/${PKG}
     networks:
-      - back_tier
+      - proxy_tier
     working_dir: /go/src/${PKG}
     command: sh dev.sh
+    privileged: true
+
+  userserver:
+    image: golang:latest
+    container_name: userserver
+    environment:
+      - BIN=userserver
+    env_file:
+      - cmd/userserver/.env
+    expose:
+      - "${SERVER_PORT}"
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./:/go/src/${PKG}
+    networks:
+      - proxy_tier
+      - back_tier
+    working_dir: /go/src/${PKG}
+    command: go run cmd/userserver/main.go
     privileged: true
 
   localstack:
@@ -31,5 +51,7 @@ services:
       - back_tier
 
 networks:
+  proxy_tier:
+    driver: bridge
   back_tier:
     driver: bridge

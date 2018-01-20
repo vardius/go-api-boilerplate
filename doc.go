@@ -6,20 +6,22 @@ Directory Layout:
   ├── /.vscode/            # Visual Studio Code remote debugging setttings
   ├── /nginx/              # Nginx docker container configuration
   ├── /cmd/                # Binaries
-  │   ├── /server/         # Server binary
-  │   │   └── /main.go     # Server application - glues together libraries
-  │   │   └── /.env        # Binary environment per binary configuration
+  │   ├── /userserver/     # User domain server binary
+  │   │   └── /main.go     # User domain grpc server
+  │   │   └── /.env        # Binary environment configuration
+  │   ├── /apiserver/      # API Server binary
+  │   │   └── /main.go     # API Server application - glues together libraries
+  │   │   └── /.env        # Binary environment configuration
   │   ├── /...             # etc.
+  ├── /internal/           # Internal libraries
+  │   ├── /user/           # etc.
+  │   │   ├── /userserver/ # User domain server implementation
+  │   │   ├── /userclient/ # User domain client implementation
   ├── /pkg/                # Libraries
   │   ├── /auth/           # Authorization tools
-  │   ├── /...             # etc.
   │   ├── /domain/         # Domain libraries
-  │   │   ├── /user/       # User domain
-  │   │   │   ├── /main.go # Main user domain entrypoint
-  │   │   ├── /...         # etc.
   │   ├── /http/           # Http utils
   │   ├── /...             # etc.
-  │   ├── /...             # More internal libraries
   ├── /vendor/             # Vendor libraries
   ├── docker-compose.yml   # Defines Docker services, networks and volumes per developer environment
   ├── Dockerfile           # Docker image for production

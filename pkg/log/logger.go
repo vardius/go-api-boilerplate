@@ -25,5 +25,5 @@ func New(env string) *Logger {
 		l = golog.NewFileLogger(getLogLevelByEnv(env), "/tmp/prod.log")
 	}
 
-	return l.(*Logger)
+	return &Logger{l}
 }

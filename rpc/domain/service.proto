@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+
+option java_multiple_files = true;
+option java_package = "io.grpc.domain";
+option java_outer_classname = "DomainProto";
+
+package domain;
+
+// Domain handles commands dispatch
+service Domain {
+  rpc Dispatch(Command) returns (Response);
+}
+
+// Command is passed when dispatching
+message Command {
+  string name = 1;
+  bytes payload = 2;
+}
+
+// Response is empty.
+message Response {}

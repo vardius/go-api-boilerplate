@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"context"
 	"encoding/json"
 
@@ -8,28 +9,31 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
 
-// RegisterWithGoogle command bus contract
-const RegisterWithGoogle = "register-user-with-google"
+// RegisterWithFacebook command bus contract
+const RegisterWithFacebook = "register-user-with-facebook"
 
-type registerWithGoogle struct {
+type registerWithFacebook struct {
 	Email     string `json:"email"`
 	AuthToken string `json:"authToken"`
 }
 
-func (c *registerWithGoogle) fromJSON(payload json.RawMessage) error {
+func (c *registerWithFacebook) fromJSON(payload json.RawMessage) error {
 	return json.Unmarshal(payload, c)
 }
 
-func onRegisterWithGoogle(repository *eventSourcedRepository) domain.CommandHandler {
+// OnRegisterWithFacebook creates command handler
+func OnRegisterWithFacebook(es domain.EventStore, eb domain.EventBus) domain.CommandHandler {
+	repository := newRepository(fmt.Sprintf("%T", User{}), es, eb)
+
 	return func(ctx context.Context, payload json.RawMessage, out chan<- error) {
-		c := &registerWithGoogle{}
+		c := &registerWithFacebook{}
 		err := c.fromJSON(payload)
 		if err != nil {
 			out <- err
 			return
 		}
 
-		//todo: validate if email is taken or if user already connected with google
+		//todo: validate if email is taken or if user already connected with facebook
 
 		id, err := uuid.NewRandom()
 		if err != nil {
@@ -38,7 +42,7 @@ func onRegisterWithGoogle(repository *eventSourcedRepository) domain.CommandHand
 		}
 
 		user := New()
-		err = user.RegisterWithGoogle(id, c.Email, c.AuthToken)
+		err = user.RegisterWithFacebook(id, c.Email, c.AuthToken)
 		if err != nil {
 			out <- err
 			return

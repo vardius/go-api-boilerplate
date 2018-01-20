@@ -2,16 +2,15 @@ package socialmedia
 
 import (
 	"net/http"
-
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/domain/user"
+	"github.com/vardius/go-api-boilerplate/internal/userclient"
+	"github.com/vardius/go-api-boilerplate/internal/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
 )
 
 type facebook struct {
-	commandBus domain.CommandBus
+	client userclient.UserClient
 	jwt        jwt.Jwt
 }
 
@@ -40,15 +39,10 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out := make(chan error)
-	defer close(out)
+	payload := &commandPayload{token, data}
+	e = f.client.DispatchAndClose(r.Context(), user.RegisterWithFacebook, payload.toJSON())
 
-	go func() {
-		payload := &commandPayload{token, data}
-		f.commandBus.Publish(r.Context(), user.RegisterWithFacebook, payload.toJSON(), out)
-	}()
-
-	if e = <-out; e != nil {
+	if e != nil {
 		response.WithError(r.Context(), response.HTTPError{
 			Code:    http.StatusBadRequest,
 			Error:   e,
@@ -62,6 +56,6 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewFacebook creates facebook auth handler
-func NewFacebook(cb domain.CommandBus, j jwt.Jwt) http.Handler {
-	return &facebook{cb, j}
+func NewFacebook(c userclient.UserClient, j jwt.Jwt) http.Handler {
+	return &facebook{c, j}
 }

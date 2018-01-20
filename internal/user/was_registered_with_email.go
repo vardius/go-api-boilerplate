@@ -15,7 +15,7 @@ type WasRegisteredWithEmail struct {
 	AuthToken string    `json:"authToken"`
 }
 
-func onWasRegisteredWithEmail(ctx context.Context, event domain.Event) {
+func WhenWasRegisteredWithEmail(ctx context.Context, event domain.Event) {
 	// todo: register user and send email with auth token
 	log.Printf("handle %v", event)
 }

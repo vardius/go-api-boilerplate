@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"context"
 	"encoding/json"
 
@@ -21,7 +22,10 @@ func (c *registerWithEmail) fromJSON(payload json.RawMessage) error {
 	return json.Unmarshal(payload, c)
 }
 
-func onRegisterWithEmail(repository *eventSourcedRepository, j jwt.Jwt) domain.CommandHandler {
+// OnRegisterWithEmail creates command handler
+func OnRegisterWithEmail(es domain.EventStore, eb domain.EventBus, j jwt.Jwt) domain.CommandHandler {
+	repository := newRepository(fmt.Sprintf("%T", User{}), es, eb)
+
 	return func(ctx context.Context, payload json.RawMessage, out chan<- error) {
 		c := &registerWithEmail{}
 		err := c.fromJSON(payload)
