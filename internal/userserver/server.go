@@ -3,8 +3,8 @@ package userserver
 import (
 	"context"
 	"fmt"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/internal/user"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	pb "github.com/vardius/go-api-boilerplate/rpc/domain"
 )
@@ -40,7 +40,7 @@ func (s *userServer) Dispatch(ctx context.Context, cmd *pb.Command) (*pb.Respons
 	}()
 
 	if err := <-out; err != nil {
-		return nil , err
+		return nil, err
 	}
 
 	return nil, nil
@@ -48,7 +48,7 @@ func (s *userServer) Dispatch(ctx context.Context, cmd *pb.Command) (*pb.Respons
 
 // New returns new user domain server object
 func New(cb domain.CommandBus, eb domain.EventBus, es domain.EventStore, j jwt.Jwt) pb.DomainServer {
-	s :=  &userServer{cb, eb, es, j}
+	s := &userServer{cb, eb, es, j}
 
 	registerCommandHandlers(cb, es, eb, j)
 	registerEventHandlers(eb)

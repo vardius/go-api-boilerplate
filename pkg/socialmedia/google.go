@@ -1,17 +1,17 @@
 package socialmedia
 
 import (
-	"net/http"
-	"github.com/vardius/go-api-boilerplate/internal/userclient"
 	"github.com/vardius/go-api-boilerplate/internal/user"
+	"github.com/vardius/go-api-boilerplate/internal/userclient"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
+	"net/http"
 )
 
 type google struct {
 	client userclient.UserClient
-	jwt        jwt.Jwt
+	jwt    jwt.Jwt
 }
 
 func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {

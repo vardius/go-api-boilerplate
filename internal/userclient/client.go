@@ -2,14 +2,14 @@ package userclient
 
 import (
 	"context"
-	"io/ioutil"
-	"net/http"
 	"github.com/vardius/go-api-boilerplate/internal/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/security/firewall"
+	pb "github.com/vardius/go-api-boilerplate/rpc/domain"
 	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
-	pb "github.com/vardius/go-api-boilerplate/rpc/domain"
+	"io/ioutil"
+	"net/http"
 )
 
 // UserClient interface
@@ -34,7 +34,7 @@ func (c *userClient) DispatchAndClose(ctx context.Context, command string, paylo
 
 	client := pb.NewDomainClient(conn)
 	_, err = client.Dispatch(ctx, &pb.Command{
-		Name: command,
+		Name:    command,
 		Payload: payload,
 	})
 

@@ -15,6 +15,7 @@ type WasRegisteredWithFacebook struct {
 	AuthToken string    `json:"authToken"`
 }
 
+// WhenWasRegisteredWithFacebook handles event
 func WhenWasRegisteredWithFacebook(ctx context.Context, event domain.Event) {
 	// todo: register user
 	log.Printf("handle %v", event)

@@ -15,6 +15,7 @@ type WasRegisteredWithGoogle struct {
 	AuthToken string    `json:"authToken"`
 }
 
+// WhenWasRegisteredWithGoogle handles event
 func WhenWasRegisteredWithGoogle(ctx context.Context, event domain.Event) {
 	// todo: register user
 	log.Printf("handle %v", event)

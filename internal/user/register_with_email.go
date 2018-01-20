@@ -1,9 +1,9 @@
 package user
 
 import (
-	"fmt"
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"

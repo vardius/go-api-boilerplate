@@ -14,6 +14,7 @@ type EmailAddressWasChanged struct {
 	Email string    `json:"email"`
 }
 
+// WhenEmailAddressWasChanged handles event
 func WhenEmailAddressWasChanged(ctx context.Context, event domain.Event) {
 	// todo: register user
 	log.Printf("handle %v", event)
