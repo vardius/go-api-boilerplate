@@ -40,6 +40,7 @@ HOW TO USE
 ==================================================
 
 ## Getting started
+### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
 ### Vendor
@@ -49,4 +50,3 @@ go get -u github.com/golang/dep/cmd/dep
 dep init
 dep ensure -update
 ```
-### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)
