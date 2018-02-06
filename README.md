@@ -8,7 +8,7 @@ Golang API Starter Kit
 [![Beerpay](https://beerpay.io/vardius/go-api-boilerplate/badge.svg?style=beer-square)](https://beerpay.io/vardius/go-api-boilerplate)
 [![Beerpay](https://beerpay.io/vardius/go-api-boilerplate/make-wish.svg?style=flat-square)](https://beerpay.io/vardius/go-api-boilerplate?focus=wish)
 
-Go Server/API boilerplate using best practices, DDD, CQRS, ES.
+Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
 Key concepts:
 1. Rest API
@@ -40,6 +40,7 @@ HOW TO USE
 ==================================================
 
 ## Getting started
+### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
 ### Vendor
@@ -49,4 +50,3 @@ go get -u github.com/golang/dep/cmd/dep
 dep init
 dep ensure -update
 ```
-### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)
