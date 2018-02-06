@@ -1,9 +1,25 @@
 # This version-strategy uses git tags to set the version string
 VERSION := $(shell git describe --tags --always --dirty)
 
+# import config.
+# You can change the default config with `make cnf="config_special.env" build`
+configfile ?= .env
+include $(configfile)
+export $(shell sed 's/=.*//' $(configfile))
+
+# HELP
+# This will output the help for each task
+# thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+.PHONY: help
+
+help: ## This help.
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
+
 # GENERIC TASKS
 all-%:
-	for BIN in $(shell ls cmd); do @$(MAKE) --no-print-directory BIN=$$BIN setup $*; done
+	for BIN in $(shell ls cmd); do $(MAKE) --no-print-directory BIN=$$BIN setup $*; done
 build-%:
 	@$(MAKE) --no-print-directory BIN=$* setup build
 run-%:
@@ -28,14 +44,12 @@ tag-version-%:
 	@$(MAKE) --no-print-directory BIN=$* setup tag-version
 
 # CONFIG TASK
-# import config
+# import enviroments for binary
 setup:
-	configfile=.env
-	include $(configfile)
-	export $(shell sed 's/=.*//' $(configfile))
-	configfile=./cmd/$(BIN)/.env
-	include $(configfile)
-	export $(shell sed 's/=.*//' $(configfile))
+	@echo 'setup package .env file for $(BIN)'
+	localCfg ?= ./cmd/$(BIN)/.env
+	include $(localCfg)
+	export $(shell sed 's/=.*//' $(localCfg))
 
 # HTTPS TASK
 # Generate key
@@ -66,7 +80,7 @@ rm: stop
 release: build publish
 
 # Docker publish
-publish: repo-login publish-latest publish-version
+publish: aws-repo-login publish-latest publish-version
 
 publish-latest: tag-latest
 	@echo 'publish latest to $(REGISTRY)'
@@ -88,7 +102,6 @@ tag-version:
 	docker tag $(BIN) $(REGISTRY)/$(BIN):$(VERSION)
 
 # HELPERS
-
 # generate script to login to aws docker repo
 CMD_REPOLOGIN := "eval $$\( aws ecr"
 ifdef AWS_CLI_PROFILE
@@ -100,7 +113,7 @@ endif
 CMD_REPOLOGIN += " get-login \)"
 
 # login to AWS-ECR
-repo-login:
+aws-repo-login:
 	@eval $(CMD_REPOLOGIN)
 
 # output to version
