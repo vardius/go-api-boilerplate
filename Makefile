@@ -3,9 +3,7 @@ VERSION := $(shell git describe --tags --always --dirty)
 
 # GENERIC TASKS
 all-%:
-	for BIN in `ls cmd`; do
-		@$(MAKE) --no-print-directory BIN=$(BIN) setup $*
-	done
+	for BIN in $(shell ls cmd); do @$(MAKE) --no-print-directory BIN=$$BIN setup $*; done
 build-%:
 	@$(MAKE) --no-print-directory BIN=$* setup build
 run-%:
