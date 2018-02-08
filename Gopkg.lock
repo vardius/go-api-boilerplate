@@ -77,12 +77,6 @@
   revision = "0b12d6b5"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/justinas/nosurf"
-  packages = ["."]
-  revision = "7182011986c42c33f0a79fd4b07e41edc784532b"
-
-[[projects]]
   name = "github.com/rs/cors"
   packages = ["."]
   revision = "7af7a1e09ba336d2ea14b1ce73bf693c6837dbf6"
@@ -204,6 +198,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fd361149189d41575398b63137563d8aad32a8adeb2f39038e8374b77bd0dcb1"
+  inputs-digest = "1c7b17cd9b0e77a8253bf96da63bb45923a52ed23bae6c29086e2b7a04931f00"
   solver-name = "gps-cdcl"
   solver-version = 1
