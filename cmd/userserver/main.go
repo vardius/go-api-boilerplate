@@ -59,5 +59,9 @@ func main() {
 	)
 
 	pb.RegisterDomainServer(grpcServer, userServer)
-	grpcServer.Serve(lis)
+	rpcErr := grpcServer.Serve(lis)
+
+	if rpcErr != nil {
+		logger.Critical(ctx, "failed to serve: %v", rpcErr)
+	}
 }
