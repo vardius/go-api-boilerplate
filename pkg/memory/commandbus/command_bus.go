@@ -31,26 +31,27 @@ func New() domain.CommandBus {
 }
 
 type loggableCommandBus struct {
+	serverName string
 	commandBus domain.CommandBus
 	logger     golog.Logger
 }
 
 func (bus *loggableCommandBus) Publish(ctx context.Context, command string, payload json.RawMessage, out chan<- error) {
-	bus.logger.Debug(ctx, "[API CommandBus|Publish]: %s %q\n", command, payload)
+	bus.logger.Debug(ctx, "[%s CommandBus|Publish]: %s %q\n", bus.serverName, command, payload)
 	bus.commandBus.Publish(ctx, command, payload, out)
 }
 
 func (bus *loggableCommandBus) Subscribe(command string, fn domain.CommandHandler) error {
-	bus.logger.Info(nil, "[API CommandBus|Subscribe]: %s\n", command)
+	bus.logger.Info(nil, "[%s CommandBus|Subscribe]: %s\n", bus.serverName, command)
 	return bus.commandBus.Subscribe(command, fn)
 }
 
 func (bus *loggableCommandBus) Unsubscribe(command string, fn domain.CommandHandler) error {
-	bus.logger.Info(nil, "[API CommandBus|Unsubscribe]: %s\n", command)
+	bus.logger.Info(nil, "[%s CommandBus|Unsubscribe]: %s\n", bus.serverName, command)
 	return bus.commandBus.Unsubscribe(command, fn)
 }
 
 // WithLogger creates loggable inmemory command bus
-func WithLogger(parent domain.CommandBus, log golog.Logger) domain.CommandBus {
-	return &loggableCommandBus{parent, log}
+func WithLogger(serverName string, parent domain.CommandBus, log golog.Logger) domain.CommandBus {
+	return &loggableCommandBus{serverName, parent, log}
 }

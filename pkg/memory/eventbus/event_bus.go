@@ -30,26 +30,27 @@ func New() domain.EventBus {
 }
 
 type loggableEventBus struct {
+	serverName string
 	eventBus domain.EventBus
 	logger   golog.Logger
 }
 
 func (bus *loggableEventBus) Publish(ctx context.Context, eventType string, event domain.Event) {
-	bus.logger.Debug(ctx, "[API EventBus|Publish]: %s %q\n", eventType, event.Payload)
+	bus.logger.Debug(ctx, "[%s EventBus|Publish]: %s %q\n", bus.serverName, eventType, event.Payload)
 	bus.eventBus.Publish(ctx, eventType, event)
 }
 
 func (bus *loggableEventBus) Subscribe(eventType string, fn domain.EventHandler) error {
-	bus.logger.Info(nil, "[API EventBus|Subscribe]: %s\n", eventType)
+	bus.logger.Info(nil, "[%s EventBus|Subscribe]: %s\n", bus.serverName, eventType)
 	return bus.eventBus.Subscribe(eventType, fn)
 }
 
 func (bus *loggableEventBus) Unsubscribe(eventType string, fn domain.EventHandler) error {
-	bus.logger.Info(nil, "[API EventBus|Unsubscribe]: %s\n", eventType)
+	bus.logger.Info(nil, "[%s EventBus|Unsubscribe]: %s\n", bus.serverName, eventType)
 	return bus.eventBus.Unsubscribe(eventType, fn)
 }
 
 // WithLogger creates in memory event bus
-func WithLogger(parent domain.EventBus, log golog.Logger) domain.EventBus {
-	return &loggableEventBus{parent, log}
+func WithLogger(serverName string, parent domain.EventBus, log golog.Logger) domain.EventBus {
+	return &loggableEventBus{serverName, parent, log}
 }

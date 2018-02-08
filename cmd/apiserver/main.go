@@ -1,10 +1,10 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/caarlos0/env"
-	"github.com/justinas/nosurf"
 	"github.com/rs/cors"
 	"github.com/vardius/go-api-boilerplate/internal/userclient"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -62,6 +62,8 @@ func setupServer(cfg *config, router gorouter.Router) *http.Server {
 }
 
 func main() {
+	ctx := context.Background()
+
 	cfg := config{}
 	env.Parse(&cfg)
 
@@ -75,7 +77,6 @@ func main() {
 	router := gorouter.New(
 		logger.LogRequest,
 		cors.Default().Handler,
-		nosurf.NewPure,
 		response.WithXSS,
 		response.WithHSTS,
 		response.AsJSON,
@@ -91,7 +92,14 @@ func main() {
 	// User domain
 	router.Mount("/users", userClient.AsRouter())
 
-	srv := setupServer(&cfg, router)
+	logger.Info(ctx, "[apiserver] running at %s:%d", cfg.Host, cfg.Port)
 
-	logger.Critical(nil, "%v\n", srv.ListenAndServeTLS("", ""))
+	// for localhost do not use autocert
+	// https://github.com/vardius/go-api-boilerplate/issues/2
+	if cfg.Host == "localhost" {
+		logger.Critical(ctx, "%v\n", http.ListenAndServe(":"+strconv.Itoa(cfg.Port), router))
+	} else {
+		srv := setupServer(&cfg, router)
+		logger.Critical(ctx, "%v\n", srv.ListenAndServeTLS("", ""))
+	}
 }

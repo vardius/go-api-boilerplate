@@ -27,6 +27,8 @@ type config struct {
 }
 
 func main() {
+	ctx := context.Background()
+
 	cfg := config{}
 	env.Parse(&cfg)
 
@@ -38,17 +40,17 @@ func main() {
 	logger := log.New(cfg.Env)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	eventStore := eventstore.New("events", awsConfig)
-	eventBus := eventbus.WithLogger(eventbus.New(), logger)
-	commandBus := commandbus.WithLogger(commandbus.New(), logger)
+	eventBus := eventbus.WithLogger("userserver", eventbus.New(), logger)
+	commandBus := commandbus.WithLogger("userserver", commandbus.New(), logger)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {
-		logger.Critical(context.Background(), "failed to listen: %v", err)
+		logger.Critical(ctx, "failed to listen: %v", err)
+	} else {
+		logger.Info(ctx, "[userserver] running at %s:%d", cfg.Host, cfg.Port)
 	}
 
-	var opts []grpc.ServerOption
-
-	grpcServer := grpc.NewServer(opts...)
+	grpcServer := grpc.NewServer()
 	userServer := userserver.New(
 		commandBus,
 		eventBus,

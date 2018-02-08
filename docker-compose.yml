@@ -11,10 +11,15 @@ services:
       - "${SERVER_PORT}"
     ports:
       - "2345:2345"
+      - "3000:3000"
+      - "443:443"
     volumes:
       - ./:/go/src/${PKG}
     networks:
       - proxy_tier
+    links:
+      - userserver
+      - localstack
     working_dir: /go/src/${PKG}
     command: sh dev.sh
     privileged: true
@@ -29,7 +34,7 @@ services:
     expose:
       - "${SERVER_PORT}"
     ports:
-      - "5001:5001"
+      - "3001:3001"
     volumes:
       - ./:/go/src/${PKG}
     networks:
@@ -37,7 +42,6 @@ services:
       - back_tier
     working_dir: /go/src/${PKG}
     command: go run cmd/userserver/main.go
-    privileged: true
 
   localstack:
     image: localstack/localstack

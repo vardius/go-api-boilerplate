@@ -25,8 +25,7 @@ type userClient struct {
 // DispatchAndClose dials user domain server and dispatches command
 // then closes connection
 func (c *userClient) DispatchAndClose(ctx context.Context, command string, payload []byte) error {
-	var opts []grpc.DialOption
-	conn, err := grpc.Dial(c.serverAddr, opts...)
+	conn, err := grpc.Dial(c.serverAddr, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
