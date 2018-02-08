@@ -1,6 +1,7 @@
 package userclient
 
 import (
+	"fmt"
 	"context"
 	"github.com/vardius/go-api-boilerplate/internal/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -19,13 +20,14 @@ type UserClient interface {
 }
 
 type userClient struct {
-	serverAddr string
+	host string
+	port int
 }
 
 // DispatchAndClose dials user domain server and dispatches command
 // then closes connection
 func (c *userClient) DispatchAndClose(ctx context.Context, command string, payload []byte) error {
-	conn, err := grpc.Dial(c.serverAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", c.host, c.port), grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -100,6 +102,6 @@ func (c *userClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // New creates new user client
-func New(serverAddr string) UserClient {
-	return &userClient{serverAddr}
+func New(host string, port int) UserClient {
+	return &userClient{host, port}
 }

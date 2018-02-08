@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"github.com/caarlos0/env"
 	"github.com/rs/cors"
 	"github.com/vardius/go-api-boilerplate/internal/userclient"
@@ -71,7 +70,7 @@ func main() {
 	rec := recover.WithLogger(recover.New(), logger)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
-	userClient := userclient.New(fmt.Sprintf("%s:%d", cfg.UserServerHost, cfg.UserServerPort))
+	userClient := userclient.New(cfg.UserServerHost, cfg.UserServerPort)
 
 	// Global middleware
 	router := gorouter.New(
