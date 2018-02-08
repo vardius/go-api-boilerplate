@@ -10,6 +10,8 @@ Golang API Starter Kit
 
 Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
+![Screenshot](../master/_layouts/Screen%20Shot%202018-02-08%20at%2008.50.50.png)
+
 Key concepts:
 1. Rest API
 2. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design)  (DDD)
