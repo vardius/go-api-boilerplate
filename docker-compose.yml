@@ -5,14 +5,15 @@ services:
     container_name: apiserver
     environment:
       - BIN=apiserver
+      - GRPC_TRACE=all
+      - GRPC_VERBOSITY=DEBUG
     env_file:
       - cmd/apiserver/.env
     expose:
-      - "${SERVER_PORT}"
+      - "3000"
     ports:
       - "2345:2345"
       - "3000:3000"
-      - "443:443"
     volumes:
       - ./:/go/src/${PKG}
     networks:
@@ -21,7 +22,8 @@ services:
       - userserver
       - localstack
     working_dir: /go/src/${PKG}
-    command: sh dev.sh
+    # command: sh dev.sh
+    command: go run cmd/apiserver/main.go
     privileged: true
 
   userserver:
@@ -29,10 +31,12 @@ services:
     container_name: userserver
     environment:
       - BIN=userserver
+      - GRPC_TRACE=all
+      - GRPC_VERBOSITY=DEBUG
     env_file:
       - cmd/userserver/.env
     expose:
-      - "${SERVER_PORT}"
+      - "3001"
     ports:
       - "3001:3001"
     volumes:
@@ -47,7 +51,7 @@ services:
     image: localstack/localstack
     container_name: localstack
     environment:
-      - SERVICES=dynamodb:${DYNAMODB_PORT}
+      - SERVICES=dynamodb:4569
     ports:
       - "8080:8080"
       - "4567-4582:4567-4582"
