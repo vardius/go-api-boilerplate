@@ -17,7 +17,7 @@ func TestNew(t *testing.T) {
 func TestWithLogger(t *testing.T) {
 	logger := golog.New("debug")
 	parent := New()
-	bus := WithLogger(parent, logger)
+	bus := WithLogger("test", parent, logger)
 
 	if bus == nil {
 		t.Fail()
