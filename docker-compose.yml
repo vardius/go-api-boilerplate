@@ -22,8 +22,8 @@ services:
       - userserver
       - localstack
     working_dir: /go/src/${PKG}
-    # command: sh dev.sh
-    command: go run cmd/apiserver/main.go
+    command: sh dev.sh
+    # command: go run cmd/apiserver/main.go
     privileged: true
 
   userserver:
