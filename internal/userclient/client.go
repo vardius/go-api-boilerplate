@@ -1,16 +1,17 @@
 package userclient
 
 import (
-	"fmt"
 	"context"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/vardius/go-api-boilerplate/internal/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/security/firewall"
 	pb "github.com/vardius/go-api-boilerplate/rpc/domain"
 	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
-	"io/ioutil"
-	"net/http"
 )
 
 // UserClient interface

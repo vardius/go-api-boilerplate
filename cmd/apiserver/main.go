@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/caarlos0/env"
 	"github.com/rs/cors"
 	"github.com/vardius/go-api-boilerplate/internal/userclient"
@@ -14,9 +18,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/socialmedia"
 	"github.com/vardius/gorouter"
 	"golang.org/x/crypto/acme/autocert"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type config struct {

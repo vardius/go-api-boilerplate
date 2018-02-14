@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/caarlos0/env"
 	"github.com/vardius/go-api-boilerplate/internal/userserver"
@@ -13,8 +16,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/memory/eventbus"
 	pb "github.com/vardius/go-api-boilerplate/rpc/domain"
 	"google.golang.org/grpc"
-	"net"
-	"time"
 )
 
 type config struct {
@@ -43,13 +44,6 @@ func main() {
 	eventBus := eventbus.WithLogger("userserver", eventbus.New(), logger)
 	commandBus := commandbus.WithLogger("userserver", commandbus.New(), logger)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
-	if err != nil {
-		logger.Critical(ctx, "failed to listen: %v", err)
-	} else {
-		logger.Info(ctx, "[userserver] running at %s:%d", cfg.Host, cfg.Port)
-	}
-
 	grpcServer := grpc.NewServer()
 	userServer := userserver.New(
 		commandBus,
@@ -59,6 +53,14 @@ func main() {
 	)
 
 	pb.RegisterDomainServer(grpcServer, userServer)
+
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
+	if err != nil {
+		logger.Critical(ctx, "failed to listen: %v", err)
+	} else {
+		logger.Info(ctx, "[userserver] running at %s:%d", cfg.Host, cfg.Port)
+	}
+
 	rpcErr := grpcServer.Serve(lis)
 
 	if rpcErr != nil {
