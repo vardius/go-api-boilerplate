@@ -31,8 +31,8 @@ func New() domain.EventBus {
 
 type loggableEventBus struct {
 	serverName string
-	eventBus domain.EventBus
-	logger   golog.Logger
+	eventBus   domain.EventBus
+	logger     golog.Logger
 }
 
 func (bus *loggableEventBus) Publish(ctx context.Context, eventType string, event domain.Event) {
