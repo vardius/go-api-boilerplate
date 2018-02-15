@@ -36,7 +36,7 @@ type loggableEventBus struct {
 }
 
 func (bus *loggableEventBus) Publish(ctx context.Context, eventType string, event domain.Event) {
-	bus.logger.Debug(ctx, "[%s EventBus|Publish]: %s %q\n", bus.serverName, eventType, event.Payload)
+	bus.logger.Debug(ctx, "[%s EventBus|Publish]: %s %s\n", bus.serverName, eventType, event.Payload)
 	bus.eventBus.Publish(ctx, eventType, event)
 }
 

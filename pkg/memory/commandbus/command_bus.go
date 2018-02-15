@@ -37,7 +37,7 @@ type loggableCommandBus struct {
 }
 
 func (bus *loggableCommandBus) Publish(ctx context.Context, command string, payload json.RawMessage, out chan<- error) {
-	bus.logger.Debug(ctx, "[%s CommandBus|Publish]: %s %q\n", bus.serverName, command, payload)
+	bus.logger.Debug(ctx, "[%s CommandBus|Publish]: %s %s\n", bus.serverName, command, payload)
 	bus.commandBus.Publish(ctx, command, payload, out)
 }
 
