@@ -44,7 +44,7 @@ func (s *userServer) Dispatch(ctx context.Context, cmd *pb.Command) (*pb.Respons
 		return nil, err
 	}
 
-	return nil, nil
+	return new(pb.Response), nil
 }
 
 // New returns new user domain server object
