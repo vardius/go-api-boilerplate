@@ -18,5 +18,5 @@ type WasRegisteredWithEmail struct {
 // WhenWasRegisteredWithEmail handles event
 func WhenWasRegisteredWithEmail(ctx context.Context, event domain.Event) {
 	// todo: register user and send email with auth token
-	log.Printf("handle %v", event)
+	log.Printf("[userserver EventHandler] %s", event.Payload)
 }

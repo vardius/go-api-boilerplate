@@ -18,5 +18,5 @@ type WasRegisteredWithFacebook struct {
 // WhenWasRegisteredWithFacebook handles event
 func WhenWasRegisteredWithFacebook(ctx context.Context, event domain.Event) {
 	// todo: register user
-	log.Printf("handle %v", event)
+	log.Printf("[userserver EventHandler] %s", event.Payload)
 }

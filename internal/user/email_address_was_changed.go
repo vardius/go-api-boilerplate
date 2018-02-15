@@ -17,5 +17,5 @@ type EmailAddressWasChanged struct {
 // WhenEmailAddressWasChanged handles event
 func WhenEmailAddressWasChanged(ctx context.Context, event domain.Event) {
 	// todo: register user
-	log.Printf("handle %v", event)
+	log.Printf("[userserver EventHandler] %s", event.Payload)
 }
