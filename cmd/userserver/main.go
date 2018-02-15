@@ -21,7 +21,7 @@ import (
 type config struct {
 	Env         string `env:"ENV"          envDefault:"development"`
 	Host        string `env:"HOST"         envDefault:"localhost"`
-	Port        int    `env:"PORT"         envDefault:"5001"`
+	Port        int    `env:"PORT"         envDefault:"3001"`
 	Secret      string `env:"SECRET"       envDefault:"secret"`
 	AwsRegion   string `env:"AWS_REGION"   envDefault:"us-east-1"`
 	AwsEndpoint string `env:"AWS_ENDPOINT" envDefault:"http://localhost:4569"`

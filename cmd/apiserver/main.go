@@ -23,9 +23,9 @@ import (
 type config struct {
 	Env            string   `env:"ENV"              envDefault:"development"`
 	Host           string   `env:"HOST"             envDefault:"localhost"`
-	Port           int      `env:"PORT"             envDefault:"443"`
-	UserServerHost string   `env:"USER_SERVER_HOST"`
-	UserServerPort int      `env:"USER_SERVER_PORT"`
+	Port           int      `env:"PORT"             envDefault:"3000"`
+	UserServerHost string   `env:"USER_SERVER_HOST" envDefault:"localhost"`
+	UserServerPort int      `env:"USER_SERVER_PORT" envDefault:"3001"`
 	CertDirCache   string   `env:"CERT_DIR_CACHE"`
 	Secret         string   `env:"SECRET"           envDefault:"secret"`
 	Origins        []string `env:"ORIGINS"          envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
