@@ -15,7 +15,10 @@ type eventSourcedRepository struct {
 
 // Save current user changes to event store and publish each event with an event bus
 func (r *eventSourcedRepository) Save(ctx context.Context, u *User) error {
-	r.eventStore.Store(u.Changes())
+  err := r.eventStore.Store(u.Changes())
+  if err != nil {
+    return err
+  }
 
 	for _, event := range u.Changes() {
 		r.eventBus.Publish(ctx, event.Metadata.Type, *event)
