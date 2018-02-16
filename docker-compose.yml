@@ -22,10 +22,10 @@ services:
       - userserver
       - localstack
     working_dir: /go/src/${PKG}
-    # uncomment below to enable debugger and commentout the next one
-    # command: sh dev.sh
     command: go run cmd/apiserver/main.go
-    privileged: true
+    # uncomment below to enable debugger
+    # command: sh dev.sh
+    # privileged: true
 
   userserver:
     image: golang:latest
