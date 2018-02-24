@@ -41,7 +41,7 @@ func (s *userServer) Dispatch(ctx context.Context, cmd *pb.Command) (*pb.Respons
 	}()
 
 	if err := <-out; err != nil {
-		return nil, err
+		return new(pb.Response), err
 	}
 
 	return new(pb.Response), nil
