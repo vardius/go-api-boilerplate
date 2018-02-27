@@ -14,6 +14,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/memory/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/memory/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
 	pb "github.com/vardius/go-api-boilerplate/rpc/domain"
 	"google.golang.org/grpc"
 )
@@ -56,14 +57,20 @@ func main() {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {
-		logger.Critical(ctx, "failed to listen: %v", err)
+		logger.Critical(ctx, "failed to listen: %v\n", err)
 	} else {
-		logger.Info(ctx, "[userserver] running at %s:%d", cfg.Host, cfg.Port)
+		logger.Info(ctx, "[userserver] running at %s:%d\n", cfg.Host, cfg.Port)
 	}
 
-	rpcErr := grpcServer.Serve(lis)
+	go func() {
+		logger.Critical(ctx, "failed to serve: %v\n", grpcServer.Serve(lis))
+	}()
 
-	if rpcErr != nil {
-		logger.Critical(ctx, "failed to serve: %v", rpcErr)
-	}
+	shutdown.GracefulStop(func() {
+		logger.Info(ctx, "[userserver] shutting down...\n")
+
+		grpcServer.GracefulStop()
+
+		logger.Info(ctx, "[userserver] gracefully stopped\n")
+	})
 }

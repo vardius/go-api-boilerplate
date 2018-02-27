@@ -20,6 +20,7 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/sdkrand",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/json/jsonutil",
@@ -32,8 +33,8 @@
     "service/dynamodb/dynamodbattribute",
     "service/sts"
   ]
-  revision = "586c9ba6027a527800564282bb843d7e6e7985c9"
-  version = "v1.12.72"
+  revision = "f3a52638aeadcd5d6ba1d747b8c552c8e0066312"
+  version = "v1.13.5"
 
 [[projects]]
   name = "github.com/caarlos0/env"
@@ -79,8 +80,8 @@
 [[projects]]
   name = "github.com/rs/cors"
   packages = ["."]
-  revision = "7af7a1e09ba336d2ea14b1ce73bf693c6837dbf6"
-  version = "v1.2"
+  revision = "feef513b9575b32f84bafa580aad89b011259019"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/vardius/golog"
@@ -91,8 +92,8 @@
 [[projects]]
   name = "github.com/vardius/gorouter"
   packages = ["."]
-  revision = "aec423cb6e9940170a56bd54378ad903585b00af"
-  version = "v3.0.3"
+  revision = "38258c0a57f1ae72f66fbe5c9e1d148a652f307c"
+  version = "v3.0.4"
 
 [[projects]]
   name = "github.com/vardius/message-bus"
@@ -107,7 +108,7 @@
     "acme",
     "acme/autocert"
   ]
-  revision = "d9133f5469342136e669e85192a26056b587f503"
+  revision = "beaf6a35706e5032ae4c3fcf342c663c069f44d2"
 
 [[projects]]
   branch = "master"
@@ -121,10 +122,9 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+  revision = "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -142,7 +142,8 @@
     "unicode/norm",
     "unicode/rangetable"
   ]
-  revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -164,7 +165,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "2b5a72b8730b0b16380010cfe5286c42108d88e7"
+  revision = "2d9486acae19cf9bd0c093d7dc236a323726a9e4"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -177,6 +178,7 @@
     "connectivity",
     "credentials",
     "encoding",
+    "encoding/proto",
     "grpclb/grpc_lb_v1/messages",
     "grpclog",
     "internal",
@@ -192,12 +194,12 @@
     "tap",
     "transport"
   ]
-  revision = "6b51017f791ae1cfbec89c52efdf444b13b550ef"
-  version = "v1.9.2"
+  revision = "8e4536a86ab602859c20df5ebfd0bd4228d08655"
+  version = "v1.10.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1c7b17cd9b0e77a8253bf96da63bb45923a52ed23bae6c29086e2b7a04931f00"
+  inputs-digest = "bb2fc44478759e3cb29f99dc74259cbd7ca89b1a783860748dedd14587e07b85"
   solver-name = "gps-cdcl"
   solver-version = 1

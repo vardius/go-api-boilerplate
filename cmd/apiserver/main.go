@@ -13,6 +13,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
 	"github.com/vardius/go-api-boilerplate/pkg/recover"
 	"github.com/vardius/go-api-boilerplate/pkg/security/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/socialmedia"
@@ -32,6 +33,17 @@ type config struct {
 }
 
 func setupServer(cfg *config, router gorouter.Router) *http.Server {
+	srv := &http.Server{
+		Addr:    ":" + strconv.Itoa(cfg.Port),
+		Handler: router,
+	}
+
+	// for localhost do not use autocert
+	// https://github.com/vardius/go-api-boilerplate/issues/2
+	if cfg.Host == "localhost" {
+		return srv
+	}
+
 	certManager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(cfg.Host),
@@ -51,12 +63,8 @@ func setupServer(cfg *config, router gorouter.Router) *http.Server {
 		GetCertificate: certManager.GetCertificate,
 	}
 
-	srv := &http.Server{
-		Addr:         ":" + strconv.Itoa(cfg.Port),
-		Handler:      router,
-		TLSConfig:    tlsConfig,
-		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
-	}
+	srv.TLSConfig = tlsConfig
+	srv.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0)
 
 	return srv
 }
@@ -92,14 +100,24 @@ func main() {
 	// User domain
 	router.Mount("/users", userClient.AsRouter())
 
-	logger.Info(ctx, "[apiserver] running at %s:%d", cfg.Host, cfg.Port)
+	logger.Info(ctx, "[apiserver] running at %s:%d\n", cfg.Host, cfg.Port)
 
-	// for localhost do not use autocert
-	// https://github.com/vardius/go-api-boilerplate/issues/2
-	if cfg.Host == "localhost" {
-		logger.Critical(ctx, "%v\n", http.ListenAndServe(":"+strconv.Itoa(cfg.Port), router))
-	} else {
-		srv := setupServer(&cfg, router)
+	srv := setupServer(&cfg, router)
+
+	go func() {
 		logger.Critical(ctx, "%v\n", srv.ListenAndServeTLS("", ""))
-	}
+	}()
+
+	shutdown.GracefulStop(func() {
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+
+		logger.Info(ctx, "[apiserver] shutting down...\n")
+
+		if err := srv.Shutdown(ctx); err != nil {
+			logger.Info(ctx, "[apiserver] shutdown error: %v\n", err)
+		} else {
+			logger.Info(ctx, "[apiserver] gracefully stopped\n")
+		}
+	})
 }
