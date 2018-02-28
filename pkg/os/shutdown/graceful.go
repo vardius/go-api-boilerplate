@@ -1,3 +1,6 @@
+/*
+Package shutdown provides simple shutdown signals handler with callback handler
+*/
 package shutdown
 
 import (
