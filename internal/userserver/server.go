@@ -7,7 +7,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/user"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
-	pb "github.com/vardius/go-api-boilerplate/rpc/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/proto"
 )
 
 func registerCommandHandlers(cb domain.CommandBus, es domain.EventStore, eb domain.EventBus, j jwt.Jwt) {
@@ -31,8 +31,8 @@ type userServer struct {
 	jwt        jwt.Jwt
 }
 
-// Dispatch implements pb.DomainServer interface
-func (s *userServer) Dispatch(ctx context.Context, cmd *pb.Command) (*pb.Response, error) {
+// DispatchCommand implements proto.DomainServer interface
+func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) (*proto.DispatchCommandResponse, error) {
 	out := make(chan error)
 	defer close(out)
 
@@ -41,14 +41,14 @@ func (s *userServer) Dispatch(ctx context.Context, cmd *pb.Command) (*pb.Respons
 	}()
 
 	if err := <-out; err != nil {
-		return new(pb.Response), err
+		return new(proto.DispatchCommandResponse), err
 	}
 
-	return new(pb.Response), nil
+	return new(proto.DispatchCommandResponse), nil
 }
 
 // New returns new user domain server object
-func New(cb domain.CommandBus, eb domain.EventBus, es domain.EventStore, j jwt.Jwt) pb.DomainServer {
+func New(cb domain.CommandBus, eb domain.EventBus, es domain.EventStore, j jwt.Jwt) proto.DomainServer {
 	s := &userServer{cb, eb, es, j}
 
 	registerCommandHandlers(cb, es, eb, j)

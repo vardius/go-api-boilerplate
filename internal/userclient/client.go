@@ -8,8 +8,8 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/internal/user"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/security/firewall"
-	pb "github.com/vardius/go-api-boilerplate/rpc/domain"
 	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
 )
@@ -34,8 +34,8 @@ func (c *userClient) DispatchAndClose(ctx context.Context, command string, paylo
 	}
 	defer conn.Close()
 
-	client := pb.NewDomainClient(conn)
-	_, err = client.Dispatch(ctx, &pb.Command{
+	client := proto.NewDomainClient(conn)
+	_, err = client.DispatchCommand(ctx, &proto.DispatchCommandRequest{
 		Name:    command,
 		Payload: payload,
 	})
