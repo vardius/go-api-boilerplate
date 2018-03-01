@@ -1,10 +1,10 @@
-package userserver
+package server
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/vardius/go-api-boilerplate/internal/user"
+	"github.com/vardius/go-api-boilerplate/internal/user/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/proto"

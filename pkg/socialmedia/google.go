@@ -1,16 +1,17 @@
 package socialmedia
 
 import (
-	"github.com/vardius/go-api-boilerplate/internal/user"
-	"github.com/vardius/go-api-boilerplate/internal/userclient"
+	"net/http"
+
+	"github.com/vardius/go-api-boilerplate/internal/user/client"
+	"github.com/vardius/go-api-boilerplate/internal/user/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/security/identity"
-	"net/http"
 )
 
 type google struct {
-	client userclient.UserClient
+	client client.UserClient
 	jwt    jwt.Jwt
 }
 
@@ -56,6 +57,6 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewGoogle creates google auth handler
-func NewGoogle(c userclient.UserClient, j jwt.Jwt) http.Handler {
+func NewGoogle(c client.UserClient, j jwt.Jwt) http.Handler {
 	return &google{c, j}
 }

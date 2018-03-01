@@ -1,4 +1,4 @@
-package userclient
+package client
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/internal/user"
+	"github.com/vardius/go-api-boilerplate/internal/user/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/security/firewall"

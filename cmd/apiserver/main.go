@@ -9,7 +9,7 @@ import (
 
 	"github.com/caarlos0/env"
 	"github.com/rs/cors"
-	"github.com/vardius/go-api-boilerplate/internal/userclient"
+	"github.com/vardius/go-api-boilerplate/internal/user/client"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
@@ -79,7 +79,7 @@ func main() {
 	rec := recover.WithLogger(recover.New(), logger)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
-	userClient := userclient.New(cfg.UserServerHost, cfg.UserServerPort)
+	userClient := client.New(cfg.UserServerHost, cfg.UserServerPort)
 
 	// Global middleware
 	router := gorouter.New(

@@ -8,7 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/caarlos0/env"
-	"github.com/vardius/go-api-boilerplate/internal/userserver"
+	"github.com/vardius/go-api-boilerplate/internal/user/server"
 	"github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
@@ -46,7 +46,7 @@ func main() {
 	commandBus := commandbus.WithLogger("userserver", commandbus.New(), logger)
 
 	grpcServer := grpc.NewServer()
-	userServer := userserver.New(
+	userServer := server.New(
 		commandBus,
 		eventBus,
 		eventStore,
