@@ -6,7 +6,7 @@ Directory Layout:
   ├── /.vscode/            # Visual Studio Code remote debugging setttings
   ├── /nginx/              # Nginx docker container configuration
   ├── /cmd/                # Binaries
-  │   ├── /userserver/     # User domain server binary
+  │   ├── /userserver/     # User service server binary
   │   │   └── /main.go     # User domain grpc server
   │   │   └── /.env        # Binary environment configuration
   │   ├── /apiserver/      # API Server binary
@@ -14,10 +14,12 @@ Directory Layout:
   │   │   └── /.env        # Binary environment configuration
   │   ├── /...             # etc.
   ├── /internal/           # Internal libraries
-  │   ├── /user/           # etc.
-  │   │   ├── /userserver/ # User domain server implementation
-  │   │   ├── /userclient/ # User domain client implementation
+  │   ├── /user/           # User bounded context
+  │   │   ├── /domain/     # User domain
+  │   │   ├── /server/     # User server implementation
+  │   │   ├── /client/     # User client implementation
   ├── /pkg/                # Libraries
+  │   ├── /proto/          # Package proto is a generated protocol buffer package.
   │   ├── /auth/           # Authorization tools
   │   ├── /domain/         # Domain libraries
   │   ├── /http/           # Http utils
@@ -27,6 +29,5 @@ Directory Layout:
   ├── Dockerfile           # Docker image for production
   ├── Makefile             # Commands for building a Docker image for production and deployment
   ├── .env                 # Project environment configuration
-  └── bootstart.sh         # Configuration script for docker containers
 */
 package goapiboilerplate
