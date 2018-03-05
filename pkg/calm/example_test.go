@@ -1,20 +1,17 @@
-/*
-Package recover allows to recover from panic
-*/
-package recover_test
+package calm_test
 
 import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 
-	rec "github.com/vardius/go-api-boilerplate/pkg/recover"
+	"github.com/vardius/go-api-boilerplate/pkg/calm"
 	"github.com/vardius/golog"
 )
 
 func ExampleRecover() {
-	r := rec.New()
-	handler := r.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	c := calm.New()
+	handler := c.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
 
@@ -31,8 +28,8 @@ func ExampleRecover() {
 }
 
 func ExampleWithLogger() {
-	r := rec.WithLogger(rec.New(), golog.New("debug"))
-	handler := r.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	c := calm.WithLogger(calm.New(), golog.New("debug"))
+	handler := c.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
 

@@ -1,7 +1,4 @@
-/*
-Package recover allows to recover from panic
-*/
-package recover
+package calm
 
 import (
 	"net/http"
@@ -14,9 +11,9 @@ import (
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	recover := New()
+	calm := New()
 
-	if recover == nil {
+	if calm == nil {
 		t.Fail()
 	}
 }
@@ -31,8 +28,8 @@ func TestRecoverHandler(t *testing.T) {
 		}
 	}()
 
-	recover := New()
-	handler := recover.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	calm := New()
+	handler := calm.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
 
@@ -59,8 +56,8 @@ func TestRecoverHandlerWithLogger(t *testing.T) {
 		}
 	}()
 
-	recover := WithLogger(New(), golog.New("debug"))
-	handler := recover.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	calm := WithLogger(New(), golog.New("debug"))
+	handler := calm.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
 

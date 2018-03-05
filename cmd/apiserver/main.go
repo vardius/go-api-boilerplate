@@ -10,11 +10,11 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/rs/cors"
 	"github.com/vardius/go-api-boilerplate/internal/user/client"
+	"github.com/vardius/go-api-boilerplate/pkg/calm"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
-	"github.com/vardius/go-api-boilerplate/pkg/recover"
 	"github.com/vardius/go-api-boilerplate/pkg/security/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/socialmedia"
 	"github.com/vardius/gorouter"
@@ -76,7 +76,7 @@ func main() {
 	env.Parse(&cfg)
 
 	logger := log.New(cfg.Env)
-	rec := recover.WithLogger(recover.New(), logger)
+	clm := calm.WithLogger(calm.New(), logger)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
 	userClient := client.New(cfg.UserServerHost, cfg.UserServerPort)
@@ -90,7 +90,7 @@ func main() {
 		response.AsJSON,
 		auth.FromHeader("API"),
 		auth.FromQuery("authToken"),
-		rec.RecoverHandler,
+		clm.RecoverHandler,
 	)
 
 	// Routes

@@ -3,6 +3,7 @@ package domain_test
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,15 +40,16 @@ func ExampleFlagsFromContext() {
 
 	fmt.Printf("%v\n", flags)
 
-	ctx = domain.ContextWithFlag(ctx, "test1")
-	ctx = domain.ContextWithFlag(ctx, "test2")
+	ctx = domain.ContextWithFlag(ctx, "foo")
+	ctx = domain.ContextWithFlag(ctx, "bar")
 	flags = domain.FlagsFromContext(ctx)
 
+	sort.Strings(flags)
 	fmt.Printf("%v\n", flags)
 
 	// Output:
 	// []
-	// [test1 test2]
+	// [bar foo]
 }
 
 func ExampleNewEvent() {
