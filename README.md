@@ -44,20 +44,26 @@ HOW TO USE
 ## Getting started
 ### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)
 ### Packages
-* [aws/dynamodb/commandbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/commandbus)
+___
 * [domain](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/domain)
-* [http/response](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/http/response)
-* [jwt](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/jwt)
-* [log](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/log)
-* [memory/commandbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/commandbus)
-* [memory/eventbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/eventbus)
-* [memory/eventstore](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/eventstore)
 * [recover](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/recover)
+* [log](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/log)
+* [jwt](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/jwt)
+* [socialmedia](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/socialmedia)
+___
+* [http/response](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/http/response)
+___
 * [security/authenticator](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/authenticator)
 * [security/firewall](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/firewall)
 * [security/identity](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/identity)
+___
+* [memory/commandbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/commandbus)
+* [memory/eventbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/eventbus)
+* [memory/eventstore](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/eventstore)
+___
 * [os/shutdown](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/os/shutdown)
-* [socialmedia](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/socialmedia)
+___
+* [aws/dynamodb/commandbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/commandbus)
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
 ### Vendor
