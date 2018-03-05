@@ -44,16 +44,20 @@ HOW TO USE
 ## Getting started
 ### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)
 ### Packages
+* [aws/dynamodb/commandbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/commandbus)
 * [domain](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/domain)
-* [os/shutdown](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/os/shutdown)
-* [recover](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/recover)
 * [http/response](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/http/response)
-* [security/authenticator](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/authenticator)
-* [security/firewall](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/firewall)
-* [security/identity](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/identity)
+* [jwt](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/jwt)
+* [log](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/log)
 * [memory/commandbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/commandbus)
 * [memory/eventbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/eventbus)
 * [memory/eventstore](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/eventstore)
+* [recover](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/recover)
+* [security/authenticator](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/authenticator)
+* [security/firewall](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/firewall)
+* [security/identity](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/identity)
+* [os/shutdown](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/os/shutdown)
+* [socialmedia](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/socialmedia)
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
 ### Vendor
