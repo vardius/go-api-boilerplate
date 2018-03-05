@@ -46,6 +46,14 @@ HOW TO USE
 ### Packages
 * [domain](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/domain)
 * [os/shutdown](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/os/shutdown)
+* [recover](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/recover)
+* [http/response](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/http/response)
+* [security/authenticator](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/authenticator)
+* [security/firewall](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/firewall)
+* [security/identity](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/security/identity)
+* [memory/commandbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/commandbus)
+* [memory/eventbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/eventbus)
+* [memory/eventstore](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/memory/eventstore)
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
 ### Vendor
