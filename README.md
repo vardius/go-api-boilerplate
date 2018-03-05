@@ -55,7 +55,7 @@ dep ensure -update
 ### Packages
 ___
 * [domain](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/domain)
-* [recover](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/recover)
+* [calm](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/calm)
 * [log](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/log)
 * [jwt](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/jwt)
 * [socialmedia](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/socialmedia)
