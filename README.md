@@ -42,6 +42,15 @@ HOW TO USE
 ==================================================
 
 ## Getting started
+### Prerequisites
+In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
+### Vendor
+To update vendors run
+```bash
+go get -u github.com/golang/dep/cmd/dep
+dep init
+dep ensure -update
+```
 ### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)
 ### Packages
 ___
@@ -64,12 +73,3 @@ ___
 * [os/shutdown](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/os/shutdown)
 ___
 * [aws/dynamodb/commandbus](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/aws/dynamodb/commandbus)
-### Prerequisites
-In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
-### Vendor
-To update vendors run
-```bash
-go get -u github.com/golang/dep/cmd/dep
-dep init
-dep ensure -update
-```
