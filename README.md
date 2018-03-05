@@ -43,6 +43,9 @@ HOW TO USE
 
 ## Getting started
 ### [Documentation](https://github.com/vardius/go-api-boilerplate/wiki)
+### Packages
+* [domain](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/domain)
+* [os/shutdown](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/os/shutdown)
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
 ### Vendor
