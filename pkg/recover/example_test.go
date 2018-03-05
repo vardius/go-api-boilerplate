@@ -12,7 +12,7 @@ import (
 	"github.com/vardius/golog"
 )
 
-func ExampleRecover_RecoverHandler() {
+func ExampleRecover() {
 	r := rec.New()
 	handler := r.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
