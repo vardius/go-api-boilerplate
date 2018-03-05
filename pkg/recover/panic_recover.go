@@ -1,3 +1,6 @@
+/*
+Package recover allows to recover from panic
+*/
 package recover
 
 import (
