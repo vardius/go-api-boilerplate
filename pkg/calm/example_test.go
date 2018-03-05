@@ -38,9 +38,4 @@ func ExampleWithLogger() {
 	req, _ := http.NewRequest("GET", "/", nil)
 
 	handler.ServeHTTP(w, req)
-
-	fmt.Print("I did not break")
-
-	// Output:
-	// I did not break
 }
