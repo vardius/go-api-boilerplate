@@ -28,8 +28,8 @@ func (p *commandPayload) toJSON() json.RawMessage {
 	return b
 }
 
-func getProfile(accessToken, apiUrl string) ([]byte, error) {
-	resp, e := http.Get(apiUrl + "?access_token=" + url.QueryEscape(accessToken))
+func getProfile(accessToken, apiURL string) ([]byte, error) {
+	resp, e := http.Get(apiURL + "?access_token=" + url.QueryEscape(accessToken))
 	if e != nil {
 		return nil, e
 	}
