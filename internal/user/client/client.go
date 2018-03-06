@@ -1,3 +1,6 @@
+/*
+Package client provides user grpc client interface implementation
+*/
 package client
 
 import (

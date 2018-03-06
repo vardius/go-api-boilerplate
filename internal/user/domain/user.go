@@ -1,3 +1,6 @@
+/*
+Package user holds user domain logic and aggregate roots
+*/
 package user
 
 import (

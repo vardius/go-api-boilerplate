@@ -1,3 +1,6 @@
+/*
+Package server provides user grpc server interface implementation
+*/
 package server
 
 import (
