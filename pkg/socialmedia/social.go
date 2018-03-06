@@ -1,3 +1,6 @@
+/*
+Package socialmedia provides auth handlers for social media
+*/
 package socialmedia
 
 import (

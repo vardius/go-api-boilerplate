@@ -1,3 +1,6 @@
+/*
+Package jwt allows to encode/decode identity to jwt tokens
+*/
 package jwt
 
 import (

@@ -1,3 +1,6 @@
+/*
+Package log provides Logger
+*/
 package log
 
 import "github.com/vardius/golog"

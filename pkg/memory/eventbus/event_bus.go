@@ -1,3 +1,6 @@
+/*
+Package eventbus provides memory implementation of domain event store
+*/
 package eventbus
 
 import (

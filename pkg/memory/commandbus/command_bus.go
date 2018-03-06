@@ -1,3 +1,6 @@
+/*
+Package commandbus provides memory implementation of domain event store
+*/
 package commandbus
 
 import (

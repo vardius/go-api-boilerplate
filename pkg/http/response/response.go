@@ -1,3 +1,6 @@
+/*
+Package response provides helpers and utils for working with HTTP response
+*/
 package response
 
 import (

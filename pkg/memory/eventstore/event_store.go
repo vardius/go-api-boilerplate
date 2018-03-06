@@ -1,3 +1,6 @@
+/*
+Package eventstore provides memory implementation of domain event store
+*/
 package eventstore
 
 import (
