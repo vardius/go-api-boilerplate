@@ -8,8 +8,8 @@ import (
 )
 
 func ExampleLogger_LogRequest() {
-	logger := log.New("debug")
-	h := logger.LogRequest(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+	l := log.New("development")
+	h := l.LogRequest(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
