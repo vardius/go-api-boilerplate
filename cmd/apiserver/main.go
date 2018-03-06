@@ -83,7 +83,7 @@ func main() {
 
 	// Global middleware
 	router := gorouter.New(
-		logger.LogRequest,
+		logger.LogRequest("apiserver"),
 		cors.Default().Handler,
 		response.WithXSS,
 		response.WithHSTS,
