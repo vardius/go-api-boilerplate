@@ -42,7 +42,7 @@ func TestRecoverHandler(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	if paniced == true {
-		t.Error("RecoverHandler dod not recoverd")
+		t.Error("RecoverHandler did not recoverd")
 	}
 }
 
@@ -70,6 +70,6 @@ func TestRecoverHandlerWithLogger(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	if paniced == true {
-		t.Error("RecoverHandler dod not recoverd")
+		t.Error("RecoverHandler did not recoverd")
 	}
 }

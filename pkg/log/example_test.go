@@ -7,7 +7,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
-func ExampleLogger() {
+func ExampleLogger_LogRequest() {
 	logger := log.New("debug")
 	h := logger.LogRequest(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
