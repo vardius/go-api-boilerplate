@@ -1,3 +1,6 @@
+/*
+Package identity provides type that allows to authorize request
+*/
 package identity
 
 import (

@@ -1,3 +1,6 @@
+/*
+Package firewall allow to guard handlers
+*/
 package firewall
 
 import (
