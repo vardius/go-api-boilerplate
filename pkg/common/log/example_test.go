@@ -1,9 +1,10 @@
 package log_test
 
 import (
-	"log"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/vardius/go-api-boilerplate/pkg/common/log"
 )
 
 func ExampleLogger_LogRequest() {
