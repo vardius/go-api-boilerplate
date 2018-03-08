@@ -11,9 +11,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure"
 )
 
-// RegisterUserWithFacebook command bus contract
-const RegisterUserWithFacebook = "register-user-with-facebook"
-
 type registerUserWithFacebook struct {
 	Email     string `json:"email"`
 	AuthToken string `json:"authToken"`

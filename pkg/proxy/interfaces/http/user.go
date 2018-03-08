@@ -8,7 +8,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/proxy/application/socialmedia"
 	user_grpc_client "github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
 	user_http_client "github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/http"
-	"github.com/vardius/go-api-boilerplate/pkg/user/application"
+	user_grpc_server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 	"github.com/vardius/gorouter"
 )
 
@@ -28,7 +28,7 @@ func asSubRouter(h http.Handler) gorouter.Router {
 	router := gorouter.New()
 
 	router.POST("/dispatch/{command}", h)
-	router.USE(gorouter.POST, "/dispatch/"+application.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
+	router.USE(gorouter.POST, "/dispatch/"+user_grpc_server.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
 
 	return router
 }

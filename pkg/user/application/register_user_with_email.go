@@ -13,9 +13,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure"
 )
 
-// RegisterUserWithEmail command bus contract
-const RegisterUserWithEmail = "register-user-with-email"
-
 type registerUserWithEmail struct {
 	Email string `json:"email"`
 }

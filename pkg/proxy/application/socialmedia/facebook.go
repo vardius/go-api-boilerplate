@@ -7,7 +7,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/security/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
-	"github.com/vardius/go-api-boilerplate/pkg/user/application"
+	user_grpc_server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 )
 
 type facebook struct {
@@ -41,7 +41,7 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload := &commandPayload{token, data}
-	e = f.client.DispatchAndClose(r.Context(), application.RegisterUserWithFacebook, payload.toJSON())
+	e = f.client.DispatchAndClose(r.Context(), user_grpc_server.RegisterUserWithFacebook, payload.toJSON())
 
 	if e != nil {
 		response.WithError(r.Context(), response.HTTPError{

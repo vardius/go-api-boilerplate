@@ -11,9 +11,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure"
 )
 
-// ChangeUserEmailAddress command bus contract
-const ChangeUserEmailAddress = "change-user-email-address"
-
 type changeUserEmailAddress struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`

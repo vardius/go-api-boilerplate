@@ -15,10 +15,10 @@ import (
 )
 
 func registerCommandHandlers(cb domain.CommandBus, es domain.EventStore, eb domain.EventBus, j jwt.Jwt) {
-	cb.Subscribe(application.RegisterUserWithEmail, application.OnRegisterUserWithEmail(es, eb, j))
-	cb.Subscribe(application.RegisterUserWithGoogle, application.OnRegisterUserWithGoogle(es, eb))
-	cb.Subscribe(application.RegisterUserWithFacebook, application.OnRegisterUserWithFacebook(es, eb))
-	cb.Subscribe(application.ChangeUserEmailAddress, application.OnChangeUserEmailAddress(es, eb))
+	cb.Subscribe(RegisterUserWithEmail, application.OnRegisterUserWithEmail(es, eb, j))
+	cb.Subscribe(RegisterUserWithGoogle, application.OnRegisterUserWithGoogle(es, eb))
+	cb.Subscribe(RegisterUserWithFacebook, application.OnRegisterUserWithFacebook(es, eb))
+	cb.Subscribe(ChangeUserEmailAddress, application.OnChangeUserEmailAddress(es, eb))
 }
 
 func registerEventHandlers(eb domain.EventBus) {

@@ -7,7 +7,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/security/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
-	"github.com/vardius/go-api-boilerplate/pkg/user/application"
+	user_grpc_server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 )
 
 type google struct {
@@ -41,7 +41,7 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload := &commandPayload{token, data}
-	e = g.client.DispatchAndClose(r.Context(), application.RegisterUserWithGoogle, payload.toJSON())
+	e = g.client.DispatchAndClose(r.Context(), user_grpc_server.RegisterUserWithGoogle, payload.toJSON())
 
 	if e != nil {
 		response.WithError(r.Context(), response.HTTPError{
