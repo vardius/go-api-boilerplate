@@ -24,7 +24,7 @@ services:
     working_dir: /go/src/${PKG}
     command: go run cmd/proxy/main.go
     # uncomment below to enable debugger
-    # command: sh dev.sh
+    # command: sh bin/dev.sh
     # privileged: true
 
   user:
