@@ -57,7 +57,8 @@ func main() {
 		clm.RecoverHandler,
 	)
 
-	proxy_http_server.AddUserRoutes(router, grpUserClient, jwtService)
+	proxy_http_server.AddAuthRoutes(router, grpUserClient, jwtService)
+	proxy_http_server.AddUserRoutes(router, grpUserClient)
 
 	srv := setupServer(&cfg, router)
 

@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vardius/go-api-boilerplate/pkg/common/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 	"google.golang.org/grpc"
 )
 

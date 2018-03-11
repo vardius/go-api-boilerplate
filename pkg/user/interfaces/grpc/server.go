@@ -9,9 +9,9 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/common/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
-	"github.com/vardius/go-api-boilerplate/pkg/common/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/user/application"
 	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 )
 
 func registerCommandHandlers(cb domain.CommandBus, es domain.EventStore, eb domain.EventBus, j jwt.Jwt) {

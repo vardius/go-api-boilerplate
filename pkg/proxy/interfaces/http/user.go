@@ -3,9 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/security/firewall"
-	"github.com/vardius/go-api-boilerplate/pkg/proxy/application/socialmedia"
 	user_grpc_client "github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
 	user_http_client "github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/http"
 	user_grpc_server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
@@ -13,13 +11,9 @@ import (
 )
 
 // AddUserRoutes adds user routes to router
-func AddUserRoutes(router gorouter.Router, grpClient user_grpc_client.UserClient, jwtService jwt.Jwt) {
+func AddUserRoutes(router gorouter.Router, grpClient user_grpc_client.UserClient) {
 	httpClient := user_http_client.New(grpClient)
 
-	// Routes
-	// Social media auth routes
-	router.POST("/auth/google/callback", socialmedia.NewGoogle(grpClient, jwtService))
-	router.POST("/auth/facebook/callback", socialmedia.NewFacebook(grpClient, jwtService))
 	// User domain
 	router.Mount("/users", asSubRouter(httpClient))
 }

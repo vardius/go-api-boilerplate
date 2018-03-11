@@ -14,8 +14,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/memory/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/common/memory/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/common/os/shutdown"
-	"github.com/vardius/go-api-boilerplate/pkg/common/proto"
 	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
+	"github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 	"google.golang.org/grpc"
 )
 
