@@ -35,7 +35,7 @@ type userServer struct {
 	jwt        jwt.Jwt
 }
 
-// DispatchCommand implements proto.DomainServer interface
+// DispatchCommand implements proto.UserServer interface
 func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) (*proto.DispatchCommandResponse, error) {
 	out := make(chan error)
 	defer close(out)
@@ -51,8 +51,8 @@ func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCom
 	return new(proto.DispatchCommandResponse), nil
 }
 
-// New returns new user domain server object
-func New(cb domain.CommandBus, eb domain.EventBus, es domain.EventStore, j jwt.Jwt) proto.DomainServer {
+// New returns new user server object
+func New(cb domain.CommandBus, eb domain.EventBus, es domain.EventStore, j jwt.Jwt) proto.UserServer {
 	s := &userServer{cb, eb, es, j}
 
 	registerCommandHandlers(cb, es, eb, j)

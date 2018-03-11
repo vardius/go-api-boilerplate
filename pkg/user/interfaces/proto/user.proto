@@ -7,8 +7,8 @@ option java_outer_classname = "UserProto";
 
 package proto;
 
-// Domain handles commands dispatch
-service Domain {
+// User handles commands dispatch
+service User {
   rpc DispatchCommand(DispatchCommandRequest) returns (DispatchCommandResponse);
 }
 

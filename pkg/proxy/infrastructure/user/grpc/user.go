@@ -21,7 +21,7 @@ type userClient struct {
 	port int
 }
 
-// DispatchAndClose dials user domain server and dispatches command
+// DispatchAndClose dials user server and dispatches command
 // then closes connection
 func (c *userClient) DispatchAndClose(ctx context.Context, command string, payload []byte) error {
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", c.host, c.port), grpc.WithInsecure())
@@ -30,7 +30,7 @@ func (c *userClient) DispatchAndClose(ctx context.Context, command string, paylo
 	}
 	defer conn.Close()
 
-	client := proto.NewDomainClient(conn)
+	client := proto.NewUserClient(conn)
 	_, err = client.DispatchCommand(ctx, &proto.DispatchCommandRequest{
 		Name:    command,
 		Payload: payload,

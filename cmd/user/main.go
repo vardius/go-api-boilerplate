@@ -53,7 +53,7 @@ func main() {
 		jwtService,
 	)
 
-	proto.RegisterDomainServer(grpcServer, userServer)
+	proto.RegisterUserServer(grpcServer, userServer)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {
