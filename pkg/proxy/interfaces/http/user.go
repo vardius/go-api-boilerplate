@@ -1,8 +1,6 @@
 package http
 
 import (
-	"net/http"
-
 	"github.com/vardius/go-api-boilerplate/pkg/common/security/firewall"
 	user_grpc_client "github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
 	user_http_client "github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/http"
@@ -12,17 +10,12 @@ import (
 
 // AddUserRoutes adds user routes to router
 func AddUserRoutes(router gorouter.Router, grpClient user_grpc_client.UserClient) {
-	httpClient := user_http_client.New(grpClient)
+	httpClient := user_http_client.FromGRPC(grpClient)
+
+	subRouter := gorouter.New()
+	subRouter.POST("/dispatch/{command}", httpClient)
+	subRouter.USE(gorouter.POST, "/dispatch/"+user_grpc_server.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
 
 	// User domain
-	router.Mount("/users", asSubRouter(httpClient))
-}
-
-func asSubRouter(h http.Handler) gorouter.Router {
-	router := gorouter.New()
-
-	router.POST("/dispatch/{command}", h)
-	router.USE(gorouter.POST, "/dispatch/"+user_grpc_server.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
-
-	return router
+	router.Mount("/users", subRouter)
 }

@@ -19,8 +19,8 @@ var ErrEmptyRequestBody = errors.New("Empty request body")
 // ErrInvalidURLParams is when an request has invalid or missing parameters.
 var ErrInvalidURLParams = errors.New("Invalid request URL params")
 
-// New creates new user http client
-func New(c grpc.UserClient) nethttp.Handler {
+// FromGRPC wraps user gRPC client with http.Handler
+func FromGRPC(c grpc.UserClient) nethttp.Handler {
 	fn := func(w nethttp.ResponseWriter, r *nethttp.Request) {
 		var e error
 
