@@ -1,6 +1,6 @@
 FROM golang:latest AS build-env
 
-MAINTAINER Rafał Lorenz <vardius@gmail.com>
+LABEL maintainer="Rafał Lorenz <vardius@gmail.com>"
 
 ARG BIN
 ENV BIN=${BIN}
