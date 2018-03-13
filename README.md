@@ -10,7 +10,7 @@ Golang API Starter Kit
 
 Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
-![Screenshot](../master/_layouts/demo.gif)
+![Screenshot](../master/_github/demo.gif)
 
 Key concepts:
 1. Rest API
