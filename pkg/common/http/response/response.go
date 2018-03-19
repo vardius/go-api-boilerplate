@@ -28,7 +28,7 @@ func fromContext(ctx context.Context) (*response, bool) {
 }
 
 // WithPayload adds payload to context for response
-// Will panic if response middleware wasned used first
+// Will panic if response middleware wasn't used first
 func WithPayload(ctx context.Context, payload interface{}) {
 	response, ok := fromContext(ctx)
 	if !ok {
@@ -39,7 +39,7 @@ func WithPayload(ctx context.Context, payload interface{}) {
 }
 
 // WithError adds error to context for response
-// Will panic if response middleware wasned used first
+// Will panic if response middleware wasn't used first
 func WithError(ctx context.Context, err HTTPError) {
 	WithPayload(ctx, err)
 }
