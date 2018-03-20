@@ -28,7 +28,7 @@ func TestWithPayload(t *testing.T) {
 		return
 	}
 
-	t.Error("WithPayload faild")
+	t.Error("WithPayload failed")
 }
 
 func TestWithError(t *testing.T) {
@@ -46,5 +46,5 @@ func TestWithError(t *testing.T) {
 		return
 	}
 
-	t.Error("WithPayload faild")
+	t.Error("WithPayload failed")
 }
