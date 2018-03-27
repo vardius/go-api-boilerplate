@@ -6,13 +6,12 @@ import (
 	"net"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/caarlos0/env"
-	"github.com/vardius/go-api-boilerplate/pkg/common/aws/dynamodb/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/log"
 	"github.com/vardius/go-api-boilerplate/pkg/common/memory/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/common/memory/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/common/memory/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/common/os/shutdown"
 	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
@@ -20,12 +19,10 @@ import (
 )
 
 type config struct {
-	Env         string `env:"ENV"          envDefault:"development"`
-	Host        string `env:"HOST"         envDefault:"localhost"`
-	Port        int    `env:"PORT"         envDefault:"3001"`
-	Secret      string `env:"SECRET"       envDefault:"secret"`
-	AwsRegion   string `env:"AWS_REGION"   envDefault:"us-east-1"`
-	AwsEndpoint string `env:"AWS_ENDPOINT" envDefault:"http://localhost:4569"`
+	Env    string `env:"ENV"    envDefault:"development"`
+	Host   string `env:"HOST"   envDefault:"localhost"`
+	Port   int    `env:"PORT"   envDefault:"3001"`
+	Secret string `env:"SECRET" envDefault:"secret"`
 }
 
 func main() {
@@ -34,14 +31,9 @@ func main() {
 	cfg := config{}
 	env.Parse(&cfg)
 
-	awsConfig := &aws.Config{
-		Region:   aws.String(cfg.AwsRegion),
-		Endpoint: aws.String(cfg.AwsEndpoint),
-	}
-
 	logger := log.New(cfg.Env)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
-	eventStore := eventstore.New("events", awsConfig)
+	eventStore := eventstore.New()
 	eventBus := eventbus.WithLogger("user", eventbus.New(), logger)
 	commandBus := commandbus.WithLogger("user", commandbus.New(), logger)
 
