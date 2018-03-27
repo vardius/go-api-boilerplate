@@ -44,11 +44,12 @@ func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCom
 		s.commandBus.Publish(ctx, cmd.GetName(), cmd.GetPayload(), out)
 	}()
 
-	if err := <-out; err != nil {
+	select {
+	case <-ctx.Done():
+		return new(proto.DispatchCommandResponse), ctx.Err()
+	case err := <-out:
 		return new(proto.DispatchCommandResponse), err
 	}
-
-	return new(proto.DispatchCommandResponse), nil
 }
 
 // New returns new user server object
