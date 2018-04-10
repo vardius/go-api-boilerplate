@@ -6,12 +6,12 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/security/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
 	user_grpc_server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
+	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 )
 
 type facebook struct {
-	client grpc.UserClient
+	client user_proto.UserClient
 	jwt    jwt.Jwt
 }
 
@@ -41,7 +41,10 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload := &commandPayload{token, data}
-	e = f.client.DispatchAndClose(r.Context(), user_grpc_server.RegisterUserWithFacebook, payload.toJSON())
+	_, e = f.client.DispatchCommand(r.Context(), &user_proto.DispatchCommandRequest{
+		Name:    user_grpc_server.RegisterUserWithFacebook,
+		Payload: payload.toJSON(),
+	})
 
 	if e != nil {
 		response.WithError(r.Context(), response.HTTPError{
@@ -57,6 +60,6 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewFacebook creates facebook auth handler
-func NewFacebook(c grpc.UserClient, j jwt.Jwt) http.Handler {
+func NewFacebook(c user_proto.UserClient, j jwt.Jwt) http.Handler {
 	return &facebook{c, j}
 }

@@ -6,12 +6,12 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/security/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
 	user_grpc_server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
+	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 )
 
 type google struct {
-	client grpc.UserClient
+	client user_proto.UserClient
 	jwt    jwt.Jwt
 }
 
@@ -41,7 +41,10 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload := &commandPayload{token, data}
-	e = g.client.DispatchAndClose(r.Context(), user_grpc_server.RegisterUserWithGoogle, payload.toJSON())
+	_, e = g.client.DispatchCommand(r.Context(), &user_proto.DispatchCommandRequest{
+		Name:    user_grpc_server.RegisterUserWithGoogle,
+		Payload: payload.toJSON(),
+	})
 
 	if e != nil {
 		response.WithError(r.Context(), response.HTTPError{
@@ -57,6 +60,6 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewGoogle creates google auth handler
-func NewGoogle(c grpc.UserClient, j jwt.Jwt) http.Handler {
+func NewGoogle(c user_proto.UserClient, j jwt.Jwt) http.Handler {
 	return &google{c, j}
 }

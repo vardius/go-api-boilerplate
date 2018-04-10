@@ -9,7 +9,7 @@ import (
 	nethttp "net/http"
 
 	"github.com/vardius/go-api-boilerplate/pkg/common/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
+	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 	"github.com/vardius/gorouter"
 )
 
@@ -20,7 +20,7 @@ var ErrEmptyRequestBody = errors.New("Empty request body")
 var ErrInvalidURLParams = errors.New("Invalid request URL params")
 
 // FromGRPC wraps user gRPC client with http.Handler
-func FromGRPC(c grpc.UserClient) nethttp.Handler {
+func FromGRPC(c user_proto.UserClient) nethttp.Handler {
 	fn := func(w nethttp.ResponseWriter, r *nethttp.Request) {
 		var e error
 
@@ -54,7 +54,10 @@ func FromGRPC(c grpc.UserClient) nethttp.Handler {
 			return
 		}
 
-		e = c.DispatchAndClose(r.Context(), params.Value("command"), body)
+		_, e = c.DispatchCommand(r.Context(), &user_proto.DispatchCommandRequest{
+			Name:    params.Value("command"),
+			Payload: body,
+		})
 		if e != nil {
 			response.WithError(r.Context(), response.HTTPError{
 				Code:    nethttp.StatusBadRequest,

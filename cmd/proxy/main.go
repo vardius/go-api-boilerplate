@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,10 +16,11 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/log"
 	"github.com/vardius/go-api-boilerplate/pkg/common/os/shutdown"
 	"github.com/vardius/go-api-boilerplate/pkg/common/security/authenticator"
-	user_grpc_client "github.com/vardius/go-api-boilerplate/pkg/proxy/infrastructure/user/grpc"
 	proxy_http_server "github.com/vardius/go-api-boilerplate/pkg/proxy/interfaces/http"
+	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 	"github.com/vardius/gorouter"
 	"golang.org/x/crypto/acme/autocert"
+	"google.golang.org/grpc"
 )
 
 type config struct {
@@ -43,7 +45,14 @@ func main() {
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
 
-	grpUserClient := user_grpc_client.New(cfg.UserHost, cfg.UserPort)
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.UserHost, cfg.UserPort), grpc.WithInsecure())
+	if err != nil {
+		logger.Info(ctx, "[proxy] grpc dial error: %v\n", err)
+		return
+	}
+	defer conn.Close()
+
+	grpUserClient := user_proto.NewUserClient(conn)
 
 	// Global middleware
 	router := gorouter.New(
