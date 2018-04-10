@@ -6,7 +6,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/security/identity"
-	user_grpc_server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
+	user_grpc "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 )
 
@@ -42,7 +42,7 @@ func (f *facebook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	payload := &commandPayload{token, data}
 	_, e = f.client.DispatchCommand(r.Context(), &user_proto.DispatchCommandRequest{
-		Name:    user_grpc_server.RegisterUserWithFacebook,
+		Name:    user_grpc.RegisterUserWithFacebook,
 		Payload: payload.toJSON(),
 	})
 
