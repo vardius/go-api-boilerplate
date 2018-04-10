@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -48,7 +49,7 @@ func main() {
 	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.UserHost, cfg.UserPort), grpc.WithInsecure())
 	if err != nil {
 		logger.Critical(ctx, "[proxy] grpc user conn dial error: %v\n", err)
-		return
+		os.Exit(1)
 	}
 	defer userConn.Close()
 
