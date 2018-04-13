@@ -54,3 +54,5 @@ dep ensure -update
 ### Documentation
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
 * [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
+#### GoDoc locally 
+After running `docker-compose up` open [http://localhost:6060/pkg/](http://localhost:6060/pkg/)
