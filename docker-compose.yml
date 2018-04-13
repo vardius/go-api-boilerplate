@@ -49,6 +49,17 @@ services:
     working_dir: /go/src/${PKG}
     command: go run cmd/user/main.go
 
+  godoc:
+    image: golang:latest
+    container_name: godoc
+    expose:
+      - "6060"
+    ports:
+      - "6060:6060"
+    volumes:
+      - ./:/go/src/${PKG}
+    command: godoc -http=:6060 -index=true -play -goroot=/go
+
 networks:
   proxy_tier:
     driver: bridge

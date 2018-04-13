@@ -64,7 +64,7 @@ cert:
 # DOCKER TASKS
 # Build the container
 build:
-	docker build --no-cache --build-arg BIN=$(BIN) PKG=$(PKG) -t $(BIN) .
+	docker build -f docker/cmd/Dockerfile --no-cache --build-arg BIN=$(BIN) PKG=$(PKG) -t $(BIN) .
 
 # Run container on port configured in `.env`
 run:
