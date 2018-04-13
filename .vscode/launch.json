@@ -12,7 +12,7 @@
             "remotePath": "{workspaceRoot}",
             "port": 2345,
             "host": "127.0.0.1",
-            "program": "${workspaceRoot}/cmd/apiserver",
+            "program": "${workspaceRoot}/cmd/proxy",
             "env": {},
             "args": [
                 "--v",
