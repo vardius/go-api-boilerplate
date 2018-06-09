@@ -1,4 +1,4 @@
-# shutdown [![GoDoc](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/infrastructure/eventstore/dynamodb?status.svg)](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/infrastructure/eventstore/dynamodb)
+# eventstore [![GoDoc](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/infrastructure/eventstore/dynamodb?status.svg)](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/infrastructure/eventstore/dynamodb)
 Package eventstore provides dynamodb implementation of domain event store
 
 Download:
