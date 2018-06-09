@@ -1,10 +1,9 @@
-# shutdown [![GoDoc](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/domain?status.svg)](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/domain)
-Package domain provides interfaces along with helper functions
-
+# shutdown [![GoDoc](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore?status.svg)](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore)
+Package eventstore provides event store interfaces
 Download:
 ```shell
-go get -u github.com/vardius/go-api-boilerplate/pkg/common/domain
+go get -u github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore
 ```
 
 * * *
-Package domain provides interfaces along with helper functions
+Package eventstore provides event store interfaces

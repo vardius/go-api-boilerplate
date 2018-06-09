@@ -1,10 +1,10 @@
-# shutdown [![GoDoc](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/domain?status.svg)](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/domain)
-Package domain provides interfaces along with helper functions
+# shutdown [![GoDoc](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/application/executioncontext?status.svg)](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/application/executioncontext)
+Package executioncontext provides context helper function so set and get execution flags
 
 Download:
 ```shell
-go get -u github.com/vardius/go-api-boilerplate/pkg/common/domain
+go get -u github.com/vardius/go-api-boilerplate/pkg/common/application/executioncontext
 ```
 
 * * *
-Package domain provides interfaces along with helper functions
+Package executioncontext provides context helper function so set and get execution flags

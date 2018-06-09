@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/vardius/go-api-boilerplate/pkg/common/calm"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/calm"
 	"github.com/vardius/golog"
 )
 

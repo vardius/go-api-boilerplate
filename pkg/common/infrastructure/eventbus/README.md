@@ -1,10 +1,10 @@
-# shutdown [![GoDoc](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/domain?status.svg)](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/common/domain)
-Package domain provides interfaces along with helper functions
+# shutdown [![GoDoc](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/infrastructure/eventbus?status.svg)](https://godoc.org/github.com/vardius/go-api-boilerplate/pkg/infrastructure/eventbus)
+Package eventbus provides event bus interfaces
 
 Download:
 ```shell
-go get -u github.com/vardius/go-api-boilerplate/pkg/common/domain
+go get -u github.com/vardius/go-api-boilerplate/pkg/infrastructure/eventbus
 ```
 
 * * *
-Package domain provides interfaces along with helper functions
+Package eventbus provides event bus interfaces
