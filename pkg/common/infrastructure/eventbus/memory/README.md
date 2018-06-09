@@ -3,7 +3,7 @@ Package eventbus provides memory implementation of domain event store
 
 Download:
 ```shell
-go get -u github.com/vardius/go-api-boilerplate/pkg/infrastructure/common/eventbus/memory
+go get -u github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus/memory
 ```
 
 * * *
