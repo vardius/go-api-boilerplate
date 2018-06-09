@@ -1,9 +1,9 @@
 package http
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
-	"github.com/vardius/go-api-boilerplate/pkg/proxy/application/socialmedia"
-	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/proxy/interfaces/http/socialmedia"
+	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	"github.com/vardius/gorouter"
 )
 

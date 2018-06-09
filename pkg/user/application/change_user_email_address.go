@@ -6,7 +6,10 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/vardius/go-api-boilerplate/pkg/common/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/executioncontext"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure"
 )
@@ -21,8 +24,8 @@ func (c *changeUserEmailAddress) fromJSON(payload json.RawMessage) error {
 }
 
 // OnChangeUserEmailAddress creates command handler
-func OnChangeUserEmailAddress(es domain.EventStore, eb domain.EventBus) domain.CommandHandler {
-	repository := infrastructure.New(fmt.Sprintf("%T", user.User{}), es, eb)
+func OnChangeUserEmailAddress(es eventstore.EventStore, eb eventbus.EventBus) commandbus.CommandHandler {
+	repository := infrastructure.NewUserEventSourcedRepository(fmt.Sprintf("%T", user.User{}), es, eb)
 
 	return func(ctx context.Context, payload json.RawMessage, out chan<- error) {
 		c := &changeUserEmailAddress{}
@@ -43,6 +46,6 @@ func OnChangeUserEmailAddress(es domain.EventStore, eb domain.EventBus) domain.C
 
 		out <- nil
 
-		repository.Save(domain.ContextWithFlag(ctx, domain.LIVE), u)
+		repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
 	}
 }

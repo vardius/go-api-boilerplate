@@ -4,14 +4,15 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/vardius/go-api-boilerplate/pkg/common/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
 )
 
 type eventSourcedRepository struct {
 	streamName string
-	eventStore domain.EventStore
-	eventBus   domain.EventBus
+	eventStore eventstore.EventStore
+	eventBus   eventbus.EventBus
 }
 
 // Save current user changes to event store and publish each event with an event bus
@@ -38,7 +39,7 @@ func (r *eventSourcedRepository) Get(id uuid.UUID) *user.User {
 	return u
 }
 
-// New creates new user event sourced repository
-func New(streamName string, store domain.EventStore, bus domain.EventBus) user.EventSourcedRepository {
+// NewUserEventSourcedRepository creates new user event sourced repository
+func NewUserEventSourcedRepository(streamName string, store eventstore.EventStore, bus eventbus.EventBus) user.EventSourcedRepository {
 	return &eventSourcedRepository{streamName, store, bus}
 }

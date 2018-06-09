@@ -58,7 +58,7 @@ services:
       - "6060:6060"
     volumes:
       - ./:/go/src/${PKG}
-    command: godoc -http=:6060 -index=true -play -goroot=/go
+    command: godoc -http=:6060 -index=true -play
 
 networks:
   proxy_tier:

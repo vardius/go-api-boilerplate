@@ -6,9 +6,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/vardius/go-api-boilerplate/pkg/common/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
-	"github.com/vardius/go-api-boilerplate/pkg/common/security/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/executioncontext"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure"
 )
@@ -22,8 +25,8 @@ func (c *registerUserWithEmail) fromJSON(payload json.RawMessage) error {
 }
 
 // OnRegisterUserWithEmail creates command handler
-func OnRegisterUserWithEmail(es domain.EventStore, eb domain.EventBus, j jwt.Jwt) domain.CommandHandler {
-	repository := infrastructure.New(fmt.Sprintf("%T", user.User{}), es, eb)
+func OnRegisterUserWithEmail(es eventstore.EventStore, eb eventbus.EventBus, j jwt.Jwt) commandbus.CommandHandler {
+	repository := infrastructure.NewUserEventSourcedRepository(fmt.Sprintf("%T", user.User{}), es, eb)
 
 	return func(ctx context.Context, payload json.RawMessage, out chan<- error) {
 		c := &registerUserWithEmail{}
@@ -57,6 +60,6 @@ func OnRegisterUserWithEmail(es domain.EventStore, eb domain.EventBus, j jwt.Jwt
 
 		out <- nil
 
-		repository.Save(domain.ContextWithFlag(ctx, domain.LIVE), u)
+		repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
 	}
 }

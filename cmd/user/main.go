@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
-	"github.com/vardius/go-api-boilerplate/pkg/common/jwt"
-	"github.com/vardius/go-api-boilerplate/pkg/common/log"
-	"github.com/vardius/go-api-boilerplate/pkg/common/memory/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/common/memory/eventbus"
-	"github.com/vardius/go-api-boilerplate/pkg/common/memory/eventstore"
-	"github.com/vardius/go-api-boilerplate/pkg/common/os/shutdown"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/log"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus/memory"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus/memory"
+	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore/memory"
+	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
-	"github.com/vardius/go-api-boilerplate/pkg/user/interfaces/proto"
 	"google.golang.org/grpc"
 )
 

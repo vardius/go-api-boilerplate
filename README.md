@@ -14,11 +14,12 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
 Key concepts:
 1. Rest API
-2. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design)  (DDD)
-3. [CQRS](https://martinfowler.com/bliki/CQRS.html)
-4. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
-5. [Docker](https://www.docker.com/what-docker)
-5. [gRPC](https://grpc.io/docs/)
+2. [Docker](https://www.docker.com/what-docker)
+3. [gRPC](https://grpc.io/docs/)
+4. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design)  (DDD)
+5. [CQRS](https://martinfowler.com/bliki/CQRS.html)
+6. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
+7. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
 
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
@@ -55,4 +56,4 @@ dep ensure -update
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
 * [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
 #### GoDoc locally 
-After running `docker-compose up` open [http://localhost:6060/pkg/](http://localhost:6060/pkg/)
+After running `docker-compose up` open [http://localhost:6060/pkg/github.com/vardius/go-api-boilerplate/](http://localhost:6060/pkg/github.com/vardius/go-api-boilerplate/)
