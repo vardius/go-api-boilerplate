@@ -19,10 +19,7 @@ type Recover interface {
 
 func writeError(ctx context.Context, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(response.HTTPError{
-		Code:    http.StatusInternalServerError,
-		Message: http.StatusText(http.StatusInternalServerError),
-	})
+	json.NewEncoder(w).Encode(response.NewErrorFromHTTPStatus(http.StatusInternalServerError))
 }
 
 type defaultRecover int

@@ -30,7 +30,7 @@ func fromContext(ctx context.Context) (*response, bool) {
 func WithPayload(ctx context.Context, payload interface{}) {
 	response, ok := fromContext(ctx)
 	if !ok {
-		panic("Failed to write payload. Use one of response's As*** middlewares first")
+		panic("Failed to write payload. Use one of response's package middlewares first")
 	}
 
 	response.write(payload)
@@ -38,6 +38,6 @@ func WithPayload(ctx context.Context, payload interface{}) {
 
 // WithError adds error to context for response
 // Will panic if response middleware wasn't used first
-func WithError(ctx context.Context, err HTTPError) {
+func WithError(ctx context.Context, err error) {
 	WithPayload(ctx, err)
 }

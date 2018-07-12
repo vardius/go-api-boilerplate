@@ -1,8 +1,13 @@
 package response
 
-// HTTPError allows you yo return nice error responses
-type HTTPError struct {
-	Code    int
-	Error   error
-	Message string `json:"message"`
+import (
+	"net/http"
+	"strconv"
+
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
+)
+
+// NewErrorFromHTTPStatus returns an app error based on http status code.
+func NewErrorFromHTTPStatus(code int) error {
+	return errors.New(http.StatusText(code), strconv.Itoa(code))
 }

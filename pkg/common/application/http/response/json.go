@@ -3,6 +3,8 @@ package response
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 )
 
 // AsJSON wraps handler and parse payload to json response
@@ -15,27 +17,21 @@ func AsJSON(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 
 		if response, ok := fromContext(ctx); ok {
-			switch t := response.payload.(type) {
-			case HTTPError:
-				w.WriteHeader(t.Code)
-			case *HTTPError:
-				w.WriteHeader(t.Code)
-			}
-
-			encoder := json.NewEncoder(w)
-			encoder.SetEscapeHTML(true)
-			encoder.SetIndent("", "")
-
 			if response.payload != nil {
+				switch t := response.payload.(type) {
+				case error:
+					w.WriteHeader(errors.HTTPStatusCode(t))
+				}
+
+				encoder := json.NewEncoder(w)
+				encoder.SetEscapeHTML(true)
+				encoder.SetIndent("", "")
+
 				err := encoder.Encode(response.payload)
 
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
-					encoder.Encode(HTTPError{
-						Code:    http.StatusInternalServerError,
-						Error:   err,
-						Message: http.StatusText(http.StatusInternalServerError),
-					})
+					encoder.Encode(NewErrorFromHTTPStatus(http.StatusInternalServerError))
 
 					return
 				}

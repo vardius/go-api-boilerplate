@@ -1,11 +1,11 @@
 package response_test
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
 )
 
@@ -82,11 +82,7 @@ func ExampleWithPayload() {
 
 func ExampleWithError() {
 	h := response.AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		response.WithError(r.Context(), response.HTTPError{
-			Code:    http.StatusBadRequest,
-			Error:   errors.New("response error"),
-			Message: "Invalid request",
-		})
+		response.WithError(r.Context(), errors.New("response error", errors.INTERNAL))
 	}))
 
 	w := httptest.NewRecorder()

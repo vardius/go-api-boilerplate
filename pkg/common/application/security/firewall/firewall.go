@@ -4,7 +4,6 @@ Package firewall allow to guard handlers
 package firewall
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
@@ -27,11 +26,7 @@ func GrantAccessFor(role string) func(next http.Handler) http.Handler {
 				}
 			}
 
-			response.WithError(r.Context(), response.HTTPError{
-				Code:    http.StatusUnauthorized,
-				Error:   errors.New(http.StatusText(http.StatusUnauthorized)),
-				Message: http.StatusText(http.StatusUnauthorized),
-			})
+			response.WithError(r.Context(), response.NewErrorFromHTTPStatus(http.StatusUnauthorized))
 		}
 
 		return http.HandlerFunc(fn)

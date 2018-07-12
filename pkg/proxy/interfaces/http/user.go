@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/firewall"
 	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
@@ -29,32 +30,20 @@ func fromGRPC(c user_proto.UserClient) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.WithError(r.Context(), response.HTTPError{
-				Code:    http.StatusBadRequest,
-				Error:   ErrEmptyRequestBody,
-				Message: ErrEmptyRequestBody.Error(),
-			})
+			response.WithError(r.Context(), ErrEmptyRequestBody)
 			return
 		}
 
 		params, ok := gorouter.FromContext(r.Context())
 		if !ok {
-			response.WithError(r.Context(), response.HTTPError{
-				Code:    http.StatusBadRequest,
-				Error:   ErrInvalidURLParams,
-				Message: ErrInvalidURLParams.Error(),
-			})
+			response.WithError(r.Context(), ErrInvalidURLParams)
 			return
 		}
 
 		defer r.Body.Close()
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
-			response.WithError(r.Context(), response.HTTPError{
-				Code:    http.StatusBadRequest,
-				Error:   e,
-				Message: "Invalid request body",
-			})
+			response.WithError(r.Context(), errors.Wrap(e, "Invalid request body", errors.INTERNAL))
 			return
 		}
 
@@ -63,11 +52,7 @@ func fromGRPC(c user_proto.UserClient) http.Handler {
 			Payload: body,
 		})
 		if e != nil {
-			response.WithError(r.Context(), response.HTTPError{
-				Code:    http.StatusBadRequest,
-				Error:   e,
-				Message: "Invalid request",
-			})
+			response.WithError(r.Context(), errors.Wrap(e, "Invalid request", errors.INTERNAL))
 			return
 		}
 

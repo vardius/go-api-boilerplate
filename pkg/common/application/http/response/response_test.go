@@ -2,9 +2,9 @@ package response
 
 import (
 	"context"
-	"errors"
-	"net/http"
 	"testing"
+
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 )
 
 func TestWithPayloadPanic(t *testing.T) {
@@ -33,11 +33,7 @@ func TestWithPayload(t *testing.T) {
 
 func TestWithError(t *testing.T) {
 	ctx := contextWithResponse(context.Background())
-	respErr := HTTPError{
-		Code:    http.StatusBadRequest,
-		Error:   errors.New("response error"),
-		Message: "Invalid request",
-	}
+	respErr := errors.New("Invalid request", errors.INVALID)
 
 	WithError(ctx, respErr)
 

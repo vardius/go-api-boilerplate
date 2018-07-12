@@ -3,6 +3,7 @@ package socialmedia
 import (
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
@@ -19,11 +20,7 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.FormValue("accessToken")
 	data, e := getProfile(accessToken, "https://www.googleapis.com/oauth2/v2/userinfo")
 	if e != nil {
-		response.WithError(r.Context(), response.HTTPError{
-			Code:    http.StatusBadRequest,
-			Error:   e,
-			Message: "Invalid access token",
-		})
+		response.WithError(r.Context(), errors.Wrap(e, "Invalid access token", errors.INVALID))
 		return
 	}
 
@@ -32,11 +29,7 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, e := g.jwt.Encode(identity)
 	if e != nil {
-		response.WithError(r.Context(), response.HTTPError{
-			Code:    http.StatusInternalServerError,
-			Error:   e,
-			Message: "Generate token failure",
-		})
+		response.WithError(r.Context(), errors.Wrap(e, "Generate token failure", errors.INTERNAL))
 		return
 	}
 
@@ -47,11 +40,7 @@ func (g *google) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if e != nil {
-		response.WithError(r.Context(), response.HTTPError{
-			Code:    http.StatusBadRequest,
-			Error:   e,
-			Message: "Invalid request",
-		})
+		response.WithError(r.Context(), errors.Wrap(e, "Invalid request", errors.INVALID))
 		return
 	}
 

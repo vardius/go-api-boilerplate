@@ -2,10 +2,10 @@ package authenticator
 
 import (
 	"encoding/base64"
-	"errors"
 	"net/http"
 	"strings"
 
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
 )
@@ -42,11 +42,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 					i, err := a.afn(string(bearer))
 					if err != nil {
 						w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-						response.WithError(r.Context(), response.HTTPError{
-							Code:    http.StatusUnauthorized,
-							Error:   err,
-							Message: http.StatusText(http.StatusUnauthorized),
-						})
+						response.WithError(r.Context(), errors.Wrap(err, "Unauthorized", errors.UNAUTHORIZED))
 						return
 					}
 
@@ -56,11 +52,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 			}
 
 			w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-			response.WithError(r.Context(), response.HTTPError{
-				Code:    http.StatusUnauthorized,
-				Error:   errors.New(http.StatusText(http.StatusUnauthorized)),
-				Message: http.StatusText(http.StatusUnauthorized),
-			})
+			response.WithError(r.Context(), response.NewErrorFromHTTPStatus(http.StatusUnauthorized))
 		}
 
 		return http.HandlerFunc(fn)
@@ -78,11 +70,7 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 
 			i, err := a.afn(token)
 			if err != nil {
-				response.WithError(r.Context(), response.HTTPError{
-					Code:    http.StatusUnauthorized,
-					Error:   err,
-					Message: http.StatusText(http.StatusUnauthorized),
-				})
+				response.WithError(r.Context(), errors.Wrap(err, "Unauthorized", errors.UNAUTHORIZED))
 				return
 			}
 
@@ -104,11 +92,7 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 
 			i, err := a.afn(cookie.Value)
 			if err != nil {
-				response.WithError(r.Context(), response.HTTPError{
-					Code:    http.StatusUnauthorized,
-					Error:   err,
-					Message: http.StatusText(http.StatusUnauthorized),
-				})
+				response.WithError(r.Context(), errors.Wrap(err, "Unauthorized", errors.UNAUTHORIZED))
 				return
 			}
 

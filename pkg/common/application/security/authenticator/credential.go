@@ -3,6 +3,7 @@ package authenticator
 import (
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
 )
@@ -30,11 +31,7 @@ func (a *credentialsAuth) FromBasicAuth(next http.Handler) http.Handler {
 			if err != nil {
 				w.Header().Set("WWW-Authenticate", `Basic`)
 
-				response.WithError(r.Context(), response.HTTPError{
-					Code:    http.StatusUnauthorized,
-					Error:   err,
-					Message: http.StatusText(http.StatusUnauthorized),
-				})
+				response.WithError(r.Context(), errors.Wrap(err, "Unauthorized", errors.UNAUTHORIZED))
 				return
 			}
 

@@ -2,10 +2,11 @@ package response
 
 import (
 	"bytes"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 )
 
 type jsonResponse struct {
@@ -38,11 +39,7 @@ func TestAsJSON(t *testing.T) {
 
 func TestErrorAsJSON(t *testing.T) {
 	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithError(r.Context(), HTTPError{
-			Code:    http.StatusBadRequest,
-			Error:   errors.New("response error"),
-			Message: "Invalid request",
-		})
+		WithError(r.Context(), errors.New("Invalid request", errors.INVALID))
 	}))
 
 	w := httptest.NewRecorder()
@@ -63,13 +60,9 @@ func TestErrorAsJSON(t *testing.T) {
 	}
 }
 
-func TestErrorPointerAsJSON(t *testing.T) {
+func TestErrorPayloadAsJSON(t *testing.T) {
 	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithPayload(r.Context(), &HTTPError{
-			Code:    http.StatusBadRequest,
-			Error:   errors.New("response error"),
-			Message: "Invalid request",
-		})
+		WithPayload(r.Context(), errors.New("Invalid request", errors.INVALID))
 	}))
 
 	w := httptest.NewRecorder()
