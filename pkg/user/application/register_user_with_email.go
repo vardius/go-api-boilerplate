@@ -58,8 +58,6 @@ func OnRegisterUserWithEmail(es eventstore.EventStore, eb eventbus.EventBus, j j
 			return
 		}
 
-		out <- nil
-
-		repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
 	}
 }

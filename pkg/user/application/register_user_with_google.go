@@ -50,8 +50,6 @@ func OnRegisterUserWithGoogle(es eventstore.EventStore, eb eventbus.EventBus) co
 			return
 		}
 
-		out <- nil
-
-		repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
 	}
 }

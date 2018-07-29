@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus"
@@ -38,7 +39,7 @@ type userServer struct {
 }
 
 // DispatchCommand implements proto.UserServer interface
-func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) (*proto.DispatchCommandResponse, error) {
+func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) error {
 	out := make(chan error)
 	defer close(out)
 
@@ -48,9 +49,9 @@ func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCom
 
 	select {
 	case <-ctx.Done():
-		return new(proto.DispatchCommandResponse), ctx.Err()
+		return new(empty.Empty), ctx.Err()
 	case err := <-out:
-		return new(proto.DispatchCommandResponse), err
+		return new(empty.Empty), err
 	}
 }
 

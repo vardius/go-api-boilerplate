@@ -50,8 +50,6 @@ func OnRegisterUserWithFacebook(es eventstore.EventStore, eb eventbus.EventBus) 
 			return
 		}
 
-		out <- nil
-
-		repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
 	}
 }
