@@ -6,7 +6,7 @@ package grpc
 import (
 	"context"
 
-	"github.com/vardius/go-api-boilerplate/pkg/auth/application/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 )
 

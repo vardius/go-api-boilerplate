@@ -1,67 +1,62 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: wordpress
-  labels:
-    app: wordpress
+  name: proxy-service
 spec:
-  ports:
-    - port: 80
   selector:
-    app: wordpress
-    tier: frontend
+    app: proxy
+  ports:
+  - port: 3000
+    targetPort: proxy-service
   type: LoadBalancer
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: wp-pv-claim
-  labels:
-    app: wordpress
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
----
-apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wordpress
+  name: proxy-deployment
   labels:
-    app: wordpress
+    app: proxy
 spec:
   selector:
     matchLabels:
-      app: wordpress
-      tier: frontend
-  strategy:
-    type: Recreate
+      app: proxy
+  replicas: 3
   template:
     metadata:
       labels:
-        app: wordpress
-        tier: frontend
+        app: proxy
     spec:
       containers:
-      - image: wordpress:4.8-apache
-        name: wordpress
-        env:
-        - name: WORDPRESS_DB_HOST
-          value: wordpress-mysql
-        - name: WORDPRESS_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-pass
-              key: password
+      - name: proxy
+        image: local/proxy
+        imagePullPolicy: Never
         ports:
-        - containerPort: 80
-          name: wordpress
-        volumeMounts:
-        - name: wordpress-persistent-storage
-          mountPath: /var/www/html
-      volumes:
-      - name: wordpress-persistent-storage
-        persistentVolumeClaim:
-          claimName: wp-pv-claim
+        - name: proxy-service
+          containerPort: 3000
+        envFrom:
+        - secretKeyRef:
+          name: proxy-secret
+        - configMapRef:
+          name: proxy-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-config
+  namespace: default
+data:
+  ENV: development
+  HOST: proxy-service
+  PORT: 3000
+  USER_SERVER_HOST: user-service
+  USER_SERVER_PORT: 3000
+  CERT_DIR_CACHE: certs
+  ORIGINS: localhost|0.0.0.0|127.0.0.1
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: proxy-secret
+type: Opaque
+data:
+  SECRET: changeme
