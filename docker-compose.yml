@@ -60,9 +60,9 @@ services:
     env_file:
       - cmd/user/.env
     expose:
-      - "3001"
+      - "3002"
     ports:
-      - "3001:3001"
+      - "3002:3002"
     volumes:
       - ./:/go/src/${PKG}
     networks:

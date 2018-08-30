@@ -3,9 +3,9 @@ VERSION := $(shell git describe --tags --always --dirty)
 
 # import config.
 # You can change the default config with `make cnf="config_special.env" build`
-configfile ?= .env
-include $(configfile)
-export $(shell sed 's/=.*//' $(configfile))
+cnf ?= .env
+include $(cnf)
+export $(shell sed 's/=.*//' $(cnf))
 
 # HELP
 # This will output the help for each task
@@ -16,6 +16,24 @@ help: ## This help.
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DEFAULT_GOAL := help
+
+# HTTPS TASK
+# Generate key
+key:
+	openssl genrsa -out server.key 2048
+	openssl ecparam -genkey -name secp384r1 -out server.key
+
+# Generate self signed certificate
+cert:
+	openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650
+
+# CONFIG TASK
+# import enviroments for binary
+setup:
+	@echo 'setup package .env file for $(BIN)'
+	localCnf ?= ./cmd/$(BIN)/.env
+	include $(localCnf)
+	export $(shell sed 's/=.*//' $(localCnf))
 
 # GENERIC TASKS
 all-%:
@@ -42,24 +60,6 @@ tag-latest-%:
 	@$(MAKE) --no-print-directory BIN=$* setup tag-latest
 tag-version-%:
 	@$(MAKE) --no-print-directory BIN=$* setup tag-version
-
-# CONFIG TASK
-# import enviroments for binary
-setup:
-	@echo 'setup package .env file for $(BIN)'
-	localCfg ?= ./cmd/$(BIN)/.env
-	include $(localCfg)
-	export $(shell sed 's/=.*//' $(localCfg))
-
-# HTTPS TASK
-# Generate key
-key:
-	openssl genrsa -out server.key 2048
-	openssl ecparam -genkey -name secp384r1 -out server.key
-
-# Generate self signed certificate
-cert:
-	openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650
 
 # DOCKER TASKS
 # Build the container

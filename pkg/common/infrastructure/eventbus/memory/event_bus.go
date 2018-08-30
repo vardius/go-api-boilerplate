@@ -29,8 +29,8 @@ func (bus *eventBus) Unsubscribe(eventType string, fn baseeventbus.EventHandler)
 }
 
 // New creates in memory event bus
-func New() baseeventbus.EventBus {
-	return &eventBus{messagebus.New()}
+func New(maxConcurrentCalls int) baseeventbus.EventBus {
+	return &eventBus{messagebus.New(maxConcurrentCalls)}
 }
 
 type loggableEventBus struct {
@@ -40,7 +40,7 @@ type loggableEventBus struct {
 }
 
 func (bus *loggableEventBus) Publish(ctx context.Context, eventType string, event domain.Event) {
-	bus.logger.Debug(ctx, "[%s EventBus|Publish]: %s %s\n", bus.serverName, eventType, event.Payload)
+	bus.logger.Debug(ctx, "[%s EventBus|Publish]: %s %+v\n", bus.serverName, eventType, event.Payload)
 	bus.eventBus.Publish(ctx, eventType, event)
 }
 
@@ -57,4 +57,9 @@ func (bus *loggableEventBus) Unsubscribe(eventType string, fn baseeventbus.Event
 // WithLogger creates in memory event bus
 func WithLogger(serverName string, parent baseeventbus.EventBus, log golog.Logger) baseeventbus.EventBus {
 	return &loggableEventBus{serverName, parent, log}
+}
+
+// NewLoggable creates in memory event bus with logger
+func NewLoggable(maxConcurrentCalls int, serverName string, log golog.Logger) baseeventbus.EventBus {
+	return &loggableEventBus{serverName, New(maxConcurrentCalls), log}
 }

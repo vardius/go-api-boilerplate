@@ -34,7 +34,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	authServer := server.New(jwtService)
 
-	proto.RegisterAuthServer(grpcServer, authServer)
+	proto.RegisterAuthenticationServer(grpcServer, authServer)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {

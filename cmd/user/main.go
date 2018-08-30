@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"runtime"
 	"time"
 
 	"github.com/caarlos0/env"
@@ -32,17 +33,13 @@ func main() {
 	env.Parse(&cfg)
 
 	logger := log.New(cfg.Env)
-	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
-	eventStore := eventstore.New()
-	eventBus := eventbus.WithLogger("user", eventbus.New(), logger)
-	commandBus := commandbus.WithLogger("user", commandbus.New(), logger)
 
 	grpcServer := grpc.NewServer()
 	userServer := server.New(
-		commandBus,
-		eventBus,
-		eventStore,
-		jwtService,
+		commandbus.NewLoggable(runtime.NumCPU(), "user", logger),
+		eventbus.NewLoggable(runtime.NumCPU(), "user", logger),
+		eventstore.New(),
+		jwt.New([]byte(cfg.Secret), time.Hour*24),
 	)
 
 	proto.RegisterUserServer(grpcServer, userServer)

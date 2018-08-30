@@ -6,43 +6,41 @@ package grpc
 import (
 	"context"
 
+	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 )
 
-type authenticator struct {
-	username string
-	password string
-	token    string
+type authenticationServer struct {
+	jwt jwt.Jwt
 }
 
 // GetToken return token for given email address
-func (a *authenticator) GetToken(ctx context.Context, req *proto.GetTokenRequest) (*proto.GetTokenResponse, error) {
+func (s *authenticationServer) GetToken(ctx context.Context, req *proto.GetTokenRequest) (*proto.GetTokenResponse, error) {
 	// todo get user by email and create token
+	id := uuid.New()
+	roles := []string{"user"}
 
-	identity := &identity.Identity{}
-	identity.FromGoogleData(data)
+	identity := identity.WithValues(id, req.GetEmail(), roles)
+	token, e := s.jwt.Encode(identity)
 
-	token, e := g.jwt.Encode(identity)
-
-	return &proto.GetTokenResponse{token}, e
+	return &proto.GetTokenResponse{Token: token}, e
 }
 
 // RefreshToken return new token based on expired one
-func (a *authenticator) RefreshToken(ctx context.Context, req *proto.RefreshTokenRequest) (*proto.RefreshTokenResponse, error) {
-	// todo decode token and generat new one
+func (s *authenticationServer) RefreshToken(ctx context.Context, req *proto.RefreshTokenRequest) (*proto.RefreshTokenResponse, error) {
+	identity, e := s.jwt.Decode(req.GetToken())
+	if e != nil {
+		return new(proto.RefreshTokenResponse), e
+	}
 
-	identity := &identity.Identity{}
-	identity.FromGoogleData(data)
+	token, e := s.jwt.Encode(identity)
 
-	token, e := g.jwt.Encode(identity)
-
-	return &proto.RefreshTokenResponse{token}, e
+	return &proto.RefreshTokenResponse{Token: token}, e
 }
 
 // New returns new user server object
-func New() proto.UserServer {
-	a := &authenticator{}
-
-	return a
+func New(j jwt.Jwt) proto.AuthenticationServer {
+	return &authenticationServer{}
 }

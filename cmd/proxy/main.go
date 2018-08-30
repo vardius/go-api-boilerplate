@@ -11,6 +11,7 @@ import (
 
 	"github.com/caarlos0/env"
 	"github.com/rs/cors"
+	auth_proto "github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/calm"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
@@ -29,7 +30,9 @@ type config struct {
 	Host         string   `env:"HOST"            envDefault:"localhost"`
 	Port         int      `env:"PORT"            envDefault:"3000"`
 	UserHost     string   `env:"USER_HOST"       envDefault:"localhost"`
-	UserPort     int      `env:"USER_PORT"       envDefault:"3001"`
+	UserPort     int      `env:"USER_PORT"       envDefault:"3002"`
+	AuthHost     string   `env:"AUTH_HOST"       envDefault:"localhost"`
+	AuthPort     int      `env:"AUTH_PORT"       envDefault:"3001"`
 	CertDirCache string   `env:"CERT_DIR_CACHE"`
 	Secret       string   `env:"SECRET"          envDefault:"secret"`
 	Origins      []string `env:"ORIGINS"         envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
@@ -45,6 +48,15 @@ func main() {
 	clm := calm.WithLogger(calm.New(), logger)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
+
+	authConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.AuthHost, cfg.AuthPort), grpc.WithInsecure())
+	if err != nil {
+		logger.Critical(ctx, "[proxy] grpc auth conn dial error: %v\n", err)
+		os.Exit(1)
+	}
+	defer authConn.Close()
+
+	grpAuthClient := auth_proto.NewAuthenticationClient(authConn)
 
 	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.UserHost, cfg.UserPort), grpc.WithInsecure())
 	if err != nil {
@@ -67,7 +79,7 @@ func main() {
 		clm.RecoverHandler,
 	)
 
-	proxy_http.AddAuthRoutes(router, grpUserClient, jwtService)
+	proxy_http.AddAuthRoutes(router, grpUserClient, grpAuthClient)
 	proxy_http.AddUserRoutes(router, grpUserClient)
 
 	srv := setupServer(&cfg, router)

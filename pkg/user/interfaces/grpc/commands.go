@@ -1,4 +1,16 @@
+/*
+Package grpc provides user grpc server
+*/
 package grpc
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
+)
 
 // ChangeUserEmailAddress command bus contract
 const ChangeUserEmailAddress = "change-user-email-address"
@@ -11,3 +23,26 @@ const RegisterUserWithFacebook = "register-user-with-facebook"
 
 // RegisterUserWithGoogle command bus contract
 const RegisterUserWithGoogle = "register-user-with-google"
+
+func buildDomainCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) (interface{}, error) {
+	var c json.Unmarshaler
+	switch cmd.GetName() {
+	case RegisterUserWithEmail:
+		c = &user.RegisterWithEmail{}
+	case RegisterUserWithGoogle:
+		c = &user.RegisterWithGoogle{}
+	case RegisterUserWithFacebook:
+		c = &user.RegisterWithFacebook{}
+	case ChangeUserEmailAddress:
+		c = &user.ChangeEmailAddress{}
+	default:
+		return nil, errors.New("Invalid command", errors.INTERNAL)
+	}
+
+	err := json.Unmarshal(cmd.GetPayload(), c)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
