@@ -3,12 +3,10 @@ sudo: false
 go:
   - "1.11"
   - tip
-install:		
-  - go mod init
 before_script:
-  - go build ./...
+  - env GO111MODULE=on go build ./...
 script:
-  - go test ./... -v -cover -race -coverprofile=profile.out -covermode=atomic
+  - env GO111MODULE=on go test ./... -v -cover -race -coverprofile=profile.out -covermode=atomic
 after_script:
   - cat profile.out >> coverage.txt
   - bash <(curl -s https://codecov.io/bash)
