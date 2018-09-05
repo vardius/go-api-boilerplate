@@ -44,7 +44,7 @@ HOW TO USE
 
 ## Getting started
 ### Prerequisites
-In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
+In order to run this project you need to have Docker > 1.17.05 for building the production image and Kubernetes cluster > 1.11 for running pods installed.
 ### Vendor
 Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
 ```bash
