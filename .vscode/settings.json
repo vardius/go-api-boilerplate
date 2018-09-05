@@ -3,5 +3,6 @@
         "grpc",
         "uuid",
         "vardius"
-    ]
+    ],
+    "cSpell.language": "en"
 }
