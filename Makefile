@@ -38,18 +38,14 @@ setup:
 # GENERIC TASKS
 all-%:
 	for BIN in $(shell ls cmd); do $(MAKE) --no-print-directory BIN=$$BIN setup $*; done
-build-%:
-	@$(MAKE) --no-print-directory BIN=$* setup build
-run-%:
-	@$(MAKE) --no-print-directory BIN=$* setup run
-stop-%:
-	@$(MAKE) --no-print-directory BIN=$* setup stop
-rm-%:
-	@$(MAKE) --no-print-directory BIN=$* setup rm
-release-%:
-	@$(MAKE) --no-print-directory BIN=$* setup release
-publish-%:
-	@$(MAKE) --no-print-directory BIN=$* setup publish
+docker-build-%:
+	@$(MAKE) --no-print-directory BIN=$* setup docker-build
+docker-run-%:
+	@$(MAKE) --no-print-directory BIN=$* setup docker-run
+docker-stop-%:
+	@$(MAKE) --no-print-directory BIN=$* setup docker-stop
+docker-rm-%:
+	@$(MAKE) --no-print-directory BIN=$* setup docker-rm
 publish-latest-%:
 	@$(MAKE) --no-print-directory BIN=$* setup publish-latest
 publish-version-%:
@@ -60,46 +56,54 @@ tag-latest-%:
 	@$(MAKE) --no-print-directory BIN=$* setup tag-latest
 tag-version-%:
 	@$(MAKE) --no-print-directory BIN=$* setup tag-version
+release-%:
+	@$(MAKE) --no-print-directory BIN=$* setup release
+publish-%:
+	@$(MAKE) --no-print-directory BIN=$* setup publish
 
 # DOCKER TASKS
 # Build the container
-build:
-	docker build -f docker/cmd/Dockerfile --no-cache --build-arg BIN=$(BIN) PKG=$(PKG) -t $(BIN) .
+docker-build:
+	docker build -f docker/cmd/Dockerfile --no-cache --build-arg BIN=$(BIN) PKG=$(PKG) -t local/$(BIN) .
 
 # Run container on port configured in `.env`
-run:
-	docker run -i -t --rm --env-file=./cmd/$(BIN)/.env -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN))
+docker-run:
+	docker run -i -t --rm --env-file=./cmd/$(BIN)/.env -p=$(PORT):$(PORT) --name="$(BIN)" local/$(BIN)
 
-stop:
+docker-stop:
 	docker stop $(BIN)
 
-rm: stop
+docker-rm: stop
 	docker rm $(BIN)
 
-# Docker release - build, tag and push the container
-release: build publish
-
 # Docker publish
-publish: aws-repo-login publish-latest publish-version
+docker-publish: aws-repo-login docker-publish-latest docker-publish-version
 
-publish-latest: tag-latest
+docker-publish-latest: tag-latest
 	@echo 'publish latest to $(REGISTRY)'
 	docker push $(REGISTRY)/$(BIN):latest
 
-publish-version: tag-version
+docker-publish-version: tag-version
 	@echo 'publish $(VERSION) to $(REGISTRY)'
 	docker push $(REGISTRY)/$(BIN):$(VERSION)
 
 # Docker tagging
-tag: tag-latest tag-version
+docker-tag: docker-tag-latest docker-tag-version
 
-tag-latest:
+docker-tag-latest:
 	@echo 'create tag latest'
 	docker tag $(BIN) $(REGISTRY)/$(BIN):latest
 
-tag-version:
+docker-tag-version:
 	@echo 'create tag $(VERSION)'
 	docker tag $(BIN) $(REGISTRY)/$(BIN):$(VERSION)
+
+# Docker release - build, tag and push the container
+docker-release: build publish
+
+# KUBERNETES TASKS
+kubernetes-create:
+	kubectl create -f ./kubernetes/$(BIN)-deployment.yml
 
 # HELPERS
 # generate script to login to aws docker repo

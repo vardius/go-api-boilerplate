@@ -15,16 +15,16 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 Key concepts:
 1. Rest API
 2. [Docker](https://www.docker.com/what-docker)
-3. [gRPC](https://grpc.io/docs/)
-4. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design)  (DDD)
-5. [CQRS](https://martinfowler.com/bliki/CQRS.html)
-6. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
-7. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
+3. [Kubernetes](https://kubernetes.io/)
+4. [gRPC](https://grpc.io/docs/)
+5. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design)  (DDD)
+6. [CQRS](https://martinfowler.com/bliki/CQRS.html)
+7. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
+8. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
 
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
 2. [message-bus](https://github.com/vardius/message-bus)
-3. [env](https://github.com/caarlos0/env)
 
 ABOUT
 ==================================================
@@ -46,14 +46,21 @@ HOW TO USE
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 installed for building the production image.
 ### Vendor
-To update vendors run
+Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
 ```bash
-go get -u github.com/golang/dep/cmd/dep
-dep init
-dep ensure -update
+go build ./...
 ```
+### Kubernetes
+The Dashboard UI is not deployed by default. To deploy it, run the following command:
+```bash
+kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+```
+You can access Dashboard using the kubectl command-line tool by running the following command:
+```bash
+kubectl proxy
+```
+Kubectl will handle authentication with apiserver and make Dashboard available at http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
+The UI can only be accessed from the machine where the command is executed. See kubectl proxy --help for more options.
 ### Documentation
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
 * [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
-#### GoDoc locally 
-After running `docker-compose up` open [http://localhost:6060/pkg/github.com/vardius/go-api-boilerplate/](http://localhost:6060/pkg/github.com/vardius/go-api-boilerplate/)
