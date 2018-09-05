@@ -34,10 +34,10 @@ spec:
         - name: proxy-service
           containerPort: 3000
         envFrom:
-        - secretKeyRef:
-          name: proxy-secret
+        - secretRef:
+            name: proxy-secret
         - configMapRef:
-          name: proxy-config
+            name: proxy-config
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -47,9 +47,9 @@ metadata:
 data:
   ENV: development
   HOST: proxy-service
-  PORT: 3000
+  PORT: '3000'
   USER_SERVER_HOST: user-service
-  USER_SERVER_PORT: 3000
+  USER_SERVER_PORT: '3000'
   CERT_DIR_CACHE: certs
   ORIGINS: localhost|0.0.0.0|127.0.0.1
 ---

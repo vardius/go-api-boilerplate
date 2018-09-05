@@ -32,21 +32,26 @@ spec:
         ports:
         - name: auth-service
           containerPort: 3000
+        envFrom:
+        - secretRef:
+            name: auth-secret
+        - configMapRef:
+            name: auth-config
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: proxy-config
+  name: auth-config
   namespace: default
 data:
   ENV: development
-  HOST: proxy-service
-  PORT: 3000
+  HOST: auth-service
+  PORT: '3000'
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: proxy-secret
+  name: auth-secret
 type: Opaque
 data:
   SECRET: changeme
