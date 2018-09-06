@@ -46,10 +46,12 @@ metadata:
   namespace: default
 data:
   ENV: development
-  HOST: proxy-service
+  HOST: '0.0.0.0'
   PORT: '3000'
-  USER_SERVER_HOST: user-service
-  USER_SERVER_PORT: '3000'
+  USER_SERVICE_HOST: user-service
+  USER_SERVICE_PORT: '3000'
+  AUTH_SERVICE_HOST: auth-service
+  AUTH_SERVICE_PORT: '3000'
   CERT_DIR_CACHE: certs
   ORIGINS: localhost|0.0.0.0|127.0.0.1
 ---

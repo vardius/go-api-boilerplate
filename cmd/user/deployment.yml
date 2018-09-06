@@ -45,7 +45,7 @@ metadata:
   namespace: default
 data:
   ENV: development
-  HOST: user-service
+  HOST: '0.0.0.0'
   PORT: '3000'
 ---
 apiVersion: v1
