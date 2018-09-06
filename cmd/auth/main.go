@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		logger.Critical(ctx, "failed to listen: %v\n", err)
 	} else {
-		logger.Info(ctx, "[user] running at %s:%d\n", cfg.Host, cfg.Port)
+		logger.Info(ctx, "[auth] running at %s:%d\n", cfg.Host, cfg.Port)
 	}
 
 	go func() {
@@ -48,10 +48,10 @@ func main() {
 	}()
 
 	shutdown.GracefulStop(func() {
-		logger.Info(ctx, "[user] shutting down...\n")
+		logger.Info(ctx, "[auth] shutting down...\n")
 
 		grpcServer.GracefulStop()
 
-		logger.Info(ctx, "[user] gracefully stopped\n")
+		logger.Info(ctx, "[auth] gracefully stopped\n")
 	})
 }

@@ -12,8 +12,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/log"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore/memory"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 	"google.golang.org/grpc"
@@ -22,7 +20,7 @@ import (
 type config struct {
 	Env    string `env:"ENV"    envDefault:"development"`
 	Host   string `env:"HOST"   envDefault:"localhost"`
-	Port   int    `env:"PORT"   envDefault:"3001"`
+	Port   int    `env:"PORT"   envDefault:"3002"`
 	Secret string `env:"SECRET" envDefault:"secret"`
 }
 
