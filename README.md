@@ -45,10 +45,21 @@ HOW TO USE
 ## Getting started
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 for building the production image and Kubernetes cluster > 1.11 for running pods installed.
-### Vendor
-Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
+### Makefile
 ```bash
-go build ./...
+➜  go-api-boilerplate git:(master) ✗ make help
+version                        Show version
+key                            [HTTP] Generate key
+cert                           [HTTP] Generate self signed certificate
+docker-build                   [DOCKER] Build given container. Example: `make docker-build BIN=user`
+docker-run                     [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
+docker-stop                    [DOCKER] Stop docker container. Example: `make docker-stop BIN=user`
+docker-rm                      [DOCKER] Stop and then remove docker container. Example: `make docker-rm BIN=user`
+docker-publish                 [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
+docker-tag                     [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
+docker-release                 [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
+kubernetes-create              [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
+aws-repo-login                 [HELPER] login to AWS-ECR
 ```
 ### Kubernetes
 The Dashboard UI is not deployed by default. To deploy it, run the following command:
@@ -61,6 +72,12 @@ kubectl proxy
 ```
 Kubectl will handle authentication with apiserver and make Dashboard available at http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
 The UI can only be accessed from the machine where the command is executed. See kubectl proxy --help for more options.
+### Vendor
+Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
+```bash
+go build ./...
+```
+For more read: https://github.com/golang/go/wiki/Modules
 ### Documentation
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
 * [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
