@@ -72,6 +72,7 @@ kubectl proxy
 ```
 Kubectl will handle authentication with apiserver and make Dashboard available at http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
 The UI can only be accessed from the machine where the command is executed. See kubectl proxy --help for more options.
+![Dashboard](../master/.github/kubernetes-dashboard.png)
 ### Vendor
 Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
 ```bash
