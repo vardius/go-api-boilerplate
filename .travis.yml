@@ -1,12 +1,18 @@
 language: go
+
 sudo: false
+
 go:
   - "1.11"
   - tip
-before_script:
-  - env GO111MODULE=on go build ./...
+
+env:
+  - GO111MODULE=on
+
+install: true
+
 script:
-  - env GO111MODULE=on go test ./... -v -cover -race -coverprofile=profile.out -covermode=atomic
+  - go test ./... -v -cover -race -coverprofile=profile.out -covermode=atomic
 after_script:
   - cat profile.out >> coverage.txt
   - bash <(curl -s https://codecov.io/bash)
