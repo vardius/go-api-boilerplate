@@ -79,6 +79,17 @@ Build the module. This will automatically add missing or unconverted dependencie
 go build ./...
 ```
 For more read: https://github.com/golang/go/wiki/Modules
+### Running
+To run services repeat following steps for each micro-service. Changing `BIN=` value to directory name from `./cmd` path.
+### STEP 1. Build docker image
+```bash
+make docker-build BIN=user
+```
+### STEP 2. Deploy
+```bash
+make kubernetes-create BIN=user
+```
+This will deploy each of them to the kubernetes cluster using your local docker image (built in first step).
 ### Documentation
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
 * [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
