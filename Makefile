@@ -1,83 +1,41 @@
 # This version-strategy uses git tags to set the version string
 VERSION := $(shell git describe --tags --always --dirty)
 
-# import config.
-# You can change the default config with `make cnf="config_special.env" build`
-cnf ?= .env
-include $(cnf)
-export $(shell sed 's/=.*//' $(cnf))
-
 # HELP
 # This will output the help for each task
 # thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
 
-help: ## This help.
+help:
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DEFAULT_GOAL := help
 
+version: ## Show version
+	@echo $(VERSION)
+
 # HTTPS TASK
-# Generate key
-key:
+key: ## [HTTP] Generate key
 	openssl genrsa -out server.key 2048
 	openssl ecparam -genkey -name secp384r1 -out server.key
 
-# Generate self signed certificate
-cert:
+cert: ## [HTTP] Generate self signed certificate
 	openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650
 
-# CONFIG TASK
-# import enviroments for binary
-setup:
-	@echo 'setup package .env file for $(BIN)'
-	localCnf ?= ./cmd/$(BIN)/.env
-	include $(localCnf)
-	export $(shell sed 's/=.*//' $(localCnf))
-
-# GENERIC TASKS
-all-%:
-	for BIN in $(shell ls cmd); do $(MAKE) --no-print-directory BIN=$$BIN setup $*; done
-docker-build-%:
-	@$(MAKE) --no-print-directory BIN=$* setup docker-build
-docker-run-%:
-	@$(MAKE) --no-print-directory BIN=$* setup docker-run
-docker-stop-%:
-	@$(MAKE) --no-print-directory BIN=$* setup docker-stop
-docker-rm-%:
-	@$(MAKE) --no-print-directory BIN=$* setup docker-rm
-publish-latest-%:
-	@$(MAKE) --no-print-directory BIN=$* setup publish-latest
-publish-version-%:
-	@$(MAKE) --no-print-directory BIN=$* setup publish-version
-tag-%:
-	@$(MAKE) --no-print-directory BIN=$* setup tag
-tag-latest-%:
-	@$(MAKE) --no-print-directory BIN=$* setup tag-latest
-tag-version-%:
-	@$(MAKE) --no-print-directory BIN=$* setup tag-version
-release-%:
-	@$(MAKE) --no-print-directory BIN=$* setup release
-publish-%:
-	@$(MAKE) --no-print-directory BIN=$* setup publish
-
 # DOCKER TASKS
-# Build the container
-docker-build:
-	docker build -f docker/cmd/Dockerfile --no-cache --build-arg BIN=$(BIN) PKG=$(PKG) -t local/$(BIN) .
+docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`
+	docker build -f cmd/Dockerfile --no-cache --build-arg BIN=$(BIN) -t $(BIN) .
 
-# Run container on port configured in `.env`
-docker-run:
-	docker run -i -t --rm --env-file=./cmd/$(BIN)/.env -p=$(PORT):$(PORT) --name="$(BIN)" local/$(BIN)
+docker-run: ## [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
+	docker run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN)
 
-docker-stop:
+docker-stop: ## [DOCKER] Stop docker container. Example: `make docker-stop BIN=user`
 	docker stop $(BIN)
 
-docker-rm: stop
+docker-rm: docker-stop ## [DOCKER] Stop and then remove docker container. Example: `make docker-rm BIN=user`
 	docker rm $(BIN)
 
-# Docker publish
-docker-publish: aws-repo-login docker-publish-latest docker-publish-version
+docker-publish: aws-repo-login docker-publish-latest docker-publish-version ## [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
 
 docker-publish-latest: tag-latest
 	@echo 'publish latest to $(REGISTRY)'
@@ -87,8 +45,7 @@ docker-publish-version: tag-version
 	@echo 'publish $(VERSION) to $(REGISTRY)'
 	docker push $(REGISTRY)/$(BIN):$(VERSION)
 
-# Docker tagging
-docker-tag: docker-tag-latest docker-tag-version
+docker-tag: docker-tag-latest docker-tag-version ## [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
 
 docker-tag-latest:
 	@echo 'create tag latest'
@@ -98,12 +55,11 @@ docker-tag-version:
 	@echo 'create tag $(VERSION)'
 	docker tag $(BIN) $(REGISTRY)/$(BIN):$(VERSION)
 
-# Docker release - build, tag and push the container
-docker-release: build publish
+docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 
 # KUBERNETES TASKS
-kubernetes-create:
-	kubectl create -f ./kubernetes/$(BIN)-deployment.yml
+kubernetes-create: ## [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
+	kubectl create -f cmd/$(BIN)/deployment.yml
 
 # HELPERS
 # generate script to login to aws docker repo
@@ -116,10 +72,5 @@ CMD_REPOLOGIN += " --region $(AWS_CLI_REGION)"
 endif
 CMD_REPOLOGIN += " get-login \)"
 
-# login to AWS-ECR
-aws-repo-login:
+aws-repo-login: ## [HELPER] login to AWS-ECR
 	@eval $(CMD_REPOLOGIN)
-
-# output to version
-version:
-	@echo $(VERSION)
