@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"runtime"
 	"time"
 
 	"github.com/caarlos0/env"
@@ -20,8 +21,8 @@ import (
 
 type config struct {
 	Env    string `env:"ENV"    envDefault:"development"`
-	Host   string `env:"HOST"   envDefault:"localhost"`
-	Port   int    `env:"PORT"   envDefault:"3001"`
+	Host   string `env:"HOST"   envDefault:"0.0.0.0"`
+	Port   int    `env:"PORT"   envDefault:"3002"`
 	Secret string `env:"SECRET" envDefault:"secret"`
 }
 
@@ -32,30 +33,26 @@ func main() {
 	env.Parse(&cfg)
 
 	logger := log.New(cfg.Env)
-	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
-	eventStore := eventstore.New()
-	eventBus := eventbus.WithLogger("user", eventbus.New(), logger)
-	commandBus := commandbus.WithLogger("user", commandbus.New(), logger)
 
 	grpcServer := grpc.NewServer()
 	userServer := server.New(
-		commandBus,
-		eventBus,
-		eventStore,
-		jwtService,
+		commandbus.NewLoggable(runtime.NumCPU(), "user", logger),
+		eventbus.NewLoggable(runtime.NumCPU(), "user", logger),
+		eventstore.New(),
+		jwt.New([]byte(cfg.Secret), time.Hour*24),
 	)
 
 	proto.RegisterUserServer(grpcServer, userServer)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {
-		logger.Critical(ctx, "failed to listen: %v\n", err)
+		logger.Critical(ctx, "[user] failed to listen %s:%d\n%v\n", cfg.Host, cfg.Port, err)
 	} else {
 		logger.Info(ctx, "[user] running at %s:%d\n", cfg.Host, cfg.Port)
 	}
 
 	go func() {
-		logger.Critical(ctx, "failed to serve: %v\n", grpcServer.Serve(lis))
+		logger.Critical(ctx, "[user] failed to serve: %v\n", grpcServer.Serve(lis))
 	}()
 
 	shutdown.GracefulStop(func() {

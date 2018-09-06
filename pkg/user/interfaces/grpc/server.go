@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus"
@@ -14,21 +15,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/user/application"
 	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/repository"
 )
-
-func registerCommandHandlers(cb commandbus.CommandBus, es eventstore.EventStore, eb eventbus.EventBus, j jwt.Jwt) {
-	cb.Subscribe(RegisterUserWithEmail, application.OnRegisterUserWithEmail(es, eb, j))
-	cb.Subscribe(RegisterUserWithGoogle, application.OnRegisterUserWithGoogle(es, eb))
-	cb.Subscribe(RegisterUserWithFacebook, application.OnRegisterUserWithFacebook(es, eb))
-	cb.Subscribe(ChangeUserEmailAddress, application.OnChangeUserEmailAddress(es, eb))
-}
-
-func registerEventHandlers(eb eventbus.EventBus) {
-	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail)
-	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle)
-	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook)
-	eb.Subscribe(fmt.Sprintf("%T", &user.EmailAddressWasChanged{}), application.WhenUserEmailAddressWasChanged)
-}
 
 type userServer struct {
 	commandBus commandbus.CommandBus
@@ -37,29 +25,51 @@ type userServer struct {
 	jwt        jwt.Jwt
 }
 
-// DispatchCommand implements proto.UserServer interface
-func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) (*proto.DispatchCommandResponse, error) {
-	out := make(chan error)
-	defer close(out)
-
-	go func() {
-		s.commandBus.Publish(ctx, cmd.GetName(), cmd.GetPayload(), out)
-	}()
-
-	select {
-	case <-ctx.Done():
-		return new(proto.DispatchCommandResponse), ctx.Err()
-	case err := <-out:
-		return new(proto.DispatchCommandResponse), err
-	}
-}
-
 // New returns new user server object
 func New(cb commandbus.CommandBus, eb eventbus.EventBus, es eventstore.EventStore, j jwt.Jwt) proto.UserServer {
 	s := &userServer{cb, eb, es, j}
 
-	registerCommandHandlers(cb, es, eb, j)
+	registerCommandHandlers(cb, es, eb)
 	registerEventHandlers(eb)
 
 	return s
+}
+
+// DispatchCommand implements proto.UserServer interface
+func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) (*empty.Empty, error) {
+	out := make(chan error)
+	defer close(out)
+
+	go func() {
+		c, err := buildDomainCommand(ctx, cmd)
+		if err != nil {
+			out <- err
+			return
+		}
+
+		s.commandBus.Publish(ctx, fmt.Sprintf("%T", c), c, out)
+	}()
+
+	select {
+	case <-ctx.Done():
+		return new(empty.Empty), ctx.Err()
+	case err := <-out:
+		return new(empty.Empty), err
+	}
+}
+
+func registerCommandHandlers(cb commandbus.CommandBus, es eventstore.EventStore, eb eventbus.EventBus) {
+	repository := repository.NewUser(es, eb)
+
+	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(repository))
+	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(repository))
+	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(repository))
+	cb.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(repository))
+}
+
+func registerEventHandlers(eb eventbus.EventBus) {
+	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail)
+	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle)
+	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook)
+	eb.Subscribe(fmt.Sprintf("%T", &user.EmailAddressWasChanged{}), application.WhenUserEmailAddressWasChanged)
 }

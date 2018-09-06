@@ -5,7 +5,6 @@ package commandbus
 
 import (
 	"context"
-	"encoding/json"
 
 	basecommandbus "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus"
 	"github.com/vardius/golog"
@@ -16,21 +15,21 @@ type commandBus struct {
 	messageBus messagebus.MessageBus
 }
 
-func (bus *commandBus) Publish(ctx context.Context, command string, payload json.RawMessage, out chan<- error) {
-	bus.messageBus.Publish(command, ctx, payload, out)
+func (bus *commandBus) Publish(ctx context.Context, commandName string, command interface{}, out chan<- error) {
+	bus.messageBus.Publish(commandName, ctx, command, out)
 }
 
-func (bus *commandBus) Subscribe(command string, fn basecommandbus.CommandHandler) error {
-	return bus.messageBus.Subscribe(command, fn)
+func (bus *commandBus) Subscribe(commandName string, fn basecommandbus.CommandHandler) error {
+	return bus.messageBus.Subscribe(commandName, fn)
 }
 
-func (bus *commandBus) Unsubscribe(command string, fn basecommandbus.CommandHandler) error {
-	return bus.messageBus.Unsubscribe(command, fn)
+func (bus *commandBus) Unsubscribe(commandName string, fn basecommandbus.CommandHandler) error {
+	return bus.messageBus.Unsubscribe(commandName, fn)
 }
 
 // New creates in memory command bus
-func New() basecommandbus.CommandBus {
-	return &commandBus{messagebus.New()}
+func New(maxConcurrentCalls int) basecommandbus.CommandBus {
+	return &commandBus{messagebus.New(maxConcurrentCalls)}
 }
 
 type loggableCommandBus struct {
@@ -39,22 +38,27 @@ type loggableCommandBus struct {
 	logger     golog.Logger
 }
 
-func (bus *loggableCommandBus) Publish(ctx context.Context, command string, payload json.RawMessage, out chan<- error) {
-	bus.logger.Debug(ctx, "[%s CommandBus|Publish]: %s %s\n", bus.serverName, command, payload)
-	bus.commandBus.Publish(ctx, command, payload, out)
+func (bus *loggableCommandBus) Publish(ctx context.Context, commandName string, command interface{}, out chan<- error) {
+	bus.logger.Debug(ctx, "[%s CommandBus|Publish]: %s %+v\n", bus.serverName, commandName, command)
+	bus.commandBus.Publish(ctx, commandName, command, out)
 }
 
-func (bus *loggableCommandBus) Subscribe(command string, fn basecommandbus.CommandHandler) error {
-	bus.logger.Info(nil, "[%s CommandBus|Subscribe]: %s\n", bus.serverName, command)
-	return bus.commandBus.Subscribe(command, fn)
+func (bus *loggableCommandBus) Subscribe(commandName string, fn basecommandbus.CommandHandler) error {
+	bus.logger.Info(nil, "[%s CommandBus|Subscribe]: %s\n", bus.serverName, commandName)
+	return bus.commandBus.Subscribe(commandName, fn)
 }
 
-func (bus *loggableCommandBus) Unsubscribe(command string, fn basecommandbus.CommandHandler) error {
-	bus.logger.Info(nil, "[%s CommandBus|Unsubscribe]: %s\n", bus.serverName, command)
-	return bus.commandBus.Unsubscribe(command, fn)
+func (bus *loggableCommandBus) Unsubscribe(commandName string, fn basecommandbus.CommandHandler) error {
+	bus.logger.Info(nil, "[%s CommandBus|Unsubscribe]: %s\n", bus.serverName, commandName)
+	return bus.commandBus.Unsubscribe(commandName, fn)
 }
 
 // WithLogger creates loggable in memory command bus
 func WithLogger(serverName string, parent basecommandbus.CommandBus, log golog.Logger) basecommandbus.CommandBus {
 	return &loggableCommandBus{serverName, parent, log}
+}
+
+// NewLoggable creates in memory command bus with logger
+func NewLoggable(maxConcurrentCalls int, serverName string, log golog.Logger) basecommandbus.CommandBus {
+	return &loggableCommandBus{serverName, New(maxConcurrentCalls), log}
 }

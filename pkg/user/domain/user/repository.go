@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// EventSourcedRepository allows to get/save events from/to event store
-type EventSourcedRepository interface {
+// Repository allows to get/save events from/to event store
+type Repository interface {
 	Save(ctx context.Context, u *User) error
 	Get(id uuid.UUID) *User
 }

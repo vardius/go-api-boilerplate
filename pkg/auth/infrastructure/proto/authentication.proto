@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+
+option java_multiple_files = true;
+option java_package = "io.grpc.proto";
+option java_outer_classname = "UserProto";
+
+package proto;
+
+// Authentication authenticates with identity
+service Authentication {
+  rpc GetToken(GetTokenRequest) returns (GetTokenResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+}
+
+// GetTokenRequest is passed when dispatching
+message GetTokenRequest {
+  string email = 1;
+}
+
+// GetTokenResponse is empty.
+message GetTokenResponse {
+  string token = 1;
+}
+
+// RefreshTokenRequest is passed when dispatching
+message RefreshTokenRequest {
+  string token = 1;
+}
+
+// RefreshTokenResponse is empty.
+message RefreshTokenResponse {
+  string token = 1;
+}

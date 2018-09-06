@@ -17,38 +17,6 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestFromGoogleData(t *testing.T) {
-	identity, err := New()
-	if err != nil {
-		t.Errorf("%s", err)
-	}
-
-	identity.FromGoogleData([]byte(`{"email":"test@email.com"}`))
-
-	if identity.ID.String() == "" {
-		t.Error("Identity should have ID")
-	}
-	if identity.Email == "" {
-		t.Errorf("Identity Email does not match")
-	}
-}
-
-func TestFromFacebookData(t *testing.T) {
-	identity, err := New()
-	if err != nil {
-		t.Errorf("%s", err)
-	}
-
-	identity.FromFacebookData([]byte(`{"email":"test@email.com"}`))
-
-	if identity.ID.String() == "" {
-		t.Error("Identity should have ID")
-	}
-	if identity.Email == "" {
-		t.Errorf("Identity Email does not match")
-	}
-}
-
 func TestWithEmail(t *testing.T) {
 	email := "test@emai.com"
 

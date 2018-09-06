@@ -4,11 +4,12 @@ Package user holds user domain logic
 package user
 
 import (
-	"fmt"
-
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/common/domain"
 )
+
+// StreamName for user domain
+const StreamName = "user" //fmt.Sprintf("%T", User{})
 
 // User aggregate root
 type User struct {
@@ -37,7 +38,7 @@ func (u *User) transition(e interface{}) {
 
 func (u *User) trackChange(e interface{}) error {
 	u.transition(e)
-	eventEnvelop, err := domain.NewEvent(u.id, fmt.Sprintf("%T", u), u.version, e)
+	eventEnvelop, err := domain.NewEvent(u.id, StreamName, u.version, e)
 
 	if err != nil {
 		return err
@@ -64,29 +65,26 @@ func (u *User) Changes() []*domain.Event {
 }
 
 // RegisterWithEmail alters current user state and append changes to aggregate root
-func (u *User) RegisterWithEmail(id uuid.UUID, email string, authToken string) error {
+func (u *User) RegisterWithEmail(id uuid.UUID, email string) error {
 	return u.trackChange(&WasRegisteredWithEmail{
-		ID:        id,
-		Email:     email,
-		AuthToken: authToken,
+		ID:    id,
+		Email: email,
 	})
 }
 
 // RegisterWithGoogle alters current user state and append changes to aggregate root
-func (u *User) RegisterWithGoogle(id uuid.UUID, email string, authToken string) error {
+func (u *User) RegisterWithGoogle(id uuid.UUID, email string) error {
 	return u.trackChange(&WasRegisteredWithGoogle{
-		ID:        id,
-		Email:     email,
-		AuthToken: authToken,
+		ID:    id,
+		Email: email,
 	})
 }
 
 // RegisterWithFacebook alters current user state and append changes to aggregate root
-func (u *User) RegisterWithFacebook(id uuid.UUID, email string, authToken string) error {
+func (u *User) RegisterWithFacebook(id uuid.UUID, email string) error {
 	return u.trackChange(&WasRegisteredWithFacebook{
-		ID:        id,
-		Email:     email,
-		AuthToken: authToken,
+		ID:    id,
+		Email: email,
 	})
 }
 

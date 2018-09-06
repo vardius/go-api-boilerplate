@@ -14,18 +14,18 @@ import (
 
 // AddUserRoutes adds user routes to router
 func AddUserRoutes(router gorouter.Router, grpClient user_proto.UserClient) {
-	httpClient := fromGRPC(grpClient)
+	handler := buildUserHandler(grpClient)
 
 	subRouter := gorouter.New()
-	subRouter.POST("/dispatch/{command}", httpClient)
+	subRouter.POST("/dispatch/{command}", handler)
 	subRouter.USE(gorouter.POST, "/dispatch/"+user_grpc.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
 
 	// User domain
 	router.Mount("/users", subRouter)
 }
 
-// FromGRPC wraps user gRPC client with http.Handler
-func fromGRPC(c user_proto.UserClient) http.Handler {
+// buildUserHandler wraps user gRPC client with http.Handler
+func buildUserHandler(userClient user_proto.UserClient) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
 
@@ -47,7 +47,7 @@ func fromGRPC(c user_proto.UserClient) http.Handler {
 			return
 		}
 
-		_, e = c.DispatchCommand(r.Context(), &user_proto.DispatchCommandRequest{
+		_, e = userClient.DispatchCommand(r.Context(), &user_proto.DispatchCommandRequest{
 			Name:    params.Value("command"),
 			Payload: body,
 		})

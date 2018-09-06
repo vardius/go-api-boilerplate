@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth
+  ports:
+  - port: 3000
+    targetPort: auth-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  labels:
+    app: auth
+spec:
+  selector:
+    matchLabels:
+      app: auth
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: auth
+        imagePullPolicy: Never
+        ports:
+        - name: auth-service
+          containerPort: 3000
+        envFrom:
+        - secretRef:
+            name: auth-secret
+        - configMapRef:
+            name: auth-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-config
+  namespace: default
+data:
+  ENV: development
+  HOST: '0.0.0.0'
+  PORT: '3000'
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-secret
+type: Opaque
+data:
+  SECRET: changeme
