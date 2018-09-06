@@ -1,4 +1,4 @@
 /*
-Package common holds code shared between other bounded contexts
+Package auth holds authentication service
 */
-package proxy
+package auth
