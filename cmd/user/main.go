@@ -21,7 +21,7 @@ import (
 
 type config struct {
 	Env    string `env:"ENV"    envDefault:"development"`
-	Host   string `env:"HOST"   envDefault:"localhost"`
+	Host   string `env:"HOST"   envDefault:"0.0.0.0"`
 	Port   int    `env:"PORT"   envDefault:"3002"`
 	Secret string `env:"SECRET" envDefault:"secret"`
 }

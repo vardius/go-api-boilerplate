@@ -27,11 +27,11 @@ import (
 
 type config struct {
 	Env          string   `env:"ENV"             envDefault:"development"`
-	Host         string   `env:"HOST"            envDefault:"localhost"`
+	Host         string   `env:"HOST"            envDefault:"0.0.0.0"`
 	Port         int      `env:"PORT"            envDefault:"3000"`
-	UserHost     string   `env:"USER_HOST"       envDefault:"localhost"`
+	UserHost     string   `env:"USER_HOST"       envDefault:"0.0.0.0"`
 	UserPort     int      `env:"USER_PORT"       envDefault:"3002"`
-	AuthHost     string   `env:"AUTH_HOST"       envDefault:"localhost"`
+	AuthHost     string   `env:"AUTH_HOST"       envDefault:"0.0.0.0"`
 	AuthPort     int      `env:"AUTH_PORT"       envDefault:"3001"`
 	CertDirCache string   `env:"CERT_DIR_CACHE"`
 	Secret       string   `env:"SECRET"          envDefault:"secret"`
