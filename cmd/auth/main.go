@@ -38,7 +38,7 @@ func main() {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {
-		logger.Critical(ctx, "failed to listen: %v\n", err)
+		logger.Critical(ctx, "failed to listen %s:%d\n%v\n", cfg.Host, cfg.Port, err)
 	} else {
 		logger.Info(ctx, "[auth] running at %s:%d\n", cfg.Host, cfg.Port)
 	}
