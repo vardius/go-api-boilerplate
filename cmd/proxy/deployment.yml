@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: proxy
-        image: local/proxy
+        image: proxy
         imagePullPolicy: Never
         ports:
         - name: proxy-service

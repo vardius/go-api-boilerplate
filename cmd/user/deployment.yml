@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: user
-        image: local/user
+        image: user
         imagePullPolicy: Never
         ports:
         - name: user-service
