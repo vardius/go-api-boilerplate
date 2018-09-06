@@ -61,6 +61,9 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 kubernetes-create: ## [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
 	kubectl create -f cmd/$(BIN)/deployment.yml
 
+kubernetes-replace: ## [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
+	kubectl replace --force -f cmd/$(BIN)/deployment.yml
+
 # HELPERS
 # generate script to login to aws docker repo
 CMD_REPOLOGIN := "eval $$\( aws ecr"
