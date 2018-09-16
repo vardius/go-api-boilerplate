@@ -5,7 +5,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/identity"
 )
 
 // CredentialsAuthFunc returns Identity from username and password combination

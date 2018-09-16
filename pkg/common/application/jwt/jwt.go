@@ -9,7 +9,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/identity"
 )
 
 // Jwt allows to encode/decode identity to jwt tokens

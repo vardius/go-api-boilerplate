@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/identity"
 )
 
 type authenticationServer struct {
