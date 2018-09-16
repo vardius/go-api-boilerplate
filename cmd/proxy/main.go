@@ -106,8 +106,11 @@ func main() {
 
 func setupServer(cfg *config, router gorouter.Router) *http.Server {
 	srv := &http.Server{
-		Addr:    ":" + strconv.Itoa(cfg.Port),
-		Handler: router,
+		Addr:         ":" + strconv.Itoa(cfg.Port),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		Handler:      router,
 	}
 
 	// for localhost do not use autocert
