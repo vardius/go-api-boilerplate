@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	fmt.Println("I am cli command")
+	fmt.Println("I am cli")
 }
