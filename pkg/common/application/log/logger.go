@@ -20,10 +20,10 @@ type Logger struct {
 func (l *Logger) LogRequest(serverName string) gorouter.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			l.Info(r.Context(), "[%s Request|Start]: %s %q\n", r.Method, r.URL.String())
+			l.Info(r.Context(), "[%s Request|Start]: %s\n", r.Method, r.URL.String())
 			start := time.Now()
 			next.ServeHTTP(w, r)
-			l.Info(r.Context(), "[%s Request|End] %s %q %v\n", r.Method, r.URL.String(), time.Since(start))
+			l.Info(r.Context(), "[%s Request|End] %s %q\n", r.Method, r.URL.String(), time.Since(start))
 		}
 
 		return http.HandlerFunc(fn)
