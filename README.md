@@ -59,6 +59,7 @@ docker-publish                 [DOCKER] Docker publish. Example: `make docker-pu
 docker-tag                     [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
 docker-release                 [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 kubernetes-create              [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
+kubernetes-replace             [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
 aws-repo-login                 [HELPER] login to AWS-ECR
 ```
 ### Kubernetes
