@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/caarlos0/env"
@@ -36,6 +35,11 @@ type config struct {
 	CertDirCache string   `env:"CERT_DIR_CACHE"`
 	Secret       string   `env:"SECRET"            envDefault:"secret"`
 	Origins      []string `env:"ORIGINS"           envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
+}
+
+var localHostAddresses = map[string]bool{
+	"0.0.0.0":   true,
+	"localhost": true,
 }
 
 func main() {
@@ -85,7 +89,11 @@ func main() {
 	srv := setupServer(&cfg, router)
 
 	go func() {
-		logger.Critical(ctx, "%v\n", srv.ListenAndServeTLS("", ""))
+		if localHostAddresses[cfg.Host] {
+			logger.Critical(ctx, "[proxy] %v\n", srv.ListenAndServe())
+		} else {
+			logger.Critical(ctx, "[proxy] %v\n", srv.ListenAndServeTLS("", ""))
+		}
 	}()
 
 	logger.Info(ctx, "[proxy] running at %s:%d\n", cfg.Host, cfg.Port)
@@ -106,7 +114,7 @@ func main() {
 
 func setupServer(cfg *config, router gorouter.Router) *http.Server {
 	srv := &http.Server{
-		Addr:         ":" + strconv.Itoa(cfg.Port),
+		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
@@ -115,7 +123,7 @@ func setupServer(cfg *config, router gorouter.Router) *http.Server {
 
 	// for localhost do not use autocert
 	// https://github.com/vardius/go-api-boilerplate/issues/2
-	if cfg.Host == "localhost" {
+	if localHostAddresses[cfg.Host] {
 		return srv
 	}
 
