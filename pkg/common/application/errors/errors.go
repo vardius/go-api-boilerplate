@@ -42,18 +42,35 @@ func ErrorMessage(err error) string {
 }
 
 // New returns an app error that formats as the given text.
-func New(message string, code string) error {
+func New(code string, message string) error {
 	return &appError{
 		Code:    code,
 		Message: message,
 	}
 }
 
+// Newf returns an app error that formats as the given text.
+func Newf(code string, message string, args ...interface{}) error {
+	return &appError{
+		Code:    code,
+		Message: fmt.Sprintf(message, args...),
+	}
+}
+
 // Wrap adds error to the stack
-func Wrap(err error, message string, code string) error {
+func Wrap(err error, code string, message string) error {
 	return &appError{
 		Code:    code,
 		Message: message,
+		Err:     err,
+	}
+}
+
+// Wrapf adds error to the stack
+func Wrapf(err error, code string, message string, args ...interface{}) error {
+	return &appError{
+		Code:    code,
+		Message: fmt.Sprintf(message, args...),
 		Err:     err,
 	}
 }

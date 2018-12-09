@@ -43,7 +43,7 @@ func buildSocialAuthHandler(apiURL string, commandName string, uc user_proto.Use
 		accessToken := r.FormValue("accessToken")
 		profileData, e := getProfile(accessToken, apiURL)
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, "Invalid access token", errors.INVALID))
+			response.WithError(r.Context(), errors.Wrap(e, errors.INVALID, "Invalid access token"))
 			return
 		}
 
@@ -53,14 +53,14 @@ func buildSocialAuthHandler(apiURL string, commandName string, uc user_proto.Use
 		})
 
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, "Invalid request", errors.INVALID))
+			response.WithError(r.Context(), errors.Wrap(e, errors.INVALID, "Invalid request"))
 			return
 		}
 
 		emailData := &requestBody{}
 		err := json.Unmarshal(profileData, emailData)
 		if err != nil {
-			response.WithError(r.Context(), errors.Wrap(e, "Generate token failure, could not parse body", errors.INTERNAL))
+			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body"))
 			return
 		}
 
@@ -69,7 +69,7 @@ func buildSocialAuthHandler(apiURL string, commandName string, uc user_proto.Use
 		})
 
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, "Generate token failure", errors.INTERNAL))
+			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Generate token failure"))
 			return
 		}
 

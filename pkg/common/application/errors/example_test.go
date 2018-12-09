@@ -7,7 +7,7 @@ import (
 )
 
 func ExampleNew() {
-	err := errors.New("internal error", errors.INTERNAL)
+	err := errors.New(errors.INTERNAL, "internal error")
 
 	fmt.Printf("%s\n", errors.ErrorMessage(err))
 
@@ -16,8 +16,27 @@ func ExampleNew() {
 }
 
 func ExampleWrap() {
-	subErr := errors.New("invalid error", errors.INVALID)
-	err := errors.Wrap(subErr, "internal error", errors.INTERNAL)
+	subErr := errors.New(errors.INVALID, "invalid error")
+	err := errors.Wrap(subErr, errors.INTERNAL, "internal error")
+
+	fmt.Printf("%s\n", errors.ErrorMessage(err))
+
+	// Output:
+	// internal error
+}
+
+func ExampleNewf() {
+	err := errors.Newf(errors.INTERNAL, "%s %s", "internal", "error")
+
+	fmt.Printf("%s\n", errors.ErrorMessage(err))
+
+	// Output:
+	// internal error
+}
+
+func ExampleWrapf() {
+	subErr := errors.New(errors.INVALID, "invalid error")
+	err := errors.Wrapf(subErr, errors.INTERNAL, "%s %s", "internal", "error")
 
 	fmt.Printf("%s\n", errors.ErrorMessage(err))
 

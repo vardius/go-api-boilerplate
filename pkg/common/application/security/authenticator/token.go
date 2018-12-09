@@ -42,7 +42,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 					i, err := a.afn(string(bearer))
 					if err != nil {
 						w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-						response.WithError(r.Context(), errors.Wrap(err, "Unauthorized", errors.UNAUTHORIZED))
+						response.WithError(r.Context(), errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
 						return
 					}
 
@@ -70,7 +70,7 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 
 			i, err := a.afn(token)
 			if err != nil {
-				response.WithError(r.Context(), errors.Wrap(err, "Unauthorized", errors.UNAUTHORIZED))
+				response.WithError(r.Context(), errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
 				return
 			}
 
@@ -92,7 +92,7 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 
 			i, err := a.afn(cookie.Value)
 			if err != nil {
-				response.WithError(r.Context(), errors.Wrap(err, "Unauthorized", errors.UNAUTHORIZED))
+				response.WithError(r.Context(), errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
 				return
 			}
 

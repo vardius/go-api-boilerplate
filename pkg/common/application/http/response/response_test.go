@@ -33,7 +33,7 @@ func TestWithPayload(t *testing.T) {
 
 func TestWithError(t *testing.T) {
 	ctx := contextWithResponse(context.Background())
-	respErr := errors.New("Invalid request", errors.INVALID)
+	respErr := errors.New(errors.INVALID, "Invalid request")
 
 	WithError(ctx, respErr)
 

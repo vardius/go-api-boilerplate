@@ -36,7 +36,7 @@ func buildDomainCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) 
 	case ChangeUserEmailAddress:
 		c = &user.ChangeEmailAddress{}
 	default:
-		return nil, errors.New("Invalid command", errors.INTERNAL)
+		return nil, errors.New(errors.INTERNAL, "Invalid command")
 	}
 
 	err := json.Unmarshal(cmd.GetPayload(), c)

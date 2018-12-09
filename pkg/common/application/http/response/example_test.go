@@ -82,7 +82,7 @@ func ExampleWithPayload() {
 
 func ExampleWithError() {
 	h := response.AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		response.WithError(r.Context(), errors.New("response error", errors.INTERNAL))
+		response.WithError(r.Context(), errors.New(errors.INTERNAL, "response error"))
 	}))
 
 	w := httptest.NewRecorder()

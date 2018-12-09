@@ -39,7 +39,7 @@ func TestAsJSON(t *testing.T) {
 
 func TestErrorAsJSON(t *testing.T) {
 	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithError(r.Context(), errors.New("Invalid request", errors.INVALID))
+		WithError(r.Context(), errors.New(errors.INVALID, "Invalid request"))
 	}))
 
 	w := httptest.NewRecorder()
@@ -62,7 +62,7 @@ func TestErrorAsJSON(t *testing.T) {
 
 func TestErrorPayloadAsJSON(t *testing.T) {
 	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithPayload(r.Context(), errors.New("Invalid request", errors.INVALID))
+		WithPayload(r.Context(), errors.New(errors.INVALID, "Invalid request"))
 	}))
 
 	w := httptest.NewRecorder()

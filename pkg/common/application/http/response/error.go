@@ -9,5 +9,5 @@ import (
 
 // NewErrorFromHTTPStatus returns an app error based on http status code.
 func NewErrorFromHTTPStatus(code int) error {
-	return errors.New(http.StatusText(code), strconv.Itoa(code))
+	return errors.New(strconv.Itoa(code), http.StatusText(code))
 }
