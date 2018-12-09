@@ -43,7 +43,7 @@ func buildUserHandler(userClient user_proto.UserClient) http.Handler {
 		defer r.Body.Close()
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, , "Invalid request body"))
+			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request body"))
 			return
 		}
 
@@ -52,7 +52,7 @@ func buildUserHandler(userClient user_proto.UserClient) http.Handler {
 			Payload: body,
 		})
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, , "Invalid request"))
+			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
 			return
 		}
 
