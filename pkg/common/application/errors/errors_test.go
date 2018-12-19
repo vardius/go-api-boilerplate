@@ -6,7 +6,7 @@ import (
 
 func TestNew(t *testing.T) {
 	msg := "internal error"
-	err := New(msg, INTERNAL)
+	err := New(INTERNAL, msg)
 
 	if err == nil {
 		t.Error("Error should not be nil")
@@ -23,10 +23,10 @@ func TestNew(t *testing.T) {
 
 func TestWrap(t *testing.T) {
 	subMsg := "invalid error"
-	subErr := New(subMsg, INVALID)
+	subErr := New(INVALID, subMsg)
 
 	msg := "internal error"
-	err := Wrap(subErr, msg, INTERNAL)
+	err := Wrap(subErr, INTERNAL, msg)
 
 	if err == nil {
 		t.Error("Error should not be nil")
