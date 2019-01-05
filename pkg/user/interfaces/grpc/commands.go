@@ -25,7 +25,7 @@ const RegisterUserWithFacebook = "register-user-with-facebook"
 const RegisterUserWithGoogle = "register-user-with-google"
 
 func buildDomainCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) (interface{}, error) {
-	var c json.Unmarshaler
+	var c interface{}
 	switch cmd.GetName() {
 	case RegisterUserWithEmail:
 		c = &user.RegisterWithEmail{}
