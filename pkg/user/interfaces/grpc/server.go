@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus"
@@ -41,6 +42,12 @@ func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCom
 	defer close(out)
 
 	go func() {
+		defer func() {
+			if rec := recover(); rec != nil {
+				out <- errors.Newf(errors.INTERNAL, "Recovered in f %v", rec)
+			}
+		}()
+
 		c, err := buildDomainCommand(ctx, cmd)
 		if err != nil {
 			out <- err
