@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: proxy
-        image: proxy
+        image: proxy:latest
         imagePullPolicy: Never
         ports:
         - name: proxy-service
