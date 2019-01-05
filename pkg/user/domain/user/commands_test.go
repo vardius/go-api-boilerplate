@@ -13,7 +13,7 @@ func TestUnmarshalChangeEmailAddress(t *testing.T) {
 }
 
 func TestUnmarshalRegisterWithEmail(t *testing.T) {
-	testJSON := []byte(`{email":"test@test.com"}`)
+	testJSON := []byte(`{"email":"test@test.com"}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithEmail{})
 }
