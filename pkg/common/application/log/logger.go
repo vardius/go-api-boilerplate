@@ -23,7 +23,7 @@ func (l *Logger) LogRequest(serverName string) gorouter.MiddlewareFunc {
 			l.Info(r.Context(), "[%s Request|Start]: %s\n", r.Method, r.URL.String())
 			start := time.Now()
 			next.ServeHTTP(w, r)
-			l.Info(r.Context(), "[%s Request|End] %s %q\n", r.Method, r.URL.String(), time.Since(start))
+			l.Info(r.Context(), "[%s Request|End] %s %s\n", r.Method, r.URL.String(), time.Since(start).String())
 		}
 
 		return http.HandlerFunc(fn)
