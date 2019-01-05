@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/executioncontext"
@@ -13,11 +12,6 @@ import (
 type ChangeEmailAddress struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler interface
-func (c *ChangeEmailAddress) UnmarshalJSON(payload []byte) error {
-	return json.Unmarshal(payload, c)
 }
 
 // OnChangeEmailAddress creates command handler
@@ -41,11 +35,6 @@ func OnChangeEmailAddress(repository Repository) commandbus.CommandHandler {
 // RegisterWithEmail command
 type RegisterWithEmail struct {
 	Email string `json:"email"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler interface
-func (c *RegisterWithEmail) UnmarshalJSON(payload []byte) error {
-	return json.Unmarshal(payload, c)
 }
 
 // OnRegisterWithEmail creates command handler
@@ -77,11 +66,6 @@ type RegisterWithFacebook struct {
 	Email string `json:"email"`
 }
 
-// UnmarshalJSON implements json.Unmarshaler interface
-func (c *RegisterWithFacebook) UnmarshalJSON(payload []byte) error {
-	return json.Unmarshal(payload, c)
-}
-
 // OnRegisterWithFacebook creates command handler
 func OnRegisterWithFacebook(repository Repository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *RegisterWithFacebook, out chan<- error) {
@@ -109,11 +93,6 @@ func OnRegisterWithFacebook(repository Repository) commandbus.CommandHandler {
 // RegisterWithGoogle command
 type RegisterWithGoogle struct {
 	Email string `json:"email"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler interface
-func (c *RegisterWithGoogle) UnmarshalJSON(payload []byte) error {
-	return json.Unmarshal(payload, c)
 }
 
 // OnRegisterWithGoogle creates command handler

@@ -25,11 +25,6 @@ type requestBody struct {
 	Email string `json:"email"`
 }
 
-// UnmarshalJSON implements json.Unmarshaler interface
-func (b *requestBody) UnmarshalJSON(body []byte) error {
-	return json.Unmarshal(body, b)
-}
-
 // AddAuthRoutes adds user routes to router
 func AddAuthRoutes(router gorouter.Router, uc user_proto.UserClient, ac auth_proto.AuthenticationClient) {
 	// Social media auth routes
