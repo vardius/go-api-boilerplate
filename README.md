@@ -90,6 +90,22 @@ make docker-build BIN=user
 make kubernetes-create BIN=user
 ```
 This will deploy each of them to the kubernetes cluster using your local docker image (built in first step).
+### STEP 3. Test example
+Send example JSON via POST request
+```sh
+curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST http://localhost:3000/users/dispatch/register-user-with-email
+```
+**proxy** pod logs should look something like:
+```sh
+2019/01/06 09:37:52.453329 INFO:  [POST Request|Start]: /dispatch/register-user-with-email
+2019/01/06 09:37:52.461655 INFO:  [POST Request|End] /dispatch/register-user-with-email 8.2233ms
+```
+**user** pod logs should look something like:
+```sh
+2019/01/06 09:37:52.459095 DEBUG: [user CommandBus|Publish]: *user.RegisterWithEmail &{Email:test@test.com}
+2019/01/06 09:37:52.459966 DEBUG: [user EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
+2019/01/06 09:37:52 [user EventHandler] {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
+```
 ### Documentation
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
 * [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
