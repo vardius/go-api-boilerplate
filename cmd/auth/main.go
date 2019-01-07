@@ -7,12 +7,15 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
 	server "github.com/vardius/go-api-boilerplate/pkg/auth/interfaces/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/log"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 )
 
 type config struct {
@@ -31,7 +34,22 @@ func main() {
 	logger := log.New(cfg.Env)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 
-	grpcServer := grpc.NewServer()
+	opts := []grpc_recovery.Option{
+		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
+			logger.Critical(ctx, "Recovered in f %v", rec)
+
+			return grpc.Errorf(codes.Internal, "%s", rec)
+		}),
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc_middleware.WithUnaryServerChain(
+			grpc_recovery.UnaryServerInterceptor(opts...),
+		),
+		grpc_middleware.WithStreamServerChain(
+			grpc_recovery.StreamServerInterceptor(opts...),
+		),
+	)
 	authServer := server.New(jwtService)
 
 	proto.RegisterAuthenticationServer(grpcServer, authServer)
