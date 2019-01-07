@@ -41,7 +41,7 @@ func (r *userRepository) Get(id uuid.UUID) *user.User {
 	return u
 }
 
-// NewUser creates new user event sourced repository
-func NewUser(store eventstore.EventStore, bus eventbus.EventBus) user.Repository {
+// NewUserRepository creates new user event sourced repository
+func NewUserRepository(store eventstore.EventStore, bus eventbus.EventBus) user.Repository {
 	return &userRepository{store, bus}
 }

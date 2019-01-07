@@ -66,7 +66,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCom
 }
 
 func registerCommandHandlers(cb commandbus.CommandBus, es eventstore.EventStore, eb eventbus.EventBus) {
-	repository := repository.NewUser(es, eb)
+	repository := repository.NewUserRepository(es, eb)
 
 	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(repository))
 	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(repository))
