@@ -8,15 +8,18 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/log"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
-	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore/memory"
+	commandbus "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus/memory"
+	eventbus "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus/memory"
+	eventstore "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore/memory"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 )
 
 type config struct {
@@ -34,7 +37,22 @@ func main() {
 
 	logger := log.New(cfg.Env)
 
-	grpcServer := grpc.NewServer()
+	opts := []grpc_recovery.Option{
+		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
+			logger.Critical(ctx, "Recovered in f %v", rec)
+
+			return grpc.Errorf(codes.Internal, "%s", rec)
+		}),
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc_middleware.WithUnaryServerChain(
+			grpc_recovery.UnaryServerInterceptor(opts...),
+		),
+		grpc_middleware.WithStreamServerChain(
+			grpc_recovery.StreamServerInterceptor(opts...),
+		),
+	)
 	userServer := server.New(
 		commandbus.NewLoggable(runtime.NumCPU(), "user", logger),
 		eventbus.NewLoggable(runtime.NumCPU(), "user", logger),

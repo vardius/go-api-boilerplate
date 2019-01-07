@@ -9,6 +9,7 @@ require (
 	github.com/golang/protobuf v1.2.0
 	github.com/google/uuid v1.0.0
 	github.com/gopherjs/gopherjs v0.0.0-20180825215210-0210a2f0f73c // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190104160321-4832df01553a
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
 	github.com/julienschmidt/httprouter v0.0.0-20180715161854-348b672cd90d // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
