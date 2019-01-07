@@ -1,16 +1,16 @@
-package calm_test
+package recovery_test
 
 import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/calm"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/recovery"
 	"github.com/vardius/golog"
 )
 
 func ExampleRecover() {
-	c := calm.New()
+	c := recovery.New()
 	handler := c.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
@@ -28,7 +28,7 @@ func ExampleRecover() {
 }
 
 func ExampleWithLogger() {
-	c := calm.WithLogger(calm.New(), golog.New("debug"))
+	c := recovery.WithLogger(recovery.New(), golog.New("debug"))
 	handler := c.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))

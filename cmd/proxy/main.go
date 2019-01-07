@@ -11,11 +11,11 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/rs/cors"
 	auth_proto "github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/calm"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/log"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/recovery"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/authenticator"
 	proxy_http "github.com/vardius/go-api-boilerplate/pkg/proxy/interfaces/http"
 	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
@@ -49,7 +49,7 @@ func main() {
 	env.Parse(&cfg)
 
 	logger := log.New(cfg.Env)
-	clm := calm.WithLogger(calm.New(), logger)
+	rec := recovery.WithLogger(recovery.New(), logger)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
 
@@ -80,7 +80,7 @@ func main() {
 		response.AsJSON,
 		auth.FromHeader("API"),
 		auth.FromQuery("authToken"),
-		clm.RecoverHandler,
+		rec.RecoverHandler,
 	)
 
 	proxy_http.AddAuthRoutes(router, grpUserClient, grpAuthClient)

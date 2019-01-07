@@ -1,7 +1,7 @@
 /*
-Package calm allows to recover from panic
+Package recovery allows to recover from panic
 */
-package calm
+package recovery
 
 import (
 	"context"

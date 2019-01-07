@@ -1,4 +1,4 @@
-package calm
+package recovery
 
 import (
 	"net/http"
@@ -11,9 +11,9 @@ import (
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	calm := New()
+	recovery := New()
 
-	if calm == nil {
+	if recovery == nil {
 		t.Fail()
 	}
 }
@@ -28,8 +28,8 @@ func TestRecoverHandler(t *testing.T) {
 		}
 	}()
 
-	calm := New()
-	handler := calm.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	recovery := New()
+	handler := recovery.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
 
@@ -42,7 +42,7 @@ func TestRecoverHandler(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	if paniced == true {
-		t.Error("RecoverHandler did not recoverd")
+		t.Error("RecoverHandler did not recovered")
 	}
 }
 
@@ -56,8 +56,8 @@ func TestRecoverHandlerWithLogger(t *testing.T) {
 		}
 	}()
 
-	calm := WithLogger(New(), golog.New("debug"))
-	handler := calm.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	recovery := WithLogger(New(), golog.New("debug"))
+	handler := recovery.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
 
