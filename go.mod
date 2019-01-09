@@ -1,26 +1,20 @@
 module github.com/vardius/go-api-boilerplate
 
 require (
-	github.com/aws/aws-sdk-go v1.15.24
-	github.com/caarlos0/env v3.3.0+incompatible
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/aws/aws-sdk-go v1.16.15
+	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/golang/protobuf v1.2.0
-	github.com/google/uuid v1.0.0
-	github.com/gopherjs/gopherjs v0.0.0-20180825215210-0210a2f0f73c // indirect
+	github.com/google/uuid v1.1.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190104160321-4832df01553a
-	github.com/jtolds/gls v4.2.1+incompatible // indirect
-	github.com/julienschmidt/httprouter v0.0.0-20180715161854-348b672cd90d // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/cors v1.5.0
-	github.com/smartystreets/assertions v0.0.0-20180820201707-7c9eb446e3cf // indirect
-	github.com/smartystreets/goconvey v0.0.0-20180222194500-ef6db91d284a // indirect
-	github.com/stretchr/testify v1.2.2 // indirect
+	github.com/grpc-ecosystem/grpc-health-probe v0.2.0 // indirect
+	github.com/julienschmidt/httprouter v1.2.0 // indirect
+	github.com/rs/cors v1.6.0
+	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/vardius/golog v1.0.1
 	github.com/vardius/gorouter v3.0.4+incompatible
 	github.com/vardius/message-bus v1.1.0
-	golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac
-	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d
-	golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33 // indirect
+	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc
+	golang.org/x/net v0.0.0-20190108225652-1e06a53dbb7e
 	google.golang.org/grpc v1.17.0
 )
