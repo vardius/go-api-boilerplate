@@ -40,11 +40,11 @@ spec:
         readinessProbe:
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:3000"]
-          initialDelaySeconds: 5
+          initialDelaySeconds: 15
         livenessProbe:
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:3000"]
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20
 ---
 apiVersion: v1
 kind: ConfigMap
