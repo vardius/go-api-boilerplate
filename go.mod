@@ -7,7 +7,6 @@ require (
 	github.com/golang/protobuf v1.2.0
 	github.com/google/uuid v1.1.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190104160321-4832df01553a
-	github.com/grpc-ecosystem/grpc-health-probe v0.2.0 // indirect
 	github.com/julienschmidt/httprouter v1.2.0 // indirect
 	github.com/rs/cors v1.6.0
 	github.com/stretchr/testify v1.3.0 // indirect
