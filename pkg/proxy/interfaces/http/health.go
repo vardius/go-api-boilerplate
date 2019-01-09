@@ -2,9 +2,9 @@ package http
 
 import (
 	"context"
-	"log"
 	"net/http"
 
+	"github.com/vardius/golog"
 	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -12,27 +12,31 @@ import (
 )
 
 // AddHealthCheckRoutes adds health checks route
-func AddHealthCheckRoutes(router gorouter.Router, ac *grpc.ClientConn, uc *grpc.ClientConn) {
+func AddHealthCheckRoutes(router gorouter.Router, log golog.Logger, ac *grpc.ClientConn, uc *grpc.ClientConn) {
 	// Liveness probes are to indicate that your application is running
-	router.GET("/healthz", http.HandlerFunc(liveness))
+	router.GET("/healthz", buildLivenessHandler(log))
 	// Readiness is meant to check if your application is ready to serve traffic
-	router.GET("/readiness", buildReadinessHandler(ac, uc))
+	router.GET("/readiness", buildReadinessHandler(log, ac, uc))
 }
 
-func liveness(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
-	w.Write([]byte("ok"))
-}
-
-func buildReadinessHandler(ac *grpc.ClientConn, uc *grpc.ClientConn) http.Handler {
+func buildLivenessHandler(log golog.Logger) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		status := getStatusCodeFromGRPConnectionHealthCheck(r.Context(), ac)
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func buildReadinessHandler(log golog.Logger, ac *grpc.ClientConn, uc *grpc.ClientConn) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		status := getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, ac)
 		if status != 200 {
 			w.WriteHeader(status)
 			return
 		}
 
-		status = getStatusCodeFromGRPConnectionHealthCheck(r.Context(), uc)
+		status = getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, uc)
 		if status != 200 {
 			w.WriteHeader(status)
 			return
@@ -45,13 +49,13 @@ func buildReadinessHandler(ac *grpc.ClientConn, uc *grpc.ClientConn) http.Handle
 	return http.HandlerFunc(fn)
 }
 
-func getStatusCodeFromGRPConnectionHealthCheck(ctx context.Context, conn *grpc.ClientConn) int {
+func getStatusCodeFromGRPConnectionHealthCheck(ctx context.Context, log golog.Logger, conn *grpc.ClientConn) int {
 	resp, err := healthpb.NewHealthClient(conn).Check(ctx, &healthpb.HealthCheckRequest{Service: "auth"})
 	if err != nil {
 		if stat, ok := status.FromError(err); ok {
-			log.Printf("error %d: health rpc failed: %+v", stat.Code(), err)
+			log.Warning(ctx, "error %d: health rpc failed: %+v", stat.Code(), err)
 		} else {
-			log.Printf("error: health rpc failed: %+v", err)
+			log.Warning(ctx, "error: health rpc failed: %+v", err)
 		}
 
 		return 500
