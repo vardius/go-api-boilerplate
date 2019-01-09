@@ -17,7 +17,7 @@ RUN go mod verify
 
 RUN go build -a -o /go/bin/app ./cmd/"$BIN"
 
-RUN go get github.com/grpc-ecosystem/grpc-health-probe@0.2.0
+RUN go get github.com/grpc-ecosystem/grpc-health-probe
 
 FROM scratch
 COPY --from=buildenv /go/bin/app /go/bin/app
