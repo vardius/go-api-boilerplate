@@ -52,11 +52,11 @@ func main() {
 			grpc_recovery.StreamServerInterceptor(opts...),
 		),
 	)
-	authServer := server.New(jwtService)
+	authServer := server.NewServer(jwtService)
 
 	proto.RegisterAuthenticationServer(grpcServer, authServer)
 
-	healthServer := health.NewHealthServer()
+	healthServer := health.NewServer()
 	healthServer.SetServingStatus("auth", healthpb.HealthCheckResponse_SERVING)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 

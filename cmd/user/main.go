@@ -55,7 +55,7 @@ func main() {
 			grpc_recovery.StreamServerInterceptor(opts...),
 		),
 	)
-	userServer := server.New(
+	userServer := server.NewServer(
 		commandbus.NewLoggable(runtime.NumCPU(), "user", logger),
 		eventbus.NewLoggable(runtime.NumCPU(), "user", logger),
 		eventstore.New(),
@@ -64,7 +64,7 @@ func main() {
 
 	proto.RegisterUserServer(grpcServer, userServer)
 
-	healthServer := health.NewHealthServer()
+	healthServer := health.NewServer()
 	healthServer.SetServingStatus("user", healthpb.HealthCheckResponse_SERVING)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 

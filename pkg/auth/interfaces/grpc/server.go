@@ -40,7 +40,7 @@ func (s *authenticationServer) RefreshToken(ctx context.Context, req *proto.Refr
 	return &proto.RefreshTokenResponse{Token: token}, e
 }
 
-// New returns new user server object
-func New(j jwt.Jwt) proto.AuthenticationServer {
+// NewServer returns new user server object
+func NewServer(j jwt.Jwt) proto.AuthenticationServer {
 	return &authenticationServer{}
 }

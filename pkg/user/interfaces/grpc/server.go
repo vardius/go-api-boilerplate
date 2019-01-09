@@ -26,8 +26,8 @@ type userServer struct {
 	jwt        jwt.Jwt
 }
 
-// New returns new user server object
-func New(cb commandbus.CommandBus, eb eventbus.EventBus, es eventstore.EventStore, j jwt.Jwt) proto.UserServer {
+// NewServer returns new user server object
+func NewServer(cb commandbus.CommandBus, eb eventbus.EventBus, es eventstore.EventStore, j jwt.Jwt) proto.UserServer {
 	s := &userServer{cb, eb, es, j}
 
 	registerCommandHandlers(cb, es, eb)
