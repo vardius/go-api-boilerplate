@@ -24,7 +24,7 @@ cert: ## [HTTP] Generate self signed certificate
 
 # DOCKER TASKS
 docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`
-	docker build -f cmd/Dockerfile --no-cache --build-arg BIN=$(BIN) -t $(BIN) .
+	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) -t $(BIN) .
 
 docker-run: ## [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
 	docker run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN)
@@ -49,6 +49,7 @@ docker-tag: docker-tag-latest docker-tag-version ## [DOCKER] Tag current contain
 
 docker-tag-latest:
 	@echo 'create tag latest'
+	docker tag $(BIN) $(REGISTRY)/$(BIN):latest
 	docker tag $(BIN) $(REGISTRY)/$(BIN):latest
 
 docker-tag-version:
