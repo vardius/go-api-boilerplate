@@ -16,6 +16,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type config struct {
@@ -53,6 +55,10 @@ func main() {
 	authServer := server.New(jwtService)
 
 	proto.RegisterAuthenticationServer(grpcServer, authServer)
+
+	healthServer := health.NewHealthServer()
+	healthServer.SetServingStatus("auth", healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {

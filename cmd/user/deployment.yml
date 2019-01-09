@@ -37,6 +37,14 @@ spec:
             name: user-secret
         - configMapRef:
             name: user-config
+        readinessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:3000"]
+          initialDelaySeconds: 5
+        livenessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:3000"]
+          initialDelaySeconds: 10
 ---
 apiVersion: v1
 kind: ConfigMap

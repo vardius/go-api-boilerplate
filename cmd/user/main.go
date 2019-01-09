@@ -20,6 +20,8 @@ import (
 	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type config struct {
@@ -61,6 +63,10 @@ func main() {
 	)
 
 	proto.RegisterUserServer(grpcServer, userServer)
+
+	healthServer := health.NewHealthServer()
+	healthServer.SetServingStatus("user", healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {

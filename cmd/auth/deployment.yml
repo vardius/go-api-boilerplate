@@ -37,6 +37,14 @@ spec:
             name: auth-secret
         - configMapRef:
             name: auth-config
+        readinessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:3000"]
+          initialDelaySeconds: 5
+        livenessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:3000"]
+          initialDelaySeconds: 10
 ---
 apiVersion: v1
 kind: ConfigMap
