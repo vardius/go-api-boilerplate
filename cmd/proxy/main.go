@@ -83,7 +83,7 @@ func main() {
 		rec.RecoverHandler,
 	)
 
-	proxy_http.AddHealthCheckRoutes(router)
+	proxy_http.AddHealthCheckRoutes(router, authConn, userConn)
 	proxy_http.AddAuthRoutes(router, grpUserClient, grpAuthClient)
 	proxy_http.AddUserRoutes(router, grpUserClient)
 
