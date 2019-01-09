@@ -30,13 +30,13 @@ func buildLivenessHandler(log golog.Logger) http.Handler {
 
 func buildReadinessHandler(log golog.Logger, ac *grpc.ClientConn, uc *grpc.ClientConn) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		status := getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, ac)
+		status := getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, ac, "auth")
 		if status != 200 {
 			w.WriteHeader(status)
 			return
 		}
 
-		status = getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, uc)
+		status = getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, uc, "user")
 		if status != 200 {
 			w.WriteHeader(status)
 			return
@@ -49,8 +49,8 @@ func buildReadinessHandler(log golog.Logger, ac *grpc.ClientConn, uc *grpc.Clien
 	return http.HandlerFunc(fn)
 }
 
-func getStatusCodeFromGRPConnectionHealthCheck(ctx context.Context, log golog.Logger, conn *grpc.ClientConn) int {
-	resp, err := healthpb.NewHealthClient(conn).Check(ctx, &healthpb.HealthCheckRequest{Service: "auth"})
+func getStatusCodeFromGRPConnectionHealthCheck(ctx context.Context, log golog.Logger, conn *grpc.ClientConn, service string) int {
+	resp, err := healthpb.NewHealthClient(conn).Check(ctx, &healthpb.HealthCheckRequest{Service: service})
 	if err != nil {
 		if stat, ok := status.FromError(err); ok {
 			log.Warning(ctx, "error %d: health rpc failed: %+v", stat.Code(), err)
