@@ -65,6 +65,21 @@ kubernetes-create: ## [KUBERNETES] Create kubernetes deployment. Example: `make 
 kubernetes-replace: ## [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
 	kubectl replace --force -f cmd/$(BIN)/deployment.yml
 
+# TELEPRESENCE TASKS
+telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000`
+	go build -o cmd/$(BIN)/$(BIN) cmd/$(BIN)/main.go
+	telepresence \
+	--swap-deployment $(BIN)-deployment \
+	--expose 3000 \
+	--run ./cmd/$(BIN)/$(BIN) \
+	--port=$(PORT) \
+	--method vpn-tcp
+
+telepresence-swap-docker: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000`
+	telepresence \
+	--swap-deployment $(BIN)-deployment \
+	--docker-run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN):latest
+
 # HELPERS
 # generate script to login to aws docker repo
 CMD_REPOLOGIN := "eval $$\( aws ecr"

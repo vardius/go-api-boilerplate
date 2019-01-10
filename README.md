@@ -60,6 +60,8 @@ docker-tag                     [DOCKER] Tag current container. Example: `make do
 docker-release                 [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 kubernetes-create              [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
 kubernetes-replace             [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
+telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000`
+telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000`
 aws-repo-login                 [HELPER] login to AWS-ECR
 ```
 ### Kubernetes
@@ -90,7 +92,35 @@ make docker-build BIN=user
 make kubernetes-create BIN=user
 ```
 This will deploy each of them to the kubernetes cluster using your local docker image (built in first step).
-### STEP 3. Test example
+### STEP 3. Debug
+To debug deployment you can simply use [telepresence](https://www.telepresence.io/reference/install) and swap kubernetes for local go service or local docker image. For example to swap deployment for local docker image run:
+```sh
+make telepresence-swap-docker BIN=user PORT=3001
+```
+This command should swap deployment giving similar output to the one below:
+```
+➜  go-api-boilerplate git:(master) ✗ make telepresence-swap-docker BIN=user PORT=3001
+telepresence \
+	--swap-deployment user-deployment \
+	--docker-run -i -t --rm -p=3001:3001 --name="user" user:latest
+T: Volumes are rooted at $TELEPRESENCE_ROOT. See https://telepresence.io/howto/volumes.html for
+T: details.
+2019/01/10 06:24:37.963250 INFO:  [user CommandBus|Subscribe]: *user.RegisterWithEmail
+2019/01/10 06:24:37.963332 INFO:  [user CommandBus|Subscribe]: *user.RegisterWithGoogle
+2019/01/10 06:24:37.963357 INFO:  [user CommandBus|Subscribe]: *user.RegisterWithFacebook
+2019/01/10 06:24:37.963428 INFO:  [user CommandBus|Subscribe]: *user.ChangeEmailAddress
+2019/01/10 06:24:37.963445 INFO:  [user EventBus|Subscribe]: *user.WasRegisteredWithEmail
+2019/01/10 06:24:37.963493 INFO:  [user EventBus|Subscribe]: *user.WasRegisteredWithGoogle
+2019/01/10 06:24:37.963540 INFO:  [user EventBus|Subscribe]: *user.WasRegisteredWithFacebook
+2019/01/10 06:24:37.963561 INFO:  [user EventBus|Subscribe]: *user.EmailAddressWasChanged
+2019/01/10 06:24:37.964452 INFO:  [user] running at 0.0.0.0:3000
+^C
+2019/01/10 06:30:16.266108 INFO:  [user] shutting down...
+2019/01/10 06:30:16.283392 INFO:  [user] gracefully stopped
+T: Exit cleanup in progress
+# --docker-run --rm -it -v -p=3001:3001 user:latest
+```
+### STEP 4. Test example
 Send example JSON via POST request
 ```sh
 curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST http://localhost:3000/users/dispatch/register-user-with-email
