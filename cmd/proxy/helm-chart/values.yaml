@@ -1,0 +1,67 @@
+replicaCount: 1
+
+image:
+  repository: proxy
+  tag: latest
+  pullPolicy: Never
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: LoadBalancer
+  port: 3000
+
+secret:
+  SECRET: changeme
+
+config:
+  ENV: development
+  HOST: '0.0.0.0'
+  PORT: '3000'
+  USER_SERVICE_HOST: user-service
+  USER_SERVICE_PORT: '3000'
+  AUTH_SERVICE_HOST: auth-service
+  AUTH_SERVICE_PORT: '3000'
+  CERT_DIR_CACHE: certs
+  ORIGINS: localhost|0.0.0.0|127.0.0.1
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  paths: []
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+liveness:
+  path: /healthz
+  initialDelaySeconds: 15
+
+readiness:
+  path: /readiness
+  initialDelaySeconds: 20
+  timeoutSeconds: 5
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
