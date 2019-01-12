@@ -58,12 +58,12 @@ docker-tag-version:
 
 docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 
-# KUBERNETES TASKS
-kubernetes-create: ## [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
-	kubectl create -f cmd/$(BIN)/deployment.yml
+# # KUBERNETES TASKS
+# kubernetes-create: ## [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
+# 	kubectl create -f cmd/$(BIN)/deployment.yml
 
-kubernetes-replace: ## [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
-	kubectl replace --force -f cmd/$(BIN)/deployment.yml
+# kubernetes-replace: ## [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
+# 	kubectl replace --force -f cmd/$(BIN)/deployment.yml
 
 # HELM TASKS
 helm-install: ## [HELM] Deploy the Helm chart. Example: `make helm-install BIN=user`

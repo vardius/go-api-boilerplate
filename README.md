@@ -59,8 +59,6 @@ docker-rm                      [DOCKER] Stop and then remove docker container. E
 docker-publish                 [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
 docker-tag                     [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
 docker-release                 [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
-kubernetes-create              [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
-kubernetes-replace             [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
 helm-install                   [HELM] Deploy the Helm chart. Example: `make helm-install BIN=user`
 helm-upgrade                   [HELM] Update the Helm chart. Example: `make helm-upgrade BIN=user`
 helm-history                   [HELM] See what revisions have been made to the chart. Example: `make helm-history BIN=user`
