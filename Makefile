@@ -79,7 +79,7 @@ helm-history: ## [HELM] See what revisions have been made to the chart. Example:
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000`
 	go build -o cmd/$(BIN)/$(BIN) cmd/$(BIN)/main.go
 	telepresence \
-	--swap-deployment $(BIN)-deployment \
+	--swap-deployment $(BIN) \
 	--expose 3000 \
 	--run ./cmd/$(BIN)/$(BIN) \
 	--port=$(PORT) \
@@ -87,7 +87,7 @@ telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with 
 
 telepresence-swap-docker: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000`
 	telepresence \
-	--swap-deployment $(BIN)-deployment \
+	--swap-deployment $(BIN) \
 	--docker-run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN):latest
 
 # HELPERS
