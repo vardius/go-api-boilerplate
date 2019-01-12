@@ -10,7 +10,7 @@ require (
 	github.com/julienschmidt/httprouter v1.2.0 // indirect
 	github.com/rs/cors v1.6.0
 	github.com/stretchr/testify v1.3.0 // indirect
-	github.com/vardius/golog v1.0.1
+	github.com/vardius/golog v1.0.2
 	github.com/vardius/gorouter v3.0.4+incompatible
 	github.com/vardius/message-bus v1.1.0
 	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc
