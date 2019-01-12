@@ -65,6 +65,16 @@ kubernetes-create: ## [KUBERNETES] Create kubernetes deployment. Example: `make 
 kubernetes-replace: ## [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
 	kubectl replace --force -f cmd/$(BIN)/deployment.yml
 
+# HELM TASKS
+helm-install: ## [HELM] Deploy the Helm chart. Example: `make helm-install BIN=user`
+	helm install -n $(BIN) cmd/$(BIN)/helm-chart/
+
+helm-upgrade: ## [HELM] Update the Helm chart. Example: `make helm-upgrade BIN=user`
+	helm upgrade $(BIN) cmd/$(BIN)/helm-chart/
+
+helm-history: ## [HELM] See what revisions have been made to the chart. Example: `make helm-history BIN=user`
+	helm history $(BIN)
+
 # TELEPRESENCE TASKS
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000`
 	go build -o cmd/$(BIN)/$(BIN) cmd/$(BIN)/main.go

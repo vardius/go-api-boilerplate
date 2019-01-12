@@ -9,6 +9,4 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 data:
-  ENV: {{ .Values.config.ENV }}
-  HOST: {{ .Values.config.HOST }}
-  PORT: {{ .Values.config.PORT }}
+  {{- toYaml .Values.configMap.data | nindent 2 }}

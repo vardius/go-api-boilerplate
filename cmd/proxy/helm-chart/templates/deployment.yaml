@@ -24,8 +24,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: {{ include "helm-chart.fullname" . }}
-              containerPort: {{ .Values.config.port }}
+            - name: {{ .Values.service.name }}
+              containerPort: {{ .Values.service.internalPort }}
           envFrom:
             - secretRef:
                 name: {{ include "helm-chart.fullname" . }}
@@ -34,12 +34,12 @@ spec:
           livenessProbe:
             httpGet:
               path: {{ .Values.liveness.path }}
-              port: {{ .Values.config.port }}
+              port: {{ .Values.service.internalPort }}
             initialDelaySeconds: {{ .Values.liveness.initialDelaySeconds }}
           readinessProbe:
             httpGet:
               path: {{ .Values.readiness.path }}
-              port: {{ .Values.config.port }}
+              port: {{ .Values.service.internalPort }}
             initialDelaySeconds: {{ .Values.readiness.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.readiness.timeoutSeconds }}
           resources:

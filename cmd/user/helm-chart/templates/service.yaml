@@ -13,5 +13,6 @@ spec:
     app.kubernetes.io/name: {{ include "helm-chart.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ include "helm-chart.fullname" . }}
+    - port: {{ .Values.service.externalPort }}
+      targetPort: {{ .Values.service.internalPort }}
+      name: {{ .Values.service.name }}

@@ -24,8 +24,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: {{ include "helm-chart.fullname" . }}
-              containerPort: {{ .Values.config.port }}
+            - name: {{ .Values.service.name }}
+              containerPort: {{ .Values.service.internalPort }}
           envFrom:
             - secretRef:
                 name: {{ include "helm-chart.fullname" . }}
@@ -33,11 +33,11 @@ spec:
                 name: {{ include "helm-chart.fullname" . }}
           readinessProbe:
             exec:
-              command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.config.port}}"]
+              command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.service.internalPort }}"]
             initialDelaySeconds: 15
           livenessProbe:
             exec:
-              command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.config.port}}"]
+              command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.service.internalPort }}"]
             initialDelaySeconds: 20
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

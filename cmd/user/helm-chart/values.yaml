@@ -9,16 +9,21 @@ nameOverride: ""
 fullnameOverride: ""
 
 service:
+  name: user
   type: ClusterIP
-  port: 3000
+  externalPort: 3000
+  internalPort: 3000
 
 secret:
-  SECRET: changeme
+  type: Opaque
+  data:
+    SECRET: changeme
 
-config:
-  ENV: development
-  HOST: '0.0.0.0'
-  PORT: '3000'
+configMap:
+  data:
+    ENV: development
+    HOST: '0.0.0.0'
+    PORT: '3000'
 
 ingress:
   enabled: false

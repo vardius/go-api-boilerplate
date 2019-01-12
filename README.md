@@ -16,11 +16,12 @@ Key concepts:
 1. Rest API
 2. [Docker](https://www.docker.com/what-docker)
 3. [Kubernetes](https://kubernetes.io/)
-4. [gRPC](https://grpc.io/docs/)
-5. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design)  (DDD)
-6. [CQRS](https://martinfowler.com/bliki/CQRS.html)
-7. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
-8. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
+4. [Helm chart](https://helm.sh/)
+5. [gRPC](https://grpc.io/docs/)
+6. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design)  (DDD)
+7. [CQRS](https://martinfowler.com/bliki/CQRS.html)
+8. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
+9. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
 
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
@@ -60,6 +61,9 @@ docker-tag                     [DOCKER] Tag current container. Example: `make do
 docker-release                 [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 kubernetes-create              [KUBERNETES] Create kubernetes deployment. Example: `make kubernetes-create BIN=user`
 kubernetes-replace             [KUBERNETES] Replace kubernetes deployment. Example: `make kubernetes-replace BIN=user`
+helm-install                   [HELM] Deploy the Helm chart. Example: `make helm-install BIN=user`
+helm-upgrade                   [HELM] Update the Helm chart. Example: `make helm-upgrade BIN=user`
+helm-history                   [HELM] See what revisions have been made to the chart. Example: `make helm-history BIN=user`
 telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000`
 telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000`
 aws-repo-login                 [HELPER] login to AWS-ECR
@@ -75,6 +79,17 @@ kubectl proxy
 ```
 Kubectl will handle authentication with apiserver and make Dashboard available at http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
 The UI can only be accessed from the machine where the command is executed. See kubectl proxy --help for more options.
+### Helm charts
+Helm chart are used to automate the application deployment in a Kubernetes cluster. Once the application is deployed and working, it also explores how to modify the source code for publishing a new application release and how to perform rolling updates in Kubernetes using the Helm CLI.
+
+To deploy application on Kubernetes using Helm you will typically follow these steps:
+
+Step 1: Add application to cmd directory
+Step 2: Build the Docker image
+Step 3: Publish the Docker image
+Step 4: Create the Helm Chart
+Step 5: Deploy the application in Kubernetes
+Step 6: Update the source code and the Helm chart
 ### Vendor
 Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
 ```bash

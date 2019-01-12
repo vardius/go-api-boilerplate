@@ -9,22 +9,27 @@ nameOverride: ""
 fullnameOverride: ""
 
 service:
+  name: proxy
   type: LoadBalancer
-  port: 3000
+  externalPort: 3000
+  internalPort: 3000
 
 secret:
-  SECRET: changeme
+  type: Opaque
+  data:
+    SECRET: changeme
 
-config:
-  ENV: development
-  HOST: '0.0.0.0'
-  PORT: '3000'
-  USER_SERVICE_HOST: user-service
-  USER_SERVICE_PORT: '3000'
-  AUTH_SERVICE_HOST: auth-service
-  AUTH_SERVICE_PORT: '3000'
-  CERT_DIR_CACHE: certs
-  ORIGINS: localhost|0.0.0.0|127.0.0.1
+configMap:
+  data:
+    ENV: development
+    HOST: '0.0.0.0'
+    PORT: '3000'
+    USER_SERVICE_HOST: user-service
+    USER_SERVICE_PORT: '3000'
+    AUTH_SERVICE_HOST: auth-service
+    AUTH_SERVICE_PORT: '3000'
+    CERT_DIR_CACHE: certs
+    ORIGINS: localhost|0.0.0.0|127.0.0.1
 
 ingress:
   enabled: false
