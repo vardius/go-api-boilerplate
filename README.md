@@ -88,6 +88,8 @@ Step 3: Publish the Docker image
 Step 4: Create the Helm Chart
 Step 5: Deploy the application in Kubernetes
 Step 6: Update the source code and the Helm chart
+
+[Install And Configure Helm And Tiller](https://docs.bitnami.com/kubernetes/get-started-kubernetes/#step-4-install-helm-and-tiller)
 ### Vendor
 Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
 ```bash
