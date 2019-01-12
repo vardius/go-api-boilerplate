@@ -1,3 +1,5 @@
+# This is example k8 deployment file
+# @deprecated use helm chart instead `make helm-install BIN=user`
 apiVersion: v1
 kind: Service
 metadata:
