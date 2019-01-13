@@ -67,13 +67,19 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 
 # HELM TASKS
 helm-install: ## [HELM] Deploy the Helm chart. Example: `make helm-install BIN=user`
-	helm install -n $(BIN) cmd/$(BIN)/helm-chart/
+	helm install -n $(BIN) cmd/$(BIN)/helm-chart/ && kubectl get pods -o json
 
 helm-upgrade: ## [HELM] Update the Helm chart. Example: `make helm-upgrade BIN=user`
-	helm upgrade $(BIN) cmd/$(BIN)/helm-chart/
+	helm upgrade $(BIN) cmd/$(BIN)/helm-chart/ && kubectl get pods -o json
 
 helm-history: ## [HELM] See what revisions have been made to the chart. Example: `make helm-history BIN=user`
 	helm history $(BIN)
+
+helm-dependencies: ## [HELM] Update helm chart dependencies. Example: `make helm-dependencies BIN=user`
+	cd cmd/$(BIN)/helm-chart/ && helm dependency update
+
+helm-delete: ## [HELM] Delete helm chart. Example: `make helm-delete BIN=user`
+	helm delete ${BIN}
 
 # TELEPRESENCE TASKS
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000`
