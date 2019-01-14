@@ -69,9 +69,9 @@ telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment wi
 aws-repo-login                 [HELPER] login to AWS-ECR
 ```
 ### Kubernetes
-The Dashboard UI is not deployed by default. To deploy it, run the following command:
+The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is not deployed by default. To deploy it, run the following command:
 ```bash
-kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
 ```
 You can access Dashboard using the kubectl command-line tool by running the following command:
 ```bash
