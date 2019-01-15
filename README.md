@@ -119,7 +119,7 @@ make helm-install-app
 make helm-install-app
 ```
 This will deploy every service to the kubernetes cluster using your local docker image (built in the first step).
-`helm-{command}-app` Uses global helm chart for the whole application that defines all requirements: each service defined in [`./cmd/`](../master/cmd) directory and other external services required to run complete environment like `mysql`. For more details please see [helm chart](`/helm-chart/requirements.yaml`)
+`helm-{command}-app` Uses global helm chart for the whole application that defines all requirements: each service defined in [`./cmd/`](../master/cmd) directory and other external services required to run complete environment like `mysql`. For more details please see [helm chart](../master/helm-chart/requirements.yaml)
 #### STEP 3. Debug
 To debug deployment you can simply use [telepresence](https://www.telepresence.io/reference/install) and swap kubernetes deployment for local go service or local docker image. For example to swap for local docker image run:
 ```sh
