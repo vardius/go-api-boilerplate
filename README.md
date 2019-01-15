@@ -123,11 +123,11 @@ This will deploy every service to the kubernetes cluster using your local docker
 #### STEP 3. Debug
 To debug deployment you can simply use [telepresence](https://www.telepresence.io/reference/install) and swap kubernetes deployment for local go service or local docker image. For example to swap for local docker image run:
 ```sh
-make telepresence-swap-docker DEPLOYMENT=user PORT=3001
+make telepresence-swap-docker BIN=user PORT=3001 DEPLOYMENT=go-api-boilerplate-user
 ```
 This command should swap deployment giving similar output to the one below:
 ```
-➜  go-api-boilerplate git:(master) ✗ make telepresence-swap-docker DEPLOYMENT=user PORT=3001 DEPLOYMENT=go-api-boilerplate-user
+➜  go-api-boilerplate git:(master) ✗ make telepresence-swap-docker BIN=user PORT=3001 DEPLOYMENT=go-api-boilerplate-user
 telepresence \
 	--swap-deployment go-api-boilerplate-user \
 	--docker-run -i -t --rm -p=3001:3001 --name="user" user:latest
