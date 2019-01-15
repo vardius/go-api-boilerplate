@@ -12,7 +12,7 @@ env:
 install: true
 
 before_script:
-  - go get ./... -t -v
+  - go get ./...
   - go vet ./...
 
 script:
