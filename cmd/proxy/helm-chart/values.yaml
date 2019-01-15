@@ -1,3 +1,6 @@
+# override this values in an application chart /helm-chart/values.yml
+# for more info read https://github.com/helm/helm/blob/master/docs/chart_template_guide/subcharts_and_globals.md
+
 replicaCount: 1
 
 image:
@@ -24,25 +27,12 @@ configMap:
     ENV: development
     HOST: '0.0.0.0'
     PORT: '3000'
-    USER_SERVICE_HOST: user-service
+    USER_SERVICE_HOST: user
     USER_SERVICE_PORT: '3000'
-    AUTH_SERVICE_HOST: auth-service
+    AUTH_SERVICE_HOST: auth
     AUTH_SERVICE_PORT: '3000'
     CERT_DIR_CACHE: certs
     ORIGINS: localhost|0.0.0.0|127.0.0.1
-
-ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  paths: []
-  hosts:
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
 liveness:
   path: /healthz

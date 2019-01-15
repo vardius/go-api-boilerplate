@@ -1,0 +1,18 @@
+dependencies:
+  - name: proxy
+    version: 0.1.0
+    repository: "file://../cmd/proxy/helm-chart"
+  - name: auth
+    version: 0.1.0
+    repository: "file://../cmd/auth/helm-chart"
+  - name: user
+    version: 0.1.0
+    repository: "file://../cmd/user/helm-chart"
+  - name: mysql
+     # This version is the version in the file:
+     #
+     #   https://github.com/kubernetes/charts/blob/master/stable/mysql/Chart.yaml
+     #
+     # Tue 14 Jan 08:22:00 AEST 2019
+    version: 0.12.0
+    repository: https://kubernetes-charts.storage.googleapis.com/

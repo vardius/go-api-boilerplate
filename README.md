@@ -59,13 +59,18 @@ docker-rm                      [DOCKER] Stop and then remove docker container. E
 docker-publish                 [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
 docker-tag                     [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
 docker-release                 [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
-helm-install                   [HELM] Deploy the Helm chart. Example: `make helm-install BIN=user`
-helm-upgrade                   [HELM] Update the Helm chart. Example: `make helm-upgrade BIN=user`
-helm-history                   [HELM] See what revisions have been made to the chart. Example: `make helm-history BIN=user`
-helm-dependencies              [HELM] Update helm chart dependencies. Example: `make helm-dependencies BIN=user`
-helm-delete                    [HELM] Delete helm chart. Example: `make helm-delete BIN=user`
-telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000`
-telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000`
+helm-install                   [HELM] Deploy the Helm chart for service. Example: `make helm-install BIN=user`
+helm-upgrade                   [HELM] Update the Helm chart for service. Example: `make helm-upgrade BIN=user`
+helm-history                   [HELM] See what revisions have been made to the service's helm chart. Example: `make helm-history BIN=user`
+helm-dependencies              [HELM] Update helm chart's dependencies for service. Example: `make helm-dependencies BIN=user`
+helm-delete                    [HELM] Delete helm chart for service. Example: `make helm-delete BIN=user`
+helm-install-app               [HELM] Deploy the Helm chart for application. Example: `make helm-install-app`
+helm-upgrade-app               [HELM] Update the Helm chart for application. Example: `make helm-upgrade-app`
+helm-history-app               [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history-app`
+helm-dependencies-app          [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies-app`
+helm-delete-app                [HELM] Delete helm chart for application. Example: `make helm-delete-app`
+telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
+telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 aws-repo-login                 [HELPER] login to AWS-ECR
 ```
 ### Kubernetes
@@ -77,7 +82,7 @@ You can access Dashboard using the kubectl command-line tool by running the foll
 ```bash
 kubectl proxy
 ```
-Kubectl will handle authentication with apiserver and make Dashboard available at http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
+Kubectl will handle authentication and make Dashboard available at http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
 The UI can only be accessed from the machine where the command is executed. See kubectl proxy --help for more options.
 ### Helm charts
 Helm chart are used to automate the application deployment in a Kubernetes cluster. Once the application is deployed and working, it also explores how to modify the source code for publishing a new application release and how to perform rolling updates in Kubernetes using the Helm CLI.
@@ -99,26 +104,32 @@ go build ./...
 ```
 For more read: https://github.com/golang/go/wiki/Modules
 ### Running
-To run services repeat following steps for each micro-service. Changing `BIN=` value to directory name from `./cmd` path.
-### STEP 1. Build docker image
+To run services repeat following steps for each service defined in [../master/cmd](`./cmd/`) directory. Changing `BIN=` value to directory name from `./cmd/{service_name}` path.
+#### STEP 1. Build docker image
 ```bash
 make docker-build BIN=user
 ```
-### STEP 2. Deploy
+#### STEP 2. Deploy
+ - Install dependencies
 ```bash
-make kubernetes-create BIN=user
+make helm-install-app
 ```
-This will deploy each of them to the kubernetes cluster using your local docker image (built in first step).
-### STEP 3. Debug
-To debug deployment you can simply use [telepresence](https://www.telepresence.io/reference/install) and swap kubernetes for local go service or local docker image. For example to swap deployment for local docker image run:
+ - Deploy to kubernetes cluster
+```bash
+make helm-install-app
+```
+This will deploy every service to the kubernetes cluster using your local docker image (built in the first step).
+`helm-{command}-app` Uses global helm chart for the whole application that defines all requirements: each service defined in [../master/cmd](`./cmd/`) directory and other external services required to run complete environment like `mysql`. For more details please see [helm chart](`./helm-chart/requirements.yaml`)
+#### STEP 3. Debug
+To debug deployment you can simply use [telepresence](https://www.telepresence.io/reference/install) and swap kubernetes deployment for local go service or local docker image. For example to swap for local docker image run:
 ```sh
-make telepresence-swap-docker BIN=user PORT=3001
+make telepresence-swap-docker DEPLOYMENT=user PORT=3001
 ```
 This command should swap deployment giving similar output to the one below:
 ```
-➜  go-api-boilerplate git:(master) ✗ make telepresence-swap-docker BIN=user PORT=3001
+➜  go-api-boilerplate git:(master) ✗ make telepresence-swap-docker DEPLOYMENT=user PORT=3001 DEPLOYMENT=go-api-boilerplate-user
 telepresence \
-	--swap-deployment user-deployment \
+	--swap-deployment go-api-boilerplate-user \
 	--docker-run -i -t --rm -p=3001:3001 --name="user" user:latest
 T: Volumes are rooted at $TELEPRESENCE_ROOT. See https://telepresence.io/howto/volumes.html for
 T: details.
@@ -137,7 +148,7 @@ T: details.
 T: Exit cleanup in progress
 # --docker-run --rm -it -v -p=3001:3001 user:latest
 ```
-### STEP 4. Test example
+#### STEP 4. Test example
 Send example JSON via POST request
 ```sh
 curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST http://localhost:3000/users/dispatch/register-user-with-email

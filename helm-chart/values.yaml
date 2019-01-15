@@ -1,0 +1,54 @@
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  paths: []
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+auth:
+  service:
+    name: auth-service
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
+
+user:
+  service:
+    name: user-service
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
+
+proxy:
+  service:
+    name: proxy-service
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
+      USER_SERVICE_HOST: go-api-boilerplate-user
+      USER_SERVICE_PORT: '3000'
+      AUTH_SERVICE_HOST: go-api-boilerplate-auth
+      AUTH_SERVICE_PORT: '3000'
+      CERT_DIR_CACHE: certs
+      ORIGINS: localhost|0.0.0.0|127.0.0.1

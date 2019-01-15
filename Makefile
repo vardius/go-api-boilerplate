@@ -66,34 +66,49 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 # 	kubectl replace --force -f cmd/$(BIN)/deployment.yml
 
 # HELM TASKS
-helm-install: ## [HELM] Deploy the Helm chart. Example: `make helm-install BIN=user`
+helm-install: ## [HELM] Deploy the Helm chart for service. Example: `make helm-install BIN=user`
 	helm install -n $(BIN) cmd/$(BIN)/helm-chart/ && kubectl get pods -o json
 
-helm-upgrade: ## [HELM] Update the Helm chart. Example: `make helm-upgrade BIN=user`
+helm-upgrade: ## [HELM] Update the Helm chart for service. Example: `make helm-upgrade BIN=user`
 	helm upgrade $(BIN) cmd/$(BIN)/helm-chart/ && kubectl get pods -o json
 
-helm-history: ## [HELM] See what revisions have been made to the chart. Example: `make helm-history BIN=user`
+helm-history: ## [HELM] See what revisions have been made to the service's helm chart. Example: `make helm-history BIN=user`
 	helm history $(BIN)
 
-helm-dependencies: ## [HELM] Update helm chart dependencies. Example: `make helm-dependencies BIN=user`
+helm-dependencies: ## [HELM] Update helm chart's dependencies for service. Example: `make helm-dependencies BIN=user`
 	cd cmd/$(BIN)/helm-chart/ && helm dependency update
 
-helm-delete: ## [HELM] Delete helm chart. Example: `make helm-delete BIN=user`
-	helm delete ${BIN}
+helm-delete: ## [HELM] Delete helm chart for service. Example: `make helm-delete BIN=user`
+	helm delete $(BIN)
+
+helm-install-app: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install-app`
+	helm install -n go-api-boilerplate helm-chart/ && kubectl get pods -o json
+
+helm-upgrade-app: ## [HELM] Update the Helm chart for application. Example: `make helm-upgrade-app`
+	helm upgrade go-api-boilerplate helm-chart/ && kubectl get pods -o json
+
+helm-history-app: ## [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history-app`
+	helm history go-api-boilerplate
+
+helm-dependencies-app: ## [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies-app`
+	cd helm-chart/ && helm dependency update
+
+helm-delete-app: ## [HELM] Delete helm chart for application. Example: `make helm-delete-app`
+	helm delete go-api-boilerplate
 
 # TELEPRESENCE TASKS
-telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000`
+telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 	go build -o cmd/$(BIN)/$(BIN) cmd/$(BIN)/main.go
 	telepresence \
-	--swap-deployment $(BIN) \
+	--swap-deployment $(DEPLOYMENT) \
 	--expose 3000 \
 	--run ./cmd/$(BIN)/$(BIN) \
 	--port=$(PORT) \
 	--method vpn-tcp
 
-telepresence-swap-docker: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000`
+telepresence-swap-docker: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 	telepresence \
-	--swap-deployment $(BIN) \
+	--swap-deployment $(DEPLOYMENT) \
 	--docker-run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN):latest
 
 # HELPERS

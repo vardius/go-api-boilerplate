@@ -24,7 +24,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: {{ .Values.service.name }}
               containerPort: {{ .Values.service.internalPort }}
           envFrom:
             - secretRef:
