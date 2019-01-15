@@ -11,7 +11,12 @@ env:
 
 install: true
 
+before_script:
+  - go get ./... -t -v
+  - go vet ./...
+
 script:
+  - go test -msan -short 
   - go test ./... -v -cover -race -coverprofile=profile.out -covermode=atomic
 after_script:
   - cat profile.out >> coverage.txt
