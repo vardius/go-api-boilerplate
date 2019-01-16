@@ -6,8 +6,8 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    app.kubernetes.io/name: {{ include "helm-chart.name" . }}
     helm.sh/chart: {{ include "helm-chart.chart" . }}
+    app.kubernetes.io/name: {{ include "helm-chart.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- with .Values.ingress.annotations }}
@@ -31,10 +31,10 @@ spec:
       http:
         paths:
 	{{- range $ingressPaths }}
-          - path: {{ . }}
+          - path: {{ .path }}
             backend:
-              serviceName: {{ $fullName }}
-              servicePort: http
+              serviceName: {{ .backend.serviceName }}
+              servicePort: {{ .backend.servicePort }}
 	{{- end }}
   {{- end }}
 {{- end }}

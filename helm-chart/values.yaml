@@ -1,15 +1,38 @@
+issuer:
+  name: letsencrypt
+  kind: ClusterIssuer
+  server: https://acme-v02.api.letsencrypt.org/directory
+  email: myemail@gmail.com
+  secretName: go-api-boilerplate-tls
+  http01: {}
+
+cert:
+  ingressClass: nginx #{{ .Values.ingress.class }}
+  secretName: go-api-boilerplate-tls #{{ .Values.issuer.secretName }}
+  issuerKind: ClusterIssuer #{{ .Values.issuer.kind }}
+  issuerName: letsencrypt #{{ .Values.issuer.issuerName }}
+  domains:
+    - go-api-boilerplate.local
+
 ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  paths: []
-  hosts:
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    certmanager.k8s.io/cluster-issuer: letsencrypt #{{ .Values.issuer.issuerName }}
+    kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+  class: nginx
+  paths:
+    - path: /
+      backend:
+        serviceName: proxy-service #{{ .Values.proxy.service.name}}
+        servicePort: 3000 #{{ .Values.proxy.service.externalPort }}
+  hosts: #{{ .Values.cert.domains }}
+    - go-api-boilerplate.local
+  tls:
+    - secretName: go-api-boilerplate-tls #{{ .Values.issuer.secretName }}
+      hosts: #{{ .Values.cert.domains }}
+        - go-api-boilerplate.local
 
 auth:
   service:
@@ -52,3 +75,16 @@ proxy:
       AUTH_SERVICE_PORT: '3000'
       CERT_DIR_CACHE: certs
       ORIGINS: localhost|0.0.0.0|127.0.0.1
+
+mysql:
+  mysqlRootPassword: password
+  initializationFiles:
+    first-db.sql: |-
+      CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+
+cert-manager:
+  ingressShim:
+    defaultIssuerName: letsencrypt #{{ .Values.issuer.issuerName }}
+    defaultIssuerKind: ClusterIssuer #{{ .Values.issuer.kind }}
+  # @TODO: Ucomment after first deploy. For details see: https://github.com/jetstack/cert-manager/issues/870
+  # createCustomResource: false
