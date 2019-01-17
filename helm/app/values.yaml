@@ -1,0 +1,54 @@
+# kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+# make helm-delete && helm del --purge go-api-boilerplate && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    certmanager.k8s.io/cluster-issuer: letsencrypt
+    kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/rewrite-target: /
+  class: nginx
+  paths:
+    - path: /
+      backend:
+        serviceName: go-api-boilerplate-app-proxy
+        servicePort: 3000
+  hosts:
+    - go-api-boilerplate.local
+  tls:
+    - secretName: go-api-boilerplate-tls
+      hosts:
+        - go-api-boilerplate.local
+
+issuer:
+  enabled: true
+  name: letsencrypt
+  kind: ClusterIssuer
+  server: https://acme-v02.api.letsencrypt.org/directory
+  email: example@gmail.com
+  secretName: go-api-boilerplate-tls
+  http01: {}
+
+certificate:
+  enabled: true
+  ingressClass: nginx
+  secretName: go-api-boilerplate-tls
+  issuerKind: ClusterIssuer
+  issuerName: letsencrypt
+  domains:
+    - go-api-boilerplate.local
+
+mysql:
+  mysqlRootPassword: password
+  initializationFiles:
+    first-db.sql: |-
+      CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+
+cert-manager:
+  ingressShim:
+    defaultIssuerName: letsencrypt
+    defaultIssuerKind: ClusterIssuer
+  # @TODO: Ucomment after first deploy. For details see: https://github.com/jetstack/cert-manager/issues/870
+  # createCustomResource: false

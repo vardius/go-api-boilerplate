@@ -1,0 +1,39 @@
+auth:
+  nameOverride: auth
+  image:
+    repository: auth
+    tag: latest
+    pullPolicy: Never
+  service:
+    ports:
+      - name: grpc
+        internalPort: 3000
+        externalPort: 3000
+  readiness:
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  liveness:
+    initialDelaySeconds: 20
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # resources:
+  #   limits:
+  #    cpu: 100m
+  #    memory: 128Mi
+  #   requests:
+  #    cpu: 100m
+  #    memory: 128Mi

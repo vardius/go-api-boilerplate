@@ -1,0 +1,34 @@
+# override this values in an application chart /helm/app/values.yml
+# for more info read https://github.com/helm/helm/blob/master/docs/chart_template_guide/subcharts_and_globals.md
+
+replicaCount: 1
+
+image: 
+  repository: golang
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+
+secret:
+  type: Opaque
+  data: {}
+
+configMap:
+  data: {}
+
+readiness: {}
+
+liveness: {}
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

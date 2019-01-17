@@ -1,0 +1,21 @@
+dependencies:
+- name: proxy
+  repository: file://../../cmd/proxy
+  version: 0.1.0
+- name: auth
+  repository: file://../../cmd/auth
+  version: 0.1.0
+- name: user
+  repository: file://../../cmd/user
+  version: 0.1.0
+- name: cert-manager
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: v0.5.2
+- name: nginx-ingress
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 1.1.4
+- name: mysql
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 0.13.0
+digest: sha256:23e4ec3fdd11ea0aba0ad135d7d0746b8a65c5604fc70e5683fb0f2625249653
+generated: 2019-01-17T22:41:44.961663+11:00

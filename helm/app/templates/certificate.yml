@@ -1,0 +1,27 @@
+{{- if .Values.certificate.enabled -}}
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: {{ include "app.fullname" . }}
+  helm.sh/chart: {{ include "app.chart" . }}
+  app.kubernetes.io/name: {{ include "app.name" . }}
+  app.kubernetes.io/instance: {{ .Release.Name }}
+  app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  secretName: {{ .Values.certificate.secretName }}
+  {{- with .Values.certificate.domains }}
+  dnsNames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  acme:
+    config:
+    - http01:
+        ingressClass: {{ .Values.certificate.ingressClass }}
+      {{- with .Values.certificate.domains }}
+      domains:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  issuerRef:
+    name: {{ .Values.certificate.issuerName }}
+    kind: {{ .Values.certificate.issuerKind }}
+{{- end }}

@@ -1,0 +1,6 @@
+dependencies:
+- name: microservice
+  repository: file://../../helm/microservice
+  version: 0.1.0
+digest: sha256:1bf782a244eb0188044709880965dca6e497db95942296ec100f231cf11c485f
+generated: 2019-01-17T22:36:20.70397+11:00
