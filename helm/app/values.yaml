@@ -13,7 +13,7 @@ ingress:
   paths:
     - path: /
       backend:
-        serviceName: go-api-boilerplate-app-proxy
+        serviceName: go-api-boilerplate-proxy
         servicePort: 3000
   hosts:
     - go-api-boilerplate.local
@@ -91,9 +91,9 @@ proxy:
       ENV: development
       HOST: '0.0.0.0'
       PORT: '3000'
-      USER_SERVICE_HOST: go-api-boilerplate-app-user
+      USER_SERVICE_HOST: go-api-boilerplate-user
       USER_SERVICE_PORT: '3000'
-      AUTH_SERVICE_HOST: go-api-boilerplate-app-auth
+      AUTH_SERVICE_HOST: go-api-boilerplate-auth
       AUTH_SERVICE_PORT: '3000'
       CERT_DIR_CACHE: certs
       ORIGINS: localhost|0.0.0.0|127.0.0.1
