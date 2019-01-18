@@ -1,15 +1,18 @@
 dependencies:
-  - name: proxy
+  - name: microservice
     version: 0.1.0
-    repository: "file://../../cmd/proxy"
+    repository: "file://../microservice"
+    alias: proxy
     condition: proxy.enabled
-  - name: auth
+  - name: microservice
     version: 0.1.0
-    repository: "file://../../cmd/auth"
+    repository: "file://../microservice"
+    alias: auth
     condition: auth.enabled
-  - name: user
+  - name: microservice
     version: 0.1.0
-    repository: "file://../../cmd/user"
+    repository: "file://../microservice"
+    alias: user
     condition: user.enabled
 # External charts: https://github.com/helm/charts/blob/master/stable
   - name: cert-manager

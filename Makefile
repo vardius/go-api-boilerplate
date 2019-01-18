@@ -74,9 +74,6 @@ helm-dependencies: ## [HELM] Update helm chart's dependencies for application. E
 helm-delete: ## [HELM] Delete helm chart for application. Example: `make helm-delete`
 	helm delete go-api-boilerplate
 
-helm-dependencies-cmd: ## [HELM] Update helm chart's dependencies for microservice. Example: `make helm-dependencies-cmd BIN=user`
-	cd cmd/$(BIN)/ && helm dependency update
-
 # TELEPRESENCE TASKS
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 	go build -o cmd/$(BIN)/$(BIN) cmd/$(BIN)/main.go

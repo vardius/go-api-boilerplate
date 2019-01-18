@@ -1,12 +1,12 @@
 dependencies:
-- name: proxy
-  repository: file://../../cmd/proxy
+- name: microservice
+  repository: file://../microservice
   version: 0.1.0
-- name: auth
-  repository: file://../../cmd/auth
+- name: microservice
+  repository: file://../microservice
   version: 0.1.0
-- name: user
-  repository: file://../../cmd/user
+- name: microservice
+  repository: file://../microservice
   version: 0.1.0
 - name: cert-manager
   repository: https://kubernetes-charts.storage.googleapis.com/
@@ -17,5 +17,5 @@ dependencies:
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 0.13.0
-digest: sha256:23e4ec3fdd11ea0aba0ad135d7d0746b8a65c5604fc70e5683fb0f2625249653
-generated: 2019-01-17T22:41:44.961663+11:00
+digest: sha256:d5d94aac2282b86c50496025ab84523dd683e7b6fdea0fc2907fcfe0cc3eaa5a
+generated: 2019-01-18T22:33:37.472529+11:00

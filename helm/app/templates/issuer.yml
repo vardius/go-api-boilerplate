@@ -13,13 +13,12 @@ spec:
     email: {{ .Values.issuer.email }}
     privateKeySecretRef:
       name: {{ .Values.issuer.secretName }}
-  {{- if .Values.issuer.http01 }}
-    http01: {{ .Values.issuer.http01 }}
+  {{- if .Values.issuer.http01.enabled }}
+    http01: {}
   {{- end }}
-  {{- if .Values.issuer.dns01 }}
+  {{- with .Values.issuer.dns01 }}
     dns01:
       providers:
-    {{- range .Values.issuer.dns01 }}
       - name: route53
         route53:
         region: {{ .region }}
@@ -31,6 +30,5 @@ spec:
             name:  {{ .secretAccessKey.Name }}
             key:  {{ .secretAccessKey.Secret }}
       {{- end }}
-    {{- end }}
   {{- end }}
 {{- end }}

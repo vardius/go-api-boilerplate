@@ -29,7 +29,8 @@ issuer:
   server: https://acme-v02.api.letsencrypt.org/directory
   email: example@gmail.com
   secretName: go-api-boilerplate-tls
-  http01: {}
+  http01:
+    enabled: true
 
 certificate:
   enabled: true
@@ -52,3 +53,105 @@ cert-manager:
     defaultIssuerKind: ClusterIssuer
   # @TODO: Ucomment after first deploy. For details see: https://github.com/jetstack/cert-manager/issues/870
   # createCustomResource: false
+
+proxy:
+  nameOverride: proxy
+  image:
+    repository: proxy
+    tag: latest
+    pullPolicy: Never
+  service:
+    # type: LoadBalancer
+    ports:
+      - name: grpc
+        internalPort: 3000
+        externalPort: 3000
+      # - name: http
+      #   internalPort: 3000
+      #   externalPort: 80
+      # - name: https
+      #   internalPort: 3000
+      #   externalPort: 443
+    readiness:
+      initialDelaySeconds: 20
+      timeoutSeconds: 5
+      httpGet:
+        path: /readiness
+        port: 3000
+    liveness:
+      initialDelaySeconds: 20
+      httpGet:
+        path: /healthz
+        port: 3000
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
+      USER_SERVICE_HOST: go-api-boilerplate-app-user
+      USER_SERVICE_PORT: '3000'
+      AUTH_SERVICE_HOST: go-api-boilerplate-app-auth
+      AUTH_SERVICE_PORT: '3000'
+      CERT_DIR_CACHE: certs
+      ORIGINS: localhost|0.0.0.0|127.0.0.1
+
+auth:
+  nameOverride: auth
+  image:
+    repository: auth
+    tag: latest
+    pullPolicy: Never
+  service:
+    ports:
+      - name: grpc
+        internalPort: 3000
+        externalPort: 3000
+  readiness:
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  liveness:
+    initialDelaySeconds: 20
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
+
+user:
+  nameOverride: user
+  image:
+    repository: user
+    tag: latest
+    pullPolicy: Never
+  service:
+    ports:
+      - name: grpc
+        internalPort: 3000
+        externalPort: 3000
+  readiness:
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  liveness:
+    initialDelaySeconds: 20
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'

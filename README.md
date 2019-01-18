@@ -64,7 +64,6 @@ helm-upgrade                   [HELM] Update the Helm chart for application. Exa
 helm-history                   [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history`
 helm-dependencies              [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies`
 helm-delete                    [HELM] Delete helm chart for application. Example: `make helm-delete`
-helm-dependencies-cmd          [HELM] Update helm chart's dependencies for microservice. Example: `make helm-dependencies-cmd BIN=user`
 telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 aws-repo-login                 [HELPER] login to AWS-ECR
