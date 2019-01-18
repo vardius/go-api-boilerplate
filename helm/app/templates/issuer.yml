@@ -1,0 +1,34 @@
+{{- if .Values.issuer.enabled -}}
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: {{ .Values.issuer.kind }}
+metadata:
+  name: {{ .Values.issuer.name }}
+  helm.sh/chart: {{ include "app.chart" . }}
+  app.kubernetes.io/name: {{ include "app.name" . }}
+  app.kubernetes.io/instance: {{ .Release.Name }}
+  app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  acme:
+    server: {{ .Values.issuer.server }}
+    email: {{ .Values.issuer.email }}
+    privateKeySecretRef:
+      name: {{ .Values.issuer.secretName }}
+  {{- if .Values.issuer.http01.enabled }}
+    http01: {}
+  {{- end }}
+  {{- with .Values.issuer.dns01 }}
+    dns01:
+      providers:
+      - name: route53
+        route53:
+        region: {{ .region }}
+      {{- if .accessKeyID  }}
+        accessKeyID: {{ .accessKeyID  }}
+      {{- end }}
+      {{- if .secretAccessKey }}
+        secretAccessKeySecretRef:
+            name:  {{ .secretAccessKey.Name }}
+            key:  {{ .secretAccessKey.Secret }}
+      {{- end }}
+  {{- end }}
+{{- end }}

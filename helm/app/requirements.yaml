@@ -1,0 +1,29 @@
+dependencies:
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: proxy
+    condition: proxy.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: auth
+    condition: auth.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: user
+    condition: user.enabled
+# External charts: https://github.com/helm/charts/blob/master/stable
+  - name: cert-manager
+    version: v0.5.2
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: cert-manager.enabled
+  - name: nginx-ingress
+    version: 1.1.4
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: nginx-ingress.enabled
+  - name: mysql
+    version: 0.13.0
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: mysql.enabled

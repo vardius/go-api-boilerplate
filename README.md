@@ -59,16 +59,11 @@ docker-rm                      [DOCKER] Stop and then remove docker container. E
 docker-publish                 [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
 docker-tag                     [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
 docker-release                 [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
-helm-install                   [HELM] Deploy the Helm chart for service. Example: `make helm-install BIN=user`
-helm-upgrade                   [HELM] Update the Helm chart for service. Example: `make helm-upgrade BIN=user`
-helm-history                   [HELM] See what revisions have been made to the service's helm chart. Example: `make helm-history BIN=user`
-helm-dependencies              [HELM] Update helm chart's dependencies for service. Example: `make helm-dependencies BIN=user`
-helm-delete                    [HELM] Delete helm chart for service. Example: `make helm-delete BIN=user`
-helm-install-app               [HELM] Deploy the Helm chart for application. Example: `make helm-install-app`
-helm-upgrade-app               [HELM] Update the Helm chart for application. Example: `make helm-upgrade-app`
-helm-history-app               [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history-app`
-helm-dependencies-app          [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies-app`
-helm-delete-app                [HELM] Delete helm chart for application. Example: `make helm-delete-app`
+helm-install                   [HELM] Deploy the Helm chart for application. Example: `make helm-install`
+helm-upgrade                   [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
+helm-history                   [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history`
+helm-dependencies              [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies`
+helm-delete                    [HELM] Delete helm chart for application. Example: `make helm-delete`
 telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 aws-repo-login                 [HELPER] login to AWS-ECR
@@ -92,7 +87,7 @@ To deploy application on Kubernetes using Helm you will typically follow these s
 Step 1: Add application to cmd directory
 Step 2: Build the Docker image
 Step 3: Publish the Docker image
-Step 4: Create the Helm Chart
+Step 4: Create the Helm Chart (extend microservice chart)
 Step 5: Deploy the application in Kubernetes
 Step 6: Update the source code and the Helm chart
 
@@ -112,14 +107,15 @@ make docker-build BIN=user
 #### STEP 2. Deploy
  - Install dependencies
 ```bash
-make helm-install-app
+make helm-dependencies
 ```
  - Deploy to kubernetes cluster
 ```bash
-make helm-install-app
+make helm-install
 ```
 This will deploy every service to the kubernetes cluster using your local docker image (built in the first step).
-`helm-{command}-app` Uses global helm chart for the whole application that defines all requirements: each service defined in [`./cmd/`](../master/cmd) directory and other external services required to run complete environment like `mysql`. For more details please see [helm chart](../master/helm-chart/requirements.yaml)
+
+Each service defined in [`./cmd/`](../master/cmd) directory should contain helm chart (extension of microservice chart) later on referenced in app chart requirements alongside other external services required to run complete environment like `mysql`. For more details please see [helm chart](../master/helm/app/requirements.yaml)
 #### STEP 3. Debug
 To debug deployment you can simply use [telepresence](https://www.telepresence.io/reference/install) and swap kubernetes deployment for local go service or local docker image. For example to swap for local docker image run:
 ```sh

@@ -1,0 +1,157 @@
+# kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+# make helm-delete && helm del --purge go-api-boilerplate && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    certmanager.k8s.io/cluster-issuer: letsencrypt
+    kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/rewrite-target: /
+  class: nginx
+  paths:
+    - path: /
+      backend:
+        serviceName: go-api-boilerplate-proxy
+        servicePort: 3000
+  hosts:
+    - go-api-boilerplate.local
+  tls:
+    - secretName: go-api-boilerplate-tls
+      hosts:
+        - go-api-boilerplate.local
+
+issuer:
+  enabled: true
+  name: letsencrypt
+  kind: ClusterIssuer
+  server: https://acme-v02.api.letsencrypt.org/directory
+  email: example@gmail.com
+  secretName: go-api-boilerplate-tls
+  http01:
+    enabled: true
+
+certificate:
+  enabled: true
+  ingressClass: nginx
+  secretName: go-api-boilerplate-tls
+  issuerKind: ClusterIssuer
+  issuerName: letsencrypt
+  domains:
+    - go-api-boilerplate.local
+
+mysql:
+  mysqlRootPassword: password
+  initializationFiles:
+    first-db.sql: |-
+      CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+
+cert-manager:
+  ingressShim:
+    defaultIssuerName: letsencrypt
+    defaultIssuerKind: ClusterIssuer
+  # @TODO: Ucomment after first deploy. For details see: https://github.com/jetstack/cert-manager/issues/870
+  # createCustomResource: false
+
+proxy:
+  nameOverride: proxy
+  image:
+    repository: proxy
+    tag: latest
+    pullPolicy: Never
+  service:
+    # type: LoadBalancer
+    ports:
+      - name: grpc
+        internalPort: 3000
+        externalPort: 3000
+      # - name: http
+      #   internalPort: 3000
+      #   externalPort: 80
+      # - name: https
+      #   internalPort: 3000
+      #   externalPort: 443
+    readiness:
+      initialDelaySeconds: 20
+      timeoutSeconds: 5
+      httpGet:
+        path: /readiness
+        port: 3000
+    liveness:
+      initialDelaySeconds: 20
+      httpGet:
+        path: /healthz
+        port: 3000
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
+      USER_SERVICE_HOST: go-api-boilerplate-user
+      USER_SERVICE_PORT: '3000'
+      AUTH_SERVICE_HOST: go-api-boilerplate-auth
+      AUTH_SERVICE_PORT: '3000'
+      CERT_DIR_CACHE: certs
+      ORIGINS: localhost|0.0.0.0|127.0.0.1
+
+auth:
+  nameOverride: auth
+  image:
+    repository: auth
+    tag: latest
+    pullPolicy: Never
+  service:
+    ports:
+      - name: grpc
+        internalPort: 3000
+        externalPort: 3000
+  readiness:
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  liveness:
+    initialDelaySeconds: 20
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
+
+user:
+  nameOverride: user
+  image:
+    repository: user
+    tag: latest
+    pullPolicy: Never
+  service:
+    ports:
+      - name: grpc
+        internalPort: 3000
+        externalPort: 3000
+  readiness:
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  liveness:
+    initialDelaySeconds: 20
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3000"]
+  secret:
+    data:
+      SECRET: changeme
+  configMap:
+    data:
+      ENV: development
+      HOST: '0.0.0.0'
+      PORT: '3000'
