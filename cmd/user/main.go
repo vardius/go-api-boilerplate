@@ -26,6 +26,7 @@ import (
 	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 	user_http "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/http"
+	"github.com/vardius/golog"
 	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -52,23 +53,7 @@ func main() {
 	rec := recovery.WithLogger(recovery.New(), logger)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
-
-	opts := []grpc_recovery.Option{
-		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
-			logger.Critical(ctx, "Recovered in f %v", rec)
-
-			return grpc.Errorf(codes.Internal, "%s", rec)
-		}),
-	}
-
-	grpcServer := grpc.NewServer(
-		grpc_middleware.WithUnaryServerChain(
-			grpc_recovery.UnaryServerInterceptor(opts...),
-		),
-		grpc_middleware.WithStreamServerChain(
-			grpc_recovery.StreamServerInterceptor(opts...),
-		),
-	)
+	grpcServer := getGRPCServer(logger)
 	userServer := server.NewServer(
 		commandbus.NewLoggable(runtime.NumCPU(), logger),
 		eventbus.NewLoggable(runtime.NumCPU(), logger),
@@ -76,28 +61,10 @@ func main() {
 		jwt.New([]byte(cfg.Secret), time.Hour*24),
 	)
 
-	proto.RegisterUserServer(grpcServer, userServer)
-
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("user", healthpb.HealthCheckResponse_SERVING)
-	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.PortGRPC))
-	if err != nil {
-		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", cfg.Host, cfg.PortGRPC, err)
-	} else {
-		logger.Info(ctx, "tcp running at %s:%d\n", cfg.Host, cfg.PortGRPC)
-	}
-
-	go func() {
-		logger.Critical(ctx, "failed to serve: %v\n", grpcServer.Serve(lis))
-	}()
-
-	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.PortGRPC), grpc.WithInsecure())
-	if err != nil {
-		logger.Critical(ctx, "grpc user conn dial error: %v\n", err)
-		os.Exit(1)
-	}
+	userConn := getGRPCConnection(ctx, cfg.Host, cfg.PortGRPC, logger)
 	defer userConn.Close()
 
 	grpUserClient := user_proto.NewUserClient(userConn)
@@ -114,6 +81,9 @@ func main() {
 		rec.RecoverHandler,
 	)
 
+	proto.RegisterUserServer(grpcServer, userServer)
+	healthpb.RegisterHealthServer(grpcServer, healthServer)
+
 	user_http.AddHealthCheckRoutes(router, logger, userConn)
 	user_http.AddUserRoutes(router, grpUserClient)
 
@@ -125,11 +95,22 @@ func main() {
 		Handler:      router,
 	}
 
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.PortGRPC))
+	if err != nil {
+		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", cfg.Host, cfg.PortGRPC, err)
+		os.Exit(1)
+	}
+
+	go func() {
+		logger.Critical(ctx, "failed to serve: %v\n", grpcServer.Serve(lis))
+	}()
+
 	go func() {
 		logger.Critical(ctx, "%v\n", srv.ListenAndServe())
 	}()
 
-	logger.Info(ctx, "htpp running at %s:%d\n", cfg.Host, cfg.PortHTTP)
+	logger.Info(ctx, "tcp running at %s:%d\n", cfg.Host, cfg.PortGRPC)
+	logger.Info(ctx, "http running at %s:%d\n", cfg.Host, cfg.PortHTTP)
 
 	shutdown.GracefulStop(func() {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -145,4 +126,35 @@ func main() {
 			logger.Info(ctx, "gracefully stopped\n")
 		}
 	})
+}
+
+func getGRPCServer(logger golog.Logger) *grpc.Server {
+	opts := []grpc_recovery.Option{
+		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
+			logger.Critical(ctx, "Recovered in f %v", rec)
+
+			return grpc.Errorf(codes.Internal, "%s", rec)
+		}),
+	}
+
+	server := grpc.NewServer(
+		grpc_middleware.WithUnaryServerChain(
+			grpc_recovery.UnaryServerInterceptor(opts...),
+		),
+		grpc_middleware.WithStreamServerChain(
+			grpc_recovery.StreamServerInterceptor(opts...),
+		),
+	)
+
+	return server
+}
+
+func getGRPCConnection(ctx context.Context, host string, port int, logger golog.Logger) *grpc.ClientConn {
+	conn, err := grpc.DialContext(ctx, fmt.Sprintf("%s:%d", host, port), grpc.WithInsecure())
+	if err != nil {
+		logger.Critical(ctx, "grpc auth conn dial error: %v\n", err)
+		os.Exit(1)
+	}
+
+	return conn
 }
