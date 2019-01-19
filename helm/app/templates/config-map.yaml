@@ -1,12 +1,14 @@
+{{- if .Values.configMap }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "microservice.fullname" . }}
+  name: {{ include "app.fullname" . }}
   namespace: default
   labels:
-    app.kubernetes.io/name: {{ include "microservice.name" . }}
-    helm.sh/chart: {{ include "microservice.chart" . }}
+    app.kubernetes.io/name: {{ include "app.name" . }}
+    helm.sh/chart: {{ include "app.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 data:
   {{- toYaml .Values.configMap.data | nindent 2 }}
+{{- end }}

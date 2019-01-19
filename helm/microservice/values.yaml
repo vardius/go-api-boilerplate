@@ -14,13 +14,6 @@ fullnameOverride: ""
 service:
   type: ClusterIP
 
-secret:
-  type: Opaque
-  data: {}
-
-configMap:
-  data: {}
-
 readiness: {}
 
 liveness: {}

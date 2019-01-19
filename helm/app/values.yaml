@@ -29,8 +29,7 @@ issuer:
   server: https://acme-v02.api.letsencrypt.org/directory
   email: example@gmail.com
   secretName: go-api-boilerplate-tls
-  http01:
-    enabled: true
+  http01: true
 
 certificate:
   enabled: true
@@ -72,31 +71,20 @@ proxy:
       # - name: https
       #   internalPort: 3000
       #   externalPort: 443
-    readiness:
-      initialDelaySeconds: 20
-      timeoutSeconds: 5
-      httpGet:
-        path: /readiness
-        port: 3000
-    liveness:
-      initialDelaySeconds: 20
-      httpGet:
-        path: /healthz
-        port: 3000
-  secret:
-    data:
-      SECRET: changeme
-  configMap:
-    data:
-      ENV: development
-      HOST: '0.0.0.0'
-      PORT: '3000'
-      USER_SERVICE_HOST: go-api-boilerplate-user
-      USER_SERVICE_PORT: '3000'
-      AUTH_SERVICE_HOST: go-api-boilerplate-auth
-      AUTH_SERVICE_PORT: '3000'
-      CERT_DIR_CACHE: certs
-      ORIGINS: localhost|0.0.0.0|127.0.0.1
+  env:
+    configMapRef: go-api-boilerplate
+    secretRef: go-api-boilerplate
+  readiness:
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    httpGet:
+      path: /readiness
+      port: 3000
+  liveness:
+    initialDelaySeconds: 20
+    httpGet:
+      path: /healthz
+      port: 3000
 
 auth:
   nameOverride: auth
@@ -109,6 +97,9 @@ auth:
       - name: grpc
         internalPort: 3000
         externalPort: 3000
+  env:
+    configMapRef: go-api-boilerplate
+    secretRef: go-api-boilerplate
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -118,14 +109,6 @@ auth:
     initialDelaySeconds: 20
     exec:
       command: ["/bin/grpc_health_probe", "-addr=:3000"]
-  secret:
-    data:
-      SECRET: changeme
-  configMap:
-    data:
-      ENV: development
-      HOST: '0.0.0.0'
-      PORT: '3000'
 
 user:
   nameOverride: user
@@ -138,6 +121,9 @@ user:
       - name: grpc
         internalPort: 3000
         externalPort: 3000
+  env:
+    configMapRef: go-api-boilerplate
+    secretRef: go-api-boilerplate
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -147,11 +133,15 @@ user:
     initialDelaySeconds: 20
     exec:
       command: ["/bin/grpc_health_probe", "-addr=:3000"]
-  secret:
-    data:
-      SECRET: changeme
-  configMap:
-    data:
-      ENV: development
-      HOST: '0.0.0.0'
-      PORT: '3000'
+
+secret:
+  type: Opaque
+  data:
+    SECRET: changeme
+
+configMap:
+  data:
+    ENV: development
+    HOST: '0.0.0.0'
+    PORT: '3000'
+    ORIGINS: localhost|0.0.0.0|127.0.0.1

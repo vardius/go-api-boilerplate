@@ -13,7 +13,7 @@ spec:
     email: {{ .Values.issuer.email }}
     privateKeySecretRef:
       name: {{ .Values.issuer.secretName }}
-  {{- if .Values.issuer.http01.enabled }}
+  {{- if .Values.issuer.http01 }}
     http01: {}
   {{- end }}
   {{- with .Values.issuer.dns01 }}

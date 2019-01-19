@@ -28,11 +28,17 @@ spec:
           - name: {{ .name }}
             containerPort: {{ .internalPort }}
           {{- end }}
+          {{- if ( or .Values.env.secretRef .Values.env.configMapRef ) }}
           envFrom:
+            {{- if ( or .Values.env.secretRef .Values.env.configMapRef ) }}
             - secretRef:
-                name: {{ include "microservice.fullname" . }}
+                name: {{ .Values.env.secretRef }}
+            {{- end }}
+            {{- if ( or .Values.env.secretRef .Values.env.configMapRef ) }}
             - configMapRef:
-                name: {{ include "microservice.fullname" . }}
+                name: {{ .Values.env.configMapRef }}
+            {{- end }}
+          {{- end }}
           {{- with .Values.readiness }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
