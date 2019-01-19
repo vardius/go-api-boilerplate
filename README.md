@@ -129,18 +129,18 @@ telepresence \
 	--docker-run -i -t --rm -p=3001:3001 --name="user" user:latest
 T: Volumes are rooted at $TELEPRESENCE_ROOT. See https://telepresence.io/howto/volumes.html for
 T: details.
-2019/01/10 06:24:37.963250 INFO:  [user CommandBus|Subscribe]: *user.RegisterWithEmail
-2019/01/10 06:24:37.963332 INFO:  [user CommandBus|Subscribe]: *user.RegisterWithGoogle
-2019/01/10 06:24:37.963357 INFO:  [user CommandBus|Subscribe]: *user.RegisterWithFacebook
-2019/01/10 06:24:37.963428 INFO:  [user CommandBus|Subscribe]: *user.ChangeEmailAddress
-2019/01/10 06:24:37.963445 INFO:  [user EventBus|Subscribe]: *user.WasRegisteredWithEmail
-2019/01/10 06:24:37.963493 INFO:  [user EventBus|Subscribe]: *user.WasRegisteredWithGoogle
-2019/01/10 06:24:37.963540 INFO:  [user EventBus|Subscribe]: *user.WasRegisteredWithFacebook
-2019/01/10 06:24:37.963561 INFO:  [user EventBus|Subscribe]: *user.EmailAddressWasChanged
-2019/01/10 06:24:37.964452 INFO:  [user] running at 0.0.0.0:3000
+2019/01/10 06:24:37.963250 INFO:  [CommandBus|Subscribe]: *user.RegisterWithEmail
+2019/01/10 06:24:37.963332 INFO:  [CommandBus|Subscribe]: *user.RegisterWithGoogle
+2019/01/10 06:24:37.963357 INFO:  [CommandBus|Subscribe]: *user.RegisterWithFacebook
+2019/01/10 06:24:37.963428 INFO:  [CommandBus|Subscribe]: *user.ChangeEmailAddress
+2019/01/10 06:24:37.963445 INFO:  [EventBus|Subscribe]: *user.WasRegisteredWithEmail
+2019/01/10 06:24:37.963493 INFO:  [EventBus|Subscribe]: *user.WasRegisteredWithGoogle
+2019/01/10 06:24:37.963540 INFO:  [EventBus|Subscribe]: *user.WasRegisteredWithFacebook
+2019/01/10 06:24:37.963561 INFO:  [EventBus|Subscribe]: *user.EmailAddressWasChanged
+2019/01/10 06:24:37.964452 INFO: running at 0.0.0.0:3000
 ^C
-2019/01/10 06:30:16.266108 INFO:  [user] shutting down...
-2019/01/10 06:30:16.283392 INFO:  [user] gracefully stopped
+2019/01/10 06:30:16.266108 INFO: shutting down...
+2019/01/10 06:30:16.283392 INFO: gracefully stopped
 T: Exit cleanup in progress
 # --docker-run --rm -it -v -p=3001:3001 user:latest
 ```
@@ -156,8 +156,8 @@ curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST 
 ```
 **user** pod logs should look something like:
 ```sh
-2019/01/06 09:37:52.459095 DEBUG: [user CommandBus|Publish]: *user.RegisterWithEmail &{Email:test@test.com}
-2019/01/06 09:37:52.459966 DEBUG: [user EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
+2019/01/06 09:37:52.459095 DEBUG: [CommandBus|Publish]: *user.RegisterWithEmail &{Email:test@test.com}
+2019/01/06 09:37:52.459966 DEBUG: [EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
 2019/01/06 09:37:52 [EventHandler] {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
 ```
 ### Documentation
