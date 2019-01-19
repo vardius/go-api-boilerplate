@@ -127,4 +127,4 @@ configMap:
     ENV: development
     HOST: '0.0.0.0'
     PORT: '3000'
-    ORIGINS: localhost|0.0.0.0|127.0.0.1
+    ORIGINS: go-api-boilerplate.local|localhost|0.0.0.0|127.0.0.1
