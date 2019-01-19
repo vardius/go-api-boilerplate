@@ -10,5 +10,5 @@ import (
 // WhenUserWasRegisteredWithGoogle handles event
 func WhenUserWasRegisteredWithGoogle(ctx context.Context, event domain.Event) {
 	// todo: register user
-	log.Printf("[user EventHandler] %s", event.Payload)
+	log.Printf("[EventHandler] %s", event.Payload)
 }

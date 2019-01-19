@@ -65,12 +65,47 @@ auth:
     pullPolicy: Never
   service:
     ports:
-      - name: grpc
+      - name: http
         internalPort: 3000
         externalPort: 3000
-  env:
-    configMapRef: go-api-boilerplate-app
+      - name: grpc
+        internalPort: 3001
+        externalPort: 3001
+  envFrom:
     secretRef: go-api-boilerplate-app
+  env:
+    - name: ENV
+      valueFrom:
+        configMapKeyRef:
+          key: ENV
+          name: go-api-boilerplate-app
+    - name: ORIGINS
+      valueFrom:
+        configMapKeyRef:
+          key: ORIGINS
+          name: go-api-boilerplate-app
+    - name: HOST
+      valueFrom:
+        configMapKeyRef:
+          key: HOST
+          name: go-api-boilerplate-app
+    - name: PORT_HTTP
+      valueFrom:
+        configMapKeyRef:
+          key: PORT_HTTP
+          name: go-api-boilerplate-app
+    - name: PORT_GRPC
+      valueFrom:
+        configMapKeyRef:
+          key: PORT_GRPC
+          name: go-api-boilerplate-app
+    - name: USER_HOST
+      value: go-api-boilerplate-user
+    - name: USER_PORT_GRPC
+      valueFrom:
+        configMapKeyRef:
+          key: PORT_GRPC
+          name: go-api-boilerplate-app
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -91,12 +126,40 @@ user:
     pullPolicy: Never
   service:
     ports:
-      - name: grpc
+      - name: http
         internalPort: 3000
         externalPort: 3000
-  env:
-    configMapRef: go-api-boilerplate-app
+      - name: grpc
+        internalPort: 3001
+        externalPort: 3001
+  envFrom:
     secretRef: go-api-boilerplate-app
+  env:
+    - name: ENV
+      valueFrom:
+        configMapKeyRef:
+          key: ENV
+          name: go-api-boilerplate-app
+    - name: ORIGINS
+      valueFrom:
+        configMapKeyRef:
+          key: ORIGINS
+          name: go-api-boilerplate-app
+    - name: HOST
+      valueFrom:
+        configMapKeyRef:
+          key: HOST
+          name: go-api-boilerplate-app
+    - name: PORT_HTTP
+      valueFrom:
+        configMapKeyRef:
+          key: PORT_HTTP
+          name: go-api-boilerplate-app
+    - name: PORT_GRPC
+      valueFrom:
+        configMapKeyRef:
+          key: PORT_GRPC
+          name: go-api-boilerplate-app
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -117,6 +180,7 @@ secret:
 configMap:
   data:
     ENV: development
-    HOST: '0.0.0.0'
-    PORT: '3000'
     ORIGINS: go-api-boilerplate.local|localhost|0.0.0.0|127.0.0.1
+    HOST: '0.0.0.0'
+    PORT_HTTP: '3000'
+    PORT_GRPC: '3001'

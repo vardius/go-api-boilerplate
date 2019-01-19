@@ -10,5 +10,5 @@ import (
 // WhenUserWasRegisteredWithEmail handles event
 func WhenUserWasRegisteredWithEmail(ctx context.Context, event domain.Event) {
 	// todo: register user and send email with auth token
-	log.Printf("[user EventHandler] %s", event.Payload)
+	log.Printf("[EventHandler] %s", event.Payload)
 }

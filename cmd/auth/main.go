@@ -31,11 +31,13 @@ import (
 )
 
 type config struct {
-	Env     string   `env:"ENV"    envDefault:"development"`
-	Host    string   `env:"HOST"   envDefault:"0.0.0.0"`
-	Port    int      `env:"PORT"   envDefault:"3001"`
-	Secret  string   `env:"SECRET" envDefault:"secret"`
-	Origins []string `env:"ORIGINS"           envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
+	Env      string   `env:"ENV"            envDefault:"development"`
+	Host     string   `env:"HOST"           envDefault:"0.0.0.0"`
+	PortHTTP int      `env:"PORT_HTTP"      envDefault:"3010"`
+	PortGRPC int      `env:"PORT_GRPC"      envDefault:"3011"`
+	UserHost string   `env:"USER_HOST"      envDefault:"0.0.0.0"`
+	Secret   string   `env:"SECRET"         envDefault:"secret"`
+	Origins  []string `env:"ORIGINS"        envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
 }
 
 func main() {
@@ -73,18 +75,18 @@ func main() {
 	healthServer.SetServingStatus("auth", healthpb.HealthCheckResponse_SERVING)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.PortGRPC))
 	if err != nil {
-		logger.Critical(ctx, "failed to listen %s:%d\n%v\n", cfg.Host, cfg.Port, err)
+		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", cfg.Host, cfg.PortGRPC, err)
 	} else {
-		logger.Info(ctx, "running at %s:%d\n", cfg.Host, cfg.Port)
+		logger.Info(ctx, "tcp running at %s:%d\n", cfg.Host, cfg.PortGRPC)
 	}
 
 	go func() {
 		logger.Critical(ctx, "failed to serve: %v\n", grpcServer.Serve(lis))
 	}()
 
-	authConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), grpc.WithInsecure())
+	authConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.PortGRPC), grpc.WithInsecure())
 	if err != nil {
 		logger.Critical(ctx, "grpc auth conn dial error: %v\n", err)
 		os.Exit(1)
@@ -93,7 +95,7 @@ func main() {
 
 	grpAuthClient := auth_proto.NewAuthenticationClient(authConn)
 
-	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), grpc.WithInsecure())
+	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.UserHost, cfg.PortGRPC), grpc.WithInsecure())
 	if err != nil {
 		logger.Critical(ctx, "grpc user conn dial error: %v\n", err)
 		os.Exit(1)
@@ -118,7 +120,7 @@ func main() {
 	auth_http.AddAuthRoutes(router, grpUserClient, grpAuthClient)
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.PortHTTP),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
@@ -129,7 +131,7 @@ func main() {
 		logger.Critical(ctx, "%v\n", srv.ListenAndServe())
 	}()
 
-	logger.Info(ctx, "running at %s:%d\n", cfg.Host, cfg.Port)
+	logger.Info(ctx, "http running at %s:%d\n", cfg.Host, cfg.PortHTTP)
 
 	shutdown.GracefulStop(func() {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)

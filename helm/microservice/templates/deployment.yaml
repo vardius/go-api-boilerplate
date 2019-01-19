@@ -28,16 +28,20 @@ spec:
           - name: {{ .name }}
             containerPort: {{ .internalPort }}
           {{- end }}
-          {{- if ( or .Values.env.secretRef .Values.env.configMapRef ) }}
+          {{- if ( or .Values.envFrom.secretRef .Values.envFrom.configMapRef ) }}
           envFrom:
-            {{- if ( or .Values.env.secretRef .Values.env.configMapRef ) }}
+            {{- if .Values.envFrom.secretRef }}
             - secretRef:
-                name: {{ .Values.env.secretRef }}
+                name: {{ .Values.envFrom.secretRef }}
             {{- end }}
-            {{- if ( or .Values.env.secretRef .Values.env.configMapRef ) }}
+            {{- if .Values.envFrom.configMapRef }}
             - configMapRef:
-                name: {{ .Values.env.configMapRef }}
+                name: {{ .Values.envFrom.configMapRef }}
             {{- end }}
+          {{- end }}
+          {{- if .Values.env }}
+          env:
+            {{ toYaml .Values.env | nindent 12 }}
           {{- end }}
           {{- with .Values.readiness }}
           readinessProbe:

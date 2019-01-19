@@ -158,7 +158,7 @@ curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST 
 ```sh
 2019/01/06 09:37:52.459095 DEBUG: [user CommandBus|Publish]: *user.RegisterWithEmail &{Email:test@test.com}
 2019/01/06 09:37:52.459966 DEBUG: [user EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
-2019/01/06 09:37:52 [user EventHandler] {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
+2019/01/06 09:37:52 [EventHandler] {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
 ```
 ### Documentation
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
