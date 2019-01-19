@@ -4,16 +4,26 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/caarlos0/env"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	"github.com/rs/cors"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
+	auth_proto "github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
 	server "github.com/vardius/go-api-boilerplate/pkg/auth/interfaces/grpc"
+	auth_http "github.com/vardius/go-api-boilerplate/pkg/auth/interfaces/http"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/log"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/recovery"
+	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/authenticator"
+	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
+	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
@@ -21,10 +31,11 @@ import (
 )
 
 type config struct {
-	Env    string `env:"ENV"    envDefault:"development"`
-	Host   string `env:"HOST"   envDefault:"0.0.0.0"`
-	Port   int    `env:"PORT"   envDefault:"3001"`
-	Secret string `env:"SECRET" envDefault:"secret"`
+	Env     string   `env:"ENV"    envDefault:"development"`
+	Host    string   `env:"HOST"   envDefault:"0.0.0.0"`
+	Port    int      `env:"PORT"   envDefault:"3001"`
+	Secret  string   `env:"SECRET" envDefault:"secret"`
+	Origins []string `env:"ORIGINS"           envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
 }
 
 func main() {
@@ -34,7 +45,9 @@ func main() {
 	env.Parse(&cfg)
 
 	logger := log.New(cfg.Env)
+	rec := recovery.WithLogger(recovery.New(), logger)
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
+	auth := authenticator.WithToken(jwtService.Decode)
 
 	opts := []grpc_recovery.Option{
 		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
@@ -62,20 +75,74 @@ func main() {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 	if err != nil {
-		logger.Critical(ctx, "[auth] failed to listen %s:%d\n%v\n", cfg.Host, cfg.Port, err)
+		logger.Critical(ctx, "failed to listen %s:%d\n%v\n", cfg.Host, cfg.Port, err)
 	} else {
-		logger.Info(ctx, "[auth] running at %s:%d\n", cfg.Host, cfg.Port)
+		logger.Info(ctx, "running at %s:%d\n", cfg.Host, cfg.Port)
 	}
 
 	go func() {
-		logger.Critical(ctx, "[auth] failed to serve: %v\n", grpcServer.Serve(lis))
+		logger.Critical(ctx, "failed to serve: %v\n", grpcServer.Serve(lis))
 	}()
 
+	authConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), grpc.WithInsecure())
+	if err != nil {
+		logger.Critical(ctx, "grpc auth conn dial error: %v\n", err)
+		os.Exit(1)
+	}
+	defer authConn.Close()
+
+	grpAuthClient := auth_proto.NewAuthenticationClient(authConn)
+
+	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), grpc.WithInsecure())
+	if err != nil {
+		logger.Critical(ctx, "grpc user conn dial error: %v\n", err)
+		os.Exit(1)
+	}
+	defer userConn.Close()
+
+	grpUserClient := user_proto.NewUserClient(userConn)
+
+	// Global middleware
+	router := gorouter.New(
+		logger.LogRequest,
+		cors.Default().Handler,
+		response.WithXSS,
+		response.WithHSTS,
+		response.AsJSON,
+		auth.FromHeader("AUTH"),
+		auth.FromQuery("authToken"),
+		rec.RecoverHandler,
+	)
+
+	auth_http.AddHealthCheckRoutes(router, logger, authConn, userConn)
+	auth_http.AddAuthRoutes(router, grpUserClient, grpAuthClient)
+
+	srv := &http.Server{
+		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		Handler:      router,
+	}
+
+	go func() {
+		logger.Critical(ctx, "%v\n", srv.ListenAndServe())
+	}()
+
+	logger.Info(ctx, "running at %s:%d\n", cfg.Host, cfg.Port)
+
 	shutdown.GracefulStop(func() {
-		logger.Info(ctx, "[auth] shutting down...\n")
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+
+		logger.Info(ctx, "shutting down...\n")
 
 		grpcServer.GracefulStop()
 
-		logger.Info(ctx, "[auth] gracefully stopped\n")
+		if err := srv.Shutdown(ctx); err != nil {
+			logger.Critical(ctx, "shutdown error: %v\n", err)
+		} else {
+			logger.Info(ctx, "gracefully stopped\n")
+		}
 	})
 }

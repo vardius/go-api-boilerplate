@@ -9,7 +9,7 @@ import (
 
 func ExampleLogger_LogRequest() {
 	l := log.New("development")
-	h := l.LogRequest("testserver")(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+	h := l.LogRequest(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)

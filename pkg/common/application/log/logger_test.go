@@ -40,7 +40,7 @@ func TestNew(t *testing.T) {
 func TestLogRequest(t *testing.T) {
 	output := captureOutput(func() {
 		l := New("development")
-		h := l.LogRequest("testserver")(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+		h := l.LogRequest(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
 		w := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/", nil)

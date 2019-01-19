@@ -11,9 +11,13 @@ ingress:
     kubernetes.io/rewrite-target: /
   class: nginx
   paths:
-    - path: /
+    - path: /auth
       backend:
-        serviceName: go-api-boilerplate-proxy
+        serviceName: go-api-boilerplate-auth
+        servicePort: 3000
+    - path: /users
+      backend:
+        serviceName: go-api-boilerplate-user
         servicePort: 3000
   hosts:
     - go-api-boilerplate.local
@@ -53,39 +57,6 @@ cert-manager:
   # @TODO: Ucomment after first deploy. For details see: https://github.com/jetstack/cert-manager/issues/870
   # createCustomResource: false
 
-proxy:
-  nameOverride: proxy
-  image:
-    repository: proxy
-    tag: latest
-    pullPolicy: Never
-  service:
-    # type: LoadBalancer
-    ports:
-      - name: grpc
-        internalPort: 3000
-        externalPort: 3000
-      # - name: http
-      #   internalPort: 3000
-      #   externalPort: 80
-      # - name: https
-      #   internalPort: 3000
-      #   externalPort: 443
-  env:
-    configMapRef: go-api-boilerplate-app
-    secretRef: go-api-boilerplate-app
-  readiness:
-    initialDelaySeconds: 20
-    timeoutSeconds: 5
-    httpGet:
-      path: /readiness
-      port: 3000
-  liveness:
-    initialDelaySeconds: 20
-    httpGet:
-      path: /healthz
-      port: 3000
-
 auth:
   nameOverride: auth
   image:
@@ -103,10 +74,16 @@ auth:
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
+    httpGet:
+      path: /readiness
+      port: 3000
     exec:
       command: ["/bin/grpc_health_probe", "-addr=:3000"]
   liveness:
     initialDelaySeconds: 20
+    httpGet:
+      path: /healthz
+      port: 3000
     exec:
       command: ["/bin/grpc_health_probe", "-addr=:3000"]
 
@@ -127,10 +104,16 @@ user:
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
+    httpGet:
+      path: /readiness
+      port: 3000
     exec:
       command: ["/bin/grpc_health_probe", "-addr=:3000"]
   liveness:
     initialDelaySeconds: 20
+    httpGet:
+      path: /healthz
+      port: 3000
     exec:
       command: ["/bin/grpc_health_probe", "-addr=:3000"]
 

@@ -33,32 +33,31 @@ func New(maxConcurrentCalls int) basecommandbus.CommandBus {
 }
 
 type loggableCommandBus struct {
-	serverName string
 	commandBus basecommandbus.CommandBus
 	logger     golog.Logger
 }
 
 func (bus *loggableCommandBus) Publish(ctx context.Context, commandName string, command interface{}, out chan<- error) {
-	bus.logger.Debug(ctx, "[%s CommandBus|Publish]: %s %+v\n", bus.serverName, commandName, command)
+	bus.logger.Debug(ctx, "[CommandBus|Publish]: %s %+v\n", commandName, command)
 	bus.commandBus.Publish(ctx, commandName, command, out)
 }
 
 func (bus *loggableCommandBus) Subscribe(commandName string, fn basecommandbus.CommandHandler) error {
-	bus.logger.Info(nil, "[%s CommandBus|Subscribe]: %s\n", bus.serverName, commandName)
+	bus.logger.Info(nil, "[CommandBus|Subscribe]: %s\n", commandName)
 	return bus.commandBus.Subscribe(commandName, fn)
 }
 
 func (bus *loggableCommandBus) Unsubscribe(commandName string, fn basecommandbus.CommandHandler) error {
-	bus.logger.Info(nil, "[%s CommandBus|Unsubscribe]: %s\n", bus.serverName, commandName)
+	bus.logger.Info(nil, "[CommandBus|Unsubscribe]: %s\n", commandName)
 	return bus.commandBus.Unsubscribe(commandName, fn)
 }
 
 // WithLogger creates loggable in memory command bus
-func WithLogger(serverName string, parent basecommandbus.CommandBus, log golog.Logger) basecommandbus.CommandBus {
-	return &loggableCommandBus{serverName, parent, log}
+func WithLogger(parent basecommandbus.CommandBus, log golog.Logger) basecommandbus.CommandBus {
+	return &loggableCommandBus{parent, log}
 }
 
 // NewLoggable creates in memory command bus with logger
-func NewLoggable(maxConcurrentCalls int, serverName string, log golog.Logger) basecommandbus.CommandBus {
-	return &loggableCommandBus{serverName, New(maxConcurrentCalls), log}
+func NewLoggable(maxConcurrentCalls int, log golog.Logger) basecommandbus.CommandBus {
+	return &loggableCommandBus{New(maxConcurrentCalls), log}
 }
