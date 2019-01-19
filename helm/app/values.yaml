@@ -77,15 +77,11 @@ auth:
     httpGet:
       path: /readiness
       port: 3000
-    exec:
-      command: ["/bin/grpc_health_probe", "-addr=:3000"]
   liveness:
     initialDelaySeconds: 20
     httpGet:
       path: /healthz
       port: 3000
-    exec:
-      command: ["/bin/grpc_health_probe", "-addr=:3000"]
 
 user:
   nameOverride: user
@@ -107,15 +103,11 @@ user:
     httpGet:
       path: /readiness
       port: 3000
-    exec:
-      command: ["/bin/grpc_health_probe", "-addr=:3000"]
   liveness:
     initialDelaySeconds: 20
     httpGet:
       path: /healthz
       port: 3000
-    exec:
-      command: ["/bin/grpc_health_probe", "-addr=:3000"]
 
 secret:
   type: Opaque

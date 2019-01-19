@@ -17,11 +17,6 @@ RUN go mod verify
 
 RUN go build -a -o /go/bin/app ./cmd/"$BIN"
 
-RUN GRPC_HEALTH_PROBE_VERSION=v0.2.0 && \
-    wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
-    chmod +x /bin/grpc_health_probe
-
 FROM scratch
 COPY --from=buildenv /go/bin/app /go/bin/app
-COPY --from=buildenv /bin/grpc_health_probe /bin/grpc_health_probe
 ENTRYPOINT ["/go/bin/app"]
