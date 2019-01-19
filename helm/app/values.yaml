@@ -72,8 +72,8 @@ proxy:
       #   internalPort: 3000
       #   externalPort: 443
   env:
-    configMapRef: go-api-boilerplate
-    secretRef: go-api-boilerplate
+    configMapRef: go-api-boilerplate-app
+    secretRef: go-api-boilerplate-app
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -98,8 +98,8 @@ auth:
         internalPort: 3000
         externalPort: 3000
   env:
-    configMapRef: go-api-boilerplate
-    secretRef: go-api-boilerplate
+    configMapRef: go-api-boilerplate-app
+    secretRef: go-api-boilerplate-app
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -122,8 +122,8 @@ user:
         internalPort: 3000
         externalPort: 3000
   env:
-    configMapRef: go-api-boilerplate
-    secretRef: go-api-boilerplate
+    configMapRef: go-api-boilerplate-app
+    secretRef: go-api-boilerplate-app
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
