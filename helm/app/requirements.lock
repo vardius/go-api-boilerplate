@@ -5,6 +5,12 @@ dependencies:
 - name: microservice
   repository: file://../microservice
   version: 0.1.0
+- name: microservice
+  repository: file://../microservice
+  version: 0.1.0
+- name: kubernetes-dashboard
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 1.2.0
 - name: cert-manager
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: v0.5.2
@@ -14,5 +20,5 @@ dependencies:
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 0.13.0
-digest: sha256:790dd4df806279451f1c4df810b43d8dc7d67d45e1b6cdaa9cdc5898203a73b3
-generated: 2019-01-19T15:11:18.796427+11:00
+digest: sha256:b93217de3922ea36b308cfe9be64491e04e247232845475dce58ac5438cd2ef1
+generated: 2019-01-23T17:46:12.605986+11:00

@@ -9,7 +9,17 @@ dependencies:
     repository: "file://../microservice"
     alias: user
     condition: user.enabled
+# AWS localstack (for local development)
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: localstack
+    condition: localstack.enabled
 # External charts: https://github.com/helm/charts/blob/master/stable
+  - name: kubernetes-dashboard
+    version: 1.2.0
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: kubernetes-dashboard.enabled
   - name: cert-manager
     version: v0.5.2
     repository: https://kubernetes-charts.storage.googleapis.com/
