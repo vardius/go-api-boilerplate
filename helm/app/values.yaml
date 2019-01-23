@@ -1,6 +1,3 @@
-# kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
-# make helm-delete && helm del --purge go-api-boilerplate && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
-
 ingress:
   enabled: true
   annotations:

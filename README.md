@@ -46,6 +46,18 @@ HOW TO USE
 ## Getting started
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 for building the production image and Kubernetes cluster > 1.11 for running pods installed.
+### Localhost alias
+For examples below to work, edit `/etc/hosts` to add localhost alias
+```bash
+➜  go-api-boilerplate git:(master) cat /etc/hosts
+##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting.  Do not change this entry.
+##
+127.0.0.1       localhost go-api-boilerplate.local
+```
 ### Makefile
 ```bash
 ➜  go-api-boilerplate git:(master) ✗ make help
@@ -68,17 +80,6 @@ telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment wi
 telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 aws-repo-login                 [HELPER] login to AWS-ECR
 ```
-### Kubernetes
-The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is not deployed by default. To deploy it, run the following command:
-```bash
-kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
-```
-You can access Dashboard using the kubectl command-line tool by running the following command:
-```bash
-kubectl proxy
-```
-Kubectl will handle authentication and make Dashboard available at http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
-The UI can only be accessed from the machine where the command is executed. See kubectl proxy --help for more options.
 ### Helm charts
 Helm chart are used to automate the application deployment in a Kubernetes cluster. Once the application is deployed and working, it also explores how to modify the source code for publishing a new application release and how to perform rolling updates in Kubernetes using the Helm CLI.
 
@@ -92,12 +93,6 @@ Step 5: Deploy the application in Kubernetes
 Step 6: Update the source code and the Helm chart
 
 [Install And Configure Helm And Tiller](https://docs.bitnami.com/kubernetes/get-started-kubernetes/#step-4-install-helm-and-tiller)
-### Vendor
-Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
-```bash
-go build ./...
-```
-For more read: https://github.com/golang/go/wiki/Modules
 ### Running
 To run services repeat following steps for each service defined in [`./cmd/`](../master/cmd) directory. Changing `BIN=` value to directory name from `./cmd/{service_name}` path.
 #### STEP 1. Build docker image
@@ -147,7 +142,7 @@ T: Exit cleanup in progress
 #### STEP 4. Test example
 Send example JSON via POST request
 ```sh
-curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST http://localhost:3000/users/dispatch/register-user-with-email
+curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST http://go-api-boilerplate.local/users/dispatch/register-user-with-email
 ```
 **proxy** pod logs should look something like:
 ```sh
@@ -160,6 +155,21 @@ curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST 
 2019/01/06 09:37:52.459966 DEBUG: [EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
 2019/01/06 09:37:52 [EventHandler] {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
 ```
+### Kubernetes
+The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local/](https://go-api-boilerplate.local/) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
+```bash
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+```
+To remove release run:
+```bash
+make helm-delete && helm del --purge go-api-boilerplate && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
+```
+### Vendor
+Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
+```bash
+go build ./...
+```
+For more read: https://github.com/golang/go/wiki/Modules
 ### Documentation
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
 * [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
