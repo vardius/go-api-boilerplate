@@ -46,7 +46,7 @@ HOW TO USE
 ## Getting started
 ### Prerequisites
 In order to run this project you need to have Docker > 1.17.05 for building the production image and Kubernetes cluster > 1.11 for running pods installed.
-### Localhost alias
+#### Localhost alias
 For examples below to work, edit `/etc/hosts` to add localhost alias
 ```bash
 ➜  go-api-boilerplate git:(master) cat /etc/hosts
@@ -58,6 +58,19 @@ For examples below to work, edit `/etc/hosts` to add localhost alias
 ##
 127.0.0.1       localhost go-api-boilerplate.local
 ```
+#### Helm charts
+Helm chart are used to automate the application deployment in a Kubernetes cluster. Once the application is deployed and working, it also explores how to modify the source code for publishing a new application release and how to perform rolling updates in Kubernetes using the Helm CLI.
+
+To deploy application on Kubernetes using Helm you will typically follow these steps:
+
+Step 1: Add application to cmd directory
+Step 2: Build the Docker image
+Step 3: Publish the Docker image
+Step 4: Create the Helm Chart (extend microservice chart)
+Step 5: Deploy the application in Kubernetes
+Step 6: Update the source code and the Helm chart
+
+[Install And Configure Helm And Tiller](https://docs.bitnami.com/kubernetes/get-started-kubernetes/#step-4-install-helm-and-tiller)
 ### Makefile
 ```bash
 ➜  go-api-boilerplate git:(master) ✗ make help
@@ -80,19 +93,6 @@ telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment wi
 telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
 aws-repo-login                 [HELPER] login to AWS-ECR
 ```
-### Helm charts
-Helm chart are used to automate the application deployment in a Kubernetes cluster. Once the application is deployed and working, it also explores how to modify the source code for publishing a new application release and how to perform rolling updates in Kubernetes using the Helm CLI.
-
-To deploy application on Kubernetes using Helm you will typically follow these steps:
-
-Step 1: Add application to cmd directory
-Step 2: Build the Docker image
-Step 3: Publish the Docker image
-Step 4: Create the Helm Chart (extend microservice chart)
-Step 5: Deploy the application in Kubernetes
-Step 6: Update the source code and the Helm chart
-
-[Install And Configure Helm And Tiller](https://docs.bitnami.com/kubernetes/get-started-kubernetes/#step-4-install-helm-and-tiller)
 ### Running
 To run services repeat following steps for each service defined in [`./cmd/`](../master/cmd) directory. Changing `BIN=` value to directory name from `./cmd/{service_name}` path.
 #### STEP 1. Build docker image
@@ -144,13 +144,10 @@ Send example JSON via POST request
 ```sh
 curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST http://go-api-boilerplate.local/users/dispatch/register-user-with-email
 ```
-**proxy** pod logs should look something like:
-```sh
-2019/01/06 09:37:52.453329 INFO:  [POST Request|Start]: /dispatch/register-user-with-email
-2019/01/06 09:37:52.461655 INFO:  [POST Request|End] /dispatch/register-user-with-email 8.2233ms
-```
 **user** pod logs should look something like:
 ```sh
+2019/01/06 09:37:52.453329 INFO:  [POST Request|Start]: /users/dispatch/register-user-with-email
+2019/01/06 09:37:52.461655 INFO:  [POST Request|End] /users/dispatch/register-user-with-email 8.2233ms
 2019/01/06 09:37:52.459095 DEBUG: [CommandBus|Publish]: *user.RegisterWithEmail &{Email:test@test.com}
 2019/01/06 09:37:52.459966 DEBUG: [EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
 2019/01/06 09:37:52 [EventHandler] {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
