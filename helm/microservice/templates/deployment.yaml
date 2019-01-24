@@ -28,15 +28,15 @@ spec:
           - name: {{ .name }}
             containerPort: {{ .internalPort }}
           {{- end }}
-          {{- if ( or .Values.envFrom.secretRef .Values.envFrom.configMapRef ) }}
+          {{- if ( or .Values.envFromSecretRef .Values.envFromConfigMapRef ) }}
           envFrom:
-            {{- if .Values.envFrom.secretRef }}
+            {{- if .Values.envFromSecretRef }}
             - secretRef:
-                name: {{ .Values.envFrom.secretRef }}
+                name: {{ .Values.envFromSecretRef }}
             {{- end }}
-            {{- if .Values.envFrom.configMapRef }}
+            {{- if .Values.envFromConfigMapRef }}
             - configMapRef:
-                name: {{ .Values.envFrom.configMapRef }}
+                name: {{ .Values.envFromConfigMapRef }}
             {{- end }}
           {{- end }}
           {{- if .Values.env }}

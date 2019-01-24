@@ -1,14 +1,13 @@
 ingress:
   enabled: true
-  annotations:
-    certmanager.k8s.io/cluster-issuer: letsencrypt
-    kubernetes.io/ssl-redirect: "true"
-    kubernetes.io/tls-acme: "true"
-    kubernetes.io/rewrite-target: /
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/secure-backends: "true"
+  issuerName: letsencrypt
+  issuerKind: Issuer
   class: nginx
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/secure-backends: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
   hosts:
     - host: go-api-boilerplate.local
       paths:
@@ -33,35 +32,30 @@ ingress:
       hosts:
         - go-api-boilerplate.local
 
-kubernetes-dashboard:
-  enabled: true
-  enableInsecureLogin: true
-  fullnameOverride: 'kubernetes-dashboard'
-
 issuer:
   enabled: true
   name: letsencrypt
-  kind: ClusterIssuer
+  kind: Issuer
   server: https://acme-v02.api.letsencrypt.org/directory
   email: example@gmail.com
   secretName: go-api-boilerplate-tls
   http01: true
 
-certificate:
-  enabled: true
-  ingressClass: nginx
-  secretName: go-api-boilerplate-tls
-  issuerKind: ClusterIssuer
-  issuerName: letsencrypt
-  domains:
-    - go-api-boilerplate.local
-
 cert-manager:
   ingressShim:
     defaultIssuerName: letsencrypt
-    defaultIssuerKind: ClusterIssuer
+    defaultIssuerKind: Issuer
   # @TODO: Ucomment after first deploy. For details see: https://github.com/jetstack/cert-manager/issues/870
   # createCustomResource: false
+
+kubernetes-dashboard:
+  enableInsecureLogin: true
+  fullnameOverride: 'kubernetes-dashboard'
+  extraArgs:
+    - '--heapster-host=http://heapster.default:8082'
+
+heapster:
+  fullnameOverride: 'heapster'
 
 mysql:
   mysqlRootPassword: password
@@ -87,9 +81,9 @@ localstack:
         externalPort: 4567
   env:
     - name: SERVICES
-      valueFrom: "dynamodb:4569"
+      value: "dynamodb:4569"
     - name: PORT_WEB_UI
-      valueFrom: 4567
+      value: "4567"
 
 auth:
   nameOverride: auth
@@ -105,8 +99,7 @@ auth:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  envFrom:
-    secretRef: go-api-boilerplate-app
+  envFromSecretRef: go-api-boilerplate-app
   env:
     - name: ENV
       valueFrom:
@@ -166,8 +159,7 @@ user:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  envFrom:
-    secretRef: go-api-boilerplate-app
+  envFromSecretRef: go-api-boilerplate-app
   env:
     - name: ENV
       valueFrom:

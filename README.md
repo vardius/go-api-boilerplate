@@ -10,7 +10,8 @@ Golang API Starter Kit
 
 Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
-![Dashboard](../master/.github/kubernetes-dashboard.png)
+![Dashboard](../master/.github/kubernetes-dashboard-overview.png)
+![Dashboard](../master/.github/kubernetes-dashboard-pods.png)
 
 Key concepts:
 1. Rest API
@@ -70,7 +71,7 @@ Step 4: Create the Helm Chart (extend microservice chart)
 Step 5: Deploy the application in Kubernetes
 Step 6: Update the source code and the Helm chart
 
-[Install And Configure Helm And Tiller](https://docs.bitnami.com/kubernetes/get-started-kubernetes/#step-4-install-helm-and-tiller)
+[Install And Configure Helm And Tiller](https://docs.helm.sh/using_helm/#install-helm)
 ### Makefile
 ```bash
 ➜  go-api-boilerplate git:(master) ✗ make help
@@ -159,7 +160,7 @@ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | gre
 ```
 To remove release run:
 ```bash
-make helm-delete && helm del --purge go-api-boilerplate && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
+make helm-delete && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
 ```
 ### Vendor
 Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation

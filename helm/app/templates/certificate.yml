@@ -1,27 +1,38 @@
-{{- if .Values.certificate.enabled -}}
+{{- if .Values.ingress.tls -}}
+{{- $fullName := include "app.fullname" . -}}
+{{- $chartName := include "app.fullname" . -}}
+{{- $appName := include "app.fullname" . -}}
+{{- $releaseName := .Release.Name -}}
+{{- $releaseService := .Release.Service -}}
+{{- $ingressClass := .Values.ingress.class -}}
+{{- $issuerName := .Values.ingress.issuerName -}}
+{{- $issuerKind := .Values.ingress.issuerKind -}}
+{{- range .Values.ingress.tls -}}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
-  name: {{ include "app.fullname" . }}
-  helm.sh/chart: {{ include "app.chart" . }}
-  app.kubernetes.io/name: {{ include "app.name" . }}
-  app.kubernetes.io/instance: {{ .Release.Name }}
-  app.kubernetes.io/managed-by: {{ .Release.Service }}
+  name: {{ $fullName }}
+  helm.sh/chart: {{ $chartName }}
+  app.kubernetes.io/name: {{ $appName }}
+  app.kubernetes.io/instance: {{ $releaseName }}
+  app.kubernetes.io/managed-by: {{ $releaseService }}
 spec:
-  secretName: {{ .Values.certificate.secretName }}
-  {{- with .Values.certificate.domains }}
+  secretName: {{ .secretName }}
+  {{- with .hosts }}
   dnsNames:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   acme:
     config:
     - http01:
-        ingressClass: {{ .Values.certificate.ingressClass }}
-      {{- with .Values.certificate.domains }}
+        ingressClass: {{ $ingressClass }}
+      {{- with .hosts }}
       domains:
         {{- toYaml . | nindent 8 }}
       {{- end }}
   issuerRef:
-    name: {{ .Values.certificate.issuerName }}
-    kind: {{ .Values.certificate.issuerKind }}
+    name: {{ $issuerName }}
+    kind: {{ $issuerKind }}
+---
+{{- end }}
 {{- end }}

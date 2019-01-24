@@ -11,6 +11,9 @@ dependencies:
 - name: kubernetes-dashboard
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.2.0
+- name: heapster
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 0.3.2
 - name: cert-manager
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: v0.5.2
@@ -20,5 +23,5 @@ dependencies:
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 0.13.0
-digest: sha256:b93217de3922ea36b308cfe9be64491e04e247232845475dce58ac5438cd2ef1
-generated: 2019-01-23T17:46:12.605986+11:00
+digest: sha256:0990b3fc4ba4bf693bd7854e585dce86e53a9be0771ceb9edc89bc46b48e0e7b
+generated: 2019-01-24T20:19:30.949683+11:00

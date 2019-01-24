@@ -20,6 +20,10 @@ dependencies:
     version: 1.2.0
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: kubernetes-dashboard.enabled
+  - name: heapster
+    version: 0.3.2
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: heapster.enabled
   - name: cert-manager
     version: v0.5.2
     repository: https://kubernetes-charts.storage.googleapis.com/

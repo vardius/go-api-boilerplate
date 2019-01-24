@@ -9,8 +9,10 @@ metadata:
     app.kubernetes.io/name: {{ include "app.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.class }}
+    certmanager.k8s.io/cluster-issuer: {{ .Values.ingress.issuerName }}
+  {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
