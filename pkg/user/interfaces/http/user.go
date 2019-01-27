@@ -18,12 +18,11 @@ import (
 func AddUserRoutes(router gorouter.Router, grpClient user_proto.UserServiceClient) {
 	subRouter := gorouter.New()
 
-	subRouter.POST("/", buildListUserHandler(grpClient))
+	subRouter.GET("/", buildListUserHandler(grpClient))
+	subRouter.GET("/{id}", buildCommandDispatchHandler(grpClient))
 
 	subRouter.POST("/dispatch/{command}", buildCommandDispatchHandler(grpClient))
 	subRouter.USE(gorouter.POST, "/dispatch/"+user_grpc.ChangeUserEmailAddress, firewall.GrantHTTPAccessFor("USER"))
-
-	subRouter.POST("/{id}", buildCommandDispatchHandler(grpClient))
 
 	// User domain
 	router.Mount("/users", subRouter)
