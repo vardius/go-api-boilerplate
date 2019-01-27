@@ -58,10 +58,26 @@ heapster:
   fullnameOverride: 'heapster'
 
 mysql:
-  mysqlRootPassword: password
+  existingSecret: go-api-boilerplate-app
   initializationFiles:
-    first-db.sql: |-
+    db.sql: |-
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+    user.sql: |-
+      CREATE TABLE `user` (
+        `distinctId`   INT                                    NOT NULL AUTO_INCREMENT,
+        `id`           CHAR(36)                               NOT NULL,
+        `emailAddress` VARCHAR(255) COLLATE utf8_general_ci   NOT NULL,
+        `facebookId`   VARCHAR(255)                                     DEFAULT NULL,
+        `googleId`     VARCHAR(255)                                     DEFAULT NULL,
+        PRIMARY KEY (`distinctId`),
+        UNIQUE KEY `id` (`id`),
+        UNIQUE KEY `emailAddress` (`emailAddress`),
+        INDEX `i_facebookId` (`facebookId`),
+        INDEX `i_googleId` (`googleId`)
+      )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8
+        COLLATE = utf8_bin;
 
 # AWS localstack https://github.com/localstack/localstack
 localstack:
@@ -186,6 +202,21 @@ user:
         configMapKeyRef:
           key: PORT_GRPC
           name: go-api-boilerplate-app
+    - name: DB_HOST
+      value: 'go-api-boilerplate-user'
+    - name: DB_PORT
+      value: '3306'
+    - name: DB_USER
+      value: 'root'
+    - name: DB_PASS
+      value: 'password'
+    - name: DB_PASS
+      valueFrom:
+        secretKeyRef:
+          key: MYSQL_ROOT_PASSWORD
+          name: go-api-boilerplate-app
+    - name: DB_NAME
+      value: 'goapiboilerplate'
     - name: AWS_REGION
       valueFrom:
         configMapKeyRef:
@@ -212,6 +243,7 @@ secret:
   type: Opaque
   data:
     SECRET: changeme
+    MYSQL_ROOT_PASSWORD: password
 
 configMap:
   data:

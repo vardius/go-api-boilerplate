@@ -54,9 +54,6 @@ func main() {
 	grpcServer := getGRPCServer(logger)
 	authServer := server.NewServer(jwtService)
 
-	healthServer := health.NewServer()
-	healthServer.SetServingStatus("auth", healthpb.HealthCheckResponse_SERVING)
-
 	authConn := getGRPCConnection(ctx, cfg.Host, cfg.PortGRPC, logger)
 	defer authConn.Close()
 
@@ -65,6 +62,9 @@ func main() {
 
 	grpAuthClient := auth_proto.NewAuthenticationClient(authConn)
 	grpUserClient := user_proto.NewUserClient(userConn)
+
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus("auth", healthpb.HealthCheckResponse_SERVING)
 
 	// Global middleware
 	router := gorouter.New(

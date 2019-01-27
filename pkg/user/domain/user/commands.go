@@ -63,7 +63,8 @@ func OnRegisterWithEmail(repository Repository) commandbus.CommandHandler {
 
 // RegisterWithFacebook command
 type RegisterWithFacebook struct {
-	Email string `json:"email"`
+	Email      string `json:"email"`
+	FacebookID string `json:"facebookId"`
 }
 
 // OnRegisterWithFacebook creates command handler
@@ -78,7 +79,7 @@ func OnRegisterWithFacebook(repository Repository) commandbus.CommandHandler {
 		}
 
 		u := New()
-		err = u.RegisterWithFacebook(id, c.Email)
+		err = u.RegisterWithFacebook(id, c.Email, c.FacebookID)
 		if err != nil {
 			out <- err
 			return
@@ -92,7 +93,8 @@ func OnRegisterWithFacebook(repository Repository) commandbus.CommandHandler {
 
 // RegisterWithGoogle command
 type RegisterWithGoogle struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
+	GoogleID string `json:"googleId"`
 }
 
 // OnRegisterWithGoogle creates command handler
@@ -107,7 +109,7 @@ func OnRegisterWithGoogle(repository Repository) commandbus.CommandHandler {
 		}
 
 		u := New()
-		err = u.RegisterWithGoogle(id, c.Email)
+		err = u.RegisterWithGoogle(id, c.Email, c.GoogleID)
 		if err != nil {
 			out <- err
 			return

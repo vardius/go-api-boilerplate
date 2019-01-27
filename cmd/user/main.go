@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
+	_ "github.com/go-sql-driver/mysql"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/rs/cors"
@@ -39,6 +41,11 @@ type config struct {
 	Host     string   `env:"HOST"      envDefault:"0.0.0.0"`
 	PortHTTP int      `env:"PORT_HTTP" envDefault:"3020"`
 	PortGRPC int      `env:"PORT_GRPC" envDefault:"3021"`
+	DbHost   string   `env:"DB_HOST"   envDefault:"0.0.0.0"`
+	DbPort   int      `env:"DB_PORT"   envDefault:"3306"`
+	DbUser   string   `env:"DB_USER"   envDefault:"root"`
+	DbPass   string   `env:"DB_PASS"   envDefault:"password"`
+	DbName   string   `env:"DB_NAME"   envDefault:"goapiboilerplate"`
 	Secret   string   `env:"SECRET"    envDefault:"secret"`
 	Origins  []string `env:"ORIGINS"   envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
 }
@@ -54,20 +61,25 @@ func main() {
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
 	grpcServer := getGRPCServer(logger)
+
+	db := getDBConnection(ctx, cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPass, cfg.DbName, logger)
+	defer db.Close()
+
 	userServer := server.NewServer(
 		commandbus.NewLoggable(runtime.NumCPU(), logger),
 		eventbus.NewLoggable(runtime.NumCPU(), logger),
 		eventstore.New(),
+		db,
 		jwt.New([]byte(cfg.Secret), time.Hour*24),
 	)
-
-	healthServer := health.NewServer()
-	healthServer.SetServingStatus("user", healthpb.HealthCheckResponse_SERVING)
 
 	userConn := getGRPCConnection(ctx, cfg.Host, cfg.PortGRPC, logger)
 	defer userConn.Close()
 
 	grpUserClient := user_proto.NewUserClient(userConn)
+
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus("user", healthpb.HealthCheckResponse_SERVING)
 
 	// Global middleware
 	router := gorouter.New(
@@ -84,7 +96,7 @@ func main() {
 	proto.RegisterUserServer(grpcServer, userServer)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
-	user_http.AddHealthCheckRoutes(router, logger, userConn)
+	user_http.AddHealthCheckRoutes(router, logger, userConn, db)
 	user_http.AddUserRoutes(router, grpUserClient)
 
 	srv := &http.Server{
@@ -157,4 +169,18 @@ func getGRPCConnection(ctx context.Context, host string, port int, logger golog.
 	}
 
 	return conn
+}
+
+func getDBConnection(ctx context.Context, host string, port int, user, pass, database string, logger golog.Logger) (db *sql.DB) {
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", user, pass, host, port, database))
+	if err != nil {
+		logger.Critical(ctx, "mysql conn error: %v\n", err)
+		os.Exit(1)
+	}
+
+	db.SetConnMaxLifetime(time.Minute * 5)
+	db.SetMaxIdleConns(0)
+	db.SetMaxOpenConns(5)
+
+	return db
 }

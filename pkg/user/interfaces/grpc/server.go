@@ -5,6 +5,7 @@ package grpc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -15,6 +16,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/user/application"
 	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/repository"
 )
@@ -27,11 +29,14 @@ type userServer struct {
 }
 
 // NewServer returns new user server object
-func NewServer(cb commandbus.CommandBus, eb eventbus.EventBus, es eventstore.EventStore, j jwt.Jwt) proto.UserServer {
+func NewServer(cb commandbus.CommandBus, eb eventbus.EventBus, es eventstore.EventStore, db *sql.DB, j jwt.Jwt) proto.UserServer {
 	s := &userServer{cb, eb, es, j}
 
-	registerCommandHandlers(cb, es, eb)
-	registerEventHandlers(eb)
+	userRepository := repository.NewUserRepository(es, eb)
+	userMYSQLRepository := mysql.NewUserRepository(db)
+
+	registerCommandHandlers(cb, userRepository)
+	registerEventHandlers(eb, db, userMYSQLRepository)
 
 	return s
 }
@@ -65,18 +70,16 @@ func (s *userServer) DispatchCommand(ctx context.Context, cmd *proto.DispatchCom
 	}
 }
 
-func registerCommandHandlers(cb commandbus.CommandBus, es eventstore.EventStore, eb eventbus.EventBus) {
-	repository := repository.NewUserRepository(es, eb)
-
-	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(repository))
-	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(repository))
-	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(repository))
-	cb.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(repository))
+func registerCommandHandlers(cb commandbus.CommandBus, r user.Repository) {
+	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(r))
+	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(r))
+	cb.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(r))
+	cb.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(r))
 }
 
-func registerEventHandlers(eb eventbus.EventBus) {
-	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail)
-	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle)
-	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook)
-	eb.Subscribe(fmt.Sprintf("%T", &user.EmailAddressWasChanged{}), application.WhenUserEmailAddressWasChanged)
+func registerEventHandlers(eb eventbus.EventBus, db *sql.DB, r mysql.UserRepository) {
+	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail(db, r))
+	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle(db, r))
+	eb.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook(db, r))
+	eb.Subscribe(fmt.Sprintf("%T", &user.EmailAddressWasChanged{}), application.WhenUserEmailAddressWasChanged(db, r))
 }

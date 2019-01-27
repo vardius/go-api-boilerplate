@@ -73,18 +73,20 @@ func (u *User) RegisterWithEmail(id uuid.UUID, email string) error {
 }
 
 // RegisterWithGoogle alters current user state and append changes to aggregate root
-func (u *User) RegisterWithGoogle(id uuid.UUID, email string) error {
+func (u *User) RegisterWithGoogle(id uuid.UUID, email, googleID string) error {
 	return u.trackChange(&WasRegisteredWithGoogle{
-		ID:    id,
-		Email: email,
+		ID:       id,
+		Email:    email,
+		GoogleID: googleID,
 	})
 }
 
 // RegisterWithFacebook alters current user state and append changes to aggregate root
-func (u *User) RegisterWithFacebook(id uuid.UUID, email string) error {
+func (u *User) RegisterWithFacebook(id uuid.UUID, email, facebookID string) error {
 	return u.trackChange(&WasRegisteredWithFacebook{
-		ID:    id,
-		Email: email,
+		ID:         id,
+		Email:      email,
+		FacebookID: facebookID,
 	})
 }
 

@@ -18,12 +18,14 @@ type WasRegisteredWithEmail struct {
 
 // WasRegisteredWithFacebook event
 type WasRegisteredWithFacebook struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	ID         uuid.UUID `json:"id"`
+	Email      string    `json:"email"`
+	FacebookID string    `json:"facebookId"`
 }
 
 // WasRegisteredWithGoogle event
 type WasRegisteredWithGoogle struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	ID       uuid.UUID `json:"id"`
+	Email    string    `json:"email"`
+	GoogleID string    `json:"googleId"`
 }
