@@ -21,7 +21,7 @@ type User struct {
 
 // UserRepository allows to get/save current state of user to mysql storage
 type UserRepository interface {
-	FindAll(ctx context.Context) ([]*User, error)
+	FindAll(ctx context.Context, limit, offset int32) ([]*User, error)
 	Get(ctx context.Context, id string) (*User, error)
 	Add(ctx context.Context, user *User) error
 	Update(ctx context.Context, user *User) error
@@ -32,8 +32,8 @@ type userRepository struct {
 	db *sql.DB
 }
 
-func (r *userRepository) FindAll(ctx context.Context) ([]*User, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT id, email, facebookId, googleId FROM users ORDER BY id DESC`)
+func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]*User, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT id, email, facebookId, googleId FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, errors.INTERNAL, "Could not query database")
 	}

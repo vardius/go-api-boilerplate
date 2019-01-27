@@ -26,7 +26,7 @@ type requestBody struct {
 }
 
 // AddAuthRoutes adds user routes to router
-func AddAuthRoutes(router gorouter.Router, uc user_proto.UserClient, ac auth_proto.AuthenticationClient) {
+func AddAuthRoutes(router gorouter.Router, uc user_proto.UserServiceClient, ac auth_proto.AuthenticationClient) {
 	subRouter := gorouter.New()
 	subRouter.POST("/google/callback", buildSocialAuthHandler(googleAPIURL, user_grpc.RegisterUserWithGoogle, uc, ac))
 	subRouter.POST("/facebook/callback", buildSocialAuthHandler(facebookAPIURL, user_grpc.RegisterUserWithFacebook, uc, ac))
@@ -36,7 +36,7 @@ func AddAuthRoutes(router gorouter.Router, uc user_proto.UserClient, ac auth_pro
 }
 
 // buildSocialAuthHandler wraps user gRPC client with http.Handler
-func buildSocialAuthHandler(apiURL string, commandName string, uc user_proto.UserClient, ac auth_proto.AuthenticationClient) http.Handler {
+func buildSocialAuthHandler(apiURL string, commandName string, uc user_proto.UserServiceClient, ac auth_proto.AuthenticationClient) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		accessToken := r.FormValue("accessToken")
 		profileData, e := getProfile(accessToken, apiURL)

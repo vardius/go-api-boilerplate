@@ -9,7 +9,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
-	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 )
 
 // ChangeUserEmailAddress command bus contract
@@ -24,9 +23,9 @@ const RegisterUserWithFacebook = "register-user-with-facebook"
 // RegisterUserWithGoogle command bus contract
 const RegisterUserWithGoogle = "register-user-with-google"
 
-func buildDomainCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) (interface{}, error) {
+func buildDomainCommand(ctx context.Context, name string, payload []byte) (interface{}, error) {
 	var c interface{}
-	switch cmd.GetName() {
+	switch name {
 	case RegisterUserWithEmail:
 		c = &user.RegisterWithEmail{}
 	case RegisterUserWithGoogle:
@@ -39,7 +38,7 @@ func buildDomainCommand(ctx context.Context, cmd *proto.DispatchCommandRequest) 
 		return nil, errors.New(errors.INTERNAL, "Invalid command")
 	}
 
-	err := json.Unmarshal(cmd.GetPayload(), c)
+	err := json.Unmarshal(payload, c)
 	if err != nil {
 		return nil, err
 	}
