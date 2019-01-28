@@ -16,16 +16,11 @@ import (
 
 // AddUserRoutes adds user routes to router
 func AddUserRoutes(router gorouter.Router, grpClient user_proto.UserServiceClient) {
-	subRouter := gorouter.New()
+	router.POST("/dispatch/{command}", buildCommandDispatchHandler(grpClient))
+	router.USE(gorouter.POST, "/dispatch/"+user_grpc.ChangeUserEmailAddress, firewall.GrantHTTPAccessFor("USER"))
 
-	subRouter.GET("/", buildListUserHandler(grpClient))
-	subRouter.GET("/{id}", buildCommandDispatchHandler(grpClient))
-
-	subRouter.POST("/dispatch/{command}", buildCommandDispatchHandler(grpClient))
-	subRouter.USE(gorouter.POST, "/dispatch/"+user_grpc.ChangeUserEmailAddress, firewall.GrantHTTPAccessFor("USER"))
-
-	// User domain
-	router.Mount("/users", subRouter)
+	router.GET("/", buildListUserHandler(grpClient))
+	router.GET("/{id}", buildGetUserHandler(grpClient))
 }
 
 // buildCommandDispatchHandler wraps user gRPC client with http.Handler
