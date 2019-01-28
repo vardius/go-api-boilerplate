@@ -24,7 +24,6 @@ import (
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus/memory"
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus/memory"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
 	user_http "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/http"
@@ -33,7 +32,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type config struct {
@@ -79,7 +78,7 @@ func main() {
 	grpUserClient := user_proto.NewUserServiceClient(userConn)
 
 	healthServer := health.NewServer()
-	healthServer.SetServingStatus("user", healthpb.HealthCheckResponse_SERVING)
+	healthServer.SetServingStatus("user", health_proto.HealthCheckResponse_SERVING)
 
 	// Global middleware
 	router := gorouter.New(
@@ -93,8 +92,8 @@ func main() {
 		rec.RecoverHandler,
 	)
 
-	proto.RegisterUserServiceServer(grpcServer, userServer)
-	healthpb.RegisterHealthServer(grpcServer, healthServer)
+	user_proto.RegisterUserServiceServer(grpcServer, userServer)
+	health_proto.RegisterHealthServer(grpcServer, healthServer)
 
 	user_http.AddHealthCheckRoutes(router, logger, userConn, db)
 	user_http.AddUserRoutes(router, grpUserClient)

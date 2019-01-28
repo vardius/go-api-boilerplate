@@ -209,11 +209,9 @@ user:
     - name: DB_USER
       value: 'root'
     - name: DB_PASS
-      value: 'password'
-    - name: DB_PASS
       valueFrom:
         secretKeyRef:
-          key: MYSQL_ROOT_PASSWORD
+          key: mysql-root-password
           name: go-api-boilerplate-app
     - name: DB_NAME
       value: 'goapiboilerplate'
@@ -243,7 +241,8 @@ secret:
   type: Opaque
   data:
     SECRET: changeme
-    MYSQL_ROOT_PASSWORD: password
+    mysql-root-password: password
+    mysql-password: password
 
 configMap:
   data:

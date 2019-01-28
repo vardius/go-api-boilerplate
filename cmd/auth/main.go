@@ -28,7 +28,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type config struct {
@@ -64,7 +64,7 @@ func main() {
 	grpUserClient := user_proto.NewUserServiceClient(userConn)
 
 	healthServer := health.NewServer()
-	healthServer.SetServingStatus("auth", healthpb.HealthCheckResponse_SERVING)
+	healthServer.SetServingStatus("auth", health_proto.HealthCheckResponse_SERVING)
 
 	// Global middleware
 	router := gorouter.New(
@@ -79,7 +79,7 @@ func main() {
 	)
 
 	proto.RegisterAuthenticationServer(grpcServer, authServer)
-	healthpb.RegisterHealthServer(grpcServer, healthServer)
+	health_proto.RegisterHealthServer(grpcServer, healthServer)
 
 	auth_http.AddHealthCheckRoutes(router, logger, authConn, userConn)
 	auth_http.AddAuthRoutes(router, grpUserClient, grpAuthClient)

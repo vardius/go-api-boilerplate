@@ -8,7 +8,7 @@ import (
 	"github.com/vardius/golog"
 	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	health_proto "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 )
 
@@ -32,6 +32,7 @@ func buildLivenessHandler(log golog.Logger) http.Handler {
 func buildReadinessHandler(log golog.Logger, uc *grpc.ClientConn, db *sql.DB) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := db.PingContext(r.Context()); err != nil {
+			log.Warning(r.Context(), "error: mysql ping failed: %+v", err)
 			w.WriteHeader(500)
 			return
 		}
@@ -50,7 +51,7 @@ func buildReadinessHandler(log golog.Logger, uc *grpc.ClientConn, db *sql.DB) ht
 }
 
 func getStatusCodeFromGRPConnectionHealthCheck(ctx context.Context, log golog.Logger, conn *grpc.ClientConn, service string) int {
-	resp, err := healthpb.NewHealthClient(conn).Check(ctx, &healthpb.HealthCheckRequest{Service: service})
+	resp, err := health_proto.NewHealthClient(conn).Check(ctx, &health_proto.HealthCheckRequest{Service: service})
 	if err != nil {
 		if stat, ok := status.FromError(err); ok {
 			log.Warning(ctx, "error %d: health rpc failed: %+v", stat.Code(), err)
@@ -61,7 +62,7 @@ func getStatusCodeFromGRPConnectionHealthCheck(ctx context.Context, log golog.Lo
 		return 500
 	}
 
-	if resp.GetStatus() != healthpb.HealthCheckResponse_SERVING {
+	if resp.GetStatus() != health_proto.HealthCheckResponse_SERVING {
 
 		return 500
 	}
