@@ -23,11 +23,13 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 		err := json.Unmarshal(event.Payload, e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
+			return
 		}
 
 		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
+			return
 		}
 		defer tx.Rollback()
 

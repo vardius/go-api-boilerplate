@@ -60,7 +60,7 @@ func (r *userRepository) Get(ctx context.Context, id string) (*proto.User, error
 }
 
 func (r *userRepository) Add(ctx context.Context, user *proto.User) error {
-	stmt, err := r.db.PrepareContext(ctx, "INSERT INTO users(id, email, facebookId, googleId) VALUES(?,?,?,?)")
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO users (id, email, facebookId, googleId) VALUES (?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid user insert query")
 	}
@@ -84,7 +84,7 @@ func (r *userRepository) Add(ctx context.Context, user *proto.User) error {
 }
 
 func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) error {
-	stmt, err := r.db.PrepareContext(ctx, "UPDATE users SET email=? WHERE id=?")
+	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET email=? WHERE id=?`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid user update query")
 	}
@@ -108,7 +108,7 @@ func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) erro
 }
 
 func (r *userRepository) Delete(ctx context.Context, id string) error {
-	stmt, err := r.db.PrepareContext(ctx, "DELETE FROM users WHERE id=?")
+	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM users WHERE id=?`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid user delete query")
 	}
