@@ -63,7 +63,7 @@ mysql:
     db.sql: |-
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
     user.sql: |-
-      CREATE TABLE `user` (
+      CREATE TABLE `users` (
         `distinctId`   INT                                    NOT NULL AUTO_INCREMENT,
         `id`           CHAR(36)                               NOT NULL,
         `emailAddress` VARCHAR(255) COLLATE utf8_general_ci   NOT NULL,
