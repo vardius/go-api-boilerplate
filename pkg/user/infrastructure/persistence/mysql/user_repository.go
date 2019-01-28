@@ -60,7 +60,7 @@ func (r *userRepository) Get(ctx context.Context, id string) (*proto.User, error
 }
 
 func (r *userRepository) Add(ctx context.Context, user *proto.User) error {
-	stmt, err := r.db.PrepareContext(ctx, "INSERT INTO users(id, email, facebookId, googleId) VALUES(?,?)")
+	stmt, err := r.db.PrepareContext(ctx, "INSERT INTO users(id, email, facebookId, googleId) VALUES(?,?,?,?)")
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid user insert query")
 	}
