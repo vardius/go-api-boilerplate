@@ -203,7 +203,7 @@ user:
           key: PORT_GRPC
           name: go-api-boilerplate-app
     - name: DB_HOST
-      value: 'go-api-boilerplate-user'
+      value: 'go-api-boilerplate-mysql'
     - name: DB_PORT
       value: '3306'
     - name: DB_USER
