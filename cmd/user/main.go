@@ -76,7 +76,7 @@ func main() {
 	userConn := getGRPCConnection(ctx, cfg.Host, cfg.PortGRPC, logger)
 	defer userConn.Close()
 
-	grpUserClient := user_proto.NewUserClient(userConn)
+	grpUserClient := user_proto.NewUserServiceClient(userConn)
 
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("user", healthpb.HealthCheckResponse_SERVING)
@@ -93,7 +93,7 @@ func main() {
 		rec.RecoverHandler,
 	)
 
-	proto.RegisterUserServer(grpcServer, userServer)
+	proto.RegisterUserServiceServer(grpcServer, userServer)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
 	user_http.AddHealthCheckRoutes(router, logger, userConn, db)

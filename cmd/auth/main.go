@@ -61,7 +61,7 @@ func main() {
 	defer userConn.Close()
 
 	grpAuthClient := auth_proto.NewAuthenticationClient(authConn)
-	grpUserClient := user_proto.NewUserClient(userConn)
+	grpUserClient := user_proto.NewUserServiceClient(userConn)
 
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("auth", healthpb.HealthCheckResponse_SERVING)

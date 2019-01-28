@@ -7,43 +7,27 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/common/application/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 )
-
-// User holds current state of user
-type User struct {
-	ID         uuid.UUID `json:"id"`
-	Email      string    `json:"email"`
-	FacebookID string    `json:"facebookId"`
-	GoogleID   string    `json:"googleId"`
-}
-
-// UserRepository allows to get/save current state of user to mysql storage
-type UserRepository interface {
-	FindAll(ctx context.Context, limit, offset int32) ([]*User, error)
-	Get(ctx context.Context, id string) (*User, error)
-	Add(ctx context.Context, user *User) error
-	Update(ctx context.Context, user *User) error
-	Delete(ctx context.Context, id string) error
-}
 
 type userRepository struct {
 	db *sql.DB
 }
 
-func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]*User, error) {
+func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]*proto.User, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT id, email, facebookId, googleId FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, errors.INTERNAL, "Could not query database")
 	}
 	defer rows.Close()
 
-	users := []*User{}
+	users := []*proto.User{}
 
 	for rows.Next() {
-		user := &User{}
-		err = rows.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
+		user := &proto.User{}
+		err = rows.Scan(&user.Id, &user.Email, &user.FacebookId, &user.GoogleId)
 		if err != nil {
 			return nil, errors.Wrap(err, errors.INTERNAL, "Error while scanning users table")
 		}
@@ -59,12 +43,12 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]*U
 	return users, nil
 }
 
-func (r *userRepository) Get(ctx context.Context, id string) (*User, error) {
+func (r *userRepository) Get(ctx context.Context, id string) (*proto.User, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT id, email, facebookId, googleId FROM users WHERE id=?`, id)
 
-	user := &User{}
+	user := &proto.User{}
 
-	err := row.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
+	err := row.Scan(&user.Id, &user.Email, &user.FacebookId, &user.GoogleId)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, errors.Wrap(err, errors.NOTFOUND, "User not found")
@@ -75,14 +59,14 @@ func (r *userRepository) Get(ctx context.Context, id string) (*User, error) {
 	}
 }
 
-func (r *userRepository) Add(ctx context.Context, user *User) error {
+func (r *userRepository) Add(ctx context.Context, user *proto.User) error {
 	stmt, err := r.db.PrepareContext(ctx, "INSERT INTO users(id, email, facebookId, googleId) VALUES(?,?)")
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid user insert query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, user.ID, user.Email, user.FacebookID, user.GoogleID)
+	result, err := stmt.ExecContext(ctx, user.Id, user.Email, user.FacebookId, user.GoogleId)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not add user")
 	}
@@ -99,14 +83,14 @@ func (r *userRepository) Add(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (r *userRepository) Update(ctx context.Context, user *User) error {
-	stmt, err := r.db.PrepareContext(ctx, "UPDATE users SET email=?, facebookId=?, googleId=? WHERE id=?")
+func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) error {
+	stmt, err := r.db.PrepareContext(ctx, "UPDATE users SET email=? WHERE id=?")
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid user update query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, user.Email, user.FacebookID, user.GoogleID, user.ID)
+	result, err := stmt.ExecContext(ctx, email, id)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not update user")
 	}
@@ -147,7 +131,19 @@ func (r *userRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+func (r *userRepository) Count(ctx context.Context) (int32, error) {
+	var totalUsers int32
+
+	row := r.db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users`)
+	err := row.Scan(&totalUsers)
+	if err != nil {
+		return 0, errors.Wrap(err, errors.INTERNAL, "Could not count users")
+	}
+
+	return 0, nil
+}
+
 // NewUserRepository returns mysql view model repository for user
-func NewUserRepository(db *sql.DB) UserRepository {
+func NewUserRepository(db *sql.DB) persistence.UserRepository {
 	return &userRepository{db}
 }

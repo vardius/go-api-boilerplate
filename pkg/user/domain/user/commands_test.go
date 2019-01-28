@@ -22,13 +22,13 @@ func TestUnmarshalRegisterWithEmail(t *testing.T) {
 }
 
 func TestUnmarshalRegisterWithFacebook(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com"}`)
+	testJSON := []byte(`{"email":"test@test.com","facebookId":""}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithFacebook{})
 }
 
 func TestUnmarshalRegisterWithGoogle(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com"}`)
+	testJSON := []byte(`{"email":"test@test.com","googleId":""}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithGoogle{})
 }

@@ -35,7 +35,7 @@ func (m *GetTokenRequest) Reset()         { *m = GetTokenRequest{} }
 func (m *GetTokenRequest) String() string { return proto.CompactTextString(m) }
 func (*GetTokenRequest) ProtoMessage()    {}
 func (*GetTokenRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_authentication_157936222af7c30e, []int{0}
+	return fileDescriptor_authentication_6bf218ba05d7de61, []int{0}
 }
 func (m *GetTokenRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetTokenRequest.Unmarshal(m, b)
@@ -74,7 +74,7 @@ func (m *GetTokenResponse) Reset()         { *m = GetTokenResponse{} }
 func (m *GetTokenResponse) String() string { return proto.CompactTextString(m) }
 func (*GetTokenResponse) ProtoMessage()    {}
 func (*GetTokenResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_authentication_157936222af7c30e, []int{1}
+	return fileDescriptor_authentication_6bf218ba05d7de61, []int{1}
 }
 func (m *GetTokenResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetTokenResponse.Unmarshal(m, b)
@@ -113,7 +113,7 @@ func (m *RefreshTokenRequest) Reset()         { *m = RefreshTokenRequest{} }
 func (m *RefreshTokenRequest) String() string { return proto.CompactTextString(m) }
 func (*RefreshTokenRequest) ProtoMessage()    {}
 func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_authentication_157936222af7c30e, []int{2}
+	return fileDescriptor_authentication_6bf218ba05d7de61, []int{2}
 }
 func (m *RefreshTokenRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RefreshTokenRequest.Unmarshal(m, b)
@@ -152,7 +152,7 @@ func (m *RefreshTokenResponse) Reset()         { *m = RefreshTokenResponse{} }
 func (m *RefreshTokenResponse) String() string { return proto.CompactTextString(m) }
 func (*RefreshTokenResponse) ProtoMessage()    {}
 func (*RefreshTokenResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_authentication_157936222af7c30e, []int{3}
+	return fileDescriptor_authentication_6bf218ba05d7de61, []int{3}
 }
 func (m *RefreshTokenResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RefreshTokenResponse.Unmarshal(m, b)
@@ -292,10 +292,10 @@ var _Authentication_serviceDesc = grpc.ServiceDesc{
 }
 
 func init() {
-	proto.RegisterFile("authentication.proto", fileDescriptor_authentication_157936222af7c30e)
+	proto.RegisterFile("authentication.proto", fileDescriptor_authentication_6bf218ba05d7de61)
 }
 
-var fileDescriptor_authentication_157936222af7c30e = []byte{
+var fileDescriptor_authentication_6bf218ba05d7de61 = []byte{
 	// 205 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x49, 0x2c, 0x2d, 0xc9,
 	0x48, 0xcd, 0x2b, 0xc9, 0x4c, 0x4e, 0x2c, 0xc9, 0xcc, 0xcf, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9,

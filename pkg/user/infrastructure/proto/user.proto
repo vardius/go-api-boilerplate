@@ -43,5 +43,7 @@ message ListUserRequest {
 // ListUserResponse list of all users
 message ListUserResponse {
   repeated User users = 1;
-  int32         total = 2;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
 }

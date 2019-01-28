@@ -16,6 +16,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/user/application"
 	"github.com/vardius/go-api-boilerplate/pkg/user/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/repository"
@@ -77,61 +78,46 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*proto.User, error) {
 	repository := mysql.NewUserRepository(s.db)
 
-	u, err := repository.Get(ctx, r.GetId())
+	user, err := repository.Get(ctx, r.GetId())
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "User not found")
 	}
 
-	response := &proto.User{
-		Id:         u.ID.String(),
-		Email:      u.Email,
-		FacebookId: u.FacebookID,
-		GoogleId:   u.GoogleID,
-	}
-
-	return response, nil
+	return user, nil
 }
 
 // ListUsers implements proto.UserServiceServer interface
 func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*proto.ListUserResponse, error) {
-	var totalUsers int32
 	var users []*proto.User
 
-	row := s.db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users`)
-	err := row.Scan(&totalUsers)
+	repository := mysql.NewUserRepository(s.db)
+
+	totalUsers, err := repository.Count(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to count users")
 	}
 
-	if totalUsers < 1 {
+	offset := (r.GetPage() * r.GetLimit()) - r.GetLimit()
+
+	if totalUsers < 1 || offset > totalUsers {
 		return &proto.ListUserResponse{
 			Users: users,
-			Total: 0,
+			Total: totalUsers,
+			Page:  r.GetPage(),
+			Limit: r.GetLimit(),
 		}, nil
 	}
 
-	repository := mysql.NewUserRepository(s.db)
-	offset := (r.GetPage() * r.GetLimit()) - r.GetLimit()
-
-	results, err := repository.FindAll(ctx, r.GetLimit(), offset)
+	users, err = repository.FindAll(ctx, r.GetLimit(), offset)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to fetch users")
-	}
-
-	for _, u := range results {
-		user := &proto.User{
-			Id:         u.ID.String(),
-			Email:      u.Email,
-			FacebookId: u.FacebookID,
-			GoogleId:   u.GoogleID,
-		}
-
-		users = append(users, user)
 	}
 
 	response := &proto.ListUserResponse{
 		Users: users,
 		Total: totalUsers,
+		Page:  r.GetPage(),
+		Limit: r.GetLimit(),
 	}
 
 	return response, nil
@@ -144,7 +130,7 @@ func (s *userServer) registerCommandHandlers(r user.Repository) {
 	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(r))
 }
 
-func (s *userServer) registerEventHandlers(r mysql.UserRepository) {
+func (s *userServer) registerEventHandlers(r persistence.UserRepository) {
 	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail(s.db, r))
 	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle(s.db, r))
 	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook(s.db, r))
