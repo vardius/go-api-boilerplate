@@ -26,7 +26,7 @@ func OnChangeEmailAddress(repository Repository) commandbus.CommandHandler {
 			return
 		}
 
-		out <- repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.ContextWithFlag(context.Background(), executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)
@@ -55,7 +55,7 @@ func OnRegisterWithEmail(repository Repository) commandbus.CommandHandler {
 			return
 		}
 
-		out <- repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.ContextWithFlag(context.Background(), executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)
@@ -85,7 +85,7 @@ func OnRegisterWithFacebook(repository Repository) commandbus.CommandHandler {
 			return
 		}
 
-		out <- repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.ContextWithFlag(context.Background(), executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)
@@ -115,7 +115,7 @@ func OnRegisterWithGoogle(repository Repository) commandbus.CommandHandler {
 			return
 		}
 
-		out <- repository.Save(executioncontext.ContextWithFlag(ctx, executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.ContextWithFlag(context.Background(), executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)

@@ -37,7 +37,7 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]*p
 
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, errors.INTERNAL, "Error while getting rows")
+		return nil, errors.New(errors.INTERNAL, "Error while getting rows")
 	}
 
 	return users, nil
@@ -77,7 +77,7 @@ func (r *userRepository) Add(ctx context.Context, user *proto.User) error {
 	}
 
 	if rows != 1 {
-		return errors.Wrap(err, errors.INTERNAL, "Did not add user")
+		return errors.New(errors.INTERNAL, "Did not add user")
 	}
 
 	return nil
@@ -101,7 +101,7 @@ func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) erro
 	}
 
 	if rows != 1 {
-		return errors.Wrap(err, errors.INTERNAL, "Did not update user")
+		return errors.New(errors.INTERNAL, "Did not update user")
 	}
 
 	return nil
@@ -125,7 +125,7 @@ func (r *userRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	if rows != 1 {
-		return errors.Wrap(err, errors.INTERNAL, "Did not delete user")
+		return errors.New(errors.INTERNAL, "Did not delete user")
 	}
 
 	return nil
