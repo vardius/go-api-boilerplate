@@ -19,6 +19,10 @@ ingress:
           backend:
             serviceName: go-api-boilerplate-localstack
             servicePort: 4567
+        - path: /phpmyadmin
+          backend:
+            serviceName: go-api-boilerplate-phpmyadmin
+            servicePort: 443
         - path: /auth
           backend:
             serviceName: go-api-boilerplate-auth
@@ -57,12 +61,19 @@ kubernetes-dashboard:
 heapster:
   fullnameOverride: 'heapster'
 
+phpmyadmin:
+  service:
+    port: 443
+  db:
+    port: 3306
+    host: go-api-boilerplate-mysql
+
 mysql:
   existingSecret: go-api-boilerplate-app
   initializationFiles:
-    db.sql: |-
+    base_schema.sql: |-
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
-    user.sql: |-
+      USE goapiboilerplate;
       CREATE TABLE `users` (
         `distinctId`   INT                                    NOT NULL AUTO_INCREMENT,
         `id`           CHAR(36)                               NOT NULL,
