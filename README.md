@@ -159,7 +159,7 @@ Get user details [https://go-api-boilerplate.local/users/4270a1ca-bfba-486a-946d
 ```
 Get list of users [https://go-api-boilerplate.local/users?page=1&limit=10](https://go-api-boilerplate.local/users?page=1&limit=10)
 ```json
-{"page":1,"limit":20,"total":2,"users":[{"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}]}
+{"page":1,"limit":20,"total":1,"users":[{"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}]}
 ```
 ### Kubernetes
 The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local/](https://go-api-boilerplate.local/) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
