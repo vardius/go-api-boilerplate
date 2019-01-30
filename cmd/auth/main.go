@@ -12,23 +12,23 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/rs/cors"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
-	auth_proto "github.com/vardius/go-api-boilerplate/pkg/auth/infrastructure/proto"
-	server "github.com/vardius/go-api-boilerplate/pkg/auth/interfaces/grpc"
-	auth_http "github.com/vardius/go-api-boilerplate/pkg/auth/interfaces/http"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/log"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/recovery"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/authenticator"
-	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
+	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
+	server "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/grpc"
+	auth_http "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/http"
+	user_proto "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
+	"github.com/vardius/go-api-boilerplate/pkg/recovery"
+	"github.com/vardius/go-api-boilerplate/pkg/security/authenticator"
 	"github.com/vardius/golog"
 	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type config struct {
@@ -54,9 +54,6 @@ func main() {
 	grpcServer := getGRPCServer(logger)
 	authServer := server.NewServer(jwtService)
 
-	healthServer := health.NewServer()
-	healthServer.SetServingStatus("auth", healthpb.HealthCheckResponse_SERVING)
-
 	authConn := getGRPCConnection(ctx, cfg.Host, cfg.PortGRPC, logger)
 	defer authConn.Close()
 
@@ -64,7 +61,10 @@ func main() {
 	defer userConn.Close()
 
 	grpAuthClient := auth_proto.NewAuthenticationClient(authConn)
-	grpUserClient := user_proto.NewUserClient(userConn)
+	grpUserClient := user_proto.NewUserServiceClient(userConn)
+
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus("auth", health_proto.HealthCheckResponse_SERVING)
 
 	// Global middleware
 	router := gorouter.New(
@@ -79,7 +79,7 @@ func main() {
 	)
 
 	proto.RegisterAuthenticationServer(grpcServer, authServer)
-	healthpb.RegisterHealthServer(grpcServer, healthServer)
+	health_proto.RegisterHealthServer(grpcServer, healthServer)
 
 	auth_http.AddHealthCheckRoutes(router, logger, authConn, userConn)
 	auth_http.AddAuthRoutes(router, grpUserClient, grpAuthClient)

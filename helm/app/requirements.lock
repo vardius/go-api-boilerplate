@@ -23,5 +23,8 @@ dependencies:
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 0.13.0
-digest: sha256:0990b3fc4ba4bf693bd7854e585dce86e53a9be0771ceb9edc89bc46b48e0e7b
-generated: 2019-01-24T20:19:30.949683+11:00
+- name: phpmyadmin
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 2.0.4
+digest: sha256:bcbcd3d4239fe5214fb70eea6abe759e31a25f8be32944eea23a1f5fd1ff3fd6
+generated: 2019-01-30T15:28:21.199355+11:00

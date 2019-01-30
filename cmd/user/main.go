@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
@@ -10,28 +11,28 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
+	_ "github.com/go-sql-driver/mysql"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/rs/cors"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/jwt"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/log"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/os/shutdown"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/recovery"
-	"github.com/vardius/go-api-boilerplate/pkg/common/application/security/authenticator"
-	commandbus "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/commandbus/memory"
-	eventbus "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventbus/memory"
-	eventstore "github.com/vardius/go-api-boilerplate/pkg/common/infrastructure/eventstore/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
-	user_proto "github.com/vardius/go-api-boilerplate/pkg/user/infrastructure/proto"
-	server "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/grpc"
-	user_http "github.com/vardius/go-api-boilerplate/pkg/user/interfaces/http"
+	user_proto "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
+	server "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
+	user_http "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/http"
+	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
+	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
+	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
+	"github.com/vardius/go-api-boilerplate/pkg/recovery"
+	"github.com/vardius/go-api-boilerplate/pkg/security/authenticator"
 	"github.com/vardius/golog"
 	"github.com/vardius/gorouter"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type config struct {
@@ -39,6 +40,11 @@ type config struct {
 	Host     string   `env:"HOST"      envDefault:"0.0.0.0"`
 	PortHTTP int      `env:"PORT_HTTP" envDefault:"3020"`
 	PortGRPC int      `env:"PORT_GRPC" envDefault:"3021"`
+	DbHost   string   `env:"DB_HOST"   envDefault:"0.0.0.0"`
+	DbPort   int      `env:"DB_PORT"   envDefault:"3306"`
+	DbUser   string   `env:"DB_USER"   envDefault:"root"`
+	DbPass   string   `env:"DB_PASS"   envDefault:"password"`
+	DbName   string   `env:"DB_NAME"   envDefault:"goapiboilerplate"`
 	Secret   string   `env:"SECRET"    envDefault:"secret"`
 	Origins  []string `env:"ORIGINS"   envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
 }
@@ -54,20 +60,25 @@ func main() {
 	jwtService := jwt.New([]byte(cfg.Secret), time.Hour*24)
 	auth := authenticator.WithToken(jwtService.Decode)
 	grpcServer := getGRPCServer(logger)
+
+	db := getDBConnection(ctx, cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPass, cfg.DbName, logger)
+	defer db.Close()
+
 	userServer := server.NewServer(
 		commandbus.NewLoggable(runtime.NumCPU(), logger),
 		eventbus.NewLoggable(runtime.NumCPU(), logger),
 		eventstore.New(),
+		db,
 		jwt.New([]byte(cfg.Secret), time.Hour*24),
 	)
-
-	healthServer := health.NewServer()
-	healthServer.SetServingStatus("user", healthpb.HealthCheckResponse_SERVING)
 
 	userConn := getGRPCConnection(ctx, cfg.Host, cfg.PortGRPC, logger)
 	defer userConn.Close()
 
-	grpUserClient := user_proto.NewUserClient(userConn)
+	grpUserClient := user_proto.NewUserServiceClient(userConn)
+
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus("user", health_proto.HealthCheckResponse_SERVING)
 
 	// Global middleware
 	router := gorouter.New(
@@ -81,10 +92,10 @@ func main() {
 		rec.RecoverHandler,
 	)
 
-	proto.RegisterUserServer(grpcServer, userServer)
-	healthpb.RegisterHealthServer(grpcServer, healthServer)
+	user_proto.RegisterUserServiceServer(grpcServer, userServer)
+	health_proto.RegisterHealthServer(grpcServer, healthServer)
 
-	user_http.AddHealthCheckRoutes(router, logger, userConn)
+	user_http.AddHealthCheckRoutes(router, logger, userConn, db)
 	user_http.AddUserRoutes(router, grpUserClient)
 
 	srv := &http.Server{
@@ -157,4 +168,18 @@ func getGRPCConnection(ctx context.Context, host string, port int, logger golog.
 	}
 
 	return conn
+}
+
+func getDBConnection(ctx context.Context, host string, port int, user, pass, database string, logger golog.Logger) (db *sql.DB) {
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", user, pass, host, port, database))
+	if err != nil {
+		logger.Critical(ctx, "mysql conn error: %v\n", err)
+		os.Exit(1)
+	}
+
+	db.SetConnMaxLifetime(time.Minute * 5)
+	db.SetMaxIdleConns(0)
+	db.SetMaxOpenConns(5)
+
+	return db
 }
