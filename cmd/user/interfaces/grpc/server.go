@@ -16,7 +16,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/repository"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
 	"github.com/vardius/go-api-boilerplate/pkg/jwt"
@@ -47,22 +46,15 @@ func NewServer(cb commandbus.CommandBus, eb eventbus.EventBus, es eventstore.Eve
 
 // DispatchCommand implements proto.UserServiceServer interface
 func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
+	c, err := buildDomainCommand(ctx, r.GetName(), r.GetPayload())
+	if err != nil {
+		return new(empty.Empty), err
+	}
+
 	out := make(chan error)
 	defer close(out)
 
 	go func() {
-		defer func() {
-			if rec := recover(); rec != nil {
-				out <- errors.Newf(errors.INTERNAL, "DispatchCommand recovered in f %v", rec)
-			}
-		}()
-
-		c, err := buildDomainCommand(ctx, r.GetName(), r.GetPayload())
-		if err != nil {
-			out <- err
-			return
-		}
-
 		s.commandBus.Publish(ctx, fmt.Sprintf("%T", c), c, out)
 	}()
 
