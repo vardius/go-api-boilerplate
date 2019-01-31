@@ -107,6 +107,54 @@ func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) erro
 	return nil
 }
 
+func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID string) error {
+	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET facebookID=? WHERE id=?`)
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Invalid user update query")
+	}
+	defer stmt.Close()
+
+	result, err := stmt.ExecContext(ctx, facebookID, id)
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Could not update user")
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+	}
+
+	if rows != 1 {
+		return errors.New(errors.INTERNAL, "Did not update user")
+	}
+
+	return nil
+}
+
+func (r *userRepository) UpdateGoogleID(ctx context.Context, id, googleID string) error {
+	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET googleID=? WHERE id=?`)
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Invalid user update query")
+	}
+	defer stmt.Close()
+
+	result, err := stmt.ExecContext(ctx, googleID, id)
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Could not update user")
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+	}
+
+	if rows != 1 {
+		return errors.New(errors.INTERNAL, "Did not update user")
+	}
+
+	return nil
+}
+
 func (r *userRepository) Delete(ctx context.Context, id string) error {
 	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM users WHERE id=?`)
 	if err != nil {

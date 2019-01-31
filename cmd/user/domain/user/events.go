@@ -23,9 +23,21 @@ type WasRegisteredWithFacebook struct {
 	FacebookID string    `json:"facebookId"`
 }
 
+// ConnectedWithFacebook event
+type ConnectedWithFacebook struct {
+	ID         uuid.UUID `json:"id"`
+	FacebookID string    `json:"facebookId"`
+}
+
 // WasRegisteredWithGoogle event
 type WasRegisteredWithGoogle struct {
 	ID       uuid.UUID `json:"id"`
 	Email    string    `json:"email"`
+	GoogleID string    `json:"googleId"`
+}
+
+// ConnectedWithGoogle event
+type ConnectedWithGoogle struct {
+	ID       uuid.UUID `json:"id"`
 	GoogleID string    `json:"googleId"`
 }

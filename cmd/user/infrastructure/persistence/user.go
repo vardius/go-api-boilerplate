@@ -17,4 +17,6 @@ type UserRepository interface {
 	Delete(ctx context.Context, id string) error
 	Count(ctx context.Context) (int32, error)
 	UpdateEmail(ctx context.Context, id, email string) error
+	UpdateFacebookID(ctx context.Context, id, facebookID string) error
+	UpdateGoogleID(ctx context.Context, id, googleID string) error
 }

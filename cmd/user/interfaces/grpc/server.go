@@ -53,7 +53,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
-				out <- errors.Newf(errors.INTERNAL, "Recovered in f %v", rec)
+				out <- errors.Newf(errors.INTERNAL, "DispatchCommand recovered in f %v", rec)
 			}
 		}()
 
@@ -128,10 +128,10 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 }
 
 func (s *userServer) registerCommandHandlers(r user.Repository) {
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(r))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(r))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(r))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(r))
+	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(r, s.db))
+	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(r, s.db))
+	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(r, s.db))
+	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(r, s.db))
 }
 
 func (s *userServer) registerEventHandlers(r persistence.UserRepository) {
