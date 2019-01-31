@@ -19,6 +19,15 @@ type ChangeEmailAddress struct {
 // OnChangeEmailAddress creates command handler
 func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *ChangeEmailAddress, out chan<- error) {
+		// this goroutine runs independently to request's goroutine,
+		// there for recover middlewears will not recover
+		// recover from panic to prevent crash
+		defer func() {
+			if r := recover(); r != nil {
+				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+			}
+		}()
+
 		var totalUsers int32
 
 		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress = ?`, c.Email)
@@ -54,6 +63,15 @@ type RegisterWithEmail struct {
 // OnRegisterWithEmail creates command handler
 func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *RegisterWithEmail, out chan<- error) {
+		// this goroutine runs independently to request's goroutine,
+		// there for recover middlewears will not recover
+		// recover from panic to prevent crash
+		defer func() {
+			if r := recover(); r != nil {
+				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+			}
+		}()
+
 		var totalUsers int32
 
 		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress = ?`, c.Email)
@@ -96,6 +114,15 @@ type RegisterWithFacebook struct {
 // OnRegisterWithFacebook creates command handler
 func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *RegisterWithFacebook, out chan<- error) {
+		// this goroutine runs independently to request's goroutine,
+		// there for recover middlewears will not recover
+		// recover from panic to prevent crash
+		defer func() {
+			if r := recover(); r != nil {
+				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+			}
+		}()
+
 		var id, emailAddress, facebookID string
 
 		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId FROM users WHERE emailAddress = ? OR facebookId = ?`, c.Email, c.FacebookID)
@@ -148,6 +175,15 @@ type RegisterWithGoogle struct {
 // OnRegisterWithGoogle creates command handler
 func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *RegisterWithGoogle, out chan<- error) {
+		// this goroutine runs independently to request's goroutine,
+		// there for recover middlewears will not recover
+		// recover from panic to prevent crash
+		defer func() {
+			if r := recover(); r != nil {
+				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+			}
+		}()
+
 		var id, emailAddress, googleID string
 
 		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, googleId FROM users WHERE emailAddress = ? OR googleId = ?`, c.Email, c.GoogleID)
