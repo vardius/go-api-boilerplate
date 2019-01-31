@@ -10,6 +10,42 @@ Golang API Starter Kit
 
 Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
+<details>
+  <summary>Table of Content</summary>
+
+<!-- toc -->
+
+- [About](#about)
+- [How to use](#how-to-use)
+  - [Prerequisites](#prerequisites)
+    - [Localhost alias](#localhost-alias)
+    - [Helm charts](#helm-charts)
+  - [Makefile](#makefile)
+  - [Running](#running)
+    - [Build docker image](#step-1-build-docker-image)
+    - [Deploy](#step-2-deploy)
+    - [Debug](#step-3-debug)
+  - [Kubernetes](#kubernetes)
+  - [Vendor](#vendor)
+- [Documentation](#documentation)
+- [Example](#example)
+<!-- tocstop -->
+
+</details>
+
+ABOUT
+==================================================
+This repository was created for personal use and needs, may contain bugs. If found please report. If you think some things could be done better, or if this repository is missing something feel free to contribute and create pull request.
+
+Contributors:
+
+* [Rafał Lorenz](http://rafallorenz.com)
+
+Want to contribute ? Feel free to send pull requests!
+
+Have problems, bugs, feature ideas?
+We are using the github [issue tracker](https://github.com/vardius/go-api-boilerplate/issues) to manage them.
+
 ![Dashboard](../master/.github/kubernetes-dashboard-overview.png)
 ![Dashboard](../master/.github/kubernetes-dashboard-pods.png)
 
@@ -27,19 +63,6 @@ Key concepts:
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
 2. [message-bus](https://github.com/vardius/message-bus)
-
-ABOUT
-==================================================
-This repository was created for personal use and needs, may contain bugs. If found please report. If you think some things could be done better, or if this repository is missing something feel free to contribute and create pull request.
-
-Contributors:
-
-* [Rafał Lorenz](http://rafallorenz.com)
-
-Want to contribute ? Feel free to send pull requests!
-
-Have problems, bugs, feature ideas?
-We are using the github [issue tracker](https://github.com/vardius/go-api-boilerplate/issues) to manage them.
 
 HOW TO USE
 ==================================================
@@ -140,7 +163,31 @@ T: details.
 T: Exit cleanup in progress
 # --docker-run --rm -it -v -p=3001:3001 user:latest
 ```
-#### STEP 4. Test example
+### Kubernetes
+The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local/](https://go-api-boilerplate.local/) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
+```bash
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+```
+To remove release run:
+```bash
+make helm-delete && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
+```
+### Vendor
+Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
+```bash
+go build ./...
+```
+For more read: https://github.com/golang/go/wiki/Modules
+
+DOCUMENTATION
+==================================================
+
+* [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
+* [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
+
+EXAMPLE
+==================================================
+
 Send example JSON via POST request
 ```sh
 curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST http://go-api-boilerplate.local/users/dispatch/register-user-with-email
@@ -161,21 +208,3 @@ Get list of users [https://go-api-boilerplate.local/users?page=1&limit=10](https
 ```json
 {"page":1,"limit":20,"total":2,"users":[{"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}]}
 ```
-### Kubernetes
-The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local/](https://go-api-boilerplate.local/) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
-```bash
-kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
-```
-To remove release run:
-```bash
-make helm-delete && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
-```
-### Vendor
-Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
-```bash
-go build ./...
-```
-For more read: https://github.com/golang/go/wiki/Modules
-### Documentation
-* [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
-* [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
