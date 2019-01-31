@@ -112,18 +112,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	go func() {
-		logger.Critical(ctx, "failed to serve: %v\n", grpcServer.Serve(lis))
-	}()
-
-	go func() {
-		logger.Critical(ctx, "%v\n", srv.ListenAndServe())
-	}()
-
-	logger.Info(ctx, "tcp running at %s:%d\n", cfg.Host, cfg.PortGRPC)
-	logger.Info(ctx, "http running at %s:%d\n", cfg.Host, cfg.PortHTTP)
-
-	shutdown.GracefulStop(func() {
+	stop := func() {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 
@@ -136,7 +125,24 @@ func main() {
 		} else {
 			logger.Info(ctx, "gracefully stopped\n")
 		}
-	})
+	}
+
+	go func() {
+		logger.Critical(ctx, "failed to serve: %v\n", grpcServer.Serve(lis))
+		stop()
+		os.Exit(1)
+	}()
+
+	go func() {
+		logger.Critical(ctx, "%v\n", srv.ListenAndServe())
+		stop()
+		os.Exit(1)
+	}()
+
+	logger.Info(ctx, "tcp running at %s:%d\n", cfg.Host, cfg.PortGRPC)
+	logger.Info(ctx, "http running at %s:%d\n", cfg.Host, cfg.PortHTTP)
+
+	shutdown.GracefulStop(stop)
 }
 
 func getGRPCServer(logger golog.Logger) *grpc.Server {
