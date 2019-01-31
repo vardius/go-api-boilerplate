@@ -50,57 +50,57 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 	}
 }
 
-func TestOnChangeEmailAddress(t *testing.T) {
-	handler := OnChangeEmailAddress(new(repositoryMock))
-	cmd := &ChangeEmailAddress{}
+// func TestOnChangeEmailAddress(t *testing.T) {
+// 	handler := OnChangeEmailAddress(new(repositoryMock))
+// 	cmd := &ChangeEmailAddress{}
 
-	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
-		if f, ok := handler.(func(context.Context, *ChangeEmailAddress, chan<- error)); ok {
-			f(ctx, cmd, out)
-		} else {
-			t.Fatal("Could not call handler")
-		}
-	})
-}
+// 	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
+// 		if f, ok := handler.(func(context.Context, *ChangeEmailAddress, chan<- error)); ok {
+// 			f(ctx, cmd, out)
+// 		} else {
+// 			t.Fatal("Could not call handler")
+// 		}
+// 	})
+// }
 
-func TestOnRegisterWithEmail(t *testing.T) {
-	handler := OnRegisterWithEmail(new(repositoryMock))
-	cmd := &RegisterWithEmail{}
+// func TestOnRegisterWithEmail(t *testing.T) {
+// 	handler := OnRegisterWithEmail(new(repositoryMock))
+// 	cmd := &RegisterWithEmail{}
 
-	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
-		if f, ok := handler.(func(context.Context, *RegisterWithEmail, chan<- error)); ok {
-			f(ctx, cmd, out)
-		} else {
-			t.Fatal("Could not call handler")
-		}
-	})
-}
+// 	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
+// 		if f, ok := handler.(func(context.Context, *RegisterWithEmail, chan<- error)); ok {
+// 			f(ctx, cmd, out)
+// 		} else {
+// 			t.Fatal("Could not call handler")
+// 		}
+// 	})
+// }
 
-func TestOnRegisterWithFacebook(t *testing.T) {
-	handler := OnRegisterWithFacebook(new(repositoryMock))
-	cmd := &RegisterWithFacebook{}
+// func TestOnRegisterWithFacebook(t *testing.T) {
+// 	handler := OnRegisterWithFacebook(new(repositoryMock))
+// 	cmd := &RegisterWithFacebook{}
 
-	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
-		if f, ok := handler.(func(context.Context, *RegisterWithFacebook, chan<- error)); ok {
-			f(ctx, cmd, out)
-		} else {
-			t.Fatal("Could not call handler")
-		}
-	})
-}
+// 	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
+// 		if f, ok := handler.(func(context.Context, *RegisterWithFacebook, chan<- error)); ok {
+// 			f(ctx, cmd, out)
+// 		} else {
+// 			t.Fatal("Could not call handler")
+// 		}
+// 	})
+// }
 
-func TestOnRegisterWithGoogle(t *testing.T) {
-	handler := OnRegisterWithGoogle(new(repositoryMock))
-	cmd := &RegisterWithGoogle{}
+// func TestOnRegisterWithGoogle(t *testing.T) {
+// 	handler := OnRegisterWithGoogle(new(repositoryMock))
+// 	cmd := &RegisterWithGoogle{}
 
-	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
-		if f, ok := handler.(func(context.Context, *RegisterWithGoogle, chan<- error)); ok {
-			f(ctx, cmd, out)
-		} else {
-			t.Fatal("Could not call handler")
-		}
-	})
-}
+// 	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
+// 		if f, ok := handler.(func(context.Context, *RegisterWithGoogle, chan<- error)); ok {
+// 			f(ctx, cmd, out)
+// 		} else {
+// 			t.Fatal("Could not call handler")
+// 		}
+// 	})
+// }
 
 type repositoryMock int
 
