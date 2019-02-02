@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/vardius/golog v1.0.2
 	github.com/vardius/gorouter v3.0.4+incompatible
-	github.com/vardius/message-bus v1.1.0
+	github.com/vardius/message-bus v1.1.1
 	golang.org/x/net v0.0.0-20190125091013-d26f9f9a57f3
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect
 	golang.org/x/sys v0.0.0-20190124100055-b90733256f2e // indirect
