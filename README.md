@@ -87,12 +87,12 @@ Helm chart are used to automate the application deployment in a Kubernetes clust
 
 To deploy application on Kubernetes using Helm you will typically follow these steps:
 
-1. Step 1: Add application to cmd directory
-1. Step 2: Build the Docker image
-1. Step 3: Publish the Docker image
-1. Step 4: Create the Helm Chart (extend microservice chart)
-1. Step 5: Deploy the application in Kubernetes
-1. Step 6: Update the source code and the Helm chart
+1. Add application to cmd directory
+2. Build the Docker image
+3. Publish the Docker image
+4. Create the Helm Chart (extend microservice chart)
+5. Deploy the application in Kubernetes
+6. Update the source code and the Helm chart
 
 [Install And Configure Helm And Tiller](https://docs.helm.sh/using_helm/#install-helm)
 ### Makefile
