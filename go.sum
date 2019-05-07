@@ -35,8 +35,8 @@ github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/vardius/golog v1.0.2 h1:kIoGN8H5DK7QCCryL4Cee9jpOPOFgpZTocuCLR8NCg0=
 github.com/vardius/golog v1.0.2/go.mod h1:S2DSwaLMLgNmAAv9qn4nblHMBNA8/cHXFenmtIiZaHM=
-github.com/vardius/gorouter v0.0.0-20190202011539-6b4223fcd7c8 h1:pCRR8NWoAVsNqAL/77AGFRjq6HyuOJ/KcT07YZ5ibSw=
-github.com/vardius/gorouter v0.0.0-20190202011539-6b4223fcd7c8/go.mod h1:blkJ0o6zd8ott4SiNO9JVpZumMiYR2VklshGhQMHBC4=
+github.com/vardius/gorouter/v4 v4.0.0 h1:9hurOSePRTnQPxQ2NfOxjmPsZ69PtHNM0Fs1HjOOlYo=
+github.com/vardius/gorouter/v4 v4.0.0/go.mod h1:ElncBYcYpD0saXIMhv1acJ/i9m34ZYBBdeHcisPqC7E=
 github.com/vardius/message-bus v1.1.1 h1:JLu7ApmhDkHk6AGyNrDRhR50fGIKDGWROK210Qwd1SM=
 github.com/vardius/message-bus v1.1.1/go.mod h1:uB1KIevXwx4nP8bubF+jr4c5JpXMKf3nm9hTvqtEVzc=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=

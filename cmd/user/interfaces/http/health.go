@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/vardius/golog"
-	"github.com/vardius/gorouter"
+	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 	health_proto "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"

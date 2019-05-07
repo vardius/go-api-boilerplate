@@ -11,7 +11,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/security/firewall"
-	"github.com/vardius/gorouter"
+	"github.com/vardius/gorouter/v4"
 )
 
 // AddUserRoutes adds user routes to router

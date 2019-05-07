@@ -28,7 +28,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/recovery"
 	"github.com/vardius/go-api-boilerplate/pkg/security/authenticator"
 	"github.com/vardius/golog"
-	"github.com/vardius/gorouter"
+	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"

@@ -11,7 +11,7 @@ import (
 	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
-	"github.com/vardius/gorouter"
+	"github.com/vardius/gorouter/v4"
 )
 
 const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
