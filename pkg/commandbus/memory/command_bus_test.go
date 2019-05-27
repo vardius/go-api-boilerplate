@@ -1,6 +1,7 @@
 package commandbus
 
 import (
+	"context"
 	"runtime"
 	"testing"
 
@@ -31,5 +32,31 @@ func TestNewLoggable(t *testing.T) {
 
 	if bus == nil {
 		t.Fail()
+	}
+}
+
+func TestSubscribePublish(t *testing.T) {
+	logger := golog.New("debug")
+	bus := NewLoggable(runtime.NumCPU(), logger)
+	ctx := context.Background()
+	c := make(chan error)
+
+	bus.Subscribe("command", func(ctx context.Context, _ bool, out chan<- error) {
+		out <- nil
+	})
+
+	bus.Publish(ctx, "command", true, c)
+
+	for {
+		select {
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+			return
+		case err := <-c:
+			if err != nil {
+				t.Error(err)
+			}
+			return
+		}
 	}
 }
