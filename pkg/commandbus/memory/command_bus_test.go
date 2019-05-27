@@ -4,6 +4,7 @@ import (
 	"context"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/vardius/golog"
 )
@@ -36,8 +37,7 @@ func TestNewLoggable(t *testing.T) {
 }
 
 func TestSubscribePublish(t *testing.T) {
-	logger := golog.New("debug")
-	bus := NewLoggable(runtime.NumCPU(), logger)
+	bus := NewLoggable(runtime.NumCPU(), golog.New("debug"))
 	ctx := context.Background()
 	c := make(chan error)
 
@@ -56,6 +56,29 @@ func TestSubscribePublish(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+			return
+		}
+	}
+}
+
+func TestUnsubscribe(t *testing.T) {
+	bus := New(runtime.NumCPU())
+	c := make(chan error)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	handler := func(ctx context.Context, _ bool, out chan<- error) {
+		t.Fail()
+	}
+
+	bus.Subscribe("command", handler)
+	bus.Unsubscribe("command", handler)
+
+	bus.Publish(ctx, "command", true, c)
+
+	for {
+		select {
+		case <-ctx.Done():
 			return
 		}
 	}

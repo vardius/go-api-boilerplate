@@ -4,6 +4,7 @@ import (
 	"context"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
@@ -19,9 +20,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestWithLogger(t *testing.T) {
-	logger := golog.New("debug")
 	parent := New(runtime.NumCPU())
-	bus := WithLogger(parent, logger)
+	bus := WithLogger(parent, golog.New("debug"))
 
 	if bus == nil {
 		t.Fail()
@@ -29,8 +29,7 @@ func TestWithLogger(t *testing.T) {
 }
 
 func TestNewLoggable(t *testing.T) {
-	logger := golog.New("debug")
-	bus := NewLoggable(runtime.NumCPU(), logger)
+	bus := NewLoggable(runtime.NumCPU(), golog.New("debug"))
 
 	if bus == nil {
 		t.Fail()
@@ -38,8 +37,7 @@ func TestNewLoggable(t *testing.T) {
 }
 
 func TestSubscribePublish(t *testing.T) {
-	logger := golog.New("debug")
-	bus := NewLoggable(runtime.NumCPU(), logger)
+	bus := NewLoggable(runtime.NumCPU(), golog.New("debug"))
 	ctx := context.Background()
 	c := make(chan domain.Event)
 
@@ -63,6 +61,33 @@ func TestSubscribePublish(t *testing.T) {
 			if event.ID != e.ID {
 				t.Error("Invalid event")
 			}
+			return
+		}
+	}
+}
+
+func TestUnsubscribe(t *testing.T) {
+	bus := New(runtime.NumCPU())
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	handler := func(ctx context.Context, event domain.Event) {
+		t.Fail()
+	}
+
+	e, err := domain.NewEvent(uuid.New(), "test", 1, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bus.Subscribe("event", handler)
+	bus.Unsubscribe("event", handler)
+
+	bus.Publish(ctx, "event", *e)
+
+	for {
+		select {
+		case <-ctx.Done():
 			return
 		}
 	}
