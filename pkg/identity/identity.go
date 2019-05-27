@@ -20,6 +20,7 @@ func WithEmail(email string) (*Identity, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	i.Email = email
 
 	return i, nil
@@ -33,11 +34,8 @@ func WithValues(id uuid.UUID, email string, roles []string) *Identity {
 // New returns a new Identity
 func New() (*Identity, error) {
 	id, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
-	}
 
 	return &Identity{
 		ID: id,
-	}, nil
+	}, err
 }
