@@ -7,9 +7,9 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	bus := New("test", &aws.Config{Region: aws.String("us-west-2")})
+	store := New("test", &aws.Config{Region: aws.String("us-west-2")})
 
-	if bus == nil {
+	if store == nil {
 		t.Fail()
 	}
 }
