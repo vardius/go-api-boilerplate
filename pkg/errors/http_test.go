@@ -27,7 +27,7 @@ func TestHTTPStatusCode(t *testing.T) {
 		t.Error("Status code does not match")
 	}
 
-	if HTTPStatusCode(New("123", "code as int")) != 123 {
+	if HTTPStatusCode(New("400", "code as int")) != http.StatusBadRequest {
 		t.Error("Status code does not match")
 	}
 
