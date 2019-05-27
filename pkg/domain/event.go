@@ -26,11 +26,6 @@ type EventMetaData struct {
 
 // NewEvent create new event
 func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, data interface{}) (*Event, error) {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
-	}
-
 	meta := EventMetaData{
 		Type:          fmt.Sprintf("%T", data),
 		StreamID:      streamID,
@@ -44,15 +39,14 @@ func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, data int
 		return nil, err
 	}
 
-	return &Event{id, meta, payload}, nil
+	id, err := uuid.NewRandom()
+
+	return &Event{id, meta, payload}, err
 }
 
 // MakeEvent makes a event object from metadata and payload
 func MakeEvent(meta EventMetaData, payload json.RawMessage) (*Event, error) {
 	id, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
-	}
 
-	return &Event{id, meta, payload}, nil
+	return &Event{id, meta, payload}, err
 }

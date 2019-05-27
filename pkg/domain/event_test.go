@@ -7,8 +7,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type mockData struct {
+	Page   int      `json:"page"`
+	Fruits []string `json:"fruits"`
+}
+
 func TestEvent(t *testing.T) {
-	event, err := NewEvent(uuid.New(), "streamName", 0, "my data")
+	event, err := NewEvent(uuid.New(), "streamName", 0, mockData{Page: 1, Fruits: []string{"apple", "peach", "pear"}})
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -25,5 +30,12 @@ func TestEvent(t *testing.T) {
 	cmp := bytes.Compare(event.Payload, mEvent.Payload)
 	if cmp != 0 {
 		t.Error("Events payload do not match")
+	}
+}
+
+func TestNewEventInvalidValue(t *testing.T) {
+	_, err := NewEvent(uuid.New(), "streamName", 0, make(chan int))
+	if err == nil {
+		t.Error("Parsing value to json should fail")
 	}
 }
