@@ -7,38 +7,12 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	identity, err := New()
-	if err != nil {
-		t.Errorf("%s", err)
-	}
-
-	if identity.ID.String() == "" {
-		t.Error("Identity should have ID")
-	}
-}
-
-func TestWithEmail(t *testing.T) {
-	email := "test@emai.com"
-
-	identity, err := WithEmail(email)
-	if err != nil {
-		t.Errorf("%s", err)
-	}
-
-	if identity.ID.String() == "" {
-		t.Error("Identity should have ID")
-	}
-	if identity.Email != email {
-		t.Errorf("Identity Email does not match, given: %s | expected %s", identity.Email, email)
-	}
-}
-
-func TestWithValues(t *testing.T) {
 	id := uuid.New()
+	token := "token"
 	email := "test@emai.com"
 	roles := []string{"user"}
 
-	identity := WithValues(id, email, roles)
+	identity := New(id.String(), token, email, roles)
 
 	if identity.ID != id {
 		t.Errorf("Identity ID does not match, given: %s | expected %s", identity.ID, id)
@@ -46,7 +20,44 @@ func TestWithValues(t *testing.T) {
 	if identity.Email != email {
 		t.Errorf("Identity Email does not match, given: %s | expected %s", identity.Email, email)
 	}
+	if identity.Token != token {
+		t.Errorf("Identity Token does not match, given: %s | expected %s", identity.Token, token)
+	}
 	if len(identity.Roles) != len(roles) && identity.Roles[0] != roles[0] {
 		t.Errorf("Identity Roles does not match, given: %s | expected %s", identity.Roles, roles)
+	}
+}
+
+func TestWithEmail(t *testing.T) {
+	email := "test@emai.com"
+
+	identity := Identity{
+		Email: "old@email.com",
+	}
+
+	newIdentity := identity.WithEmail(email)
+
+	if identity.Email == email {
+		t.Error("Identity copy has overridden original instance")
+	}
+
+	if newIdentity.Email != email {
+		t.Errorf("Identity Email does not match, given: %s | expected %s", identity.Email, email)
+	}
+}
+
+func TestWithToken(t *testing.T) {
+	token := "a"
+	identity := Identity{
+		Token: "b",
+	}
+	newIdentity := identity.WithToken(token)
+
+	if identity.Token == token {
+		t.Error("Identity copy has overridden original instance")
+	}
+
+	if newIdentity.Token != token {
+		t.Errorf("Identity Token does not match, given: %s | expected %s", identity.Token, token)
 	}
 }

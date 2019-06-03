@@ -6,7 +6,7 @@ import (
 )
 
 func TestContext(t *testing.T) {
-	identity, _ := New()
+	identity := &Identity{}
 	ctx := ContextWithIdentity(context.Background(), identity)
 	identityFromContext, ok := FromContext(ctx)
 	if ok && identity == identityFromContext {
