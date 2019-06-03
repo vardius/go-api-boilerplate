@@ -10,10 +10,10 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
-// GrantHTTPAccessFor returns Status Unauthorized if
+// GrantAccessFor returns Status Unauthorized if
 // Identity not set within request's context
 // or user does not have required role
-func GrantHTTPAccessFor(role string) func(next http.Handler) http.Handler {
+func GrantAccessFor(role string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			i, ok := identity.FromContext(r.Context())

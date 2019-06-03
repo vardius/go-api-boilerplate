@@ -10,11 +10,11 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
-func TestDoNotGrantHTTPAccessFor(t *testing.T) {
+func TestDoNotGrantAccessFor(t *testing.T) {
 	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Error("Should not get access here")
 	})
-	h := response.AsJSON(GrantHTTPAccessFor("user")(handler))
+	h := response.AsJSON(GrantAccessFor("user")(handler))
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -22,22 +22,22 @@ func TestDoNotGrantHTTPAccessFor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	id := uuid.New()
-	email := "test@emai.com"
-	roles := []string{"not-user"}
-
-	i := identity.WithValues(id, email, roles)
+	i := &identity.Identity{
+		ID:    uuid.New(),
+		Email: "test@emai.com",
+		Roles: []string{"not-user"},
+	}
 	ctx := identity.ContextWithIdentity(req.Context(), i)
 
 	h.ServeHTTP(w, req.WithContext(ctx))
 }
 
-func TestGrantHTTPAccessFor(t *testing.T) {
+func TestGrantAccessFor(t *testing.T) {
 	served := false
 	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		served = true
 	})
-	h := response.AsJSON(GrantHTTPAccessFor("user")(handler))
+	h := response.AsJSON(GrantAccessFor("user")(handler))
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -45,11 +45,11 @@ func TestGrantHTTPAccessFor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	id := uuid.New()
-	email := "test@emai.com"
-	roles := []string{"user"}
-
-	i := identity.WithValues(id, email, roles)
+	i := &identity.Identity{
+		ID:    uuid.New(),
+		Email: "test@emai.com",
+		Roles: []string{"user"},
+	}
 	ctx := identity.ContextWithIdentity(req.Context(), i)
 
 	h.ServeHTTP(w, req.WithContext(ctx))

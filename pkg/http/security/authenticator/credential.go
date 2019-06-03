@@ -45,8 +45,8 @@ func (a *credentialsAuth) FromBasicAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// WithCredentials returns new credentials authenticator
-func WithCredentials(afn CredentialsAuthFunc) CredentialsAuthenticator {
+// NewCredentials returns new credentials authenticator
+func NewCredentials(afn CredentialsAuthFunc) CredentialsAuthenticator {
 	return &credentialsAuth{
 		afn: afn,
 	}

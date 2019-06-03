@@ -103,8 +103,8 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 	}
 }
 
-// WithToken returns new token authenticator
-func WithToken(afn TokenAuthFunc) TokenAuthenticator {
+// NewToken returns new token authenticator
+func NewToken(afn TokenAuthFunc) TokenAuthenticator {
 	return &tokenAuth{
 		afn: afn,
 	}

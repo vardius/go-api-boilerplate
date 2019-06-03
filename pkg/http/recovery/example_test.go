@@ -5,13 +5,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/vardius/go-api-boilerplate/pkg/recovery"
+	"github.com/vardius/go-api-boilerplate/pkg/http/recovery"
 	"github.com/vardius/golog"
 )
 
-func ExampleRecover() {
-	c := recovery.New()
-	handler := c.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func ExampleWithRecover() {
+	handler := recovery.WithRecover(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
 
@@ -28,7 +27,7 @@ func ExampleRecover() {
 }
 
 func ExampleWithLogger() {
-	c := recovery.WithLogger(recovery.New(), golog.New("debug"))
+	c := recovery.WithLogger(golog.New("debug"))
 	handler := c.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))

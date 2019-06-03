@@ -8,16 +8,6 @@ import (
 	"github.com/vardius/golog"
 )
 
-func TestNew(t *testing.T) {
-	t.Parallel()
-
-	recovery := New()
-
-	if recovery == nil {
-		t.Fail()
-	}
-}
-
 func TestRecoverHandler(t *testing.T) {
 	t.Parallel()
 
@@ -28,8 +18,7 @@ func TestRecoverHandler(t *testing.T) {
 		}
 	}()
 
-	recovery := New()
-	handler := recovery.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := WithRecover(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
 
@@ -56,7 +45,7 @@ func TestRecoverHandlerWithLogger(t *testing.T) {
 		}
 	}()
 
-	recovery := WithLogger(New(), golog.New("debug"))
+	recovery := WithLogger(golog.New("debug"))
 	handler := recovery.RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
