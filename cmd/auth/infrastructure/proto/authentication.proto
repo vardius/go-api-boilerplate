@@ -2,32 +2,23 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "io.grpc.proto";
-option java_outer_classname = "UserProto";
+option java_outer_classname = "AuthProto";
 
 package proto;
 
-// Authentication authenticates with identity
-service Authentication {
-  rpc GetToken(GetTokenRequest) returns (GetTokenResponse);
-  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+// AuthenticationService handles auth token verification
+service AuthenticationService {
+  rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse);
 }
 
-// GetTokenRequest is passed when dispatching
-message GetTokenRequest {
-  string email = 1;
-}
-
-// GetTokenResponse is empty.
-message GetTokenResponse {
+// VerifyTokenRequest is passed when dispatching
+message VerifyTokenRequest {
   string token = 1;
 }
 
-// RefreshTokenRequest is passed when dispatching
-message RefreshTokenRequest {
-  string token = 1;
-}
-
-// RefreshTokenResponse is empty.
-message RefreshTokenResponse {
-  string token = 1;
+// VerifyTokenResponse return auth token information after successfull verification
+message VerifyTokenResponse {
+  int64  expiresIn = 1;
+  string clientId = 2;
+  string userId = 3;
 }
