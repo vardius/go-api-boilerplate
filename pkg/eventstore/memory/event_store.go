@@ -24,7 +24,7 @@ func (s *eventStore) Store(events []*domain.Event) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	// todo check event version
+	// @TODO: check event version
 	for _, e := range events {
 		s.events[e.ID.String()] = e
 	}

@@ -24,7 +24,7 @@ func (s *eventStore) Store(events []*domain.Event) error {
 		return nil
 	}
 
-	//todo: check event version
+	// @TODO: check event version
 	for _, e := range events {
 		item, err := dynamodbattribute.MarshalMap(e)
 		if err != nil {
