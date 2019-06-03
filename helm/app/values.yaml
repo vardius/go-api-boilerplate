@@ -153,13 +153,19 @@ auth:
         configMapKeyRef:
           key: PORT_GRPC
           name: go-api-boilerplate-app
-    - name: USER_HOST
-      value: go-api-boilerplate-user
-    - name: USER_PORT_GRPC
+    - name: DB_HOST
+      value: 'go-api-boilerplate-mysql'
+    - name: DB_PORT
+      value: '3306'
+    - name: DB_USER
+      value: 'root'
+    - name: DB_PASS
       valueFrom:
-        configMapKeyRef:
-          key: PORT_GRPC
+        secretKeyRef:
+          key: mysql-root-password
           name: go-api-boilerplate-app
+    - name: DB_NAME
+      value: 'goapiboilerplate'
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -213,6 +219,8 @@ user:
         configMapKeyRef:
           key: PORT_GRPC
           name: go-api-boilerplate-app
+    - name: AUTH_HOST
+      value: go-api-boilerplate-auth
     - name: DB_HOST
       value: 'go-api-boilerplate-mysql'
     - name: DB_PORT
@@ -252,6 +260,8 @@ secret:
   type: Opaque
   data:
     SECRET: changeme
+    OAUTH_CLIENT_ID: changeme
+    OAUTH_CLIENT_SECRET: changeme
     mysql-root-password: password
     mysql-password: password
 
