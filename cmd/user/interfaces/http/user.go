@@ -10,14 +10,18 @@ import (
 	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/security/firewall"
+	"github.com/vardius/go-api-boilerplate/pkg/http/security/firewall"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/gorouter/v4"
 )
 
 // AddUserRoutes adds user routes to router
 func AddUserRoutes(router gorouter.Router, grpClient user_proto.UserServiceClient) {
 	router.POST("/dispatch/{command}", buildCommandDispatchHandler(grpClient))
-	router.USE(gorouter.POST, "/dispatch/"+user_grpc.ChangeUserEmailAddress, firewall.GrantHTTPAccessFor("USER"))
+	router.USE(gorouter.POST, "/dispatch/"+user_grpc.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
+
+	router.GET("/me", buildMeHandler(grpClient))
+	router.USE(gorouter.GET, "/me", firewall.GrantAccessFor("USER"))
 
 	router.GET("/", buildListUserHandler(grpClient))
 	router.GET("/{id}", buildGetUserHandler(grpClient))
@@ -63,6 +67,33 @@ func buildCommandDispatchHandler(userClient user_proto.UserServiceClient) http.H
 	return http.HandlerFunc(fn)
 }
 
+// buildMeHandler wraps user gRPC client with http.Handler
+func buildMeHandler(userClient user_proto.UserServiceClient) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		var e error
+
+		if r.Body == nil {
+			response.WithError(r.Context(), ErrEmptyRequestBody)
+			return
+		}
+
+		i, _ := identity.FromContext(r.Context())
+
+		user, e := userClient.GetUser(r.Context(), &user_proto.GetUserRequest{
+			Id: i.ID.String(),
+		})
+		if e != nil {
+			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
+			return
+		}
+
+		response.WithPayload(r.Context(), user)
+		return
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 // buildGetUserHandler wraps user gRPC client with http.Handler
 func buildGetUserHandler(userClient user_proto.UserServiceClient) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +114,7 @@ func buildGetUserHandler(userClient user_proto.UserServiceClient) http.Handler {
 			Id: params.Value("id"),
 		})
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
+			response.WithError(r.Context(), errors.Wrap(e, errors.NOTFOUND, "User not found"))
 			return
 		}
 

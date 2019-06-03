@@ -10,6 +10,35 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
 
+// RequestAccessToken command
+type RequestAccessToken struct {
+	ID uuid.UUID `json:"id"`
+}
+
+// OnRequestAccessToken creates command handler
+func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandHandler {
+	fn := func(ctx context.Context, c *RequestAccessToken, out chan<- error) {
+		// this goroutine runs independently to request's goroutine,
+		// there for recover middlewears will not recover from panic to prevent crash
+		defer func() {
+			if r := recover(); r != nil {
+				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+			}
+		}()
+
+		u := repository.Get(c.ID)
+		err := u.RequestAccessToken()
+		if err != nil {
+			out <- errors.Wrap(err, errors.INTERNAL, "Error when requesting access token")
+			return
+		}
+
+		out <- repository.Save(executioncontext.ContextWithFlag(context.Background(), executioncontext.LIVE), u)
+	}
+
+	return commandbus.CommandHandler(fn)
+}
+
 // ChangeEmailAddress command
 type ChangeEmailAddress struct {
 	ID    uuid.UUID `json:"id"`
@@ -20,8 +49,7 @@ type ChangeEmailAddress struct {
 func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *ChangeEmailAddress, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
+		// there for recover middlewears will not recover from panic to prevent crash
 		defer func() {
 			if r := recover(); r != nil {
 				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
@@ -64,8 +92,7 @@ type RegisterWithEmail struct {
 func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *RegisterWithEmail, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
+		// there for recover middlewears will not recover from panic to prevent crash
 		defer func() {
 			if r := recover(); r != nil {
 				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
@@ -115,8 +142,7 @@ type RegisterWithFacebook struct {
 func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *RegisterWithFacebook, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
+		// there for recover middlewears will not recover from panic to prevent crash
 		defer func() {
 			if r := recover(); r != nil {
 				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
@@ -176,8 +202,7 @@ type RegisterWithGoogle struct {
 func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *RegisterWithGoogle, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
+		// there for recover middlewears will not recover from panic to prevent crash
 		defer func() {
 			if r := recover(); r != nil {
 				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)

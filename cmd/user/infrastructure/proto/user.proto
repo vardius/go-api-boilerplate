@@ -8,7 +8,7 @@ package proto;
 
 import "google/protobuf/empty.proto";
 
-// UserService handles commands dispatch
+// UserService handles commands dispatch and user view actions
 service UserService {
   rpc DispatchCommand(DispatchCommandRequest) returns (google.protobuf.Empty);
   rpc GetUser(GetUserRequest) returns (User);

@@ -17,8 +17,7 @@ import (
 func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
+		// there for recover middlewears will not recover from panic to prevent crash
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("[EventHandler] Recovered in %v", r)

@@ -4,6 +4,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// AccessTokenWasRequested event
+type AccessTokenWasRequested struct {
+	ID    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
+}
+
 // EmailAddressWasChanged event
 type EmailAddressWasChanged struct {
 	ID    uuid.UUID `json:"id"`

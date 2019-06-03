@@ -4,6 +4,10 @@ Package user holds user domain logic
 package user
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
+
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
@@ -114,10 +118,47 @@ func (u *User) ChangeEmailAddress(email string) error {
 	})
 }
 
+// RequestAccessToken dispatches AccessTokenWasRequested event
+func (u *User) RequestAccessToken() error {
+	return u.trackChange(&AccessTokenWasRequested{
+		ID:    u.id,
+		Email: u.email,
+	})
+}
+
 // FromHistory loads current aggregate root state by applying all events in order
 func (u *User) FromHistory(events []*domain.Event) {
 	for _, domainEvent := range events {
-		u.transition(domainEvent.Payload)
+		var e interface{}
+
+		switch domainEvent.Metadata.Type {
+		case fmt.Sprintf("%T", &AccessTokenWasRequested{}):
+			e = &AccessTokenWasRequested{}
+		case fmt.Sprintf("%T", &EmailAddressWasChanged{}):
+			e = &EmailAddressWasChanged{}
+		case fmt.Sprintf("%T", &WasRegisteredWithEmail{}):
+			e = &WasRegisteredWithEmail{}
+		case fmt.Sprintf("%T", &WasRegisteredWithFacebook{}):
+			e = &WasRegisteredWithFacebook{}
+		case fmt.Sprintf("%T", &ConnectedWithFacebook{}):
+			e = &ConnectedWithFacebook{}
+		case fmt.Sprintf("%T", &WasRegisteredWithGoogle{}):
+			e = &WasRegisteredWithGoogle{}
+		case fmt.Sprintf("%T", &ConnectedWithGoogle{}):
+			e = &ConnectedWithGoogle{}
+		default:
+			// @TODO: should we panic here ?
+			log.Panicf("Unhandled user event %s", domainEvent.Metadata.Type)
+		}
+
+		err := json.Unmarshal(domainEvent.Payload, e)
+		if err != nil {
+			// @TODO: should we panic here ?
+			log.Panicf("Error while parsing json to a user event %s, %s", domainEvent.Metadata.Type, domainEvent.Payload)
+			continue
+		}
+
+		u.transition(e)
 		u.version++
 	}
 }

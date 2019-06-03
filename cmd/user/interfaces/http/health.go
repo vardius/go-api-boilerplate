@@ -13,11 +13,11 @@ import (
 )
 
 // AddHealthCheckRoutes adds health checks route
-func AddHealthCheckRoutes(router gorouter.Router, log golog.Logger, uc *grpc.ClientConn, db *sql.DB) {
+func AddHealthCheckRoutes(router gorouter.Router, log golog.Logger, uc *grpc.ClientConn, ac *grpc.ClientConn, db *sql.DB) {
 	// Liveness probes are to indicate that your application is running
 	router.GET("/healthz", buildLivenessHandler(log))
 	// Readiness is meant to check if your application is ready to serve traffic
-	router.GET("/readiness", buildReadinessHandler(log, uc, db))
+	router.GET("/readiness", buildReadinessHandler(log, uc, ac, db))
 }
 
 func buildLivenessHandler(log golog.Logger) http.Handler {
@@ -29,7 +29,7 @@ func buildLivenessHandler(log golog.Logger) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func buildReadinessHandler(log golog.Logger, uc *grpc.ClientConn, db *sql.DB) http.Handler {
+func buildReadinessHandler(log golog.Logger, uc *grpc.ClientConn, ac *grpc.ClientConn, db *sql.DB) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := db.PingContext(r.Context()); err != nil {
 			log.Warning(r.Context(), "error: mysql ping failed: %+v", err)
@@ -38,6 +38,12 @@ func buildReadinessHandler(log golog.Logger, uc *grpc.ClientConn, db *sql.DB) ht
 		}
 
 		status := getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, uc, "user")
+		if status != 200 {
+			w.WriteHeader(status)
+			return
+		}
+
+		status = getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, ac, "auth")
 		if status != 200 {
 			w.WriteHeader(status)
 			return

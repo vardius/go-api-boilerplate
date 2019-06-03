@@ -11,6 +11,9 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
+// RequestUserAccessToken command bus contract
+const RequestUserAccessToken = "request-user-access-token"
+
 // ChangeUserEmailAddress command bus contract
 const ChangeUserEmailAddress = "change-user-email-address"
 
@@ -34,6 +37,8 @@ func buildDomainCommand(ctx context.Context, name string, payload []byte) (inter
 		c = &user.RegisterWithFacebook{}
 	case ChangeUserEmailAddress:
 		c = &user.ChangeEmailAddress{}
+	case RequestUserAccessToken:
+		c = &user.RequestAccessToken{}
 	default:
 		return nil, errors.New(errors.INTERNAL, "Invalid command")
 	}
