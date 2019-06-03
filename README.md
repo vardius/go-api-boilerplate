@@ -29,6 +29,11 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
   - [Vendor](#vendor)
 - [Documentation](#documentation)
 - [Example](#example)
+  - [Domain](#domain)
+    - [Dispatching command](#dispatching-command)
+  - [View](#view)
+    - [Public routes](#public-routes)
+    - [Protected routes](#protected-routes)
 <!-- tocstop -->
 
 </details>
@@ -59,6 +64,7 @@ Key concepts:
 7. [CQRS](https://martinfowler.com/bliki/CQRS.html)
 8. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
 9. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
+10. [oAuth2](https://github.com/go-oauth2/oauth2)
 
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
@@ -188,23 +194,49 @@ DOCUMENTATION
 EXAMPLE
 ==================================================
 
+## Domain
+### Dispatching command
 Send example JSON via POST request
 ```sh
-curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST http://go-api-boilerplate.local/users/dispatch/register-user-with-email
+curl -sSL -D -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/dispatch/register-user-with-email -o /dev/null
 ```
 **user** pod logs should look something like:
 ```sh
-2019/01/06 09:37:52.453329 INFO:  [POST Request|Start]: /users/dispatch/register-user-with-email
-2019/01/06 09:37:52.461655 INFO:  [POST Request|End] /users/dispatch/register-user-with-email 8.2233ms
-2019/01/06 09:37:52.459095 DEBUG: [CommandBus|Publish]: *user.RegisterWithEmail &{Email:test@test.com}
-2019/01/06 09:37:52.459966 DEBUG: [EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
-2019/01/06 09:37:52 [EventHandler] {"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
+INFO: 2019/06/03 23:16:05.964391 [Request|Start]: POST /dispatch/register-user-with-email
+DEBUG: 2019/06/03 23:16:05.973105 [CommandBus|Publish]: *user.RegisterWithEmail &{Email:test@test.com}
+DEBUG: 2019/06/03 23:16:05.995985 [EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
+2019/06/03 23:16:05 [EventHandler] {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
+INFO: 2019/06/03 23:16:05.997504 [Request|End]: POST /dispatch/register-user-with-email 33.0308ms
 ```
-Get user details [https://go-api-boilerplate.local/users/4270a1ca-bfba-486a-946d-9d7b8a893ea2](https://go-api-boilerplate.local/users/4270a1ca-bfba-486a-946d-9d7b8a893ea2)
+Request access token for user
+```sh
+curl -sSL -D -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/dispatch/request-user-access-token -o /dev/null
+```
+**user** pod logs should look something like:
+```sh
+INFO: 2019/06/03 23:16:16.470075 [Request|Start]: POST /dispatch/request-user-access-token
+DEBUG: 2019/06/03 23:16:16.471606 [CommandBus|Publish]: *user.RequestAccessToken &{ID:34e7ed39-aa94-4ef2-9422-401bba9fc812}
+DEBUG: 2019/06/03 23:16:16.472004 [EventBus|Publish]: *user.AccessTokenWasRequested {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
+2019/06/03 23:16:16 [EventHandler] {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
+INFO: 2019/06/03 23:16:16.473130 [Request|End]: POST /dispatch/request-user-access-token 3.0006ms
+2019/06/03 23:16:16 [EventHandler] Access Token: {"access_token":"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ","token_type":"Bearer","refresh_token":"NDQGQ_WGWKQWLMEOAJKWVA","expiry":"2019-06-04T01:16:16.5304146Z"}
+```
+## View
+### Public routes
+Get user details [https://go-api-boilerplate.local/users/34e7ed39-aa94-4ef2-9422-401bba9fc812](https://go-api-boilerplate.local/users/34e7ed39-aa94-4ef2-9422-401bba9fc812)
 ```json
-{"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}
+{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
 ```
 Get list of users [https://go-api-boilerplate.local/users?page=1&limit=10](https://go-api-boilerplate.local/users?page=1&limit=10)
 ```json
-{"page":1,"limit":20,"total":1,"users":[{"id":"4270a1ca-bfba-486a-946d-9d7b8a893ea2","email":"test@test.com"}]}
+{"page":1,"limit":20,"total":1,"users":[{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}]}
+```
+### Protected routes
+Access protected route using auth token [https://go-api-boilerplate.local/users/me](https://go-api-boilerplate.local/me)
+```json
+{"code": "401","message": "Unauthorized","error": null}
+```
+Access protected route using auth token [https://go-api-boilerplate.local/users/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ](https://go-api-boilerplate.local/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ)
+```json
+{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
 ```
