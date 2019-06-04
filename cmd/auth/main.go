@@ -6,14 +6,23 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/caarlos0/env"
 	http_cors "github.com/rs/cors"
-	auth_oauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/oauth2"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/application"
+	auth_oauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/application/oauth2"
+	auth_client "github.com/vardius/go-api-boilerplate/cmd/auth/domain/client"
+	auth_token "github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
+	auth_persistence "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
+	auth_repository "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/repository"
 	auth_grpc "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/grpc"
 	auth_http "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/http"
+	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
+	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
+	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
 	"github.com/vardius/go-api-boilerplate/pkg/grpc"
 	http_recovery "github.com/vardius/go-api-boilerplate/pkg/http/recovery"
 	http_response "github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -24,7 +33,6 @@ import (
 	grpc_health "google.golang.org/grpc/health"
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 	oauth2_models "gopkg.in/oauth2.v3/models"
-	oauth2_store "gopkg.in/oauth2.v3/store"
 )
 
 type config struct {
@@ -52,23 +60,38 @@ func main() {
 
 	logger := log.New(cfg.Env)
 
-	tokenStore, err := oauth2_store.NewMemoryTokenStore()
-	if err != nil {
-		logger.Critical(ctx, "oauth token store initialization error: %v\n", err)
-		os.Exit(1)
-	}
+	db := mysql.NewConnection(ctx, cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPass, cfg.DbName, logger)
+	defer db.Close()
 
-	clientStore := oauth2_store.NewClientStore()
+	eventStore := eventstore.New()
+	commandBus := commandbus.NewLoggable(runtime.NumCPU(), logger)
+	eventBus := eventbus.NewLoggable(runtime.NumCPU(), logger)
 
-	// store our client so other services can use password grant
-	clientStore.Set(cfg.OAuthClientID, &oauth2_models.Client{
+	tokenRepository := auth_repository.NewTokenRepository(eventStore, eventBus)
+	clientRepository := auth_repository.NewClientRepository(eventStore, eventBus)
+
+	tokenMYSQLRepository := auth_persistence.NewTokenRepository(db)
+	clientMYSQLRepository := auth_persistence.NewClientRepository(db)
+
+	commandBus.Subscribe(fmt.Sprintf("%T", &auth_token.Create{}), auth_token.OnCreate(tokenRepository, db))
+	commandBus.Subscribe(fmt.Sprintf("%T", &auth_token.Remove{}), auth_token.OnRemove(tokenRepository, db))
+	commandBus.Subscribe(fmt.Sprintf("%T", &auth_client.Create{}), auth_client.OnCreate(clientRepository, db))
+	commandBus.Subscribe(fmt.Sprintf("%T", &auth_client.Remove{}), auth_client.OnRemove(clientRepository, db))
+
+	eventBus.Subscribe(fmt.Sprintf("%T", &auth_token.WasCreated{}), application.WhenTokenWasCreated(db, tokenMYSQLRepository))
+	eventBus.Subscribe(fmt.Sprintf("%T", &auth_token.WasRemoved{}), application.WhenTokenWasRemoved(db, tokenMYSQLRepository))
+	eventBus.Subscribe(fmt.Sprintf("%T", &auth_client.WasCreated{}), application.WhenClientWasCreated(db, clientMYSQLRepository))
+	eventBus.Subscribe(fmt.Sprintf("%T", &auth_client.WasRemoved{}), application.WhenClientWasRemoved(db, clientMYSQLRepository))
+
+	tokenStore := auth_oauth2.NewTokenStore(tokenMYSQLRepository, commandBus)
+	clientStore := auth_oauth2.NewClientStore(clientMYSQLRepository)
+
+	// store our internal user service client
+	clientStore.SetInternal(cfg.OAuthClientID, &oauth2_models.Client{
 		ID:     cfg.OAuthClientID,
 		Secret: cfg.OAuthClientSecret,
 		Domain: fmt.Sprintf("http://%s:%d", cfg.UserHost, cfg.PortHTTP),
 	})
-
-	db := mysql.NewConnection(ctx, cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPass, cfg.DbName, logger)
-	defer db.Close()
 
 	manager := auth_oauth2.NewManager(tokenStore, clientStore, []byte(cfg.Secret))
 	oauth2Server := auth_oauth2.InitServer(manager, db, logger, cfg.Secret)

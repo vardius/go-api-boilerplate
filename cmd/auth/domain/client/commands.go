@@ -1,0 +1,68 @@
+package client
+
+import (
+	"context"
+	"database/sql"
+
+	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
+	oauth2 "gopkg.in/oauth2.v3"
+)
+
+// Remove command
+type Remove struct {
+	ID uuid.UUID `json:"id"`
+}
+
+func recoverCommandHandler(out chan<- error) {
+	if r := recover(); r != nil {
+		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+	}
+}
+
+// OnRemove creates command handler
+func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
+	fn := func(ctx context.Context, c *Remove, out chan<- error) {
+		// this goroutine runs independently to request's goroutine,
+		// there for recover middlewears will not recover from panic to prevent crash
+		defer recoverCommandHandler(out)
+
+		client := repository.Get(c.ID)
+		err := client.Remove()
+		if err != nil {
+			out <- errors.Wrap(err, errors.INTERNAL, "Error when removing client")
+			return
+		}
+
+		out <- repository.Save(executioncontext.ContextWithFlag(context.Background(), executioncontext.LIVE), client)
+	}
+
+	return commandbus.CommandHandler(fn)
+}
+
+// Create command
+type Create struct {
+	ClientInfo oauth2.ClientInfo
+}
+
+// OnCreate creates command handler
+func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
+	fn := func(ctx context.Context, c *Create, out chan<- error) {
+		// this goroutine runs independently to request's goroutine,
+		// there for recover middlewears will not recover from panic to prevent crash
+		defer recoverCommandHandler(out)
+
+		client := New()
+		err := client.Create(c.ClientInfo)
+		if err != nil {
+			out <- errors.Wrap(err, errors.INTERNAL, "Error when creating new client")
+			return
+		}
+
+		out <- repository.Save(executioncontext.ContextWithFlag(context.Background(), executioncontext.LIVE), client)
+	}
+
+	return commandbus.CommandHandler(fn)
+}

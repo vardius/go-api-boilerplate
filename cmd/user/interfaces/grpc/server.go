@@ -9,36 +9,21 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/vardius/go-api-boilerplate/cmd/user/application"
-	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/repository"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
-	"golang.org/x/oauth2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type userServer struct {
 	commandBus commandbus.CommandBus
-	eventBus   eventbus.EventBus
-	eventStore eventstore.EventStore
 	db         *sql.DB
 }
 
 // NewServer returns new user server object
-func NewServer(cb commandbus.CommandBus, eb eventbus.EventBus, es eventstore.EventStore, db *sql.DB, config oauth2.Config, secretKey string) proto.UserServiceServer {
-	s := &userServer{cb, eb, es, db}
-
-	userRepository := repository.NewUserRepository(es, eb)
-	userMYSQLRepository := mysql.NewUserRepository(db)
-
-	s.registerCommandHandlers(userRepository)
-	s.registerEventHandlers(userMYSQLRepository, config, secretKey)
+func NewServer(cb commandbus.CommandBus, db *sql.DB) proto.UserServiceServer {
+	s := &userServer{cb, db}
 
 	return s
 }
@@ -116,20 +101,4 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 	}
 
 	return response, nil
-}
-
-func (s *userServer) registerCommandHandlers(r user.Repository) {
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(r, s.db))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(r, s.db))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(r, s.db))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(r, s.db))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RequestAccessToken{}), user.OnRequestAccessToken(r, s.db))
-}
-
-func (s *userServer) registerEventHandlers(r persistence.UserRepository, config oauth2.Config, secretKey string) {
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail(s.db, r))
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle(s.db, r))
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook(s.db, r))
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.EmailAddressWasChanged{}), application.WhenUserEmailAddressWasChanged(s.db, r))
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.AccessTokenWasRequested{}), application.WhenUserAccessTokenWasRequested(config, secretKey))
 }

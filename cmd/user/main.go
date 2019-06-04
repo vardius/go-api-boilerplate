@@ -13,8 +13,10 @@ import (
 	http_cors "github.com/rs/cors"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/application"
+	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	user_proto "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
+	user_repository "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/repository"
 	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
 	user_http "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/http"
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
@@ -27,7 +29,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
-	"github.com/vardius/gorouter/v4"
+	gorouter "github.com/vardius/gorouter/v4"
 	"golang.org/x/oauth2"
 	grpc_health "google.golang.org/grpc/health"
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
@@ -72,14 +74,26 @@ func main() {
 		},
 	}
 
-	userServer := user_grpc.NewServer(
-		commandbus.NewLoggable(runtime.NumCPU(), logger),
-		eventbus.NewLoggable(runtime.NumCPU(), logger),
-		eventstore.New(),
-		db,
-		oauth2Config,
-		cfg.Secret,
-	)
+	eventStore := eventstore.New()
+	commandBus := commandbus.NewLoggable(runtime.NumCPU(), logger)
+	eventBus := eventbus.NewLoggable(runtime.NumCPU(), logger)
+
+	userRepository := user_repository.NewUserRepository(eventStore, eventBus)
+	userMYSQLRepository := user_persistence.NewUserRepository(db)
+
+	commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(userRepository, db))
+	commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(userRepository, db))
+	commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(userRepository, db))
+	commandBus.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(userRepository, db))
+	commandBus.Subscribe(fmt.Sprintf("%T", &user.RequestAccessToken{}), user.OnRequestAccessToken(userRepository, db))
+
+	eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
+	eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
+	eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
+	eventBus.Subscribe(fmt.Sprintf("%T", &user.EmailAddressWasChanged{}), application.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
+	eventBus.Subscribe(fmt.Sprintf("%T", &user.AccessTokenWasRequested{}), application.WhenUserAccessTokenWasRequested(oauth2Config, cfg.Secret))
+
+	userServer := user_grpc.NewServer(commandBus, db)
 
 	authConn := grpc.NewConnection(ctx, cfg.AuthHost, cfg.PortGRPC, logger)
 	defer authConn.Close()

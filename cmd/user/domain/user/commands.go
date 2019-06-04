@@ -10,6 +10,12 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
 
+func recoverCommandHandler(out chan<- error) {
+	if r := recover(); r != nil {
+		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+	}
+}
+
 // RequestAccessToken command
 type RequestAccessToken struct {
 	ID uuid.UUID `json:"id"`
@@ -20,11 +26,7 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 	fn := func(ctx context.Context, c *RequestAccessToken, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		defer recoverCommandHandler(out)
 
 		u := repository.Get(c.ID)
 		err := u.RequestAccessToken()
@@ -50,11 +52,7 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 	fn := func(ctx context.Context, c *ChangeEmailAddress, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		defer recoverCommandHandler(out)
 
 		var totalUsers int32
 
@@ -93,11 +91,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 	fn := func(ctx context.Context, c *RegisterWithEmail, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		defer recoverCommandHandler(out)
 
 		var totalUsers int32
 
@@ -143,11 +137,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 	fn := func(ctx context.Context, c *RegisterWithFacebook, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		defer recoverCommandHandler(out)
 
 		var id, emailAddress, facebookID string
 
@@ -203,11 +193,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 	fn := func(ctx context.Context, c *RegisterWithGoogle, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		defer recoverCommandHandler(out)
 
 		var id, emailAddress, googleID string
 

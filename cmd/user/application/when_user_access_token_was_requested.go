@@ -16,11 +16,7 @@ func WhenUserAccessTokenWasRequested(config oauth2.Config, secretKey string) eve
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("[EventHandler] Recovered in %v", r)
-			}
-		}()
+		defer recoverEventHandler()
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
