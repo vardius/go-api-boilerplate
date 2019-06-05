@@ -12,7 +12,7 @@ import (
 )
 
 type eventStore struct {
-	mtx    sync.RWMutex
+	sync.RWMutex
 	events map[string]*domain.Event
 }
 
@@ -21,8 +21,8 @@ func (s *eventStore) Store(events []*domain.Event) error {
 		return nil
 	}
 
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
+	s.Lock()
+	defer s.Unlock()
 
 	// @TODO: check event version
 	for _, e := range events {
@@ -33,8 +33,8 @@ func (s *eventStore) Store(events []*domain.Event) error {
 }
 
 func (s *eventStore) Get(id uuid.UUID) (*domain.Event, error) {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
+	s.RLock()
+	defer s.RUnlock()
 	if val, ok := s.events[id.String()]; ok {
 		return val, nil
 	}
@@ -42,8 +42,8 @@ func (s *eventStore) Get(id uuid.UUID) (*domain.Event, error) {
 }
 
 func (s *eventStore) FindAll() []*domain.Event {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
+	s.RLock()
+	defer s.RUnlock()
 	es := make([]*domain.Event, 0, len(s.events))
 	for _, val := range s.events {
 		es = append(es, val)
@@ -52,8 +52,8 @@ func (s *eventStore) FindAll() []*domain.Event {
 }
 
 func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.Event {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
+	s.RLock()
+	defer s.RUnlock()
 	e := make([]*domain.Event, 0, 0)
 	for _, val := range s.events {
 		if val.Metadata.StreamName == streamName && val.Metadata.StreamID == streamID {
