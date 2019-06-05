@@ -232,6 +232,16 @@ user:
         secretKeyRef:
           key: mysql-root-password
           name: go-api-boilerplate-app
+    - name: CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          key: USER_CLIENT_ID
+          name: go-api-boilerplate-app
+    - name: CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          key: USER_CLIENT_SECRET
+          name: go-api-boilerplate-app
     - name: DB_NAME
       value: 'goapiboilerplate'
     - name: AWS_REGION
@@ -260,8 +270,8 @@ secret:
   type: Opaque
   data:
     SECRET: changeme
-    OAUTH_CLIENT_ID: changeme
-    OAUTH_CLIENT_SECRET: changeme
+    USER_CLIENT_ID: changeme
+    USER_CLIENT_SECRET: changeme
     mysql-root-password: password
     mysql-password: password
 

@@ -36,20 +36,20 @@ import (
 )
 
 type config struct {
-	Env               string   `env:"ENV"                 envDefault:"development"`
-	Host              string   `env:"HOST"                envDefault:"0.0.0.0"`
-	PortHTTP          int      `env:"PORT_HTTP"           envDefault:"3010"`
-	PortGRPC          int      `env:"PORT_GRPC"           envDefault:"3011"`
-	UserHost          string   `env:"USER_HOST"           envDefault:"0.0.0.0"`
-	DbHost            string   `env:"DB_HOST"             envDefault:"0.0.0.0"`
-	DbPort            int      `env:"DB_PORT"             envDefault:"3306"`
-	DbUser            string   `env:"DB_USER"             envDefault:"root"`
-	DbPass            string   `env:"DB_PASS"             envDefault:"password"`
-	DbName            string   `env:"DB_NAME"             envDefault:"goapiboilerplate"`
-	OAuthClientID     string   `env:"OAUTH_CLIENT_ID"     envDefault:"clientId"`
-	OAuthClientSecret string   `env:"OAUTH_CLIENT_SECRET" envDefault:"clientSecret"`
-	Secret            string   `env:"SECRET"              envDefault:"secret"`
-	Origins           []string `env:"ORIGINS"             envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
+	Env              string   `env:"ENV"                 envDefault:"development"`
+	Secret           string   `env:"SECRET"              envDefault:"secret"`
+	Origins          []string `env:"ORIGINS"             envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
+	Host             string   `env:"HOST"                envDefault:"0.0.0.0"`
+	PortHTTP         int      `env:"PORT_HTTP"           envDefault:"3010"`
+	PortGRPC         int      `env:"PORT_GRPC"           envDefault:"3011"`
+	DbHost           string   `env:"DB_HOST"             envDefault:"0.0.0.0"`
+	DbPort           int      `env:"DB_PORT"             envDefault:"3306"`
+	DbUser           string   `env:"DB_USER"             envDefault:"root"`
+	DbPass           string   `env:"DB_PASS"             envDefault:"password"`
+	DbName           string   `env:"DB_NAME"             envDefault:"goapiboilerplate"`
+	UserHost         string   `env:"USER_HOST"           envDefault:"0.0.0.0"`
+	UserClientID     string   `env:"USER_CLIENT_ID"      envDefault:"clientId"`
+	UserClientSecret string   `env:"USER_CLIENT_SECRET"  envDefault:"clientSecret"`
 }
 
 func main() {
@@ -87,9 +87,9 @@ func main() {
 	clientStore := auth_oauth2.NewClientStore(clientMYSQLRepository)
 
 	// store our internal user service client
-	clientStore.SetInternal(cfg.OAuthClientID, &oauth2_models.Client{
-		ID:     cfg.OAuthClientID,
-		Secret: cfg.OAuthClientSecret,
+	clientStore.SetInternal(cfg.UserClientID, &oauth2_models.Client{
+		ID:     cfg.UserClientID,
+		Secret: cfg.UserClientSecret,
 		Domain: fmt.Sprintf("http://%s:%d", cfg.UserHost, cfg.PortHTTP),
 	})
 
