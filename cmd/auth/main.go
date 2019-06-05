@@ -6,12 +6,11 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"runtime"
 	"time"
 
-	"github.com/caarlos0/env"
 	http_cors "github.com/rs/cors"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/application"
+	auth_config "github.com/vardius/go-api-boilerplate/cmd/auth/application/config"
 	auth_oauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/application/oauth2"
 	auth_client "github.com/vardius/go-api-boilerplate/cmd/auth/domain/client"
 	auth_token "github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
@@ -55,17 +54,14 @@ type config struct {
 func main() {
 	ctx := context.Background()
 
-	cfg := config{}
-	env.Parse(&cfg)
+	logger := log.New(auth_config.Env.Environment)
 
-	logger := log.New(cfg.Env)
-
-	db := mysql.NewConnection(ctx, cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPass, cfg.DbName, logger)
+	db := mysql.NewConnection(ctx, auth_config.Env.DbHost, auth_config.Env.DbPort, auth_config.Env.DbUser, auth_config.Env.DbPass, auth_config.Env.DbName, logger)
 	defer db.Close()
 
 	eventStore := eventstore.New()
-	commandBus := commandbus.NewLoggable(runtime.NumCPU(), logger)
-	eventBus := eventbus.NewLoggable(runtime.NumCPU(), logger)
+	commandBus := commandbus.NewLoggable(auth_config.Env.CommandBusQueueSize, logger)
+	eventBus := eventbus.NewLoggable(auth_config.Env.EventBusQueueSize, logger)
 
 	tokenRepository := auth_repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := auth_repository.NewClientRepository(eventStore, eventBus)
@@ -73,33 +69,33 @@ func main() {
 	tokenMYSQLRepository := auth_persistence.NewTokenRepository(db)
 	clientMYSQLRepository := auth_persistence.NewClientRepository(db)
 
-	commandBus.Subscribe(fmt.Sprintf("%T", &auth_token.Create{}), auth_token.OnCreate(tokenRepository, db))
-	commandBus.Subscribe(fmt.Sprintf("%T", &auth_token.Remove{}), auth_token.OnRemove(tokenRepository, db))
-	commandBus.Subscribe(fmt.Sprintf("%T", &auth_client.Create{}), auth_client.OnCreate(clientRepository, db))
-	commandBus.Subscribe(fmt.Sprintf("%T", &auth_client.Remove{}), auth_client.OnRemove(clientRepository, db))
+	commandBus.Subscribe((&auth_token.Create{}).GetName(), auth_token.OnCreate(tokenRepository, db))
+	commandBus.Subscribe((&auth_token.Remove{}).GetName(), auth_token.OnRemove(tokenRepository, db))
+	commandBus.Subscribe((&auth_client.Create{}).GetName(), auth_client.OnCreate(clientRepository, db))
+	commandBus.Subscribe((&auth_client.Remove{}).GetName(), auth_client.OnRemove(clientRepository, db))
 
-	eventBus.Subscribe(fmt.Sprintf("%T", &auth_token.WasCreated{}), application.WhenTokenWasCreated(db, tokenMYSQLRepository))
-	eventBus.Subscribe(fmt.Sprintf("%T", &auth_token.WasRemoved{}), application.WhenTokenWasRemoved(db, tokenMYSQLRepository))
-	eventBus.Subscribe(fmt.Sprintf("%T", &auth_client.WasCreated{}), application.WhenClientWasCreated(db, clientMYSQLRepository))
-	eventBus.Subscribe(fmt.Sprintf("%T", &auth_client.WasRemoved{}), application.WhenClientWasRemoved(db, clientMYSQLRepository))
+	eventBus.Subscribe((&auth_token.WasCreated{}).GetType(), application.WhenTokenWasCreated(db, tokenMYSQLRepository))
+	eventBus.Subscribe((&auth_token.WasRemoved{}).GetType(), application.WhenTokenWasRemoved(db, tokenMYSQLRepository))
+	eventBus.Subscribe((&auth_client.WasCreated{}).GetType(), application.WhenClientWasCreated(db, clientMYSQLRepository))
+	eventBus.Subscribe((&auth_client.WasRemoved{}).GetType(), application.WhenClientWasRemoved(db, clientMYSQLRepository))
 
 	tokenStore := auth_oauth2.NewTokenStore(tokenMYSQLRepository, commandBus)
 	clientStore := auth_oauth2.NewClientStore(clientMYSQLRepository)
 
 	// store our internal user service client
-	clientStore.SetInternal(cfg.UserClientID, &oauth2_models.Client{
-		ID:     cfg.UserClientID,
-		Secret: cfg.UserClientSecret,
-		Domain: fmt.Sprintf("http://%s:%d", cfg.UserHost, cfg.PortHTTP),
+	clientStore.SetInternal(auth_config.Env.UserClientID, &oauth2_models.Client{
+		ID:     auth_config.Env.UserClientID,
+		Secret: auth_config.Env.UserClientSecret,
+		Domain: fmt.Sprintf("http://%s:%d", auth_config.Env.UserHost, auth_config.Env.PortHTTP),
 	})
 
-	manager := auth_oauth2.NewManager(tokenStore, clientStore, []byte(cfg.Secret))
-	oauth2Server := auth_oauth2.InitServer(manager, db, logger, cfg.Secret)
+	manager := auth_oauth2.NewManager(tokenStore, clientStore, []byte(auth_config.Env.Secret))
+	oauth2Server := auth_oauth2.InitServer(manager, db, logger, auth_config.Env.Secret)
 
 	grpcServer := grpc.NewServer(logger)
-	authServer := auth_grpc.NewServer(oauth2Server, cfg.Secret)
+	authServer := auth_grpc.NewServer(oauth2Server, auth_config.Env.Secret)
 
-	authConn := grpc.NewConnection(ctx, cfg.Host, cfg.PortGRPC, logger)
+	authConn := grpc.NewConnection(ctx, auth_config.Env.Host, auth_config.Env.PortGRPC, logger)
 	defer authConn.Close()
 
 	healthServer := grpc_health.NewServer()
@@ -122,16 +118,16 @@ func main() {
 	auth_http.AddAuthRoutes(router, oauth2Server)
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.PortHTTP),
+		Addr:         fmt.Sprintf("%s:%d", auth_config.Env.Host, auth_config.Env.PortHTTP),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Handler:      router,
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.PortGRPC))
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", auth_config.Env.Host, auth_config.Env.PortGRPC))
 	if err != nil {
-		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", cfg.Host, cfg.PortGRPC, err)
+		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", auth_config.Env.Host, auth_config.Env.PortGRPC, err)
 		os.Exit(1)
 	}
 
@@ -162,8 +158,8 @@ func main() {
 		os.Exit(1)
 	}()
 
-	logger.Info(ctx, "tcp running at %s:%d\n", cfg.Host, cfg.PortGRPC)
-	logger.Info(ctx, "http running at %s:%d\n", cfg.Host, cfg.PortHTTP)
+	logger.Info(ctx, "tcp running at %s:%d\n", auth_config.Env.Host, auth_config.Env.PortGRPC)
+	logger.Info(ctx, "http running at %s:%d\n", auth_config.Env.Host, auth_config.Env.PortHTTP)
 
 	os_shutdown.GracefulStop(stop)
 }

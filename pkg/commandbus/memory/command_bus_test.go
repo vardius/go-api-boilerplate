@@ -9,6 +9,12 @@ import (
 	"github.com/vardius/golog"
 )
 
+type commandMock struct{}
+
+func (c *commandMock) GetName() string {
+	return "command"
+}
+
 func TestNew(t *testing.T) {
 	bus := New(runtime.NumCPU())
 
@@ -41,11 +47,11 @@ func TestSubscribePublish(t *testing.T) {
 	ctx := context.Background()
 	c := make(chan error)
 
-	bus.Subscribe("command", func(ctx context.Context, _ bool, out chan<- error) {
+	bus.Subscribe("command", func(ctx context.Context, _ *commandMock, out chan<- error) {
 		out <- nil
 	})
 
-	bus.Publish(ctx, "command", true, c)
+	bus.Publish(ctx, &commandMock{}, c)
 
 	for {
 		select {
@@ -67,14 +73,14 @@ func TestUnsubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	handler := func(ctx context.Context, _ bool, out chan<- error) {
+	handler := func(ctx context.Context, _ *commandMock, out chan<- error) {
 		t.Fail()
 	}
 
 	bus.Subscribe("command", handler)
 	bus.Unsubscribe("command", handler)
 
-	bus.Publish(ctx, "command", true, c)
+	bus.Publish(ctx, &commandMock{}, c)
 
 	for {
 		select {

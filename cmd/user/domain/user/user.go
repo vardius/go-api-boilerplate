@@ -5,7 +5,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -24,7 +23,7 @@ type User struct {
 	email string
 }
 
-func (u *User) transition(e interface{}) {
+func (u *User) transition(e domain.RawEvent) {
 	switch e := e.(type) {
 	case *WasRegisteredWithEmail:
 		u.id = e.ID
@@ -40,7 +39,7 @@ func (u *User) transition(e interface{}) {
 	}
 }
 
-func (u *User) trackChange(e interface{}) error {
+func (u *User) trackChange(e domain.RawEvent) error {
 	u.transition(e)
 	eventEnvelop, err := domain.NewEvent(u.id, StreamName, u.version, e)
 
@@ -129,22 +128,22 @@ func (u *User) RequestAccessToken() error {
 // FromHistory loads current aggregate root state by applying all events in order
 func (u *User) FromHistory(events []*domain.Event) {
 	for _, domainEvent := range events {
-		var e interface{}
+		var e domain.RawEvent
 
 		switch domainEvent.Metadata.Type {
-		case fmt.Sprintf("%T", &AccessTokenWasRequested{}):
+		case (&AccessTokenWasRequested{}).GetType():
 			e = &AccessTokenWasRequested{}
-		case fmt.Sprintf("%T", &EmailAddressWasChanged{}):
+		case (&EmailAddressWasChanged{}).GetType():
 			e = &EmailAddressWasChanged{}
-		case fmt.Sprintf("%T", &WasRegisteredWithEmail{}):
+		case (&WasRegisteredWithEmail{}).GetType():
 			e = &WasRegisteredWithEmail{}
-		case fmt.Sprintf("%T", &WasRegisteredWithFacebook{}):
+		case (&WasRegisteredWithFacebook{}).GetType():
 			e = &WasRegisteredWithFacebook{}
-		case fmt.Sprintf("%T", &ConnectedWithFacebook{}):
+		case (&ConnectedWithFacebook{}).GetType():
 			e = &ConnectedWithFacebook{}
-		case fmt.Sprintf("%T", &WasRegisteredWithGoogle{}):
+		case (&WasRegisteredWithGoogle{}).GetType():
 			e = &WasRegisteredWithGoogle{}
-		case fmt.Sprintf("%T", &ConnectedWithGoogle{}):
+		case (&ConnectedWithGoogle{}).GetType():
 			e = &ConnectedWithGoogle{}
 		default:
 			// @TODO: should we panic here ?

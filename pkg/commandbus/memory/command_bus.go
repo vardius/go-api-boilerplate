@@ -7,6 +7,7 @@ import (
 	"context"
 
 	basecommandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/golog"
 	messagebus "github.com/vardius/message-bus"
 )
@@ -15,8 +16,8 @@ type commandBus struct {
 	messageBus messagebus.MessageBus
 }
 
-func (bus *commandBus) Publish(ctx context.Context, commandName string, command interface{}, out chan<- error) {
-	bus.messageBus.Publish(commandName, ctx, command, out)
+func (bus *commandBus) Publish(ctx context.Context, command domain.Command, out chan<- error) {
+	bus.messageBus.Publish(command.GetName(), ctx, command, out)
 }
 
 func (bus *commandBus) Subscribe(commandName string, fn basecommandbus.CommandHandler) error {
@@ -37,9 +38,9 @@ type loggableCommandBus struct {
 	logger     golog.Logger
 }
 
-func (bus *loggableCommandBus) Publish(ctx context.Context, commandName string, command interface{}, out chan<- error) {
-	bus.logger.Debug(ctx, "[CommandBus|Publish]: %s %+v\n", commandName, command)
-	bus.commandBus.Publish(ctx, commandName, command, out)
+func (bus *loggableCommandBus) Publish(ctx context.Context, command domain.Command, out chan<- error) {
+	bus.logger.Debug(ctx, "[CommandBus|Publish]: %s %+v\n", command.GetName(), command)
+	bus.commandBus.Publish(ctx, command, out)
 }
 
 func (bus *loggableCommandBus) Subscribe(commandName string, fn basecommandbus.CommandHandler) error {

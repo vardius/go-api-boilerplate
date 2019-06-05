@@ -6,13 +6,12 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"runtime"
 	"time"
 
-	"github.com/caarlos0/env"
 	http_cors "github.com/rs/cors"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/application"
+	user_config "github.com/vardius/go-api-boilerplate/cmd/user/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	user_proto "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
@@ -35,70 +34,49 @@ import (
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
 
-type config struct {
-	Env          string   `env:"ENV"           envDefault:"development"`
-	Secret       string   `env:"SECRET"        envDefault:"secret"`
-	Origins      []string `env:"ORIGINS"       envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
-	Host         string   `env:"HOST"          envDefault:"0.0.0.0"`
-	ClientID     string   `env:"CLIENT_ID"     envDefault:"clientId"`
-	ClientSecret string   `env:"CLIENT_SECRET" envDefault:"clientSecret"`
-	PortHTTP     int      `env:"PORT_HTTP"     envDefault:"3020"`
-	PortGRPC     int      `env:"PORT_GRPC"     envDefault:"3021"`
-	DbHost       string   `env:"DB_HOST"       envDefault:"0.0.0.0"`
-	DbPort       int      `env:"DB_PORT"       envDefault:"3306"`
-	DbUser       string   `env:"DB_USER"       envDefault:"root"`
-	DbPass       string   `env:"DB_PASS"       envDefault:"password"`
-	DbName       string   `env:"DB_NAME"       envDefault:"goapiboilerplate"`
-	AuthHost     string   `env:"AUTH_HOST"     envDefault:"0.0.0.0"`
-}
-
 func main() {
 	ctx := context.Background()
-
-	cfg := config{}
-	env.Parse(&cfg)
-
-	logger := log.New(cfg.Env)
+	logger := log.New(user_config.Env.Environment)
 	grpcServer := grpc.NewServer(logger)
 
-	db := mysql.NewConnection(ctx, cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPass, cfg.DbName, logger)
+	db := mysql.NewConnection(ctx, user_config.Env.DbHost, user_config.Env.DbPort, user_config.Env.DbUser, user_config.Env.DbPass, user_config.Env.DbName, logger)
 	defer db.Close()
 
 	oauth2Config := oauth2.Config{
-		ClientID:     cfg.ClientID,
-		ClientSecret: cfg.ClientSecret,
+		ClientID:     user_config.Env.ClientID,
+		ClientSecret: user_config.Env.ClientSecret,
 		Scopes:       []string{"all"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  fmt.Sprintf("http://%s:%d/%s", cfg.AuthHost, cfg.PortHTTP, "authorize"),
-			TokenURL: fmt.Sprintf("http://%s:%d/%s", cfg.AuthHost, cfg.PortHTTP, "token"),
+			AuthURL:  fmt.Sprintf("http://%s:%d/%s", user_config.Env.AuthHost, user_config.Env.PortHTTP, "authorize"),
+			TokenURL: fmt.Sprintf("http://%s:%d/%s", user_config.Env.AuthHost, user_config.Env.PortHTTP, "token"),
 		},
 	}
 
 	eventStore := eventstore.New()
-	commandBus := commandbus.NewLoggable(runtime.NumCPU(), logger)
-	eventBus := eventbus.NewLoggable(runtime.NumCPU(), logger)
+	commandBus := commandbus.NewLoggable(user_config.Env.CommandBusQueueSize, logger)
+	eventBus := eventbus.NewLoggable(user_config.Env.EventBusQueueSize, logger)
 
 	userRepository := user_repository.NewUserRepository(eventStore, eventBus)
 	userMYSQLRepository := user_persistence.NewUserRepository(db)
 
-	commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(userRepository, db))
-	commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(userRepository, db))
-	commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(userRepository, db))
-	commandBus.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(userRepository, db))
-	commandBus.Subscribe(fmt.Sprintf("%T", &user.RequestAccessToken{}), user.OnRequestAccessToken(userRepository, db))
+	commandBus.Subscribe((&user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, db))
+	commandBus.Subscribe((&user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, db))
+	commandBus.Subscribe((&user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, db))
+	commandBus.Subscribe((&user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, db))
+	commandBus.Subscribe((&user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, db))
 
-	eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
-	eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
-	eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
-	eventBus.Subscribe(fmt.Sprintf("%T", &user.EmailAddressWasChanged{}), application.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
-	eventBus.Subscribe(fmt.Sprintf("%T", &user.AccessTokenWasRequested{}), application.WhenUserAccessTokenWasRequested(oauth2Config, cfg.Secret))
+	eventBus.Subscribe((&user.WasRegisteredWithEmail{}).GetType(), application.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
+	eventBus.Subscribe((&user.WasRegisteredWithGoogle{}).GetType(), application.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
+	eventBus.Subscribe((&user.WasRegisteredWithFacebook{}).GetType(), application.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
+	eventBus.Subscribe((&user.EmailAddressWasChanged{}).GetType(), application.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
+	eventBus.Subscribe((&user.AccessTokenWasRequested{}).GetType(), application.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
 
 	userServer := user_grpc.NewServer(commandBus, db)
 
-	authConn := grpc.NewConnection(ctx, cfg.AuthHost, cfg.PortGRPC, logger)
+	authConn := grpc.NewConnection(ctx, user_config.Env.AuthHost, user_config.Env.PortGRPC, logger)
 	defer authConn.Close()
 
-	userConn := grpc.NewConnection(ctx, cfg.Host, cfg.PortGRPC, logger)
+	userConn := grpc.NewConnection(ctx, user_config.Env.Host, user_config.Env.PortGRPC, logger)
 	defer userConn.Close()
 
 	grpAuthClient := auth_proto.NewAuthenticationServiceClient(authConn)
@@ -125,20 +103,20 @@ func main() {
 	grpc_health_proto.RegisterHealthServer(grpcServer, healthServer)
 
 	user_http.AddHealthCheckRoutes(router, logger, userConn, authConn, db)
-	user_http.AddAuthRoutes(router, grpUserClient, oauth2Config, cfg.Secret)
+	user_http.AddAuthRoutes(router, grpUserClient, oauth2Config, user_config.Env.Secret)
 	user_http.AddUserRoutes(router, grpUserClient)
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.PortHTTP),
+		Addr:         fmt.Sprintf("%s:%d", user_config.Env.Host, user_config.Env.PortHTTP),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Handler:      router,
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.PortGRPC))
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", user_config.Env.Host, user_config.Env.PortGRPC))
 	if err != nil {
-		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", cfg.Host, cfg.PortGRPC, err)
+		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", user_config.Env.Host, user_config.Env.PortGRPC, err)
 		os.Exit(1)
 	}
 
@@ -169,8 +147,8 @@ func main() {
 		os.Exit(1)
 	}()
 
-	logger.Info(ctx, "tcp running at %s:%d\n", cfg.Host, cfg.PortGRPC)
-	logger.Info(ctx, "http running at %s:%d\n", cfg.Host, cfg.PortHTTP)
+	logger.Info(ctx, "tcp running at %s:%d\n", user_config.Env.Host, user_config.Env.PortGRPC)
+	logger.Info(ctx, "http running at %s:%d\n", user_config.Env.Host, user_config.Env.PortHTTP)
 
 	os_shutdown.GracefulStop(stop)
 }

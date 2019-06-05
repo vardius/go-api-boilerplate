@@ -5,7 +5,6 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -23,14 +22,14 @@ type Client struct {
 	changes []*domain.Event
 }
 
-func (c *Client) transition(e interface{}) {
+func (c *Client) transition(e domain.RawEvent) {
 	switch e := e.(type) {
 	case *WasCreated:
 		c.id = e.ID
 	}
 }
 
-func (c *Client) trackChange(e interface{}) error {
+func (c *Client) trackChange(e domain.RawEvent) error {
 	c.transition(e)
 	eventEnvelop, err := domain.NewEvent(c.id, StreamName, c.version, e)
 
@@ -77,12 +76,12 @@ func (c *Client) Remove() error {
 // FromHistory loads current aggregate root state by applying all events in order
 func (c *Client) FromHistory(events []*domain.Event) {
 	for _, domainEvent := range events {
-		var e interface{}
+		var e domain.RawEvent
 
 		switch domainEvent.Metadata.Type {
-		case fmt.Sprintf("%T", &WasCreated{}):
+		case (&WasCreated{}).GetType():
 			e = &WasCreated{}
-		case fmt.Sprintf("%T", &WasRemoved{}):
+		case (&WasRemoved{}).GetType():
 			e = &WasRemoved{}
 		default:
 			// @TODO: should we panic here ?

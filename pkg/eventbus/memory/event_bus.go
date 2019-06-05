@@ -16,8 +16,8 @@ type eventBus struct {
 	messageBus messagebus.MessageBus
 }
 
-func (bus *eventBus) Publish(ctx context.Context, eventType string, event domain.Event) {
-	bus.messageBus.Publish(eventType, ctx, event)
+func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
+	bus.messageBus.Publish(event.Metadata.Type, ctx, event)
 }
 
 func (bus *eventBus) Subscribe(eventType string, fn baseeventbus.EventHandler) error {
@@ -38,9 +38,9 @@ type loggableEventBus struct {
 	logger   golog.Logger
 }
 
-func (bus *loggableEventBus) Publish(ctx context.Context, eventType string, event domain.Event) {
-	bus.logger.Debug(ctx, "[EventBus|Publish]: %s %s\n", eventType, event.Payload)
-	bus.eventBus.Publish(ctx, eventType, event)
+func (bus *loggableEventBus) Publish(ctx context.Context, event domain.Event) {
+	bus.logger.Debug(ctx, "[EventBus|Publish]: %s %s\n", event.Metadata.Type, event.Payload)
+	bus.eventBus.Publish(ctx, event)
 }
 
 func (bus *loggableEventBus) Subscribe(eventType string, fn baseeventbus.EventHandler) error {

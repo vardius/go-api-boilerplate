@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
@@ -16,10 +17,9 @@ type Remove struct {
 	ID uuid.UUID `json:"id"`
 }
 
-func recoverCommandHandler(out chan<- error) {
-	if r := recover(); r != nil {
-		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-	}
+// GetName returns command name
+func (c *Remove) GetName() string {
+	return fmt.Sprintf("%T", c)
 }
 
 // OnRemove creates command handler
@@ -47,6 +47,11 @@ type Create struct {
 	ClientInfo oauth2.ClientInfo
 }
 
+// GetName returns command name
+func (c *Create) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
 // OnCreate creates command handler
 func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *Create, out chan<- error) {
@@ -65,4 +70,10 @@ func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	}
 
 	return commandbus.CommandHandler(fn)
+}
+
+func recoverCommandHandler(out chan<- error) {
+	if r := recover(); r != nil {
+		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+	}
 }

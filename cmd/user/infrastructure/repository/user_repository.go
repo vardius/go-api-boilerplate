@@ -25,7 +25,7 @@ func (r *userRepository) Save(ctx context.Context, u *user.User) error {
 	}
 
 	for _, event := range u.Changes() {
-		r.eventBus.Publish(ctx, event.Metadata.Type, *event)
+		r.eventBus.Publish(ctx, *event)
 	}
 
 	return nil

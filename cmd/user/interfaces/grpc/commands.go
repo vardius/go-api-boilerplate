@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
@@ -26,8 +27,8 @@ const RegisterUserWithFacebook = "register-user-with-facebook"
 // RegisterUserWithGoogle command bus contract
 const RegisterUserWithGoogle = "register-user-with-google"
 
-func buildDomainCommand(ctx context.Context, name string, payload []byte) (interface{}, error) {
-	var c interface{}
+func buildDomainCommand(ctx context.Context, name string, payload []byte) (domain.Command, error) {
+	var c domain.Command
 	switch name {
 	case RegisterUserWithEmail:
 		c = &user.RegisterWithEmail{}

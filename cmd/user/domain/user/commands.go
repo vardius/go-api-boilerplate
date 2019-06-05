@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
@@ -10,15 +11,14 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
 
-func recoverCommandHandler(out chan<- error) {
-	if r := recover(); r != nil {
-		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-	}
-}
-
 // RequestAccessToken command
 type RequestAccessToken struct {
 	ID uuid.UUID `json:"id"`
+}
+
+// GetName returns command name
+func (c *RequestAccessToken) GetName() string {
+	return fmt.Sprintf("%T", c)
 }
 
 // OnRequestAccessToken creates command handler
@@ -45,6 +45,11 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 type ChangeEmailAddress struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
+}
+
+// GetName returns command name
+func (c *ChangeEmailAddress) GetName() string {
+	return fmt.Sprintf("%T", c)
 }
 
 // OnChangeEmailAddress creates command handler
@@ -84,6 +89,11 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 // RegisterWithEmail command
 type RegisterWithEmail struct {
 	Email string `json:"email"`
+}
+
+// GetName returns command name
+func (c *RegisterWithEmail) GetName() string {
+	return fmt.Sprintf("%T", c)
 }
 
 // OnRegisterWithEmail creates command handler
@@ -130,6 +140,11 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 type RegisterWithFacebook struct {
 	Email      string `json:"email"`
 	FacebookID string `json:"facebookId"`
+}
+
+// GetName returns command name
+func (c *RegisterWithFacebook) GetName() string {
+	return fmt.Sprintf("%T", c)
 }
 
 // OnRegisterWithFacebook creates command handler
@@ -188,6 +203,11 @@ type RegisterWithGoogle struct {
 	GoogleID string `json:"googleId"`
 }
 
+// GetName returns command name
+func (c *RegisterWithGoogle) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
 // OnRegisterWithGoogle creates command handler
 func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c *RegisterWithGoogle, out chan<- error) {
@@ -236,4 +256,10 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 	}
 
 	return commandbus.CommandHandler(fn)
+}
+
+func recoverCommandHandler(out chan<- error) {
+	if r := recover(); r != nil {
+		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+	}
 }

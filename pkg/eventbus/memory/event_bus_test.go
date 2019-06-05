@@ -11,6 +11,12 @@ import (
 	"github.com/vardius/golog"
 )
 
+type rawEventMock struct{}
+
+func (c *rawEventMock) GetType() string {
+	return "event"
+}
+
 func TestNew(t *testing.T) {
 	bus := New(runtime.NumCPU())
 
@@ -45,12 +51,12 @@ func TestSubscribePublish(t *testing.T) {
 		c <- event
 	})
 
-	e, err := domain.NewEvent(uuid.New(), "test", 1, nil)
+	e, err := domain.NewEvent(uuid.New(), "test", 1, &rawEventMock{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	bus.Publish(ctx, "event", *e)
+	bus.Publish(ctx, *e)
 
 	for {
 		select {
@@ -75,7 +81,7 @@ func TestUnsubscribe(t *testing.T) {
 		t.Fail()
 	}
 
-	e, err := domain.NewEvent(uuid.New(), "test", 1, nil)
+	e, err := domain.NewEvent(uuid.New(), "test", 1, &rawEventMock{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +89,7 @@ func TestUnsubscribe(t *testing.T) {
 	bus.Subscribe("event", handler)
 	bus.Unsubscribe("event", handler)
 
-	bus.Publish(ctx, "event", *e)
+	bus.Publish(ctx, *e)
 
 	for {
 		select {

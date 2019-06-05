@@ -6,7 +6,6 @@ package grpc
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
@@ -39,7 +38,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 	defer close(out)
 
 	go func() {
-		s.commandBus.Publish(ctx, fmt.Sprintf("%T", c), c, out)
+		s.commandBus.Publish(ctx, c, out)
 	}()
 
 	select {

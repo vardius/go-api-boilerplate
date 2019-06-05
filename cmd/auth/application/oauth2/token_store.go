@@ -2,7 +2,6 @@ package oauth2
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
@@ -33,7 +32,7 @@ func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 	}
 
 	go func() {
-		ts.commandBus.Publish(ctx, fmt.Sprintf("%T", c), c, out)
+		ts.commandBus.Publish(ctx, c, out)
 	}()
 
 	select {
@@ -116,7 +115,7 @@ func (ts *TokenStore) remove(ctx context.Context, t *persistence.Token) error {
 	}
 
 	go func() {
-		ts.commandBus.Publish(ctx, fmt.Sprintf("%T", c), c, out)
+		ts.commandBus.Publish(ctx, c, out)
 	}()
 
 	select {

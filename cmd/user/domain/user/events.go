@@ -1,6 +1,8 @@
 package user
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 )
 
@@ -10,16 +12,31 @@ type AccessTokenWasRequested struct {
 	Email string    `json:"email"`
 }
 
+// GetType returns event type
+func (e *AccessTokenWasRequested) GetType() string {
+	return fmt.Sprintf("%T", e)
+}
+
 // EmailAddressWasChanged event
 type EmailAddressWasChanged struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
 }
 
+// GetType returns event type
+func (e *EmailAddressWasChanged) GetType() string {
+	return fmt.Sprintf("%T", e)
+}
+
 // WasRegisteredWithEmail event
 type WasRegisteredWithEmail struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
+}
+
+// GetType returns event type
+func (e *WasRegisteredWithEmail) GetType() string {
+	return fmt.Sprintf("%T", e)
 }
 
 // WasRegisteredWithFacebook event
@@ -29,10 +46,20 @@ type WasRegisteredWithFacebook struct {
 	FacebookID string    `json:"facebookId"`
 }
 
+// GetType returns event type
+func (e *WasRegisteredWithFacebook) GetType() string {
+	return fmt.Sprintf("%T", e)
+}
+
 // ConnectedWithFacebook event
 type ConnectedWithFacebook struct {
 	ID         uuid.UUID `json:"id"`
 	FacebookID string    `json:"facebookId"`
+}
+
+// GetType returns event type
+func (e *ConnectedWithFacebook) GetType() string {
+	return fmt.Sprintf("%T", e)
 }
 
 // WasRegisteredWithGoogle event
@@ -42,8 +69,18 @@ type WasRegisteredWithGoogle struct {
 	GoogleID string    `json:"googleId"`
 }
 
+// GetType returns event type
+func (e *WasRegisteredWithGoogle) GetType() string {
+	return fmt.Sprintf("%T", e)
+}
+
 // ConnectedWithGoogle event
 type ConnectedWithGoogle struct {
 	ID       uuid.UUID `json:"id"`
 	GoogleID string    `json:"googleId"`
+}
+
+// GetType returns event type
+func (e *ConnectedWithGoogle) GetType() string {
+	return fmt.Sprintf("%T", e)
 }

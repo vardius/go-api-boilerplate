@@ -5,7 +5,6 @@ package token
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -23,14 +22,14 @@ type Token struct {
 	changes []*domain.Event
 }
 
-func (t *Token) transition(e interface{}) {
+func (t *Token) transition(e domain.RawEvent) {
 	switch e := e.(type) {
 	case *WasCreated:
 		t.id = e.ID
 	}
 }
 
-func (t *Token) trackChange(e interface{}) error {
+func (t *Token) trackChange(e domain.RawEvent) error {
 	t.transition(e)
 	eventEnvelop, err := domain.NewEvent(t.id, StreamName, t.version, e)
 
@@ -81,12 +80,12 @@ func (t *Token) Remove() error {
 // FromHistory loads current aggregate root state by applying all events in order
 func (t *Token) FromHistory(events []*domain.Event) {
 	for _, domainEvent := range events {
-		var e interface{}
+		var e domain.RawEvent
 
 		switch domainEvent.Metadata.Type {
-		case fmt.Sprintf("%T", &WasCreated{}):
+		case (&WasCreated{}).GetType():
 			e = &WasCreated{}
-		case fmt.Sprintf("%T", &WasRemoved{}):
+		case (&WasRemoved{}).GetType():
 			e = &WasRemoved{}
 		default:
 			// @TODO: should we panic here ?
