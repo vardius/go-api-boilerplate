@@ -166,6 +166,10 @@ auth:
           name: go-api-boilerplate-app
     - name: DB_NAME
       value: 'goapiboilerplate'
+    - name: COMMAND_BUS_BUFFER
+      value: '100'
+    - name: EVENT_BUS_BUFFER
+      value: '100'
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -254,6 +258,10 @@ user:
         configMapKeyRef:
           key: AWS_ENDPOINT
           name: go-api-boilerplate-app
+    - name: COMMAND_BUS_BUFFER
+      value: '100'
+    - name: EVENT_BUS_BUFFER
+      value: '100'
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
