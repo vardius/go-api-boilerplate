@@ -1,4 +1,4 @@
-package application
+package eventhandler
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
-// WhenUserConnectedWithGoogle handles event
-func WhenUserConnectedWithGoogle(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
+// WhenUserConnectedWithFacebook handles event
+func WhenUserConnectedWithFacebook(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
@@ -21,7 +21,7 @@ func WhenUserConnectedWithGoogle(db *sql.DB, repository persistence.UserReposito
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &user.ConnectedWithGoogle{}
+		e := &user.ConnectedWithFacebook{}
 
 		err := json.Unmarshal(event.Payload, e)
 		if err != nil {
@@ -36,11 +36,12 @@ func WhenUserConnectedWithGoogle(db *sql.DB, repository persistence.UserReposito
 		}
 		defer tx.Rollback()
 
-		err = repository.UpdateGoogleID(ctx, e.ID.String(), e.GoogleID)
+		err = repository.UpdateFacebookID(ctx, e.ID.String(), e.FacebookID)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return
 		}
+
 		tx.Commit()
 	}
 

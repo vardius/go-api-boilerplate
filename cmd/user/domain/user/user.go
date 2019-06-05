@@ -131,19 +131,19 @@ func (u *User) FromHistory(events []*domain.Event) {
 		var e domain.RawEvent
 
 		switch domainEvent.Metadata.Type {
-		case (&AccessTokenWasRequested{}).GetType():
+		case (AccessTokenWasRequested{}).GetType():
 			e = &AccessTokenWasRequested{}
-		case (&EmailAddressWasChanged{}).GetType():
+		case (EmailAddressWasChanged{}).GetType():
 			e = &EmailAddressWasChanged{}
-		case (&WasRegisteredWithEmail{}).GetType():
+		case (WasRegisteredWithEmail{}).GetType():
 			e = &WasRegisteredWithEmail{}
-		case (&WasRegisteredWithFacebook{}).GetType():
+		case (WasRegisteredWithFacebook{}).GetType():
 			e = &WasRegisteredWithFacebook{}
-		case (&ConnectedWithFacebook{}).GetType():
+		case (ConnectedWithFacebook{}).GetType():
 			e = &ConnectedWithFacebook{}
-		case (&WasRegisteredWithGoogle{}).GetType():
+		case (WasRegisteredWithGoogle{}).GetType():
 			e = &WasRegisteredWithGoogle{}
-		case (&ConnectedWithGoogle{}).GetType():
+		case (ConnectedWithGoogle{}).GetType():
 			e = &ConnectedWithGoogle{}
 		default:
 			// @TODO: should we panic here ?

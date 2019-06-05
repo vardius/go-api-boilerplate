@@ -1,4 +1,4 @@
-package application
+package eventhandler
 
 import (
 	"context"
@@ -8,13 +8,12 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
-// WhenUserWasRegisteredWithGoogle handles event
-func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
+// WhenUserEmailAddressWasChanged handles event
+func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
@@ -22,7 +21,7 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &user.WasRegisteredWithGoogle{}
+		e := &user.EmailAddressWasChanged{}
 
 		err := json.Unmarshal(event.Payload, e)
 		if err != nil {
@@ -37,13 +36,7 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 		}
 		defer tx.Rollback()
 
-		u := &proto.User{
-			Id:       e.ID.String(),
-			Email:    e.Email,
-			GoogleId: e.GoogleID,
-		}
-
-		err = repository.Add(ctx, u)
+		err = repository.UpdateEmail(ctx, e.ID.String(), e.Email)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

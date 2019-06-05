@@ -1,4 +1,4 @@
-package application
+package eventhandler
 
 import (
 	"context"
@@ -6,14 +6,15 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/client"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
+	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
-// WhenClientWasRemoved handles event
-func WhenClientWasRemoved(db *sql.DB, repository persistence.ClientRepository) eventbus.EventHandler {
+// WhenUserWasRegisteredWithEmail handles event
+func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
@@ -21,7 +22,7 @@ func WhenClientWasRemoved(db *sql.DB, repository persistence.ClientRepository) e
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &client.WasRemoved{}
+		e := &user.WasRegisteredWithEmail{}
 
 		err := json.Unmarshal(event.Payload, e)
 		if err != nil {
@@ -36,7 +37,12 @@ func WhenClientWasRemoved(db *sql.DB, repository persistence.ClientRepository) e
 		}
 		defer tx.Rollback()
 
-		err = repository.Delete(ctx, e.ID.String())
+		u := &proto.User{
+			Id:    e.ID.String(),
+			Email: e.Email,
+		}
+
+		err = repository.Add(ctx, u)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

@@ -79,9 +79,9 @@ func (c *Client) FromHistory(events []*domain.Event) {
 		var e domain.RawEvent
 
 		switch domainEvent.Metadata.Type {
-		case (&WasCreated{}).GetType():
+		case (WasCreated{}).GetType():
 			e = &WasCreated{}
-		case (&WasRemoved{}).GetType():
+		case (WasRemoved{}).GetType():
 			e = &WasRemoved{}
 		default:
 			// @TODO: should we panic here ?

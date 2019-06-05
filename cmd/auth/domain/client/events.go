@@ -16,7 +16,7 @@ type WasCreated struct {
 }
 
 // GetType returns event type
-func (e *WasCreated) GetType() string {
+func (e WasCreated) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
@@ -26,6 +26,6 @@ type WasRemoved struct {
 }
 
 // GetType returns event type
-func (e *WasRemoved) GetType() string {
+func (e WasRemoved) GetType() string {
 	return fmt.Sprintf("%T", e)
 }

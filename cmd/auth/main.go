@@ -9,8 +9,8 @@ import (
 	"time"
 
 	http_cors "github.com/rs/cors"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/application"
 	auth_config "github.com/vardius/go-api-boilerplate/cmd/auth/application/config"
+	auth_eventhandler "github.com/vardius/go-api-boilerplate/cmd/auth/application/eventhandler"
 	auth_oauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/application/oauth2"
 	auth_client "github.com/vardius/go-api-boilerplate/cmd/auth/domain/client"
 	auth_token "github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
@@ -69,15 +69,15 @@ func main() {
 	tokenMYSQLRepository := auth_persistence.NewTokenRepository(db)
 	clientMYSQLRepository := auth_persistence.NewClientRepository(db)
 
-	commandBus.Subscribe((&auth_token.Create{}).GetName(), auth_token.OnCreate(tokenRepository, db))
-	commandBus.Subscribe((&auth_token.Remove{}).GetName(), auth_token.OnRemove(tokenRepository, db))
-	commandBus.Subscribe((&auth_client.Create{}).GetName(), auth_client.OnCreate(clientRepository, db))
-	commandBus.Subscribe((&auth_client.Remove{}).GetName(), auth_client.OnRemove(clientRepository, db))
+	commandBus.Subscribe((auth_token.Create{}).GetName(), auth_token.OnCreate(tokenRepository, db))
+	commandBus.Subscribe((auth_token.Remove{}).GetName(), auth_token.OnRemove(tokenRepository, db))
+	commandBus.Subscribe((auth_client.Create{}).GetName(), auth_client.OnCreate(clientRepository, db))
+	commandBus.Subscribe((auth_client.Remove{}).GetName(), auth_client.OnRemove(clientRepository, db))
 
-	eventBus.Subscribe((&auth_token.WasCreated{}).GetType(), application.WhenTokenWasCreated(db, tokenMYSQLRepository))
-	eventBus.Subscribe((&auth_token.WasRemoved{}).GetType(), application.WhenTokenWasRemoved(db, tokenMYSQLRepository))
-	eventBus.Subscribe((&auth_client.WasCreated{}).GetType(), application.WhenClientWasCreated(db, clientMYSQLRepository))
-	eventBus.Subscribe((&auth_client.WasRemoved{}).GetType(), application.WhenClientWasRemoved(db, clientMYSQLRepository))
+	eventBus.Subscribe((auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
+	eventBus.Subscribe((auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
+	eventBus.Subscribe((auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
+	eventBus.Subscribe((auth_client.WasRemoved{}).GetType(), auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
 
 	tokenStore := auth_oauth2.NewTokenStore(tokenMYSQLRepository, commandBus)
 	clientStore := auth_oauth2.NewClientStore(clientMYSQLRepository)

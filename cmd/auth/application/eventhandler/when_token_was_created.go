@@ -1,4 +1,4 @@
-package application
+package eventhandler
 
 import (
 	"context"
@@ -6,14 +6,14 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
-// WhenUserConnectedWithFacebook handles event
-func WhenUserConnectedWithFacebook(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
+// WhenTokenWasCreated handles event
+func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
@@ -21,7 +21,7 @@ func WhenUserConnectedWithFacebook(db *sql.DB, repository persistence.UserReposi
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &user.ConnectedWithFacebook{}
+		e := &token.WasCreated{}
 
 		err := json.Unmarshal(event.Payload, e)
 		if err != nil {
@@ -36,7 +36,17 @@ func WhenUserConnectedWithFacebook(db *sql.DB, repository persistence.UserReposi
 		}
 		defer tx.Rollback()
 
-		err = repository.UpdateFacebookID(ctx, e.ID.String(), e.FacebookID)
+		t := &persistence.Token{
+			ID:       e.ID.String(),
+			UserID:   e.UserID.String(),
+			ClientID: e.ClientID.String(),
+			Code:     e.Code,
+			Access:   e.Access,
+			Refresh:  e.Refresh,
+			Info:     e.Info,
+		}
+
+		err = repository.Add(ctx, t)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

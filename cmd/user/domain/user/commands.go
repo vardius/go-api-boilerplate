@@ -17,7 +17,7 @@ type RequestAccessToken struct {
 }
 
 // GetName returns command name
-func (c *RequestAccessToken) GetName() string {
+func (c RequestAccessToken) GetName() string {
 	return fmt.Sprintf("%T", c)
 }
 
@@ -48,7 +48,7 @@ type ChangeEmailAddress struct {
 }
 
 // GetName returns command name
-func (c *ChangeEmailAddress) GetName() string {
+func (c ChangeEmailAddress) GetName() string {
 	return fmt.Sprintf("%T", c)
 }
 
@@ -92,7 +92,7 @@ type RegisterWithEmail struct {
 }
 
 // GetName returns command name
-func (c *RegisterWithEmail) GetName() string {
+func (c RegisterWithEmail) GetName() string {
 	return fmt.Sprintf("%T", c)
 }
 
@@ -143,7 +143,7 @@ type RegisterWithFacebook struct {
 }
 
 // GetName returns command name
-func (c *RegisterWithFacebook) GetName() string {
+func (c RegisterWithFacebook) GetName() string {
 	return fmt.Sprintf("%T", c)
 }
 
@@ -204,7 +204,7 @@ type RegisterWithGoogle struct {
 }
 
 // GetName returns command name
-func (c *RegisterWithGoogle) GetName() string {
+func (c RegisterWithGoogle) GetName() string {
 	return fmt.Sprintf("%T", c)
 }
 

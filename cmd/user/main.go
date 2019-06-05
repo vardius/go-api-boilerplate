@@ -10,8 +10,9 @@ import (
 
 	http_cors "github.com/rs/cors"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
-	"github.com/vardius/go-api-boilerplate/cmd/user/application"
 	user_config "github.com/vardius/go-api-boilerplate/cmd/user/application/config"
+	user_eventhandler "github.com/vardius/go-api-boilerplate/cmd/user/application/eventhandler"
+	user_security "github.com/vardius/go-api-boilerplate/cmd/user/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	user_proto "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
@@ -59,17 +60,17 @@ func main() {
 	userRepository := user_repository.NewUserRepository(eventStore, eventBus)
 	userMYSQLRepository := user_persistence.NewUserRepository(db)
 
-	commandBus.Subscribe((&user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, db))
-	commandBus.Subscribe((&user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, db))
-	commandBus.Subscribe((&user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, db))
-	commandBus.Subscribe((&user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, db))
-	commandBus.Subscribe((&user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, db))
+	commandBus.Subscribe((user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, db))
+	commandBus.Subscribe((user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, db))
+	commandBus.Subscribe((user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, db))
+	commandBus.Subscribe((user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, db))
+	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, db))
 
-	eventBus.Subscribe((&user.WasRegisteredWithEmail{}).GetType(), application.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
-	eventBus.Subscribe((&user.WasRegisteredWithGoogle{}).GetType(), application.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
-	eventBus.Subscribe((&user.WasRegisteredWithFacebook{}).GetType(), application.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
-	eventBus.Subscribe((&user.EmailAddressWasChanged{}).GetType(), application.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
-	eventBus.Subscribe((&user.AccessTokenWasRequested{}).GetType(), application.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
+	eventBus.Subscribe((user.WasRegisteredWithEmail{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
+	eventBus.Subscribe((user.WasRegisteredWithGoogle{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
+	eventBus.Subscribe((user.WasRegisteredWithFacebook{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
+	eventBus.Subscribe((user.EmailAddressWasChanged{}).GetType(), user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
+	eventBus.Subscribe((user.AccessTokenWasRequested{}).GetType(), user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
 
 	userServer := user_grpc.NewServer(commandBus, db)
 
@@ -85,7 +86,7 @@ func main() {
 	healthServer := grpc_health.NewServer()
 	healthServer.SetServingStatus("user", grpc_health_proto.HealthCheckResponse_SERVING)
 
-	auth := http_authenticator.NewToken(application.TokenAuthHandler(grpAuthClient, user_persistence.NewUserRepository(db), logger))
+	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, user_persistence.NewUserRepository(db), logger))
 
 	// Global middleware
 	router := gorouter.New(

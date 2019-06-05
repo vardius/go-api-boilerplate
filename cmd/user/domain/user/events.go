@@ -13,7 +13,7 @@ type AccessTokenWasRequested struct {
 }
 
 // GetType returns event type
-func (e *AccessTokenWasRequested) GetType() string {
+func (e AccessTokenWasRequested) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
@@ -24,7 +24,7 @@ type EmailAddressWasChanged struct {
 }
 
 // GetType returns event type
-func (e *EmailAddressWasChanged) GetType() string {
+func (e EmailAddressWasChanged) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
@@ -35,7 +35,7 @@ type WasRegisteredWithEmail struct {
 }
 
 // GetType returns event type
-func (e *WasRegisteredWithEmail) GetType() string {
+func (e WasRegisteredWithEmail) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
@@ -47,7 +47,7 @@ type WasRegisteredWithFacebook struct {
 }
 
 // GetType returns event type
-func (e *WasRegisteredWithFacebook) GetType() string {
+func (e WasRegisteredWithFacebook) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
@@ -58,7 +58,7 @@ type ConnectedWithFacebook struct {
 }
 
 // GetType returns event type
-func (e *ConnectedWithFacebook) GetType() string {
+func (e ConnectedWithFacebook) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
@@ -70,7 +70,7 @@ type WasRegisteredWithGoogle struct {
 }
 
 // GetType returns event type
-func (e *WasRegisteredWithGoogle) GetType() string {
+func (e WasRegisteredWithGoogle) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
@@ -81,6 +81,6 @@ type ConnectedWithGoogle struct {
 }
 
 // GetType returns event type
-func (e *ConnectedWithGoogle) GetType() string {
+func (e ConnectedWithGoogle) GetType() string {
 	return fmt.Sprintf("%T", e)
 }

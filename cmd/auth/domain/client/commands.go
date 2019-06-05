@@ -18,7 +18,7 @@ type Remove struct {
 }
 
 // GetName returns command name
-func (c *Remove) GetName() string {
+func (c Remove) GetName() string {
 	return fmt.Sprintf("%T", c)
 }
 
@@ -48,7 +48,7 @@ type Create struct {
 }
 
 // GetName returns command name
-func (c *Create) GetName() string {
+func (c Create) GetName() string {
 	return fmt.Sprintf("%T", c)
 }
 

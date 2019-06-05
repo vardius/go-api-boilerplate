@@ -1,19 +1,18 @@
-package application
+package eventhandler
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"log"
 
-	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"golang.org/x/oauth2"
 )
 
-// WhenTokenWasRemoved handles event
-func WhenTokenWasRemoved(db *sql.DB, repository persistence.TokenRepository) eventbus.EventHandler {
+// WhenUserAccessTokenWasRequested handles event
+func WhenUserAccessTokenWasRequested(config oauth2.Config, secretKey string) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
@@ -21,7 +20,7 @@ func WhenTokenWasRemoved(db *sql.DB, repository persistence.TokenRepository) eve
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &token.WasRemoved{}
+		e := &user.WasRegisteredWithGoogle{}
 
 		err := json.Unmarshal(event.Payload, e)
 		if err != nil {
@@ -29,20 +28,20 @@ func WhenTokenWasRemoved(db *sql.DB, repository persistence.TokenRepository) eve
 			return
 		}
 
-		tx, err := db.BeginTx(ctx, nil)
-		if err != nil {
-			log.Printf("[EventHandler] Error: %v", err)
-			return
-		}
-		defer tx.Rollback()
-
-		err = repository.Delete(ctx, e.ID.String())
+		token, err := config.PasswordCredentialsToken(ctx, e.Email, secretKey)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return
 		}
 
-		tx.Commit()
+		b, err := json.Marshal(token)
+		if err != nil {
+			log.Printf("[EventHandler] Error: %v", err)
+			return
+		}
+
+		// @TODO: send token with an email as magic link
+		log.Printf("[EventHandler] Access Token: %s", string(b))
 	}
 
 	return eventbus.EventHandler(fn)
