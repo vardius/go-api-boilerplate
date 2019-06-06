@@ -29,16 +29,16 @@ type EventMetaData struct {
 }
 
 // NewEvent create new event
-func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, data RawEvent) (*Event, error) {
+func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent RawEvent) (*Event, error) {
 	meta := EventMetaData{
-		Type:          data.GetType(),
+		Type:          rawEvent.GetType(),
 		StreamID:      streamID,
 		StreamName:    streamName,
 		StreamVersion: streamVersion,
 		OccurredAt:    time.Now(),
 	}
 
-	payload, err := json.Marshal(data)
+	payload, err := json.Marshal(rawEvent)
 	if err != nil {
 		return nil, err
 	}
