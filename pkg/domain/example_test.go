@@ -8,12 +8,16 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 )
 
-func ExampleNewEvent() {
-	type Test struct {
-		Page   int      `json:"page"`
-		Fruits []string `json:"fruits"`
-	}
+type Test struct {
+	Page   int      `json:"page"`
+	Fruits []string `json:"fruits"`
+}
 
+func (e Test) GetType() string {
+	return ""
+}
+
+func ExampleNewEvent() {
 	event, _ := domain.NewEvent(
 		uuid.New(),
 		"streamName",
