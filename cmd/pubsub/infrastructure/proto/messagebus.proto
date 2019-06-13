@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "goapiboilerplate.grpc.messagebus";
+option java_outer_classname = "MessageBusProto";
+
+package proto;
+
+import "google/protobuf/empty.proto";
+
+// MessageBus handles commands dispatch and user view actions
+service MessageBus {
+  rpc Publish(PublishRequest) returns (google.protobuf.Empty);
+  rpc Subscribe(SubscribeRequest) returns (stream SubscribeResponse); //Unsubscribe happens on disconnect
+}
+
+// PublishRequest is passed when publishing
+message PublishRequest {
+  string topic = 1;
+  bytes payload = 2;
+}
+
+// SubscribeRequest is passed when subscribing
+message SubscribeRequest {
+  string topic = 1;
+}
+
+// SubscribeResponse object
+message SubscribeResponse {
+  bytes payload = 1;
+}

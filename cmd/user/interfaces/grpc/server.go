@@ -8,6 +8,7 @@ import (
 	"database/sql"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
@@ -58,7 +59,12 @@ func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*pro
 		return nil, status.Error(codes.NotFound, "User not found")
 	}
 
-	return user, nil
+	return &proto.User{
+		Id:         user.ID,
+		Email:      user.Email,
+		FacebookId: user.FacebookID,
+		GoogleId:   user.GoogleID,
+	}, nil
 }
 
 // ListUsers implements proto.UserServiceServer interface
@@ -67,7 +73,8 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 		return nil, status.Error(codes.Internal, "Invalid page or limit value. Please provide values greater then 1")
 	}
 
-	var users []*proto.User
+	var users []*persistence.User
+	var list []*proto.User
 
 	repository := mysql.NewUserRepository(s.db)
 
@@ -83,7 +90,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 			Page:  r.GetPage(),
 			Limit: r.GetLimit(),
 			Total: totalUsers,
-			Users: users,
+			Users: list,
 		}, nil
 	}
 
@@ -92,11 +99,21 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 		return nil, status.Error(codes.Internal, "Failed to fetch users")
 	}
 
+	list = make([]*proto.User, len(users))
+	for i := range users {
+		list[i] = &proto.User{
+			Id:         users[i].ID,
+			Email:      users[i].Email,
+			FacebookId: users[i].FacebookID,
+			GoogleId:   users[i].GoogleID,
+		}
+	}
+
 	response := &proto.ListUserResponse{
 		Page:  r.GetPage(),
 		Limit: r.GetLimit(),
 		Total: totalUsers,
-		Users: users,
+		Users: list,
 	}
 
 	return response, nil

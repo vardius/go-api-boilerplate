@@ -39,6 +39,8 @@ func WhenClientWasCreated(db *sql.DB, repository persistence.ClientRepository) e
 		c := &persistence.Client{
 			ID:     e.ID.String(),
 			UserID: e.UserID.String(),
+			Secret: e.Info.GetSecret(),
+			Domain: e.Info.GetDomain(),
 			Info:   e.Info,
 		}
 

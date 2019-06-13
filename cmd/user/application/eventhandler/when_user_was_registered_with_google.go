@@ -8,7 +8,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
@@ -37,10 +36,10 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 		}
 		defer tx.Rollback()
 
-		u := &proto.User{
-			Id:       e.ID.String(),
+		u := &persistence.User{
+			ID:       e.ID.String(),
 			Email:    e.Email,
-			GoogleId: e.GoogleID,
+			GoogleID: e.GoogleID,
 		}
 
 		err = repository.Add(ctx, u)

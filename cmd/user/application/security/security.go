@@ -29,7 +29,7 @@ func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repo
 		}
 
 		i := &identity.Identity{
-			ID:    uuid.MustParse(user.Id),
+			ID:    uuid.MustParse(user.ID),
 			Token: token,
 			Email: user.Email,
 			Roles: []string{"USER"},

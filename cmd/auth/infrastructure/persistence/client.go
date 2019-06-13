@@ -13,6 +13,8 @@ import (
 type Client struct {
 	ID     string
 	UserID string
+	Secret string
+	Domain string
 	Info   oauth2.ClientInfo
 }
 

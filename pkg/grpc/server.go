@@ -2,12 +2,14 @@ package grpc
 
 import (
 	"context"
+	"time"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/vardius/golog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/keepalive"
 )
 
 // NewServer provides new grpc server
@@ -21,6 +23,14 @@ func NewServer(logger golog.Logger) *grpc.Server {
 	}
 
 	server := grpc.NewServer(
+		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+			MinTime:             5 * time.Second, // If a client pings more than once every 5 seconds, terminate the connection
+			PermitWithoutStream: true,            // Allow pings even when there are no active streams
+		}),
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			Time:    5 * time.Second, // Ping the client if it is idle for 5 seconds to ensure the connection is still active
+			Timeout: 1 * time.Second, // Wait 1 second for the ping ack before assuming the connection is dead
+		}),
 		grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(opts...),
 		),

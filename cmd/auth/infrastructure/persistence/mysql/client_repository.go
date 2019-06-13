@@ -20,7 +20,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (*persistence.Cli
 
 	client := &persistence.Client{}
 
-	err := row.Scan(&client.ID, &client.UserID, &client.Info)
+	err := row.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.Info)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, errors.Wrap(err, errors.NOTFOUND, "Client not found")
@@ -32,13 +32,13 @@ func (r *clientRepository) Get(ctx context.Context, id string) (*persistence.Cli
 }
 
 func (r *clientRepository) Add(ctx context.Context, client *persistence.Client) error {
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, info) VALUES (?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, secret, domain, info) VALUES (?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid client insert query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, client.ID, client.UserID, client.Info)
+	result, err := stmt.ExecContext(ctx, client.ID, client.UserID, client.Secret, client.Domain, client.Info)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not add client")
 	}

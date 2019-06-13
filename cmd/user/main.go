@@ -10,6 +10,7 @@ import (
 
 	http_cors "github.com/rs/cors"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
+	pubsub_proto "github.com/vardius/go-api-boilerplate/cmd/pubsub/infrastructure/proto"
 	user_config "github.com/vardius/go-api-boilerplate/cmd/user/application/config"
 	user_eventhandler "github.com/vardius/go-api-boilerplate/cmd/user/application/eventhandler"
 	user_security "github.com/vardius/go-api-boilerplate/cmd/user/application/security"
@@ -19,8 +20,8 @@ import (
 	user_repository "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/repository"
 	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
 	user_http "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/http"
-	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
-	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
+	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
 	"github.com/vardius/go-api-boilerplate/pkg/grpc"
 	http_recovery "github.com/vardius/go-api-boilerplate/pkg/http/recovery"
@@ -31,6 +32,7 @@ import (
 	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
 	gorouter "github.com/vardius/gorouter/v4"
 	"golang.org/x/oauth2"
+	basegrpc "google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -53,24 +55,17 @@ func main() {
 		},
 	}
 
+	pubsubConn := grpc.NewConnection(ctx, user_config.Env.PubSubHost, user_config.Env.PortGRPC, logger)
+	defer pubsubConn.Close()
+
+	grpPubSubClient := pubsub_proto.NewMessageBusClient(pubsubConn)
+
 	eventStore := eventstore.New()
-	commandBus := commandbus.NewLoggable(user_config.Env.CommandBusQueueSize, logger)
-	eventBus := eventbus.NewLoggable(user_config.Env.EventBusQueueSize, logger)
+	commandBus := commandbus.New(user_config.Env.CommandBusQueueSize, logger)
+	eventBus := eventbus.New(grpPubSubClient, logger)
 
 	userRepository := user_repository.NewUserRepository(eventStore, eventBus)
 	userMYSQLRepository := user_persistence.NewUserRepository(db)
-
-	commandBus.Subscribe((user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, db))
-	commandBus.Subscribe((user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, db))
-	commandBus.Subscribe((user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, db))
-	commandBus.Subscribe((user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, db))
-	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, db))
-
-	eventBus.Subscribe((user.WasRegisteredWithEmail{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
-	eventBus.Subscribe((user.WasRegisteredWithGoogle{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
-	eventBus.Subscribe((user.WasRegisteredWithFacebook{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
-	eventBus.Subscribe((user.EmailAddressWasChanged{}).GetType(), user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
-	eventBus.Subscribe((user.AccessTokenWasRequested{}).GetType(), user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
 
 	userServer := user_grpc.NewServer(commandBus, db)
 
@@ -103,7 +98,11 @@ func main() {
 	user_proto.RegisterUserServiceServer(grpcServer, userServer)
 	grpc_health_proto.RegisterHealthServer(grpcServer, healthServer)
 
-	user_http.AddHealthCheckRoutes(router, logger, userConn, authConn, db)
+	user_http.AddHealthCheckRoutes(router, logger, db, map[string]*basegrpc.ClientConn{
+		"user":   userConn,
+		"auth":   authConn,
+		"pubsub": pubsubConn,
+	})
 	user_http.AddAuthRoutes(router, grpUserClient, oauth2Config, user_config.Env.Secret)
 	user_http.AddUserRoutes(router, grpUserClient)
 
@@ -120,6 +119,27 @@ func main() {
 		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", user_config.Env.Host, user_config.Env.PortGRPC, err)
 		os.Exit(1)
 	}
+
+	commandBus.Subscribe((user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, db))
+	commandBus.Subscribe((user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, db))
+	commandBus.Subscribe((user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, db))
+	commandBus.Subscribe((user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, db))
+	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, db))
+
+	go func() {
+		for {
+			resp, err := grpc_health_proto.NewHealthClient(pubsubConn).Check(ctx, &grpc_health_proto.HealthCheckRequest{Service: "pubsub"})
+			if err == nil && resp.GetStatus() == grpc_health_proto.HealthCheckResponse_SERVING {
+				eventBus.Subscribe((user.WasRegisteredWithEmail{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
+				eventBus.Subscribe((user.WasRegisteredWithGoogle{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
+				eventBus.Subscribe((user.WasRegisteredWithFacebook{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
+				eventBus.Subscribe((user.EmailAddressWasChanged{}).GetType(), user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
+				eventBus.Subscribe((user.AccessTokenWasRequested{}).GetType(), user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
+				break
+			}
+		}
+		time.Sleep(1 * time.Second)
+	}()
 
 	stop := func() {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)

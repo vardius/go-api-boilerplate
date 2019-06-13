@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "io.grpc.proto";
+option java_package = "goapiboilerplate.grpc.auth";
 option java_outer_classname = "AuthProto";
 
 package proto;

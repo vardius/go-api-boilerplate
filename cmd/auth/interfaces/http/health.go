@@ -12,11 +12,11 @@ import (
 )
 
 // AddHealthCheckRoutes adds health checks route
-func AddHealthCheckRoutes(router gorouter.Router, log golog.Logger, c *grpc.ClientConn) {
+func AddHealthCheckRoutes(router gorouter.Router, log golog.Logger, connMap map[string]*grpc.ClientConn) {
 	// Liveness probes are to indicate that your application is running
 	router.GET("/healthz", buildLivenessHandler(log))
 	// Readiness is meant to check if your application is ready to serve traffic
-	router.GET("/readiness", buildReadinessHandler(log, c))
+	router.GET("/readiness", buildReadinessHandler(log, connMap))
 }
 
 func buildLivenessHandler(log golog.Logger) http.Handler {
@@ -28,12 +28,14 @@ func buildLivenessHandler(log golog.Logger) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func buildReadinessHandler(log golog.Logger, c *grpc.ClientConn) http.Handler {
+func buildReadinessHandler(log golog.Logger, connMap map[string]*grpc.ClientConn) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		status := getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, c, "auth")
-		if status != 200 {
-			w.WriteHeader(status)
-			return
+		for name, conn := range connMap {
+			status := getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, conn, name)
+			if status != 200 {
+				w.WriteHeader(status)
+				return
+			}
 		}
 
 		w.WriteHeader(200)

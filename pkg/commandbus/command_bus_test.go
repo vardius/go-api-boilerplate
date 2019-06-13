@@ -16,26 +16,8 @@ func (c *commandMock) GetName() string {
 }
 
 func TestNew(t *testing.T) {
-	bus := New(runtime.NumCPU())
-
-	if bus == nil {
-		t.Fail()
-	}
-}
-
-func TestWithLogger(t *testing.T) {
 	logger := golog.New("debug")
-	parent := New(runtime.NumCPU())
-	bus := WithLogger(parent, logger)
-
-	if bus == nil {
-		t.Fail()
-	}
-}
-
-func TestNewLoggable(t *testing.T) {
-	logger := golog.New("debug")
-	bus := NewLoggable(runtime.NumCPU(), logger)
+	bus := New(runtime.NumCPU(), logger)
 
 	if bus == nil {
 		t.Fail()
@@ -43,7 +25,7 @@ func TestNewLoggable(t *testing.T) {
 }
 
 func TestSubscribePublish(t *testing.T) {
-	bus := NewLoggable(runtime.NumCPU(), golog.New("debug"))
+	bus := New(runtime.NumCPU(), golog.New("debug"))
 	ctx := context.Background()
 	c := make(chan error)
 
@@ -68,7 +50,7 @@ func TestSubscribePublish(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	bus := NewLoggable(runtime.NumCPU(), golog.New("debug"))
+	bus := New(runtime.NumCPU(), golog.New("debug"))
 	c := make(chan error)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

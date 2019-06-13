@@ -19,8 +19,9 @@ import (
 	auth_repository "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/repository"
 	auth_grpc "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/grpc"
 	auth_http "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/http"
-	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
-	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
+	pubsub_proto "github.com/vardius/go-api-boilerplate/cmd/pubsub/infrastructure/proto"
+	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
 	"github.com/vardius/go-api-boilerplate/pkg/grpc"
 	http_recovery "github.com/vardius/go-api-boilerplate/pkg/http/recovery"
@@ -29,27 +30,11 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
 	"github.com/vardius/gorouter/v4"
+	basegrpc "google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 	oauth2_models "gopkg.in/oauth2.v3/models"
 )
-
-type config struct {
-	Env              string   `env:"ENV"                 envDefault:"development"`
-	Secret           string   `env:"SECRET"              envDefault:"secret"`
-	Origins          []string `env:"ORIGINS"             envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
-	Host             string   `env:"HOST"                envDefault:"0.0.0.0"`
-	PortHTTP         int      `env:"PORT_HTTP"           envDefault:"3010"`
-	PortGRPC         int      `env:"PORT_GRPC"           envDefault:"3011"`
-	DbHost           string   `env:"DB_HOST"             envDefault:"0.0.0.0"`
-	DbPort           int      `env:"DB_PORT"             envDefault:"3306"`
-	DbUser           string   `env:"DB_USER"             envDefault:"root"`
-	DbPass           string   `env:"DB_PASS"             envDefault:"password"`
-	DbName           string   `env:"DB_NAME"             envDefault:"goapiboilerplate"`
-	UserHost         string   `env:"USER_HOST"           envDefault:"0.0.0.0"`
-	UserClientID     string   `env:"USER_CLIENT_ID"      envDefault:"clientId"`
-	UserClientSecret string   `env:"USER_CLIENT_SECRET"  envDefault:"clientSecret"`
-}
 
 func main() {
 	ctx := context.Background()
@@ -59,25 +44,20 @@ func main() {
 	db := mysql.NewConnection(ctx, auth_config.Env.DbHost, auth_config.Env.DbPort, auth_config.Env.DbUser, auth_config.Env.DbPass, auth_config.Env.DbName, logger)
 	defer db.Close()
 
+	pubsubConn := grpc.NewConnection(ctx, auth_config.Env.PubSubHost, auth_config.Env.PortGRPC, logger)
+	defer pubsubConn.Close()
+
+	grpPubSubClient := pubsub_proto.NewMessageBusClient(pubsubConn)
+
 	eventStore := eventstore.New()
-	commandBus := commandbus.NewLoggable(auth_config.Env.CommandBusQueueSize, logger)
-	eventBus := eventbus.NewLoggable(auth_config.Env.EventBusQueueSize, logger)
+	commandBus := commandbus.New(auth_config.Env.CommandBusQueueSize, logger)
+	eventBus := eventbus.New(grpPubSubClient, logger)
 
 	tokenRepository := auth_repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := auth_repository.NewClientRepository(eventStore, eventBus)
 
 	tokenMYSQLRepository := auth_persistence.NewTokenRepository(db)
 	clientMYSQLRepository := auth_persistence.NewClientRepository(db)
-
-	commandBus.Subscribe((auth_token.Create{}).GetName(), auth_token.OnCreate(tokenRepository, db))
-	commandBus.Subscribe((auth_token.Remove{}).GetName(), auth_token.OnRemove(tokenRepository, db))
-	commandBus.Subscribe((auth_client.Create{}).GetName(), auth_client.OnCreate(clientRepository, db))
-	commandBus.Subscribe((auth_client.Remove{}).GetName(), auth_client.OnRemove(clientRepository, db))
-
-	eventBus.Subscribe((auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
-	eventBus.Subscribe((auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
-	eventBus.Subscribe((auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
-	eventBus.Subscribe((auth_client.WasRemoved{}).GetType(), auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
 
 	tokenStore := auth_oauth2.NewTokenStore(tokenMYSQLRepository, commandBus)
 	clientStore := auth_oauth2.NewClientStore(clientMYSQLRepository)
@@ -114,7 +94,10 @@ func main() {
 	auth_proto.RegisterAuthenticationServiceServer(grpcServer, authServer)
 	grpc_health_proto.RegisterHealthServer(grpcServer, healthServer)
 
-	auth_http.AddHealthCheckRoutes(router, logger, authConn)
+	auth_http.AddHealthCheckRoutes(router, logger, map[string]*basegrpc.ClientConn{
+		"auth":   authConn,
+		"pubsub": pubsubConn,
+	})
 	auth_http.AddAuthRoutes(router, oauth2Server)
 
 	srv := &http.Server{
@@ -130,6 +113,25 @@ func main() {
 		logger.Critical(ctx, "tcp failed to listen %s:%d\n%v\n", auth_config.Env.Host, auth_config.Env.PortGRPC, err)
 		os.Exit(1)
 	}
+
+	commandBus.Subscribe((auth_token.Create{}).GetName(), auth_token.OnCreate(tokenRepository, db))
+	commandBus.Subscribe((auth_token.Remove{}).GetName(), auth_token.OnRemove(tokenRepository, db))
+	commandBus.Subscribe((auth_client.Create{}).GetName(), auth_client.OnCreate(clientRepository, db))
+	commandBus.Subscribe((auth_client.Remove{}).GetName(), auth_client.OnRemove(clientRepository, db))
+
+	go func() {
+		for {
+			resp, err := grpc_health_proto.NewHealthClient(pubsubConn).Check(ctx, &grpc_health_proto.HealthCheckRequest{Service: "pubsub"})
+			if err == nil && resp.GetStatus() == grpc_health_proto.HealthCheckResponse_SERVING {
+				eventBus.Subscribe((auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
+				eventBus.Subscribe((auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
+				eventBus.Subscribe((auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
+				eventBus.Subscribe((auth_client.WasRemoved{}).GetType(), auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
+				break
+			}
+			time.Sleep(1 * time.Second)
+		}
+	}()
 
 	stop := func() {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)

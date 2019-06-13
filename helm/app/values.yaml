@@ -89,6 +89,39 @@ mysql:
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8
         COLLATE = utf8_bin;
+      CREATE TABLE `clients` (
+        `distinctId` INT          NOT NULL AUTO_INCREMENT,
+        `id`         CHAR(36)     NOT NULL,
+        `userId`     CHAR(36)     NOT NULL,
+        `secret`     VARCHAR(255) NOT NULL,
+        `domain`     VARCHAR(255) NOT NULL,
+        `info`       JSON         NOT NULL,
+        PRIMARY KEY (`distinctId`),
+        UNIQUE KEY `id` (`id`),
+        INDEX `i_userId` (`userId`)
+      )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8
+        COLLATE = utf8_bin;
+      CREATE TABLE `auth_tokens` (
+        `distinctId` INT          NOT NULL AUTO_INCREMENT,
+        `id`         CHAR(36)     NOT NULL,
+        `clientId`   CHAR(36)     NOT NULL,
+        `userId`     CHAR(36)     NOT NULL,
+        `code`       VARCHAR(255) DEFAULT NULL,
+        `access`     VARCHAR(255) NOT NULL,
+        `refresh`    VARCHAR(255) NOT NULL,
+        `info`       JSON         NOT NULL,
+        PRIMARY KEY (`distinctId`),
+        UNIQUE KEY `id` (`id`),
+        INDEX `i_userId` (`userId`),
+        INDEX `i_code` (`code`),
+        INDEX `i_access` (`access`),
+        INDEX `i_refresh` (`refresh`)
+      )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8
+        COLLATE = utf8_bin;
 
 # AWS localstack https://github.com/localstack/localstack
 localstack:
@@ -111,6 +144,51 @@ localstack:
       value: "dynamodb:4569"
     - name: PORT_WEB_UI
       value: "4567"
+
+pubsub:
+  nameOverride: pubsub
+  image:
+    repository: pubsub
+    tag: latest
+    pullPolicy: Never
+  service:
+    ports:
+      - name: grpc
+        internalPort: 3001
+        externalPort: 3001
+  envFromSecretRef: go-api-boilerplate-app
+  env:
+    - name: ENV
+      valueFrom:
+        configMapKeyRef:
+          key: ENV
+          name: go-api-boilerplate-app
+    - name: ORIGINS
+      valueFrom:
+        configMapKeyRef:
+          key: ORIGINS
+          name: go-api-boilerplate-app
+    - name: HOST
+      valueFrom:
+        configMapKeyRef:
+          key: HOST
+          name: go-api-boilerplate-app
+    - name: PORT
+      valueFrom:
+        configMapKeyRef:
+          key: PORT_GRPC
+          name: go-api-boilerplate-app
+    - name: QUEUE_BUFFER_SIZE
+      value: '100'
+  readiness:
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3001"]
+  liveness:
+    initialDelaySeconds: 20
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3001"]
 
 auth:
   nameOverride: auth
@@ -153,6 +231,8 @@ auth:
         configMapKeyRef:
           key: PORT_GRPC
           name: go-api-boilerplate-app
+    - name: PUBSUB_HOST
+      value: 'go-api-boilerplate-pubsub'
     - name: DB_HOST
       value: 'go-api-boilerplate-mysql'
     - name: DB_PORT
@@ -167,8 +247,6 @@ auth:
     - name: DB_NAME
       value: 'goapiboilerplate'
     - name: COMMAND_BUS_BUFFER
-      value: '100'
-    - name: EVENT_BUS_BUFFER
       value: '100'
   readiness:
     initialDelaySeconds: 20
@@ -224,7 +302,9 @@ user:
           key: PORT_GRPC
           name: go-api-boilerplate-app
     - name: AUTH_HOST
-      value: go-api-boilerplate-auth
+      value: 'go-api-boilerplate-auth'
+    - name: PUBSUB_HOST
+      value: 'go-api-boilerplate-pubsub'
     - name: DB_HOST
       value: 'go-api-boilerplate-mysql'
     - name: DB_PORT
@@ -259,8 +339,6 @@ user:
           key: AWS_ENDPOINT
           name: go-api-boilerplate-app
     - name: COMMAND_BUS_BUFFER
-      value: '100'
-    - name: EVENT_BUS_BUFFER
       value: '100'
   readiness:
     initialDelaySeconds: 20

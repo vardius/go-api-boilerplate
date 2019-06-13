@@ -33,19 +33,18 @@ type environment struct {
 
 	AuthHost string `env:"AUTH_HOST" envDefault:"0.0.0.0"`
 
+	PubSubHost string `env:"PUBSUB_HOST" envDefault:"0.0.0.0"`
+
 	CommandBusQueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
-	EventBusQueueSize   int `env:"EVENT_BUS_BUFFER" envDefault:"0"`
 }
 
 func init() {
 	once.Do(func() {
+		Env = &environment{}
 		env.Parse(Env)
 
 		if Env.CommandBusQueueSize == 0 {
 			Env.CommandBusQueueSize = runtime.NumCPU()
-		}
-		if Env.EventBusQueueSize == 0 {
-			Env.EventBusQueueSize = runtime.NumCPU()
 		}
 	})
 }

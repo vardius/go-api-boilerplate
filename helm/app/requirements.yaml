@@ -2,6 +2,11 @@ dependencies:
   - name: microservice
     version: 0.1.0
     repository: "file://../microservice"
+    alias: pubsub
+    condition: pubsub.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
     alias: auth
     condition: auth.enabled
   - name: microservice
