@@ -32,7 +32,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (*persistence.Cli
 }
 
 func (r *clientRepository) Add(ctx context.Context, client *persistence.Client) error {
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, secret, domain, info) VALUES (?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, secret, domain, data) VALUES (?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid client insert query")
 	}

@@ -11,11 +11,11 @@ import (
 
 // Client model
 type Client struct {
-	ID     string
-	UserID string
-	Secret string
-	Domain string
-	Info   oauth2.ClientInfo
+	ID     string            `json:"id"`
+	UserID string            `json:"userId"`
+	Secret string            `json:"secret"`
+	Domain string            `json:"domain"`
+	Info   oauth2.ClientInfo `json:"data"`
 }
 
 // ClientRepository allows to get/save current state of user to mysql storage

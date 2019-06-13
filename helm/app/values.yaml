@@ -95,7 +95,7 @@ mysql:
         `userId`     CHAR(36)     NOT NULL,
         `secret`     VARCHAR(255) NOT NULL,
         `domain`     VARCHAR(255) NOT NULL,
-        `info`       JSON         NOT NULL,
+        `data`       JSON         NOT NULL,
         PRIMARY KEY (`distinctId`),
         UNIQUE KEY `id` (`id`),
         INDEX `i_userId` (`userId`)
@@ -111,7 +111,7 @@ mysql:
         `code`       VARCHAR(255) DEFAULT NULL,
         `access`     VARCHAR(255) NOT NULL,
         `refresh`    VARCHAR(255) NOT NULL,
-        `info`       JSON         NOT NULL,
+        `data`       JSON         NOT NULL,
         PRIMARY KEY (`distinctId`),
         UNIQUE KEY `id` (`id`),
         INDEX `i_userId` (`userId`),

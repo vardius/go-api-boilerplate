@@ -11,13 +11,13 @@ import (
 
 // Token model
 type Token struct {
-	ID       string
-	ClientID string
-	UserID   string
-	Code     string
-	Access   string
-	Refresh  string
-	Info     oauth2.TokenInfo
+	ID       string           `json:"id"`
+	ClientID string           `json:"clientId"`
+	UserID   string           `json:"userId"`
+	Code     *string          `json:"code"`
+	Access   string           `json:"access"`
+	Refresh  string           `json:"refresh"`
+	Info     oauth2.TokenInfo `json:"data"`
 }
 
 // TokenRepository allows to get/save current state of token to mysql storage

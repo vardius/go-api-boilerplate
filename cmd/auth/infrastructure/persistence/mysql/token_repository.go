@@ -45,7 +45,7 @@ func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (*pe
 }
 
 func (r *tokenRepository) Add(ctx context.Context, token *persistence.Token) error {
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, clientId, userId, code, access, refresh, info) VALUES (?,?,?,?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, clientId, userId, code, access, refresh, data) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid token insert query")
 	}

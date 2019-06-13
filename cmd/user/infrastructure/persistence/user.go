@@ -9,10 +9,10 @@ import (
 
 // User model
 type User struct {
-	ID         string
-	Email      string
-	FacebookID string
-	GoogleID   string
+	ID         string  `json:"id"`
+	Email      string  `json:"emailAddress"`
+	FacebookID *string `json:"facebookId"`
+	GoogleID   *string `json:"googleId"`
 }
 
 // UserRepository allows to get/save current state of user to mysql storage
