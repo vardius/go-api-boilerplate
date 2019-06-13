@@ -15,12 +15,12 @@ type clientRepository struct {
 	db *sql.DB
 }
 
-func (r *clientRepository) Get(ctx context.Context, id string) (*persistence.Client, error) {
+func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Client, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT * FROM clients WHERE id=? LIMIT 1`, id)
 
-	client := &persistence.Client{}
+	client := &Client{}
 
-	err := row.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.Info)
+	err := row.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.Data)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, errors.Wrap(err, errors.NOTFOUND, "Client not found")
@@ -31,14 +31,14 @@ func (r *clientRepository) Get(ctx context.Context, id string) (*persistence.Cli
 	}
 }
 
-func (r *clientRepository) Add(ctx context.Context, client *persistence.Client) error {
+func (r *clientRepository) Add(ctx context.Context, client persistence.Client) error {
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, secret, domain, data) VALUES (?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid client insert query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, client.ID, client.UserID, client.Secret, client.Domain, client.Info)
+	result, err := stmt.ExecContext(ctx, client.GetID(), client.GetUserID(), client.GetSecret(), client.GetDomain(), client.GetData())
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not add client")
 	}

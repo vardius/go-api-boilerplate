@@ -20,38 +20,38 @@ type tokenRepository struct {
 	db *sql.DB
 }
 
-func (r *tokenRepository) Get(ctx context.Context, id string) (*persistence.Token, error) {
+func (r *tokenRepository) Get(ctx context.Context, id string) (persistence.Token, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT * FROM auth_tokens WHERE id=? LIMIT 1`, id)
 
 	return r.getTokenFromRow(row)
 }
 
-func (r *tokenRepository) GetByCode(ctx context.Context, code string) (*persistence.Token, error) {
+func (r *tokenRepository) GetByCode(ctx context.Context, code string) (persistence.Token, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT * FROM auth_tokens WHERE code=? LIMIT 1`, code)
 
 	return r.getTokenFromRow(row)
 }
 
-func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (*persistence.Token, error) {
+func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (persistence.Token, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT * FROM auth_tokens WHERE access=? LIMIT 1`, access)
 
 	return r.getTokenFromRow(row)
 }
 
-func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (*persistence.Token, error) {
+func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (persistence.Token, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT * FROM auth_tokens WHERE refresh=? LIMIT 1`, refresh)
 
 	return r.getTokenFromRow(row)
 }
 
-func (r *tokenRepository) Add(ctx context.Context, token *persistence.Token) error {
+func (r *tokenRepository) Add(ctx context.Context, token persistence.Token) error {
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, clientId, userId, code, access, refresh, data) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid token insert query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, token.ID, token.ClientID, token.UserID, token.Code, token.Access, token.Refresh, token.Info)
+	result, err := stmt.ExecContext(ctx, token.GetID(), token.GetClientID(), token.GetUserID(), token.GetCode(), token.GetAccess(), token.GetRefresh(), token.GetData())
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not add token")
 	}
@@ -92,9 +92,9 @@ func (r *tokenRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *tokenRepository) getTokenFromRow(row *sql.Row) (*persistence.Token, error) {
-	token := &persistence.Token{}
-	err := row.Scan(&token.ID, &token.ClientID, &token.UserID, &token.Code, &token.Access, &token.Refresh, &token.Info)
+func (r *tokenRepository) getTokenFromRow(row *sql.Row) (persistence.Token, error) {
+	token := &Token{}
+	err := row.Scan(&token.ID, &token.ClientID, &token.UserID, &token.Code, &token.Access, &token.Refresh, &token.Data)
 
 	switch {
 	case err == sql.ErrNoRows:
