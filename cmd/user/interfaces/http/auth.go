@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	user_proto "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
-	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
+	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
+	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/gorouter/v4"
@@ -22,13 +22,13 @@ type requestBody struct {
 }
 
 // AddAuthRoutes adds user social media sign-in routes to router
-func AddAuthRoutes(router gorouter.Router, userClient user_proto.UserServiceClient, config oauth2.Config, secretKey string) {
-	router.POST("/google/callback", buildSocialAuthHandler(googleAPIURL, user_grpc.RegisterUserWithGoogle, secretKey, config, userClient))
-	router.POST("/facebook/callback", buildSocialAuthHandler(facebookAPIURL, user_grpc.RegisterUserWithFacebook, secretKey, config, userClient))
+func AddAuthRoutes(router gorouter.Router, cb commandbus.CommandBus, config oauth2.Config, secretKey string) {
+	router.POST("/google/callback", buildSocialAuthHandler(googleAPIURL, cb, user.RegisterUserWithGoogle, secretKey, config))
+	router.POST("/facebook/callback", buildSocialAuthHandler(facebookAPIURL, cb, user.RegisterUserWithFacebook, secretKey, config))
 }
 
 // buildSocialAuthHandler wraps user gRPC client with http.Handler
-func buildSocialAuthHandler(apiURL, commandName, secretKey string, config oauth2.Config, userClient user_proto.UserServiceClient) http.Handler {
+func buildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName, secretKey string, config oauth2.Config) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		accessToken := r.FormValue("accessToken")
 		profileData, e := getProfile(accessToken, apiURL)
@@ -37,19 +37,33 @@ func buildSocialAuthHandler(apiURL, commandName, secretKey string, config oauth2
 			return
 		}
 
-		_, e = userClient.DispatchCommand(r.Context(), &user_proto.DispatchCommandRequest{
-			Name:    commandName,
-			Payload: profileData,
-		})
-
-		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INVALID, "Invalid request"))
+		c, err := user.NewCommandFromPayload(commandName, profileData)
+		if err != nil {
+			response.WithError(r.Context(), errors.Wrap(err, errors.INTERNAL, "Invalid request"))
 			return
 		}
 
+		out := make(chan error)
+		defer close(out)
+
+		go func() {
+			cb.Publish(r.Context(), c, out)
+		}()
+
+		select {
+		case <-r.Context().Done():
+			response.WithError(r.Context(), errors.Wrap(r.Context().Err(), errors.INTERNAL, "Invalid request"))
+			return
+		case err = <-out:
+			if e != nil {
+				response.WithError(r.Context(), errors.Wrap(err, errors.INTERNAL, "Invalid request"))
+				return
+			}
+		}
+
 		emailData := &requestBody{}
-		err := json.Unmarshal(profileData, emailData)
-		if err != nil {
+		e = json.Unmarshal(profileData, emailData)
+		if e != nil {
 			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body"))
 			return
 		}

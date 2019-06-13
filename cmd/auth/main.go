@@ -23,14 +23,14 @@ import (
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/grpc"
+	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	http_recovery "github.com/vardius/go-api-boilerplate/pkg/http/recovery"
 	http_response "github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
 	"github.com/vardius/gorouter/v4"
-	basegrpc "google.golang.org/grpc"
+	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 	oauth2_models "gopkg.in/oauth2.v3/models"
@@ -44,7 +44,7 @@ func main() {
 	db := mysql.NewConnection(ctx, auth_config.Env.DbHost, auth_config.Env.DbPort, auth_config.Env.DbUser, auth_config.Env.DbPass, auth_config.Env.DbName, logger)
 	defer db.Close()
 
-	pubsubConn := grpc.NewConnection(ctx, auth_config.Env.PubSubHost, auth_config.Env.PortGRPC, logger)
+	pubsubConn := grpc_utils.NewConnection(ctx, auth_config.Env.PubSubHost, auth_config.Env.PortGRPC, logger)
 	defer pubsubConn.Close()
 
 	grpPubSubClient := pubsub_proto.NewMessageBusClient(pubsubConn)
@@ -72,10 +72,10 @@ func main() {
 	manager := auth_oauth2.NewManager(tokenStore, clientStore, []byte(auth_config.Env.Secret))
 	oauth2Server := auth_oauth2.InitServer(manager, db, logger, auth_config.Env.Secret)
 
-	grpcServer := grpc.NewServer(logger)
+	grpcServer := grpc_utils.NewServer(logger)
 	authServer := auth_grpc.NewServer(oauth2Server, auth_config.Env.Secret)
 
-	authConn := grpc.NewConnection(ctx, auth_config.Env.Host, auth_config.Env.PortGRPC, logger)
+	authConn := grpc_utils.NewConnection(ctx, auth_config.Env.Host, auth_config.Env.PortGRPC, logger)
 	defer authConn.Close()
 
 	healthServer := grpc_health.NewServer()
@@ -94,7 +94,7 @@ func main() {
 	auth_proto.RegisterAuthenticationServiceServer(grpcServer, authServer)
 	grpc_health_proto.RegisterHealthServer(grpcServer, healthServer)
 
-	auth_http.AddHealthCheckRoutes(router, logger, map[string]*basegrpc.ClientConn{
+	auth_http.AddHealthCheckRoutes(router, db, map[string]*grpc.ClientConn{
 		"auth":   authConn,
 		"pubsub": pubsubConn,
 	})
@@ -121,8 +121,7 @@ func main() {
 
 	go func() {
 		for {
-			resp, err := grpc_health_proto.NewHealthClient(pubsubConn).Check(ctx, &grpc_health_proto.HealthCheckRequest{Service: "pubsub"})
-			if err == nil && resp.GetStatus() == grpc_health_proto.HealthCheckResponse_SERVING {
+			if grpc_utils.IsConnectionServing("pubsub", pubsubConn) {
 				eventBus.Subscribe((auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
 				eventBus.Subscribe((auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
 				eventBus.Subscribe((auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))

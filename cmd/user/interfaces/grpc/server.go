@@ -5,11 +5,10 @@ package grpc
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"google.golang.org/grpc/codes"
@@ -17,20 +16,20 @@ import (
 )
 
 type userServer struct {
-	commandBus commandbus.CommandBus
-	db         *sql.DB
+	commandBus     commandbus.CommandBus
+	userRepository persistence.UserRepository
 }
 
 // NewServer returns new user server object
-func NewServer(cb commandbus.CommandBus, db *sql.DB) proto.UserServiceServer {
-	s := &userServer{cb, db}
+func NewServer(cb commandbus.CommandBus, r persistence.UserRepository) proto.UserServiceServer {
+	s := &userServer{cb, r}
 
 	return s
 }
 
 // DispatchCommand implements proto.UserServiceServer interface
 func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
-	c, err := buildDomainCommand(ctx, r.GetName(), r.GetPayload())
+	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
 	if err != nil {
 		return new(empty.Empty), err
 	}
@@ -52,9 +51,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 
 // GetUser implements proto.UserServiceServer interface
 func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*proto.User, error) {
-	repository := mysql.NewUserRepository(s.db)
-
-	user, err := repository.Get(ctx, r.GetId())
+	user, err := s.userRepository.Get(ctx, r.GetId())
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "User not found")
 	}
@@ -76,9 +73,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 	var users []*persistence.User
 	var list []*proto.User
 
-	repository := mysql.NewUserRepository(s.db)
-
-	totalUsers, err := repository.Count(ctx)
+	totalUsers, err := s.userRepository.Count(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to count users")
 	}
@@ -94,7 +89,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 		}, nil
 	}
 
-	users, err = repository.FindAll(ctx, r.GetLimit(), offset)
+	users, err = s.userRepository.FindAll(ctx, r.GetLimit(), offset)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to fetch users")
 	}

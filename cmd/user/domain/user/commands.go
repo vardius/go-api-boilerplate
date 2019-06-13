@@ -3,13 +3,54 @@ package user
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
+
+const (
+	// RequestUserAccessToken command bus contract
+	RequestUserAccessToken = "request-user-access-token"
+	// ChangeUserEmailAddress command bus contract
+	ChangeUserEmailAddress = "change-user-email-address"
+	// RegisterUserWithEmail command bus contract
+	RegisterUserWithEmail = "register-user-with-email"
+	// RegisterUserWithFacebook command bus contract
+	RegisterUserWithFacebook = "register-user-with-facebook"
+	// RegisterUserWithGoogle command bus contract
+	RegisterUserWithGoogle = "register-user-with-google"
+)
+
+// NewCommandFromPayload builds command by contract from json payload
+func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
+	var c domain.Command
+	switch contract {
+	case RegisterUserWithEmail:
+		c = &RegisterWithEmail{}
+	case RegisterUserWithGoogle:
+		c = &RegisterWithGoogle{}
+	case RegisterUserWithFacebook:
+		c = &RegisterWithFacebook{}
+	case ChangeUserEmailAddress:
+		c = &ChangeEmailAddress{}
+	case RequestUserAccessToken:
+		c = &RequestAccessToken{}
+	default:
+		return nil, errors.New(errors.INTERNAL, "Invalid command")
+	}
+
+	err := json.Unmarshal(payload, c)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
 
 // RequestAccessToken command
 type RequestAccessToken struct {
