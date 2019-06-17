@@ -34,7 +34,7 @@ func buildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http
 		}
 
 		for name, conn := range connMap {
-			if grpc_utils.IsConnectionServing(name, conn) {
+			if !grpc_utils.IsConnectionServing(name, conn) {
 				w.WriteHeader(500)
 				return
 			}
