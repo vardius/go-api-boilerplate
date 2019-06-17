@@ -53,7 +53,7 @@ func buildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 
 		c, e := user.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
+			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid command payload"))
 			return
 		}
 
@@ -66,11 +66,11 @@ func buildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 
 		select {
 		case <-r.Context().Done():
-			response.WithError(r.Context(), errors.Wrap(r.Context().Err(), errors.INTERNAL, "Invalid request"))
+			response.WithError(r.Context(), errors.Wrap(r.Context().Err(), errors.TIMEOUT, "Request timeout"))
 			return
 		case e = <-out:
 			if e != nil {
-				response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
+				response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Command handler error"))
 				return
 			}
 		}

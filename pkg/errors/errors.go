@@ -14,6 +14,7 @@ const (
 	NOTFOUND          = "not_found"          // entity does not exist
 	INTERNAL          = "internal"           // internal error
 	TEMPORARYDISABLED = "temporary_disabled" // temporary disabled
+	TIMEOUT           = "timeout"            // timeout
 )
 
 // ErrorCode returns the code of the root error, if available. Otherwise returns INTERNAL.

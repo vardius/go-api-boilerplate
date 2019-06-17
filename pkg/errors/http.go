@@ -16,6 +16,7 @@ var errorCodeToHTTPStatusMap = map[string]int{
 	UNAUTHORIZED: http.StatusUnauthorized,
 	FORBIDDEN:    http.StatusForbidden,
 	NOTFOUND:     http.StatusNotFound,
+	TIMEOUT:      http.StatusRequestTimeout,
 
 	// 5xx codes
 	INTERNAL:          http.StatusInternalServerError,

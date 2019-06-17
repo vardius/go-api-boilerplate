@@ -46,7 +46,7 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 
 	err := json.Unmarshal(payload, &c)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, errors.INTERNAL, "Error while trying to unmarshal command payload")
 	}
 
 	return c, nil
