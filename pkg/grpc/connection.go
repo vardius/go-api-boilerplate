@@ -17,7 +17,7 @@ func NewConnection(ctx context.Context, host string, port int, logger golog.Logg
 		grpc.WithInsecure(),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
-			Timeout:             time.Second,      // wait 1 second for ping ack before considering the connection dead
+			Timeout:             20 * time.Second, // wait 20 second for ping ack before considering the connection dead
 			PermitWithoutStream: true,             // send pings even without active streams
 		}),
 	}
