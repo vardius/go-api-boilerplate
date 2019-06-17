@@ -44,14 +44,19 @@ func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (per
 	return r.getTokenFromRow(row)
 }
 
-func (r *tokenRepository) Add(ctx context.Context, token persistence.Token) error {
+func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
+	token, ok := t.(Token)
+	if !ok {
+		return errors.New(errors.INTERNAL, "Could not parse interface to mysql type")
+	}
+
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, clientId, userId, code, access, refresh, data) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid token insert query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, token.GetID(), token.GetClientID(), token.GetUserID(), token.GetCode(), token.GetAccess(), token.GetRefresh(), token.GetData())
+	result, err := stmt.ExecContext(ctx, token.ID, token.ClientID, token.UserID, token.Code, token.Access, token.Refresh, token.Data)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not add token")
 	}
@@ -93,7 +98,7 @@ func (r *tokenRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (r *tokenRepository) getTokenFromRow(row *sql.Row) (persistence.Token, error) {
-	token := &Token{}
+	token := Token{}
 	err := row.Scan(&token.ID, &token.ClientID, &token.UserID, &token.Code, &token.Access, &token.Refresh, &token.Data)
 
 	switch {

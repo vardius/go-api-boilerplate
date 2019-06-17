@@ -1,18 +1,20 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
-	oauth2 "gopkg.in/oauth2.v3"
 )
 
 // WasCreated event
 type WasCreated struct {
 	ID     uuid.UUID `json:"id"`
 	UserID uuid.UUID `json:"userId"`
+	Secret string
+	Domain string
 
-	Info oauth2.ClientInfo `json:"data"`
+	Data json.RawMessage `json:"data"`
 }
 
 // GetType returns event type

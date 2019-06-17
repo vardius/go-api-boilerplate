@@ -8,6 +8,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
@@ -21,9 +22,9 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &user.WasRegisteredWithGoogle{}
+		e := user.WasRegisteredWithGoogle{}
 
-		err := json.Unmarshal(event.Payload, e)
+		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return
@@ -36,13 +37,11 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 		}
 		defer tx.Rollback()
 
-		u := &persistence.User{
+		err = repository.Add(ctx, mysql.User{
 			ID:       e.ID.String(),
 			Email:    e.Email,
-			GoogleID: e.GoogleID,
-		}
-
-		err = repository.Add(ctx, u)
+			GoogleId: e.GoogleId,
+		})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

@@ -6,8 +6,6 @@ package persistence
 import (
 	"context"
 	"encoding/json"
-
-	oauth2 "gopkg.in/oauth2.v3"
 )
 
 // Client the client persistance model interface
@@ -17,7 +15,6 @@ type Client interface {
 	GetSecret() string
 	GetDomain() string
 	GetData() json.RawMessage
-	GetInfo() oauth2.ClientInfo
 }
 
 // ClientRepository allows to get/save current state of user to mysql storage

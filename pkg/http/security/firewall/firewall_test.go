@@ -22,7 +22,7 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	i := &identity.Identity{
+	i := identity.Identity{
 		ID:    uuid.New(),
 		Email: "test@emai.com",
 		Roles: []string{"not-user"},
@@ -45,7 +45,7 @@ func TestGrantAccessFor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	i := &identity.Identity{
+	i := identity.Identity{
 		ID:    uuid.New(),
 		Email: "test@emai.com",
 		Roles: []string{"user"},

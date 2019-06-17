@@ -21,9 +21,9 @@ func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepos
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &user.EmailAddressWasChanged{}
+		e := user.EmailAddressWasChanged{}
 
-		err := json.Unmarshal(event.Payload, e)
+		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

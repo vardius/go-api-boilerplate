@@ -61,8 +61,8 @@ func buildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			}
 		}
 
-		emailData := &requestBody{}
-		e = json.Unmarshal(profileData, emailData)
+		emailData := requestBody{}
+		e = json.Unmarshal(profileData, &emailData)
 		if e != nil {
 			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body"))
 			return

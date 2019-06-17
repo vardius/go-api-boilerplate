@@ -18,7 +18,7 @@ type clientRepository struct {
 }
 
 // Save current client changes to event store and publish each event with an event bus
-func (r *clientRepository) Save(ctx context.Context, u *client.Client) error {
+func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 	err := r.eventStore.Store(u.Changes())
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (r *clientRepository) Save(ctx context.Context, u *client.Client) error {
 }
 
 // Get client with current state applied
-func (r *clientRepository) Get(id uuid.UUID) *client.Client {
+func (r *clientRepository) Get(id uuid.UUID) client.Client {
 	events := r.eventStore.GetStream(id, client.StreamName)
 
 	u := client.New()

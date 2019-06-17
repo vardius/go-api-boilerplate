@@ -6,8 +6,6 @@ package persistence
 import (
 	"context"
 	"encoding/json"
-
-	oauth2 "gopkg.in/oauth2.v3"
 )
 
 // Token the token persistance model interface
@@ -15,11 +13,11 @@ type Token interface {
 	GetID() string
 	GetClientID() string
 	GetUserID() string
-	GetCode() string
 	GetAccess() string
 	GetRefresh() string
+	GetScope() string
+	GetCode() string
 	GetData() json.RawMessage
-	GetInfo() oauth2.TokenInfo
 }
 
 // TokenRepository allows to get/save current state of token to mysql storage

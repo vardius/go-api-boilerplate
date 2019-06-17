@@ -18,7 +18,7 @@ type tokenRepository struct {
 }
 
 // Save current token changes to event store and publish each event with an event bus
-func (r *tokenRepository) Save(ctx context.Context, u *token.Token) error {
+func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 	err := r.eventStore.Store(u.Changes())
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (r *tokenRepository) Save(ctx context.Context, u *token.Token) error {
 }
 
 // Get token with current state applied
-func (r *tokenRepository) Get(id uuid.UUID) *token.Token {
+func (r *tokenRepository) Get(id uuid.UUID) token.Token {
 	events := r.eventStore.GetStream(id, token.StreamName)
 
 	u := token.New()

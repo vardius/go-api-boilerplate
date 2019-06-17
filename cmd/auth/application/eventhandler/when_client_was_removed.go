@@ -21,9 +21,9 @@ func WhenClientWasRemoved(db *sql.DB, repository persistence.ClientRepository) e
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &client.WasRemoved{}
+		e := client.WasRemoved{}
 
-		err := json.Unmarshal(event.Payload, e)
+		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

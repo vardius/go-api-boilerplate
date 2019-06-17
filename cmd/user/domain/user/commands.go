@@ -31,20 +31,20 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	var c domain.Command
 	switch contract {
 	case RegisterUserWithEmail:
-		c = &RegisterWithEmail{}
+		c = RegisterWithEmail{}
 	case RegisterUserWithGoogle:
-		c = &RegisterWithGoogle{}
+		c = RegisterWithGoogle{}
 	case RegisterUserWithFacebook:
-		c = &RegisterWithFacebook{}
+		c = RegisterWithFacebook{}
 	case ChangeUserEmailAddress:
-		c = &ChangeEmailAddress{}
+		c = ChangeEmailAddress{}
 	case RequestUserAccessToken:
-		c = &RequestAccessToken{}
+		c = RequestAccessToken{}
 	default:
 		return nil, errors.New(errors.INTERNAL, "Invalid command")
 	}
 
-	err := json.Unmarshal(payload, c)
+	err := json.Unmarshal(payload, &c)
 	if err != nil {
 		return nil, err
 	}

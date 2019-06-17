@@ -8,6 +8,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
@@ -21,9 +22,9 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &token.WasCreated{}
+		e := token.WasCreated{}
 
-		err := json.Unmarshal(event.Payload, e)
+		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return
@@ -36,17 +37,16 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 		}
 		defer tx.Rollback()
 
-		t := &persistence.Token{
+		err = repository.Add(ctx, mysql.Token{
 			ID:       e.ID.String(),
-			UserID:   e.UserID.String(),
 			ClientID: e.ClientID.String(),
-			Code:     e.Code,
+			UserID:   e.UserID.String(),
+			Scope:    e.Scope,
 			Access:   e.Access,
 			Refresh:  e.Refresh,
-			Info:     e.Info,
-		}
-
-		err = repository.Add(ctx, t)
+			Code:     e.Code,
+			Data:     e.Data,
+		})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

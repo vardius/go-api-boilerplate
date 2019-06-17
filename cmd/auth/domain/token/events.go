@@ -1,10 +1,10 @@
 package token
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
-	oauth2 "gopkg.in/oauth2.v3"
 )
 
 // WasCreated event
@@ -14,10 +14,11 @@ type WasCreated struct {
 	ClientID uuid.UUID `json:"clientId"`
 	UserID   uuid.UUID `json:"userId"`
 	Code     string    `json:"code"`
+	Scope    string    `json:"scope"`
 	Access   string    `json:"access"`
 	Refresh  string    `json:"refresh"`
 
-	Info oauth2.TokenInfo `json:"data"`
+	Data json.RawMessage `json:"data"`
 }
 
 // GetType returns event type

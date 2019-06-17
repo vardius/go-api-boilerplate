@@ -21,9 +21,9 @@ func WhenTokenWasRemoved(db *sql.DB, repository persistence.TokenRepository) eve
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &token.WasRemoved{}
+		e := token.WasRemoved{}
 
-		err := json.Unmarshal(event.Payload, e)
+		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

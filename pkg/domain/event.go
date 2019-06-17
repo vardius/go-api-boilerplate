@@ -7,6 +7,9 @@ import (
 	"github.com/google/uuid"
 )
 
+// NullEvent represents empty event
+var NullEvent = Event{}
+
 // RawEvent represents raw event that it is aware of its type
 type RawEvent interface {
 	GetType() string
@@ -29,7 +32,7 @@ type EventMetaData struct {
 }
 
 // NewEvent create new event
-func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent RawEvent) (*Event, error) {
+func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent RawEvent) (Event, error) {
 	meta := EventMetaData{
 		Type:          rawEvent.GetType(),
 		StreamID:      streamID,
@@ -40,17 +43,17 @@ func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent
 
 	payload, err := json.Marshal(rawEvent)
 	if err != nil {
-		return nil, err
+		return NullEvent, err
 	}
 
 	id, err := uuid.NewRandom()
 
-	return &Event{id, meta, payload}, err
+	return Event{id, meta, payload}, err
 }
 
 // MakeEvent makes a event object from metadata and payload
-func MakeEvent(meta EventMetaData, payload json.RawMessage) (*Event, error) {
+func MakeEvent(meta EventMetaData, payload json.RawMessage) (Event, error) {
 	id, err := uuid.NewRandom()
 
-	return &Event{id, meta, payload}, err
+	return Event{id, meta, payload}, err
 }

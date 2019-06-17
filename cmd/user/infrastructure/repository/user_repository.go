@@ -18,7 +18,7 @@ type userRepository struct {
 }
 
 // Save current user changes to event store and publish each event with an event bus
-func (r *userRepository) Save(ctx context.Context, u *user.User) error {
+func (r *userRepository) Save(ctx context.Context, u user.User) error {
 	err := r.eventStore.Store(u.Changes())
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (r *userRepository) Save(ctx context.Context, u *user.User) error {
 }
 
 // Get user with current state applied
-func (r *userRepository) Get(id uuid.UUID) *user.User {
+func (r *userRepository) Get(id uuid.UUID) user.User {
 	events := r.eventStore.GetStream(id, user.StreamName)
 
 	u := user.New()

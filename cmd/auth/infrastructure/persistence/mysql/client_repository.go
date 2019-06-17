@@ -18,7 +18,7 @@ type clientRepository struct {
 func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Client, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT * FROM clients WHERE id=? LIMIT 1`, id)
 
-	client := &Client{}
+	client := Client{}
 
 	err := row.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.Data)
 	switch {
@@ -31,14 +31,19 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 	}
 }
 
-func (r *clientRepository) Add(ctx context.Context, client persistence.Client) error {
+func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error {
+	client, ok := c.(Client)
+	if !ok {
+		return errors.New(errors.INTERNAL, "Could not parse interface to mysql type")
+	}
+
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, secret, domain, data) VALUES (?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid client insert query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, client.GetID(), client.GetUserID(), client.GetSecret(), client.GetDomain(), client.GetData())
+	result, err := stmt.ExecContext(ctx, client.ID, client.UserID, client.Secret, client.Domain, client.Data)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not add client")
 	}

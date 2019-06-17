@@ -21,9 +21,9 @@ func WhenUserConnectedWithGoogle(db *sql.DB, repository persistence.UserReposito
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &user.ConnectedWithGoogle{}
+		e := user.ConnectedWithGoogle{}
 
-		err := json.Unmarshal(event.Payload, e)
+		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

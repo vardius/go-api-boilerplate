@@ -8,6 +8,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/client"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
@@ -21,9 +22,9 @@ func WhenClientWasCreated(db *sql.DB, repository persistence.ClientRepository) e
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &client.WasCreated{}
+		e := client.WasCreated{}
 
-		err := json.Unmarshal(event.Payload, e)
+		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return
@@ -36,15 +37,13 @@ func WhenClientWasCreated(db *sql.DB, repository persistence.ClientRepository) e
 		}
 		defer tx.Rollback()
 
-		c := &persistence.Client{
+		err = repository.Add(ctx, mysql.Client{
 			ID:     e.ID.String(),
 			UserID: e.UserID.String(),
-			Secret: e.Info.GetSecret(),
-			Domain: e.Info.GetDomain(),
-			Info:   e.Info,
-		}
-
-		err = repository.Add(ctx, c)
+			Secret: e.Secret,
+			Domain: e.Domain,
+			Data:   e.Data,
+		})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

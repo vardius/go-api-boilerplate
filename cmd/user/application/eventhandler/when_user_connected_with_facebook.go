@@ -21,9 +21,9 @@ func WhenUserConnectedWithFacebook(db *sql.DB, repository persistence.UserReposi
 
 		log.Printf("[EventHandler] %s", event.Payload)
 
-		e := &user.ConnectedWithFacebook{}
+		e := user.ConnectedWithFacebook{}
 
-		err := json.Unmarshal(event.Payload, e)
+		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return

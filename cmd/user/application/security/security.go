@@ -13,7 +13,7 @@ import (
 
 // TokenAuthHandler provides token auth function
 func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repository user_persistance.UserRepository, logger golog.Logger) http_authenticator.TokenAuthFunc {
-	fn := func(token string) (*identity.Identity, error) {
+	fn := func(token string) (identity.Identity, error) {
 		tokenInfo, err := grpAuthClient.VerifyToken(context.Background(), &auth_proto.VerifyTokenRequest{
 			Token: token,
 		})
@@ -28,7 +28,7 @@ func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repo
 			return nil, err
 		}
 
-		i := &identity.Identity{
+		i := identity.Identity{
 			ID:    uuid.MustParse(user.ID),
 			Token: token,
 			Email: user.Email,

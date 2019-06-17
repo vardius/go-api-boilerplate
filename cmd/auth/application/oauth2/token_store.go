@@ -27,7 +27,7 @@ func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 	out := make(chan error)
 	defer close(out)
 
-	c := &token.Create{
+	c := token.Create{
 		TokenInfo: info,
 	}
 
@@ -110,7 +110,7 @@ func (ts *TokenStore) remove(ctx context.Context, t *persistence.Token) error {
 	out := make(chan error)
 	defer close(out)
 
-	c := &token.Remove{
+	c := token.Remove{
 		ID: uuid.MustParse(t.ID),
 	}
 

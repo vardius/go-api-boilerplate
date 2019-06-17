@@ -160,7 +160,7 @@ func buildListUserHandler(repository persistence.UserRepository) http.Handler {
 
 		offset := (page * limit) - limit
 
-		paginatedList := &struct {
+		paginatedList := struct {
 			Page  int32               `json:"page"`
 			Limit int32               `json:"limit"`
 			Total int32               `json:"total"`

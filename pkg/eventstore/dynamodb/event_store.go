@@ -19,7 +19,7 @@ type eventStore struct {
 	tableName string
 }
 
-func (s *eventStore) Store(events []*domain.Event) error {
+func (s *eventStore) Store(events []domain.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -46,7 +46,7 @@ func (s *eventStore) Store(events []*domain.Event) error {
 	return nil
 }
 
-func (s *eventStore) Get(id uuid.UUID) (*domain.Event, error) {
+func (s *eventStore) Get(id uuid.UUID) (domain.Event, error) {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String(s.tableName),
 		KeyConditionExpression: aws.String("id = :id"),
@@ -61,10 +61,10 @@ func (s *eventStore) Get(id uuid.UUID) (*domain.Event, error) {
 		return es[0], err
 	}
 
-	return nil, err
+	return domain.NullEvent, err
 }
 
-func (s *eventStore) FindAll() []*domain.Event {
+func (s *eventStore) FindAll() []domain.Event {
 	params := &dynamodb.QueryInput{
 		TableName:      aws.String(s.tableName),
 		ConsistentRead: aws.Bool(true),
@@ -73,13 +73,13 @@ func (s *eventStore) FindAll() []*domain.Event {
 	es, _ := s.query(params)
 
 	if es == nil {
-		es = make([]*domain.Event, 0)
+		return make([]domain.Event, 0)
 	}
 
 	return es
 }
 
-func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.Event {
+func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []domain.Event {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String(s.tableName),
 		KeyConditionExpression: aws.String("metadata.streamID = :streamID"),
@@ -92,13 +92,13 @@ func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.
 	es, _ := s.query(params)
 
 	if es == nil {
-		es = make([]*domain.Event, 0)
+		return make([]domain.Event, 0)
 	}
 
 	return es
 }
 
-func (s *eventStore) query(params *dynamodb.QueryInput) ([]*domain.Event, error) {
+func (s *eventStore) query(params *dynamodb.QueryInput) ([]domain.Event, error) {
 	resp, err := s.service.Query(params)
 	if err != nil {
 		return nil, err
@@ -108,10 +108,10 @@ func (s *eventStore) query(params *dynamodb.QueryInput) ([]*domain.Event, error)
 		return nil, ErrEventNotFound
 	}
 
-	es := make([]*domain.Event, len(resp.Items))
+	es := make([]domain.Event, len(resp.Items))
 	for i, item := range resp.Items {
-		e := &domain.Event{}
-		if err := dynamodbattribute.UnmarshalMap(item, e); err != nil {
+		e := domain.Event{}
+		if err := dynamodbattribute.UnmarshalMap(item, &e); err != nil {
 			return nil, err
 		}
 		es[i] = e
