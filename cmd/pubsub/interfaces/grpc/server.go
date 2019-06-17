@@ -10,6 +10,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	pubsub_messagebus "github.com/vardius/go-api-boilerplate/cmd/pubsub/application/messagebus"
 	"github.com/vardius/go-api-boilerplate/cmd/pubsub/infrastructure/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 type server struct {
@@ -53,5 +54,9 @@ func (s *server) Subscribe(r *proto.SubscribeRequest, stream proto.MessageBus_Su
 
 	s.bus.Unsubscribe(r.GetTopic(), handler)
 
-	return err
+	if err == nil {
+		return nil
+	}
+
+	return errors.Wrap(err, errors.INTERNAL, "[grpc|Subscribe] Stream closed due to error")
 }

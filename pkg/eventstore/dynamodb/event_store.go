@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	baseeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
 
@@ -28,7 +29,7 @@ func (s *eventStore) Store(events []domain.Event) error {
 	for _, e := range events {
 		item, err := dynamodbattribute.MarshalMap(e)
 		if err != nil {
-			return err
+			return errors.Wrap(err, errors.INTERNAL, "EventStore events marshal error")
 		}
 		putParams := &dynamodb.PutItemInput{
 			TableName:           aws.String(s.tableName),
@@ -37,9 +38,9 @@ func (s *eventStore) Store(events []domain.Event) error {
 		}
 		if _, err = s.service.PutItem(putParams); err != nil {
 			if err, ok := err.(awserr.RequestFailure); ok && err.Code() == "ConditionalCheckFailedException" {
-				return err
+				return errors.Wrap(err, errors.INTERNAL, "EventStore PutItem request failureerror")
 			}
-			return err
+			return errors.Wrap(err, errors.INTERNAL, "EventStore PutItem error")
 		}
 	}
 

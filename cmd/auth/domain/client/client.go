@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	oauth2 "gopkg.in/oauth2.v3"
 )
 
@@ -35,7 +36,7 @@ func (c Client) trackChange(e domain.RawEvent) error {
 	eventEnvelop, err := domain.NewEvent(c.id, StreamName, c.version, e)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Client trackChange error")
 	}
 
 	c.changes = append(c.changes, eventEnvelop)
@@ -62,7 +63,7 @@ func (c Client) Changes() []domain.Event {
 func (c Client) Create(info oauth2.ClientInfo) error {
 	data, err := json.Marshal(info)
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Client create error when parsing info to JSON")
 	}
 
 	return c.trackChange(WasCreated{

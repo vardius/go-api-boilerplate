@@ -3,10 +3,10 @@ package oauth2
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"sync"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	oauth2 "gopkg.in/oauth2.v3"
 	oauth2_models "gopkg.in/oauth2.v3/models"
 )
@@ -35,7 +35,7 @@ func (cs *ClientStore) GetByID(id string) (oauth2.ClientInfo, error) {
 
 	c, err := cs.repository.Get(context.Background(), id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, errors.NOTFOUND, "Not Found: client with ID (%s)", id)
 	}
 
 	return cs.toClientInfo(c.GetData())
@@ -49,7 +49,7 @@ func (cs *ClientStore) Internal(id string) (cli oauth2.ClientInfo, err error) {
 		cli = c
 		return
 	}
-	err = errors.New("not found")
+	err = errors.Newf(errors.NOTFOUND, "Not Found: client with ID (%s)", id)
 	return
 }
 

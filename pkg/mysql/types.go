@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // NullInt64 is an alias for sql.NullInt64 data type
@@ -24,7 +25,7 @@ func (ni *NullInt64) MarshalJSON() ([]byte, error) {
 func (ni *NullInt64) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &ni.Int64)
 	ni.Valid = (err == nil)
-	return err
+	return errors.Wrap(err, errors.INTERNAL, "Mysql NullInt64 unmarshal error")
 }
 
 // NullBool is an alias for sql.NullBool data type
@@ -42,7 +43,7 @@ func (nb *NullBool) MarshalJSON() ([]byte, error) {
 func (nb *NullBool) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nb.Bool)
 	nb.Valid = (err == nil)
-	return err
+	return errors.Wrap(err, errors.INTERNAL, "Mysql NullBool unmarshal error")
 }
 
 // NullFloat64 is an alias for sql.NullFloat64 data type
@@ -60,7 +61,7 @@ func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
 func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nf.Float64)
 	nf.Valid = (err == nil)
-	return err
+	return errors.Wrap(err, errors.INTERNAL, "Mysql NullFloat64 unmarshal error")
 }
 
 // NullString is an alias for sql.NullString data type
@@ -78,7 +79,7 @@ func (ns *NullString) MarshalJSON() ([]byte, error) {
 func (ns *NullString) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &ns.String)
 	ns.Valid = (err == nil)
-	return err
+	return errors.Wrap(err, errors.INTERNAL, "Mysql NullString unmarshal error")
 }
 
 // NullTime is an alias for mysql.NullTime data type
@@ -97,5 +98,5 @@ func (nt *NullTime) MarshalJSON() ([]byte, error) {
 func (nt *NullTime) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nt.Time)
 	nt.Valid = (err == nil)
-	return err
+	return errors.Wrap(err, errors.INTERNAL, "Mysql NullTime unmarshal error")
 }

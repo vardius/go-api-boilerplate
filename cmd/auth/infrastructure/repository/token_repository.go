@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
@@ -21,7 +22,7 @@ type tokenRepository struct {
 func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 	err := r.eventStore.Store(u.Changes())
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Token save error")
 	}
 
 	for _, event := range u.Changes() {

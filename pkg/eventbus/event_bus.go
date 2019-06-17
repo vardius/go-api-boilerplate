@@ -6,6 +6,7 @@ import (
 
 	pubsub_proto "github.com/vardius/go-api-boilerplate/cmd/pubsub/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/golog"
 )
 
@@ -35,21 +36,21 @@ func (bus *eventBus) Subscribe(eventType string, fn EventHandler) error {
 	})
 	if err != nil {
 		bus.logger.Error(ctx, "[EventBus|Subscribe] Subscribe error: %v", err)
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "EventBus client subscribe error")
 	}
 
 	for {
 		resp, err := stream.Recv()
 		if err != nil {
 			bus.logger.Error(ctx, "[EventBus|Subscribe] stream.Recv error: %v", err)
-			return err
+			return errors.Wrap(err, errors.INTERNAL, "EventBus stream recv error")
 		}
 
 		var event domain.Event
 		err = json.Unmarshal(resp.GetPayload(), &event)
 		if err != nil {
 			bus.logger.Error(ctx, "[EventBus|Subscribe] Unmarshal error: %v", err)
-			return err
+			return errors.Wrap(err, errors.INTERNAL, "EventBus unmarshal error")
 		}
 
 		bus.logger.Info(ctx, "[EventBus|Subscribe]: %s %s\n", event.Metadata.Type, event.Payload)

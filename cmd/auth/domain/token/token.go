@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	oauth2 "gopkg.in/oauth2.v3"
 )
 
@@ -35,7 +36,7 @@ func (t Token) trackChange(e domain.RawEvent) error {
 	eventEnvelop, err := domain.NewEvent(t.id, StreamName, t.version, e)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Token trackChange error")
 	}
 
 	t.changes = append(t.changes, eventEnvelop)
@@ -62,7 +63,7 @@ func (t Token) Changes() []domain.Event {
 func (t Token) Create(id uuid.UUID, info oauth2.TokenInfo) error {
 	data, err := json.Marshal(info)
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Token create error when parsing info to JSON")
 	}
 
 	return t.trackChange(WasCreated{

@@ -8,6 +8,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	oauth2 "gopkg.in/oauth2.v3"
 	oauth2_models "gopkg.in/oauth2.v3/models"
 )
@@ -41,7 +42,7 @@ func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	case err := <-out:
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Token Create error")
 	}
 }
 
@@ -50,7 +51,7 @@ func (ts *TokenStore) RemoveByCode(code string) error {
 	ctx := context.Background()
 	t, err := ts.repository.GetByCode(ctx, code)
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Token RemoveByCode error")
 	}
 
 	return ts.remove(ctx, t)
@@ -61,7 +62,7 @@ func (ts *TokenStore) RemoveByAccess(access string) error {
 	ctx := context.Background()
 	t, err := ts.repository.GetByAccess(ctx, access)
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Token RemoveByAccess error")
 	}
 
 	return ts.remove(ctx, t)
@@ -72,7 +73,7 @@ func (ts *TokenStore) RemoveByRefresh(refresh string) error {
 	ctx := context.Background()
 	t, err := ts.repository.GetByRefresh(ctx, refresh)
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Token RemoveByRefresh error")
 	}
 
 	return ts.remove(ctx, t)
@@ -131,6 +132,6 @@ func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	case err := <-out:
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "Token remove error")
 	}
 }
