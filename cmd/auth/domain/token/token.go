@@ -85,7 +85,7 @@ func (t Token) Remove() error {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func (t Token) FromHistory(events []*domain.Event) {
+func (t Token) FromHistory(events []domain.Event) {
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 

@@ -57,10 +57,10 @@ func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*pro
 	}
 
 	return &proto.User{
-		Id:         user.ID,
-		Email:      user.Email,
-		FacebookId: user.FacebookID,
-		GoogleId:   user.GoogleID,
+		Id:         user.GetID(),
+		Email:      user.GetEmail(),
+		FacebookId: user.GetFacebookID(),
+		GoogleId:   user.GetGoogleID(),
 	}, nil
 }
 
@@ -70,7 +70,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 		return nil, status.Error(codes.Internal, "Invalid page or limit value. Please provide values greater then 1")
 	}
 
-	var users []*persistence.User
+	var users []persistence.User
 	var list []*proto.User
 
 	totalUsers, err := s.userRepository.Count(ctx)
@@ -97,10 +97,10 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 	list = make([]*proto.User, len(users))
 	for i := range users {
 		list[i] = &proto.User{
-			Id:         users[i].ID,
-			Email:      users[i].Email,
-			FacebookId: users[i].FacebookID,
-			GoogleId:   users[i].GoogleID,
+			Id:         users[i].GetID(),
+			Email:      users[i].GetEmail(),
+			FacebookId: users[i].GetFacebookID(),
+			GoogleId:   users[i].GetGoogleID(),
 		}
 	}
 

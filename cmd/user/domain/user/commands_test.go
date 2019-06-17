@@ -104,11 +104,11 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 
 type repositoryMock int
 
-func (r *repositoryMock) Save(ctx context.Context, u *User) error {
+func (r *repositoryMock) Save(ctx context.Context, u User) error {
 	return nil
 }
 
-func (r *repositoryMock) Get(id uuid.UUID) *User {
+func (r *repositoryMock) Get(id uuid.UUID) User {
 	return New()
 }
 

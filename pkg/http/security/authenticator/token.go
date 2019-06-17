@@ -11,7 +11,7 @@ import (
 )
 
 // TokenAuthFunc returns Identity from token
-type TokenAuthFunc func(token string) (*identity.Identity, error)
+type TokenAuthFunc func(token string) (identity.Identity, error)
 
 // TokenAuthenticator authorize by token
 // and adds Identity to request's Context

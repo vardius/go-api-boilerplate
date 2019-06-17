@@ -127,7 +127,7 @@ func (u User) RequestAccessToken() error {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func (u User) FromHistory(events []*domain.Event) {
+func (u User) FromHistory(events []domain.Event) {
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 

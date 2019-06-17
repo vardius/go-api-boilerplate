@@ -25,7 +25,7 @@ func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 	}
 
 	for _, event := range u.Changes() {
-		r.eventBus.Publish(ctx, *event)
+		r.eventBus.Publish(ctx, event)
 	}
 
 	return nil

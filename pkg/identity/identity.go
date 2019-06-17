@@ -7,6 +7,9 @@ import (
 	"github.com/google/uuid"
 )
 
+// NullIdentity represents empty Identity
+var NullIdentity = Identity{}
+
 // Identity data to be encode in auth token
 type Identity struct {
 	ID    uuid.UUID `json:"id"`

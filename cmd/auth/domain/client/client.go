@@ -82,7 +82,7 @@ func (c Client) Remove() error {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func (c Client) FromHistory(events []*domain.Event) {
+func (c Client) FromHistory(events []domain.Event) {
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 

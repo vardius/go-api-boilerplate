@@ -8,9 +8,10 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
+	auth_mysql "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
 // WhenTokenWasCreated handles event
@@ -37,15 +38,18 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 		}
 		defer tx.Rollback()
 
-		err = repository.Add(ctx, mysql.Token{
+		err = repository.Add(ctx, auth_mysql.Token{
 			ID:       e.ID.String(),
 			ClientID: e.ClientID.String(),
 			UserID:   e.UserID.String(),
 			Scope:    e.Scope,
 			Access:   e.Access,
 			Refresh:  e.Refresh,
-			Code:     e.Code,
-			Data:     e.Data,
+			Code: mysql.NullString{
+				String: e.Code,
+				Valid:  e.Code != "",
+			},
+			Data: e.Data,
 		})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)

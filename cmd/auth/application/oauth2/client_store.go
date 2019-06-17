@@ -2,11 +2,13 @@ package oauth2
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"sync"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
 	oauth2 "gopkg.in/oauth2.v3"
+	oauth2_models "gopkg.in/oauth2.v3/models"
 )
 
 // NewClientStore create client store
@@ -26,7 +28,7 @@ type ClientStore struct {
 
 // GetByID according to the ID for the client information
 func (cs *ClientStore) GetByID(id string) (oauth2.ClientInfo, error) {
-	i, err := cs.getInternal(id)
+	i, err := cs.Internal(id)
 	if err == nil {
 		return i, nil
 	}
@@ -36,11 +38,11 @@ func (cs *ClientStore) GetByID(id string) (oauth2.ClientInfo, error) {
 		return nil, err
 	}
 
-	return c.Info, nil
+	return cs.toClientInfo(c.GetData())
 }
 
-// GetByID according to the ID for the client information
-func (cs *ClientStore) getInternal(id string) (cli oauth2.ClientInfo, err error) {
+// Internal according to the ID for the internal client information
+func (cs *ClientStore) Internal(id string) (cli oauth2.ClientInfo, err error) {
 	cs.RLock()
 	defer cs.RUnlock()
 	if c, ok := cs.internal[id]; ok {
@@ -57,4 +59,11 @@ func (cs *ClientStore) SetInternal(id string, cli oauth2.ClientInfo) (err error)
 	defer cs.Unlock()
 	cs.internal[id] = cli
 	return
+}
+
+func (cs *ClientStore) toClientInfo(data []byte) (oauth2.ClientInfo, error) {
+	info := oauth2_models.Client{}
+	err := json.Unmarshal(data, &info)
+
+	return &info, err
 }

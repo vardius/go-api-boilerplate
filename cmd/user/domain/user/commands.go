@@ -209,7 +209,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 			return
 		}
 
-		var u *User
+		var u User
 		if emailAddress == c.Email {
 			u = repository.Get(uuid.MustParse(id))
 			err = u.ConnectWithFacebook(c.FacebookID)
@@ -270,7 +270,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 			return
 		}
 
-		var u *User
+		var u User
 		if emailAddress == c.Email {
 			u = repository.Get(uuid.MustParse(id))
 			err = u.ConnectWithGoogle(c.GoogleID)

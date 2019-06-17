@@ -8,9 +8,10 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
+	user_mysql "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
 // WhenUserWasRegisteredWithGoogle handles event
@@ -37,10 +38,13 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 		}
 		defer tx.Rollback()
 
-		err = repository.Add(ctx, mysql.User{
-			ID:       e.ID.String(),
-			Email:    e.Email,
-			GoogleId: e.GoogleId,
+		err = repository.Add(ctx, user_mysql.User{
+			ID:    e.ID.String(),
+			Email: e.Email,
+			GoogleID: mysql.NullString{
+				String: e.GoogleID,
+				Valid:  e.GoogleID != "",
+			},
 		})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)

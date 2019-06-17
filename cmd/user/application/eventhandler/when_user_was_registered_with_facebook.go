@@ -8,9 +8,10 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
+	user_mysql "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
 // WhenUserWasRegisteredWithFacebook handles event
@@ -37,10 +38,13 @@ func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRe
 		}
 		defer tx.Rollback()
 
-		err = repository.Add(ctx, mysql.User{
-			ID:         e.ID.String(),
-			Email:      e.Email,
-			FacebookID: e.FacebookID,
+		err = repository.Add(ctx, user_mysql.User{
+			ID:    e.ID.String(),
+			Email: e.Email,
+			FacebookID: mysql.NullString{
+				String: e.FacebookID,
+				Valid:  e.FacebookID != "",
+			},
 		})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)

@@ -40,7 +40,7 @@ func TestEventStore(t *testing.T) {
 
 	store := New()
 
-	if store.Store([]*domain.Event{e1, e2}) != nil {
+	if store.Store([]domain.Event{e1, e2}) != nil {
 		t.Fail()
 	}
 
@@ -49,7 +49,7 @@ func TestEventStore(t *testing.T) {
 		t.Fail()
 	}
 
-	if se != e1 {
+	if se.ID != e1.ID {
 		t.Fail()
 	}
 

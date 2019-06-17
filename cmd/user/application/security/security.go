@@ -19,19 +19,19 @@ func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repo
 		})
 		if err != nil {
 			logger.Error(context.Background(), "TokenAuthHandler Error: %v\n", err)
-			return nil, err
+			return identity.NullIdentity, err
 		}
 
 		user, err := repository.Get(context.Background(), tokenInfo.GetUserId())
 		if err != nil {
 			logger.Error(context.Background(), "TokenAuthHandler Error: %v\n", err)
-			return nil, err
+			return identity.NullIdentity, err
 		}
 
 		i := identity.Identity{
-			ID:    uuid.MustParse(user.ID),
+			ID:    uuid.MustParse(user.GetID()),
 			Token: token,
-			Email: user.Email,
+			Email: user.GetEmail(),
 			Roles: []string{"USER"},
 		}
 

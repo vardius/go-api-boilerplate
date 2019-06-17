@@ -9,7 +9,7 @@ import (
 )
 
 // CredentialsAuthFunc returns Identity from username and password combination
-type CredentialsAuthFunc func(username, password string) (*identity.Identity, error)
+type CredentialsAuthFunc func(username, password string) (identity.Identity, error)
 
 // CredentialsAuthenticator authorize by the username and password
 // and adds Identity to request's Context

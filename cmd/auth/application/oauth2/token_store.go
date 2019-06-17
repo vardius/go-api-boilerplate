@@ -2,12 +2,14 @@ package oauth2
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	oauth2 "gopkg.in/oauth2.v3"
+	oauth2_models "gopkg.in/oauth2.v3/models"
 )
 
 // NewTokenStore create a token store instance
@@ -83,7 +85,7 @@ func (ts *TokenStore) GetByCode(code string) (oauth2.TokenInfo, error) {
 		return nil, err
 	}
 
-	return t.Info, nil
+	return ts.toTokenInfo(t.GetData())
 }
 
 // GetByAccess use the access token for token information data
@@ -93,7 +95,7 @@ func (ts *TokenStore) GetByAccess(access string) (oauth2.TokenInfo, error) {
 		return nil, err
 	}
 
-	return t.Info, nil
+	return ts.toTokenInfo(t.GetData())
 }
 
 // GetByRefresh use the refresh token for token information data
@@ -103,15 +105,22 @@ func (ts *TokenStore) GetByRefresh(refresh string) (oauth2.TokenInfo, error) {
 		return nil, err
 	}
 
-	return t.Info, nil
+	return ts.toTokenInfo(t.GetData())
 }
 
-func (ts *TokenStore) remove(ctx context.Context, t *persistence.Token) error {
+func (ts *TokenStore) toTokenInfo(data []byte) (oauth2.TokenInfo, error) {
+	info := oauth2_models.Token{}
+	err := json.Unmarshal(data, &info)
+
+	return &info, err
+}
+
+func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 	out := make(chan error)
 	defer close(out)
 
 	c := token.Remove{
-		ID: uuid.MustParse(t.ID),
+		ID: uuid.MustParse(t.GetID()),
 	}
 
 	go func() {
