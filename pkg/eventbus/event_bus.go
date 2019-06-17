@@ -39,6 +39,8 @@ func (bus *eventBus) Subscribe(eventType string, fn EventHandler) error {
 		return errors.Wrap(err, errors.INTERNAL, "EventBus client subscribe error")
 	}
 
+	bus.logger.Debug(ctx, "[EventBus|Subscribe]: %s\n", eventType)
+
 	for {
 		resp, err := stream.Recv()
 		if err != nil {
@@ -68,7 +70,7 @@ func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
 		return
 	}
 
-	bus.logger.Info(ctx, "[EventBus|Publish]: %s %s\n", event.Metadata.Type, payload)
+	bus.logger.Debug(ctx, "[EventBus|Publish]: %s %s\n", event.Metadata.Type, payload)
 
 	bus.client.Publish(ctx, &pubsub_proto.PublishRequest{
 		Topic:   event.Metadata.Type,

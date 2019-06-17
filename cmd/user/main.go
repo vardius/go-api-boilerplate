@@ -135,8 +135,8 @@ func main() {
 				eventBus.Subscribe((user.AccessTokenWasRequested{}).GetType(), user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
 				break
 			}
+			time.Sleep(1 * time.Second)
 		}
-		time.Sleep(1 * time.Second)
 	}()
 
 	stop := func() {
