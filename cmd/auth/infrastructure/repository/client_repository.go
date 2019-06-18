@@ -36,10 +36,7 @@ func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 func (r *clientRepository) Get(id uuid.UUID) client.Client {
 	events := r.eventStore.GetStream(id, client.StreamName)
 
-	u := client.New()
-	u.FromHistory(events)
-
-	return u
+	return client.FromHistory(events)
 }
 
 // NewClientRepository creates new client event sourced repository

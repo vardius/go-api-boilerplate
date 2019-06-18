@@ -36,10 +36,7 @@ func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 func (r *tokenRepository) Get(id uuid.UUID) token.Token {
 	events := r.eventStore.GetStream(id, token.StreamName)
 
-	u := token.New()
-	u.FromHistory(events)
-
-	return u
+	return token.FromHistory(events)
 }
 
 // NewTokenRepository creates new token event sourced repository

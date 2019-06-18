@@ -36,10 +36,7 @@ func (r *userRepository) Save(ctx context.Context, u user.User) error {
 func (r *userRepository) Get(id uuid.UUID) user.User {
 	events := r.eventStore.GetStream(id, user.StreamName)
 
-	u := user.New()
-	u.FromHistory(events)
-
-	return u
+	return user.FromHistory(events)
 }
 
 // NewUserRepository creates new user event sourced repository

@@ -24,69 +24,15 @@ type Token struct {
 	changes []domain.Event
 }
 
-func (t Token) transition(e domain.RawEvent) {
-	switch e := e.(type) {
-	case WasCreated:
-		t.id = e.ID
-	}
-}
-
-func (t Token) trackChange(e domain.RawEvent) error {
-	t.transition(e)
-	event, err := domain.NewEvent(t.id, StreamName, t.version, e)
-
-	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Token trackChange error")
-	}
-
-	t.changes = append(t.changes, event)
-
-	return nil
-}
-
-// ID returns aggregate root id
-func (t Token) ID() uuid.UUID {
-	return t.id
-}
-
-// Version returns current aggregate root version
-func (t Token) Version() int {
-	return t.version
-}
-
-// Changes returns all new applied events
-func (t Token) Changes() []domain.Event {
-	return t.changes
-}
-
-// Create alters current user state and append changes to aggregate root
-func (t Token) Create(id uuid.UUID, info oauth2.TokenInfo) error {
-	data, err := json.Marshal(info)
-	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Token create error when parsing info to JSON")
-	}
-
-	return t.trackChange(WasCreated{
-		ID:       id,
-		ClientID: uuid.MustParse(info.GetClientID()),
-		UserID:   uuid.MustParse(info.GetUserID()),
-		Code:     info.GetCode(),
-		Access:   info.GetAccess(),
-		Refresh:  info.GetRefresh(),
-		Scope:    info.GetScope(),
-		Data:     data,
-	})
-}
-
-// Remove alters current user state and append changes to aggregate root
-func (t Token) Remove() error {
-	return t.trackChange(WasRemoved{
-		ID: t.id,
-	})
+// New creates an Token
+func New() Token {
+	return Token{}
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func (t Token) FromHistory(events []domain.Event) {
+func FromHistory(events []domain.Event) Token {
+	t := New()
+
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 
@@ -110,9 +56,67 @@ func (t Token) FromHistory(events []domain.Event) {
 		t.transition(e)
 		t.version++
 	}
+
+	return t
 }
 
-// New creates an Token
-func New() Token {
-	return Token{}
+// ID returns aggregate root id
+func (t Token) ID() uuid.UUID {
+	return t.id
+}
+
+// Version returns current aggregate root version
+func (t Token) Version() int {
+	return t.version
+}
+
+// Changes returns all new applied events
+func (t Token) Changes() []domain.Event {
+	return t.changes
+}
+
+// Create alters current user state and append changes to aggregate root
+func (t *Token) Create(id uuid.UUID, info oauth2.TokenInfo) error {
+	data, err := json.Marshal(info)
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Token create error when parsing info to JSON")
+	}
+
+	return t.trackChange(WasCreated{
+		ID:       id,
+		ClientID: uuid.MustParse(info.GetClientID()),
+		UserID:   uuid.MustParse(info.GetUserID()),
+		Code:     info.GetCode(),
+		Access:   info.GetAccess(),
+		Refresh:  info.GetRefresh(),
+		Scope:    info.GetScope(),
+		Data:     data,
+	})
+}
+
+// Remove alters current user state and append changes to aggregate root
+func (t *Token) Remove() error {
+	return t.trackChange(WasRemoved{
+		ID: t.id,
+	})
+}
+
+func (t *Token) transition(e domain.RawEvent) {
+	switch e := e.(type) {
+	case WasCreated:
+		t.id = e.ID
+	}
+}
+
+func (t *Token) trackChange(e domain.RawEvent) error {
+	t.transition(e)
+	event, err := domain.NewEvent(t.id, StreamName, t.version, e)
+
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Token trackChange error")
+	}
+
+	t.changes = append(t.changes, event)
+
+	return nil
 }

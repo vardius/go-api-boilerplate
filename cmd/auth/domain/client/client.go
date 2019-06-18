@@ -24,66 +24,15 @@ type Client struct {
 	changes []domain.Event
 }
 
-func (c Client) transition(e domain.RawEvent) {
-	switch e := e.(type) {
-	case WasCreated:
-		c.id = e.ID
-	}
-}
-
-func (c Client) trackChange(e domain.RawEvent) error {
-	c.transition(e)
-	event, err := domain.NewEvent(c.id, StreamName, c.version, e)
-
-	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Client trackChange error")
-	}
-
-	c.changes = append(c.changes, event)
-
-	return nil
-}
-
-// ID returns aggregate root id
-func (c Client) ID() uuid.UUID {
-	return c.id
-}
-
-// Version returns current aggregate root version
-func (c Client) Version() int {
-	return c.version
-}
-
-// Changes returns all new applied events
-func (c Client) Changes() []domain.Event {
-	return c.changes
-}
-
-// Create alters current user state and append changes to aggregate root
-func (c Client) Create(info oauth2.ClientInfo) error {
-	data, err := json.Marshal(info)
-	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Client create error when parsing info to JSON")
-	}
-
-	return c.trackChange(WasCreated{
-		ID:     uuid.MustParse(info.GetID()),
-		UserID: uuid.MustParse(info.GetUserID()),
-		Secret: info.GetSecret(),
-		Domain: info.GetDomain(),
-		Data:   data,
-	})
-}
-
-// Remove alters current user state and append changes to aggregate root
-func (c Client) Remove() error {
-	return c.trackChange(WasRemoved{
-		ID: c.id,
-	})
+// New creates an Client
+func New() Client {
+	return Client{}
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func (c Client) FromHistory(events []domain.Event) {
+func FromHistory(events []domain.Event) Client {
+	c := New()
+
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 
@@ -107,9 +56,64 @@ func (c Client) FromHistory(events []domain.Event) {
 		c.transition(e)
 		c.version++
 	}
+
+	return c
 }
 
-// New creates an Client
-func New() Client {
-	return Client{}
+// ID returns aggregate root id
+func (c Client) ID() uuid.UUID {
+	return c.id
+}
+
+// Version returns current aggregate root version
+func (c Client) Version() int {
+	return c.version
+}
+
+// Changes returns all new applied events
+func (c Client) Changes() []domain.Event {
+	return c.changes
+}
+
+// Create alters current user state and append changes to aggregate root
+func (c *Client) Create(info oauth2.ClientInfo) error {
+	data, err := json.Marshal(info)
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Client create error when parsing info to JSON")
+	}
+
+	return c.trackChange(WasCreated{
+		ID:     uuid.MustParse(info.GetID()),
+		UserID: uuid.MustParse(info.GetUserID()),
+		Secret: info.GetSecret(),
+		Domain: info.GetDomain(),
+		Data:   data,
+	})
+}
+
+// Remove alters current user state and append changes to aggregate root
+func (c *Client) Remove() error {
+	return c.trackChange(WasRemoved{
+		ID: c.id,
+	})
+}
+
+func (c *Client) transition(e domain.RawEvent) {
+	switch e := e.(type) {
+	case WasCreated:
+		c.id = e.ID
+	}
+}
+
+func (c *Client) trackChange(e domain.RawEvent) error {
+	c.transition(e)
+	event, err := domain.NewEvent(c.id, StreamName, c.version, e)
+
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Client trackChange error")
+	}
+
+	c.changes = append(c.changes, event)
+
+	return nil
 }
