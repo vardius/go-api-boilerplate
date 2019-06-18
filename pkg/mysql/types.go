@@ -11,7 +11,7 @@ import (
 )
 
 // NullInt64 is an alias for sql.NullInt64 data type
-type NullInt64 sql.NullInt64
+type NullInt64 struct{ sql.NullInt64 }
 
 // MarshalJSON for NullInt64
 func (ni *NullInt64) MarshalJSON() ([]byte, error) {
@@ -29,7 +29,7 @@ func (ni *NullInt64) UnmarshalJSON(b []byte) error {
 }
 
 // NullBool is an alias for sql.NullBool data type
-type NullBool sql.NullBool
+type NullBool struct{ sql.NullBool }
 
 // MarshalJSON for NullBool
 func (nb *NullBool) MarshalJSON() ([]byte, error) {
@@ -47,7 +47,7 @@ func (nb *NullBool) UnmarshalJSON(b []byte) error {
 }
 
 // NullFloat64 is an alias for sql.NullFloat64 data type
-type NullFloat64 sql.NullFloat64
+type NullFloat64 struct{ sql.NullFloat64 }
 
 // MarshalJSON for NullFloat64
 func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
@@ -65,7 +65,7 @@ func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
 }
 
 // NullString is an alias for sql.NullString data type
-type NullString sql.NullString
+type NullString struct{ sql.NullString }
 
 // MarshalJSON for NullString
 func (ns *NullString) MarshalJSON() ([]byte, error) {
@@ -83,7 +83,7 @@ func (ns *NullString) UnmarshalJSON(b []byte) error {
 }
 
 // NullTime is an alias for mysql.NullTime data type
-type NullTime mysql.NullTime
+type NullTime struct{ mysql.NullTime }
 
 // MarshalJSON for NullTime
 func (nt *NullTime) MarshalJSON() ([]byte, error) {
