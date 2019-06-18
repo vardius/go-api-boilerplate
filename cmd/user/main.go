@@ -133,21 +133,21 @@ func main() {
 		gb := gollback.New(ctx)
 		for {
 			if grpc_utils.IsConnectionServing("pubsub", pubsubConn) {
-				// Will resubscribe to handler on error infinitely until
+				// Will resubscribe to handler on error infinitely
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((user.WasRegisteredWithEmail{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
+					return nil, eventBus.Subscribe(ctx, (user.WasRegisteredWithEmail{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((user.WasRegisteredWithGoogle{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
+					return nil, eventBus.Subscribe(ctx, (user.WasRegisteredWithGoogle{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((user.WasRegisteredWithFacebook{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
+					return nil, eventBus.Subscribe(ctx, (user.WasRegisteredWithFacebook{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((user.EmailAddressWasChanged{}).GetType(), user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
+					return nil, eventBus.Subscribe(ctx, (user.EmailAddressWasChanged{}).GetType(), user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((user.AccessTokenWasRequested{}).GetType(), user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
+					return nil, eventBus.Subscribe(ctx, (user.AccessTokenWasRequested{}).GetType(), user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
 				})
 				break
 			}

@@ -127,18 +127,18 @@ func main() {
 		gb := gollback.New(ctx)
 		for {
 			if grpc_utils.IsConnectionServing("pubsub", pubsubConn) {
-				// Will resubscribe to handler on error infinitely until
+				// Will resubscribe to handler on error infinitely
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
+					return nil, eventBus.Subscribe(ctx, (auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
+					return nil, eventBus.Subscribe(ctx, (auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
+					return nil, eventBus.Subscribe(ctx, (auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe((auth_client.WasRemoved{}).GetType(), auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
+					return nil, eventBus.Subscribe(ctx, (auth_client.WasRemoved{}).GetType(), auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
 				})
 				break
 			}

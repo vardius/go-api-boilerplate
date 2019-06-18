@@ -16,7 +16,7 @@ type EventHandler func(ctx context.Context, event domain.Event)
 // EventBus allow to publis/subscribe to events
 type EventBus interface {
 	Publish(ctx context.Context, event domain.Event)
-	Subscribe(eventType string, fn EventHandler) error
+	Subscribe(ctx context.Context, eventType string, fn EventHandler) error
 }
 
 // New creates pubsub event bus
@@ -29,8 +29,7 @@ type eventBus struct {
 	logger golog.Logger
 }
 
-func (bus *eventBus) Subscribe(eventType string, fn EventHandler) error {
-	ctx := context.Background()
+func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn EventHandler) error {
 	stream, err := bus.client.Subscribe(ctx, &pubsub_proto.SubscribeRequest{
 		Topic: eventType,
 	})
