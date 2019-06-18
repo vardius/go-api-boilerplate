@@ -42,8 +42,8 @@ func HTTPStatusCode(err error) int {
 		if http.StatusText(codeAsInt) != "" {
 			return codeAsInt
 		}
-	} else if ok && e.Err != nil {
-		return HTTPStatusCode(e.Err)
+	} else if ok && e.err != nil {
+		return HTTPStatusCode(e.err)
 	}
 
 	return http.StatusInternalServerError

@@ -24,8 +24,8 @@ func ErrorCode(err error) string {
 		return ""
 	} else if e, ok := err.(*appError); ok && e.Code != "" {
 		return e.Code
-	} else if ok && e.Err != nil {
-		return ErrorCode(e.Err)
+	} else if ok && e.err != nil {
+		return ErrorCode(e.err)
 	}
 	return INTERNAL
 }
@@ -37,8 +37,8 @@ func ErrorMessage(err error) string {
 		return ""
 	} else if e, ok := err.(*appError); ok && e.Message != "" {
 		return e.Message
-	} else if ok && e.Err != nil {
-		return ErrorMessage(e.Err)
+	} else if ok && e.err != nil {
+		return ErrorMessage(e.err)
 	}
 	return "An internal error has occurred. Please contact technical support."
 }
@@ -66,7 +66,7 @@ func Wrap(err error, code string, message string) error {
 	return &appError{
 		Code:    code,
 		Message: message,
-		Err:     err,
+		err:     err,
 		pc:      getPCs(),
 	}
 }
@@ -76,7 +76,7 @@ func Wrapf(err error, code string, message string, args ...interface{}) error {
 	return &appError{
 		Code:    code,
 		Message: fmt.Sprintf(message, args...),
-		Err:     err,
+		err:     err,
 		pc:      getPCs(),
 	}
 }
@@ -84,7 +84,7 @@ func Wrapf(err error, code string, message string, args ...interface{}) error {
 type appError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
-	Err     error
+	err     error
 	pc      []uintptr
 }
 
@@ -120,8 +120,8 @@ func (e *appError) stackTrace(includeFrames bool) string {
 	}
 
 	// If wrapping an error, print its Error() message.
-	if e.Err != nil {
-		buf.WriteString(e.Err.Error())
+	if e.err != nil {
+		buf.WriteString(e.err.Error())
 	}
 
 	return buf.String()
