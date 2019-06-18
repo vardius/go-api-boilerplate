@@ -24,7 +24,7 @@ func (c Remove) GetName() string {
 
 // OnRemove creates command handler
 func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *Remove, out chan<- error) {
+	fn := func(ctx context.Context, c Remove, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
@@ -54,7 +54,7 @@ func (c Create) GetName() string {
 
 // OnCreate creates command handler
 func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *Create, out chan<- error) {
+	fn := func(ctx context.Context, c Create, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)

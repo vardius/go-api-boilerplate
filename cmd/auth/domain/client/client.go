@@ -33,13 +33,13 @@ func (c Client) transition(e domain.RawEvent) {
 
 func (c Client) trackChange(e domain.RawEvent) error {
 	c.transition(e)
-	eventEnvelop, err := domain.NewEvent(c.id, StreamName, c.version, e)
+	event, err := domain.NewEvent(c.id, StreamName, c.version, e)
 
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Client trackChange error")
 	}
 
-	c.changes = append(c.changes, eventEnvelop)
+	c.changes = append(c.changes, event)
 
 	return nil
 }

@@ -28,28 +28,44 @@ const (
 
 // NewCommandFromPayload builds command by contract from json payload
 func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
-	var c domain.Command
 	switch contract {
 	case RegisterUserWithEmail:
-		c = RegisterWithEmail{}
+		registerWithEmail := RegisterWithEmail{}
+		err := unmarshalPayload(payload, &registerWithEmail)
+
+		return registerWithEmail, err
 	case RegisterUserWithGoogle:
-		c = RegisterWithGoogle{}
+		registerWithGoogle := RegisterWithGoogle{}
+		err := unmarshalPayload(payload, &registerWithGoogle)
+
+		return registerWithGoogle, err
 	case RegisterUserWithFacebook:
-		c = RegisterWithFacebook{}
+		registerWithFacebook := RegisterWithFacebook{}
+		err := unmarshalPayload(payload, &registerWithFacebook)
+
+		return registerWithFacebook, err
 	case ChangeUserEmailAddress:
-		c = ChangeEmailAddress{}
+		changeEmailAddress := ChangeEmailAddress{}
+		err := unmarshalPayload(payload, &changeEmailAddress)
+
+		return changeEmailAddress, err
 	case RequestUserAccessToken:
-		c = RequestAccessToken{}
+		requestAccessToken := RequestAccessToken{}
+		err := unmarshalPayload(payload, &requestAccessToken)
+
+		return requestAccessToken, err
 	default:
-		return nil, errors.New(errors.INTERNAL, "Invalid command")
+		return nil, errors.New(errors.INTERNAL, "Invalid command contract")
 	}
+}
 
-	err := json.Unmarshal(payload, &c)
+func unmarshalPayload(payload []byte, command interface{}) error {
+	err := json.Unmarshal(payload, command)
 	if err != nil {
-		return nil, errors.Wrap(err, errors.INTERNAL, "Error while trying to unmarshal command payload")
+		return errors.Wrapf(err, errors.INTERNAL, "Error while trying to unmarshal command payload %s", payload)
 	}
 
-	return c, nil
+	return nil
 }
 
 // RequestAccessToken command
@@ -64,7 +80,7 @@ func (c RequestAccessToken) GetName() string {
 
 // OnRequestAccessToken creates command handler
 func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *RequestAccessToken, out chan<- error) {
+	fn := func(ctx context.Context, c RequestAccessToken, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
@@ -95,7 +111,7 @@ func (c ChangeEmailAddress) GetName() string {
 
 // OnChangeEmailAddress creates command handler
 func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *ChangeEmailAddress, out chan<- error) {
+	fn := func(ctx context.Context, c ChangeEmailAddress, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
@@ -139,7 +155,7 @@ func (c RegisterWithEmail) GetName() string {
 
 // OnRegisterWithEmail creates command handler
 func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *RegisterWithEmail, out chan<- error) {
+	fn := func(ctx context.Context, c RegisterWithEmail, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
@@ -190,7 +206,7 @@ func (c RegisterWithFacebook) GetName() string {
 
 // OnRegisterWithFacebook creates command handler
 func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *RegisterWithFacebook, out chan<- error) {
+	fn := func(ctx context.Context, c RegisterWithFacebook, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
@@ -251,7 +267,7 @@ func (c RegisterWithGoogle) GetName() string {
 
 // OnRegisterWithGoogle creates command handler
 func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *RegisterWithGoogle, out chan<- error) {
+	fn := func(ctx context.Context, c RegisterWithGoogle, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)

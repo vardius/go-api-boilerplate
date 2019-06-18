@@ -33,13 +33,13 @@ func (t Token) transition(e domain.RawEvent) {
 
 func (t Token) trackChange(e domain.RawEvent) error {
 	t.transition(e)
-	eventEnvelop, err := domain.NewEvent(t.id, StreamName, t.version, e)
+	event, err := domain.NewEvent(t.id, StreamName, t.version, e)
 
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Token trackChange error")
 	}
 
-	t.changes = append(t.changes, eventEnvelop)
+	t.changes = append(t.changes, event)
 
 	return nil
 }
