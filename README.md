@@ -67,6 +67,7 @@ Key concepts:
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
 2. [message-bus](https://github.com/vardius/message-bus)
+3. [gollback](https://github.com/vardius/gollback)
 
 HOW TO USE
 ==================================================

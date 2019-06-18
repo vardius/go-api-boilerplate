@@ -18,6 +18,7 @@ require (
 	github.com/kr/pty v1.1.4 // indirect
 	github.com/rs/cors v1.6.0
 	github.com/tidwall/buntdb v1.0.0
+	github.com/vardius/gollback v1.0.6 // indirect
 	github.com/vardius/golog v1.0.2
 	github.com/vardius/gorouter/v4 v4.0.0
 	github.com/vardius/message-bus v1.1.3

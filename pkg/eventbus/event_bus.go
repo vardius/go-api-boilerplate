@@ -39,7 +39,7 @@ func (bus *eventBus) Subscribe(eventType string, fn EventHandler) error {
 		return errors.Wrap(err, errors.INTERNAL, "EventBus client subscribe error")
 	}
 
-	bus.logger.Debug(ctx, "[EventBus|Subscribe]: %s\n", eventType)
+	bus.logger.Info(ctx, "[EventBus|Subscribe]: %s\n", eventType)
 
 	for {
 		resp, err := stream.Recv()
@@ -55,11 +55,9 @@ func (bus *eventBus) Subscribe(eventType string, fn EventHandler) error {
 			return errors.Wrap(err, errors.INTERNAL, "EventBus unmarshal error")
 		}
 
-		bus.logger.Info(ctx, "[EventBus|Subscribe]: %s %s\n", event.Metadata.Type, event.Payload)
+		bus.logger.Debug(ctx, "[EventBus|Subscribe]: %s %s\n", event.Metadata.Type, event.Payload)
 
 		fn(ctx, event)
-
-		return nil
 	}
 }
 

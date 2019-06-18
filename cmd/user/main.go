@@ -30,6 +30,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
+	"github.com/vardius/gollback"
 	gorouter "github.com/vardius/gorouter/v4"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
@@ -129,13 +130,25 @@ func main() {
 	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, db))
 
 	go func() {
+		gb := gollback.New(ctx)
 		for {
 			if grpc_utils.IsConnectionServing("pubsub", pubsubConn) {
-				eventBus.Subscribe((user.WasRegisteredWithEmail{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
-				eventBus.Subscribe((user.WasRegisteredWithGoogle{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
-				eventBus.Subscribe((user.WasRegisteredWithFacebook{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
-				eventBus.Subscribe((user.EmailAddressWasChanged{}).GetType(), user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
-				eventBus.Subscribe((user.AccessTokenWasRequested{}).GetType(), user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
+				// Will resubscribe to handler on error infinitely until
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((user.WasRegisteredWithEmail{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
+				})
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((user.WasRegisteredWithGoogle{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
+				})
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((user.WasRegisteredWithFacebook{}).GetType(), user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
+				})
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((user.EmailAddressWasChanged{}).GetType(), user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
+				})
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((user.AccessTokenWasRequested{}).GetType(), user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
+				})
 				break
 			}
 			time.Sleep(1 * time.Second)

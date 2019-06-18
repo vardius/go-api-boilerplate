@@ -29,6 +29,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
+	"github.com/vardius/gollback"
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
@@ -123,12 +124,22 @@ func main() {
 	commandBus.Subscribe((auth_client.Remove{}).GetName(), auth_client.OnRemove(clientRepository, db))
 
 	go func() {
+		gb := gollback.New(ctx)
 		for {
 			if grpc_utils.IsConnectionServing("pubsub", pubsubConn) {
-				eventBus.Subscribe((auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
-				eventBus.Subscribe((auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
-				eventBus.Subscribe((auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
-				eventBus.Subscribe((auth_client.WasRemoved{}).GetType(), auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
+				// Will resubscribe to handler on error infinitely until
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
+				})
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
+				})
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
+				})
+				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
+					return nil, eventBus.Subscribe((auth_client.WasRemoved{}).GetType(), auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
+				})
 				break
 			}
 			time.Sleep(1 * time.Second)
