@@ -81,6 +81,9 @@ func main() {
 	healthServer := grpc_health.NewServer()
 	healthServer.SetServingStatus("auth", grpc_health_proto.HealthCheckResponse_SERVING)
 
+	http_recovery.WithLogger(logger)
+	http_response.WithLogger(logger)
+
 	// Global middleware
 	router := gorouter.New(
 		logger.LogRequest,
@@ -88,7 +91,7 @@ func main() {
 		http_response.WithXSS,
 		http_response.WithHSTS,
 		http_response.AsJSON,
-		http_recovery.WithLogger(logger).RecoverHandler,
+		http_recovery.WithRecover,
 	)
 
 	auth_proto.RegisterAuthenticationServiceServer(grpcServer, authServer)

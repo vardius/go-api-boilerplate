@@ -82,6 +82,9 @@ func main() {
 
 	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, user_persistence.NewUserRepository(db), logger))
 
+	http_recovery.WithLogger(logger)
+	http_response.WithLogger(logger)
+
 	// Global middleware
 	router := gorouter.New(
 		logger.LogRequest,
@@ -91,7 +94,7 @@ func main() {
 		http_response.AsJSON,
 		auth.FromHeader("USER"),
 		auth.FromQuery("authToken"),
-		http_recovery.WithLogger(logger).RecoverHandler,
+		http_recovery.WithRecover,
 	)
 
 	user_proto.RegisterUserServiceServer(grpcServer, userServer)

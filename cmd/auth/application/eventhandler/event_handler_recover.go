@@ -1,5 +1,6 @@
 package eventhandler
 
+//@TODO: use internal logger
 import "log"
 
 func recoverEventHandler() {
