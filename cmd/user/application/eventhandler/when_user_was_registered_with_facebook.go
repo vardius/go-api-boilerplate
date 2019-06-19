@@ -41,7 +41,7 @@ func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRe
 		err = repository.Add(ctx, user_mysql.User{
 			ID:    e.ID.String(),
 			Email: e.Email,
-			FacebookID: mysql.NullString{sql.NullString{
+			FacebookID: mysql.NullString{NullString: sql.NullString{
 				String: e.FacebookID,
 				Valid:  e.FacebookID != "",
 			}},

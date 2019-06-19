@@ -41,7 +41,7 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 		err = repository.Add(ctx, user_mysql.User{
 			ID:    e.ID.String(),
 			Email: e.Email,
-			GoogleID: mysql.NullString{sql.NullString{
+			GoogleID: mysql.NullString{NullString: sql.NullString{
 				String: e.GoogleID,
 				Valid:  e.GoogleID != "",
 			}},
