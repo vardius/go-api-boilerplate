@@ -45,7 +45,7 @@ func TestRecoverHandlerWithLogger(t *testing.T) {
 		}
 	}()
 
-	WithLogger(golog.New("debug"))
+	WithLogger(golog.New(golog.Debug))
 	handler := WithRecover(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))

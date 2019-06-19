@@ -10,7 +10,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	logger := golog.New("debug")
+	logger := golog.New(golog.Debug)
 	bus := New(runtime.NumCPU(), logger)
 
 	if bus == nil {
@@ -19,7 +19,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestSubscribePublish(t *testing.T) {
-	bus := New(runtime.NumCPU(), golog.New("debug"))
+	bus := New(runtime.NumCPU(), golog.New(golog.Debug))
 	ctx := context.Background()
 	c := make(chan error)
 
@@ -44,7 +44,7 @@ func TestSubscribePublish(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	bus := New(runtime.NumCPU(), golog.New("debug"))
+	bus := New(runtime.NumCPU(), golog.New(golog.Debug))
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 

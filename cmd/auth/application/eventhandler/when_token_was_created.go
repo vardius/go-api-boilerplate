@@ -45,10 +45,10 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 			Scope:    e.Scope,
 			Access:   e.Access,
 			Refresh:  e.Refresh,
-			Code: mysql.NullString{
+			Code: mysql.NullString{sql.NullString{
 				String: e.Code,
 				Valid:  e.Code != "",
-			},
+			}},
 			Data: e.Data,
 		})
 		if err != nil {
