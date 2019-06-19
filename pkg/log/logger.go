@@ -27,22 +27,13 @@ func (l *Logger) LogRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func getLogLevelByEnv(env string) string {
-	logLevel := "info"
-	if env == "development" {
-		logLevel = "debug"
-	}
-
-	return logLevel
-}
-
 // New creates new logger based on environment
 func New(env string) *Logger {
 	var l golog.Logger
 	if env == "development" {
-		l = golog.New(getLogLevelByEnv(env))
+		l = golog.New(golog.Debug)
 	} else {
-		l = golog.NewFileLogger(getLogLevelByEnv(env), "/tmp/prod.log")
+		l = golog.NewFileLogger(golog.Info, "/tmp/prod.log")
 	}
 
 	return &Logger{l}
