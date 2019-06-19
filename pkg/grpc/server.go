@@ -18,7 +18,7 @@ func NewServer(logger golog.Logger) *grpc.Server {
 		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
 			logger.Critical(ctx, "Recovered in f %v", rec)
 
-			return grpc.Errorf(codes.Internal, "%s", rec)
+			return grpc.Errorf(codes.Internal, "Recovered in f %v", rec)
 		}),
 	}
 
