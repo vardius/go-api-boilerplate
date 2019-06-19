@@ -54,9 +54,5 @@ func (s *server) Subscribe(r *proto.SubscribeRequest, stream proto.MessageBus_Su
 
 	s.bus.Unsubscribe(r.GetTopic(), handler)
 
-	if err == nil {
-		return nil
-	}
-
 	return errors.Wrap(err, errors.INTERNAL, "[grpc|Subscribe] Stream closed due to error")
 }
