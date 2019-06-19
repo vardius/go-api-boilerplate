@@ -98,13 +98,6 @@ func (c *Client) Remove() error {
 	})
 }
 
-func (c *Client) transition(e domain.RawEvent) {
-	switch e := e.(type) {
-	case WasCreated:
-		c.id = e.ID
-	}
-}
-
 func (c *Client) trackChange(e domain.RawEvent) error {
 	c.transition(e)
 	event, err := domain.NewEvent(c.id, StreamName, c.version, e)
@@ -116,4 +109,11 @@ func (c *Client) trackChange(e domain.RawEvent) error {
 	c.changes = append(c.changes, event)
 
 	return nil
+}
+
+func (c *Client) transition(e domain.RawEvent) {
+	switch e := e.(type) {
+	case WasCreated:
+		c.id = e.ID
+	}
 }

@@ -144,6 +144,19 @@ func (u *User) RequestAccessToken() error {
 	})
 }
 
+func (u *User) trackChange(e domain.RawEvent) error {
+	u.transition(e)
+	event, err := domain.NewEvent(u.id, StreamName, u.version, e)
+
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "User trackChange error")
+	}
+
+	u.changes = append(u.changes, event)
+
+	return nil
+}
+
 func (u *User) transition(e domain.RawEvent) {
 	switch e := e.(type) {
 	case WasRegisteredWithEmail:
@@ -158,17 +171,4 @@ func (u *User) transition(e domain.RawEvent) {
 	case EmailAddressWasChanged:
 		u.email = e.Email
 	}
-}
-
-func (u *User) trackChange(e domain.RawEvent) error {
-	u.transition(e)
-	event, err := domain.NewEvent(u.id, StreamName, u.version, e)
-
-	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "User trackChange error")
-	}
-
-	u.changes = append(u.changes, event)
-
-	return nil
 }

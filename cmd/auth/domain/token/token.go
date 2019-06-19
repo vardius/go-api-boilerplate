@@ -101,13 +101,6 @@ func (t *Token) Remove() error {
 	})
 }
 
-func (t *Token) transition(e domain.RawEvent) {
-	switch e := e.(type) {
-	case WasCreated:
-		t.id = e.ID
-	}
-}
-
 func (t *Token) trackChange(e domain.RawEvent) error {
 	t.transition(e)
 	event, err := domain.NewEvent(t.id, StreamName, t.version, e)
@@ -119,4 +112,11 @@ func (t *Token) trackChange(e domain.RawEvent) error {
 	t.changes = append(t.changes, event)
 
 	return nil
+}
+
+func (t *Token) transition(e domain.RawEvent) {
+	switch e := e.(type) {
+	case WasCreated:
+		t.id = e.ID
+	}
 }
