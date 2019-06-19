@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
 	http_cors "github.com/rs/cors"
 	auth_config "github.com/vardius/go-api-boilerplate/cmd/auth/application/config"
 	auth_eventhandler "github.com/vardius/go-api-boilerplate/cmd/auth/application/eventhandler"
@@ -28,7 +27,7 @@ import (
 	http_response "github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
-	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
+	"github.com/vardius/shutdown"
 	"github.com/vardius/gollback"
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
@@ -176,5 +175,5 @@ func main() {
 	logger.Info(ctx, "tcp running at %s:%d\n", auth_config.Env.Host, auth_config.Env.PortGRPC)
 	logger.Info(ctx, "http running at %s:%d\n", auth_config.Env.Host, auth_config.Env.PortHTTP)
 
-	os_shutdown.GracefulStop(stop)
+	shutdown.GracefulStop(stop)
 }

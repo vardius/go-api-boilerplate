@@ -6,14 +6,13 @@ import (
 	"net"
 	"os"
 	"time"
-
 	pubsub_config "github.com/vardius/go-api-boilerplate/cmd/pubsub/application/config"
 	pubsub_messagebus "github.com/vardius/go-api-boilerplate/cmd/pubsub/application/messagebus"
 	pubsub_proto "github.com/vardius/go-api-boilerplate/cmd/pubsub/infrastructure/proto"
 	pubsub_grpc "github.com/vardius/go-api-boilerplate/cmd/pubsub/interfaces/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
-	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
+	"github.com/vardius/shutdown"
 	grpc_health "google.golang.org/grpc/health"
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -57,5 +56,5 @@ func main() {
 
 	logger.Info(ctx, "tcp running at %s:%d\n", pubsub_config.Env.Host, pubsub_config.Env.Port)
 
-	os_shutdown.GracefulStop(stop)
+	shutdown.GracefulStop(stop)
 }

@@ -29,9 +29,9 @@ import (
 	http_authenticator "github.com/vardius/go-api-boilerplate/pkg/http/security/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
-	os_shutdown "github.com/vardius/go-api-boilerplate/pkg/os/shutdown"
 	"github.com/vardius/gollback"
 	gorouter "github.com/vardius/gorouter/v4"
+	"github.com/vardius/shutdown"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
@@ -185,5 +185,5 @@ func main() {
 	logger.Info(ctx, "tcp running at %s:%d\n", user_config.Env.Host, user_config.Env.PortGRPC)
 	logger.Info(ctx, "http running at %s:%d\n", user_config.Env.Host, user_config.Env.PortHTTP)
 
-	os_shutdown.GracefulStop(stop)
+	shutdown.GracefulStop(stop)
 }
