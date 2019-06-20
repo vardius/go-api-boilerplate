@@ -9,7 +9,7 @@ Golang API Starter Kit
 Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
 <details>
-  <summary>Table of Content</summary>
+  <summary>Table of Contents</summary>
 
 <!-- toc -->
 
