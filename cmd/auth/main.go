@@ -129,16 +129,24 @@ func main() {
 			if grpc_utils.IsConnectionServing("pubsub", pubsubConn) {
 				// Will resubscribe to handler on error infinitely
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe(ctx, (auth_token.WasCreated{}).GetType(), auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
+					topic := (auth_token.WasCreated{}).GetType()
+					err := eventBus.Subscribe(ctx, topic, auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
+					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe(ctx, (auth_token.WasRemoved{}).GetType(), auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
+					topic := (auth_token.WasRemoved{}).GetType()
+					err := eventBus.Subscribe(ctx, topic, auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
+					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe(ctx, (auth_client.WasCreated{}).GetType(), auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
+					topic := (auth_client.WasCreated{}).GetType()
+					err := eventBus.Subscribe(ctx, topic, auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
+					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					return nil, eventBus.Subscribe(ctx, (auth_client.WasRemoved{}).GetType(), auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
+					topic := (auth_client.WasRemoved{}).GetType()
+					err := eventBus.Subscribe(ctx, topic, auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
+					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				break
 			}
