@@ -148,9 +148,9 @@ localstack:
 pubsub:
   nameOverride: pubsub
   image:
-    repository: pubsub
-    tag: latest
-    pullPolicy: Never
+    repository: vardius/pubsub
+    tag: 1.0.1
+    pullPolicy: IfNotPresent
   service:
     ports:
       - name: grpc
@@ -158,16 +158,6 @@ pubsub:
         externalPort: 3001
   envFromSecretRef: go-api-boilerplate-app
   env:
-    - name: ENV
-      valueFrom:
-        configMapKeyRef:
-          key: ENV
-          name: go-api-boilerplate-app
-    - name: ORIGINS
-      valueFrom:
-        configMapKeyRef:
-          key: ORIGINS
-          name: go-api-boilerplate-app
     - name: HOST
       valueFrom:
         configMapKeyRef:
@@ -180,6 +170,8 @@ pubsub:
           name: go-api-boilerplate-app
     - name: QUEUE_BUFFER_SIZE
       value: '100'
+    - name: LOG_VERBOSE_LEVEL
+      value: '4'
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5

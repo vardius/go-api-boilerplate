@@ -10,7 +10,6 @@ import (
 
 	http_cors "github.com/rs/cors"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
-	pubsub_proto "github.com/vardius/go-api-boilerplate/cmd/pubsub/infrastructure/proto"
 	user_config "github.com/vardius/go-api-boilerplate/cmd/user/application/config"
 	user_eventhandler "github.com/vardius/go-api-boilerplate/cmd/user/application/eventhandler"
 	user_security "github.com/vardius/go-api-boilerplate/cmd/user/application/security"
@@ -31,6 +30,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 	"github.com/vardius/gollback"
 	gorouter "github.com/vardius/gorouter/v4"
+	pubsub_proto "github.com/vardius/pubsub/proto"
 	"github.com/vardius/shutdown"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"

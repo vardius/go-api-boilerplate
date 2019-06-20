@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 
-	pubsub_proto "github.com/vardius/go-api-boilerplate/cmd/pubsub/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/golog"
+	"github.com/vardius/pubsub/proto"
 )
 
 // EventHandler function
@@ -20,17 +20,17 @@ type EventBus interface {
 }
 
 // New creates pubsub event bus
-func New(client pubsub_proto.MessageBusClient, log golog.Logger) EventBus {
+func New(client proto.MessageBusClient, log golog.Logger) EventBus {
 	return &eventBus{client, log}
 }
 
 type eventBus struct {
-	client pubsub_proto.MessageBusClient
+	client proto.MessageBusClient
 	logger golog.Logger
 }
 
 func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn EventHandler) error {
-	stream, err := bus.client.Subscribe(ctx, &pubsub_proto.SubscribeRequest{
+	stream, err := bus.client.Subscribe(ctx, &proto.SubscribeRequest{
 		Topic: eventType,
 	})
 	if err != nil {
@@ -69,7 +69,7 @@ func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
 
 	bus.logger.Debug(ctx, "[EventBus|Publish]: %s %s\n", event.Metadata.Type, payload)
 
-	bus.client.Publish(ctx, &pubsub_proto.PublishRequest{
+	bus.client.Publish(ctx, &proto.PublishRequest{
 		Topic:   event.Metadata.Type,
 		Payload: payload,
 	})
