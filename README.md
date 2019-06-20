@@ -69,6 +69,7 @@ Worth getting to know packages used in this boilerplate:
 2. [message-bus](https://github.com/vardius/message-bus)
 3. [gollback](https://github.com/vardius/gollback)
 4. [shutdown](https://github.com/vardius/shutdown)
+5. [pubsub](https://github.com/vardius/pubsub)
 
 HOW TO USE
 ==================================================
