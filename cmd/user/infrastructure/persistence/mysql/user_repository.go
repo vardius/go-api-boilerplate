@@ -21,7 +21,7 @@ type userRepository struct {
 }
 
 func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT * FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
+	rows, err := r.db.QueryContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, errors.INTERNAL, "Could not query database")
 	}
@@ -48,7 +48,7 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 }
 
 func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT * FROM users WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users WHERE id=? LIMIT 1`, id)
 
 	user := User{}
 
