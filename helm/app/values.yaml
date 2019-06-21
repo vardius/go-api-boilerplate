@@ -149,7 +149,7 @@ pubsub:
   nameOverride: pubsub
   image:
     repository: vardius/pubsub
-    tag: 1.0.3
+    tag: 1.0.4
     pullPolicy: IfNotPresent
   service:
     ports:

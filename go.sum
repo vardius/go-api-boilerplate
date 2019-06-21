@@ -97,6 +97,8 @@ github.com/vardius/message-bus v1.1.3 h1:z7DBtOugTyjlJWxpI+s/CL9iO8Z89pi4/qTo7P3
 github.com/vardius/message-bus v1.1.3/go.mod h1:uB1KIevXwx4nP8bubF+jr4c5JpXMKf3nm9hTvqtEVzc=
 github.com/vardius/pubsub v1.0.1 h1:voeJns/u9Uv4MR+JpPqvCKJJUDjqRHrVTw2wn9tijCc=
 github.com/vardius/pubsub v1.0.1/go.mod h1:i/hdZ6u+HRqEx2tbRBkicJfVqg69HFEU/rK2pHqjfMg=
+github.com/vardius/pubsub v1.0.4 h1:XmOLoUWgMS2mBgcyuwjR2g/l9S9nsewDeH98U76uXlo=
+github.com/vardius/pubsub v1.0.4/go.mod h1:i/hdZ6u+HRqEx2tbRBkicJfVqg69HFEU/rK2pHqjfMg=
 github.com/vardius/shutdown v1.0.0 h1:eu9BwdoiujMP8Axrh4jwYpNcqXGLPSwNx4EI4S9VHKo=
 github.com/vardius/shutdown v1.0.0/go.mod h1:hGnuGROeriE1DM1K219eoZeJmmfR0N2SUVND6buRs5Y=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
