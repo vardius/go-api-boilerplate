@@ -2,11 +2,6 @@ dependencies:
   - name: microservice
     version: 0.1.0
     repository: "file://../microservice"
-    alias: pubsub
-    condition: pubsub.enabled
-  - name: microservice
-    version: 0.1.0
-    repository: "file://../microservice"
     alias: auth
     condition: auth.enabled
   - name: microservice
@@ -14,6 +9,11 @@ dependencies:
     repository: "file://../microservice"
     alias: user
     condition: user.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: pubsub
+    condition: pubsub.enabled
 # AWS localstack (for local development)
   - name: microservice
     version: 0.1.0
