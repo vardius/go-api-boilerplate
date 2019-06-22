@@ -10,8 +10,6 @@ import (
 )
 
 func TestRecoverHandler(t *testing.T) {
-	t.Parallel()
-
 	paniced := false
 	defer func() {
 		if rcv := recover(); rcv != nil {
@@ -36,11 +34,7 @@ func TestRecoverHandler(t *testing.T) {
 	}
 }
 
-var once sync.Once
-
 func TestRecoverHandlerWithLogger(t *testing.T) {
-	t.Parallel()
-
 	paniced := false
 	defer func() {
 		if rcv := recover(); rcv != nil {
@@ -48,10 +42,7 @@ func TestRecoverHandlerWithLogger(t *testing.T) {
 		}
 	}()
 
-	once.Do(func() {
-		WithLogger(golog.New(golog.Debug))
-	})
-
+	WithLogger(golog.New(golog.Debug))
 	handler := WithRecover(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))

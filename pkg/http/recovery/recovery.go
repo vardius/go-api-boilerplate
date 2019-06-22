@@ -20,7 +20,7 @@ func WithRecover(next http.Handler) http.Handler {
 		defer func() {
 			if rec := recover(); rec != nil {
 				if logger != nil {
-					logger.Critical(r.Context(), "Recovered in f %v", rec)
+					logger.Critical(r.Context(), "[HTTP] Recovered in %v", rec)
 				}
 
 				writeError(r.Context(), w)
