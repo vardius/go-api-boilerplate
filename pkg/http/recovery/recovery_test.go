@@ -3,7 +3,6 @@ package recovery
 import (
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 
 	"github.com/vardius/golog"
@@ -56,6 +55,6 @@ func TestRecoverHandlerWithLogger(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	if paniced == true {
-		t.Error("RecoverHandler did not recoverd")
+		t.Error("RecoverHandler did not recovered")
 	}
 }
