@@ -38,19 +38,23 @@ func FromHistory(events []domain.Event) Client {
 
 		switch domainEvent.Metadata.Type {
 		case (WasCreated{}).GetType():
-			e = WasCreated{}
-		case (WasRemoved{}).GetType():
-			e = WasRemoved{}
-		default:
-			// @TODO: should we panic here ?
-			log.Panicf("Unhandled user event %s", domainEvent.Metadata.Type)
-		}
+			wasCreated := WasCreated{}
+			err := unmarshalPayload(domainEvent.Payload, &wasCreated)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal client event %s. %s", domainEvent.Metadata.Type, err)
+			}
 
-		err := json.Unmarshal(domainEvent.Payload, &e)
-		if err != nil {
-			// @TODO: should we panic here ?
-			log.Panicf("Error while parsing json to a user event %s, %s", domainEvent.Metadata.Type, domainEvent.Payload)
-			continue
+			e = wasCreated
+		case (WasRemoved{}).GetType():
+			wasRemoved := WasRemoved{}
+			err := unmarshalPayload(domainEvent.Payload, &wasRemoved)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal client event %s. %s", domainEvent.Metadata.Type, err)
+			}
+
+			e = wasRemoved
+		default:
+			log.Panicf("Unhandled client event %s", domainEvent.Metadata.Type)
 		}
 
 		c.transition(e)
@@ -75,7 +79,7 @@ func (c Client) Changes() []domain.Event {
 	return c.changes
 }
 
-// Create alters current user state and append changes to aggregate root
+// Create alters current client state and append changes to aggregate root
 func (c *Client) Create(info oauth2.ClientInfo) error {
 	data, err := json.Marshal(info)
 	if err != nil {
@@ -91,7 +95,7 @@ func (c *Client) Create(info oauth2.ClientInfo) error {
 	})
 }
 
-// Remove alters current user state and append changes to aggregate root
+// Remove alters current client state and append changes to aggregate root
 func (c *Client) Remove() error {
 	return c.trackChange(WasRemoved{
 		ID: c.id,

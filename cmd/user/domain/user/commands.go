@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -57,15 +56,6 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	default:
 		return nil, errors.New(errors.INTERNAL, "Invalid command contract")
 	}
-}
-
-func unmarshalPayload(payload []byte, command interface{}) error {
-	err := json.Unmarshal(payload, command)
-	if err != nil {
-		return errors.Wrapf(err, errors.INTERNAL, "Error while trying to unmarshal command payload %s", payload)
-	}
-
-	return nil
 }
 
 // RequestAccessToken command

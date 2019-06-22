@@ -4,7 +4,6 @@ Package user holds user domain logic
 package user
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -39,29 +38,63 @@ func FromHistory(events []domain.Event) User {
 
 		switch domainEvent.Metadata.Type {
 		case (AccessTokenWasRequested{}).GetType():
-			e = AccessTokenWasRequested{}
-		case (EmailAddressWasChanged{}).GetType():
-			e = EmailAddressWasChanged{}
-		case (WasRegisteredWithEmail{}).GetType():
-			e = WasRegisteredWithEmail{}
-		case (WasRegisteredWithFacebook{}).GetType():
-			e = WasRegisteredWithFacebook{}
-		case (ConnectedWithFacebook{}).GetType():
-			e = ConnectedWithFacebook{}
-		case (WasRegisteredWithGoogle{}).GetType():
-			e = WasRegisteredWithGoogle{}
-		case (ConnectedWithGoogle{}).GetType():
-			e = ConnectedWithGoogle{}
-		default:
-			// @TODO: should we panic here ?
-			log.Panicf("Unhandled user event %s", domainEvent.Metadata.Type)
-		}
+			accessTokenWasRequested := AccessTokenWasRequested{}
+			err := unmarshalPayload(domainEvent.Payload, &accessTokenWasRequested)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+			}
 
-		err := json.Unmarshal(domainEvent.Payload, &e)
-		if err != nil {
-			// @TODO: should we panic here ?
-			log.Panicf("Error while parsing json to a user event %s, %s", domainEvent.Metadata.Type, domainEvent.Payload)
-			continue
+			e = accessTokenWasRequested
+		case (EmailAddressWasChanged{}).GetType():
+			emailAddressWasChanged := EmailAddressWasChanged{}
+			err := unmarshalPayload(domainEvent.Payload, &emailAddressWasChanged)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+			}
+
+			e = emailAddressWasChanged
+		case (WasRegisteredWithEmail{}).GetType():
+			wasRegisteredWithEmail := WasRegisteredWithEmail{}
+			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithEmail)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+			}
+
+			e = wasRegisteredWithEmail
+		case (WasRegisteredWithFacebook{}).GetType():
+			wasRegisteredWithFacebook := WasRegisteredWithFacebook{}
+			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithFacebook)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+			}
+
+			e = wasRegisteredWithFacebook
+		case (ConnectedWithFacebook{}).GetType():
+			connectedWithFacebook := ConnectedWithFacebook{}
+			err := unmarshalPayload(domainEvent.Payload, &connectedWithFacebook)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+			}
+
+			e = connectedWithFacebook
+		case (WasRegisteredWithGoogle{}).GetType():
+			wasRegisteredWithGoogle := WasRegisteredWithGoogle{}
+			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithGoogle)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+			}
+
+			e = wasRegisteredWithGoogle
+		case (ConnectedWithGoogle{}).GetType():
+			connectedWithGoogle := ConnectedWithGoogle{}
+			err := unmarshalPayload(domainEvent.Payload, &connectedWithGoogle)
+			if err != nil {
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+			}
+
+			e = connectedWithGoogle
+		default:
+			log.Panicf("Unhandled user event %s", domainEvent.Metadata.Type)
 		}
 
 		u.transition(e)
