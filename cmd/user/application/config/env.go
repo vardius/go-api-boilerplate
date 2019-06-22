@@ -2,16 +2,12 @@ package config
 
 import (
 	"runtime"
-	"sync"
 
-	"github.com/caarlos0/env"
+	"github.com/caarlos0/env/v6"
 )
 
-var (
-	// Env stores environment values
-	Env  *environment
-	once sync.Once
-)
+// Env stores environment values
+var Env *environment
 
 type environment struct {
 	Environment string   `env:"ENV"     envDefault:"development"`
@@ -39,12 +35,10 @@ type environment struct {
 }
 
 func init() {
-	once.Do(func() {
-		Env = &environment{}
-		env.Parse(Env)
+	Env = &environment{}
+	env.Parse(Env)
 
-		if Env.CommandBusQueueSize == 0 {
-			Env.CommandBusQueueSize = runtime.NumCPU()
-		}
-	})
+	if Env.CommandBusQueueSize == 0 {
+		Env.CommandBusQueueSize = runtime.NumCPU()
+	}
 }

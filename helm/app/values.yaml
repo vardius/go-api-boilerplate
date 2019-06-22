@@ -147,10 +147,14 @@ localstack:
 
 pubsub:
   nameOverride: pubsub
+  # image:
+  #   repository: vardius/pubsub
+  #   tag: 1.0.4
+  #   pullPolicy: IfNotPresent
   image:
-    repository: vardius/pubsub
-    tag: 1.0.4
-    pullPolicy: IfNotPresent
+    repository: pubsub
+    tag: latest
+    pullPolicy: Never
   service:
     ports:
       - name: grpc

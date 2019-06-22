@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/aws/aws-sdk-go v1.19.31
-	github.com/caarlos0/env v3.5.0+incompatible
+	github.com/caarlos0/env/v6 v6.0.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-session/session v3.1.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
