@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	http_cors "github.com/rs/cors"
 	auth_config "github.com/vardius/go-api-boilerplate/cmd/auth/application/config"
 	auth_eventhandler "github.com/vardius/go-api-boilerplate/cmd/auth/application/eventhandler"
