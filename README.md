@@ -201,26 +201,9 @@ Send example JSON via POST request
 ```sh
 curl -sSL -D -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/dispatch/register-user-with-email -o /dev/null
 ```
-**user** pod logs should look something like:
-```sh
-INFO: 2019/06/03 23:16:05.964391 [Request|Start]: POST /dispatch/register-user-with-email
-DEBUG: 2019/06/03 23:16:05.973105 [CommandBus|Publish]: *user.RegisterWithEmail &{Email:test@test.com}
-DEBUG: 2019/06/03 23:16:05.995985 [EventBus|Publish]: *user.WasRegisteredWithEmail {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
-2019/06/03 23:16:05 [EventHandler] {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
-INFO: 2019/06/03 23:16:05.997504 [Request|End]: POST /dispatch/register-user-with-email 33.0308ms
-```
 Request access token for user
 ```sh
 curl -sSL -D -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/dispatch/request-user-access-token -o /dev/null
-```
-**user** pod logs should look something like:
-```sh
-INFO: 2019/06/03 23:16:16.470075 [Request|Start]: POST /dispatch/request-user-access-token
-DEBUG: 2019/06/03 23:16:16.471606 [CommandBus|Publish]: *user.RequestAccessToken &{ID:34e7ed39-aa94-4ef2-9422-401bba9fc812}
-DEBUG: 2019/06/03 23:16:16.472004 [EventBus|Publish]: *user.AccessTokenWasRequested {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
-2019/06/03 23:16:16 [EventHandler] {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
-INFO: 2019/06/03 23:16:16.473130 [Request|End]: POST /dispatch/request-user-access-token 3.0006ms
-2019/06/03 23:16:16 [EventHandler] Access Token: {"access_token":"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ","token_type":"Bearer","refresh_token":"NDQGQ_WGWKQWLMEOAJKWVA","expiry":"2019-06-04T01:16:16.5304146Z"}
 ```
 ## View
 ### Public routes
