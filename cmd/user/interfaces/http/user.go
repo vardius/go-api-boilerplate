@@ -97,7 +97,7 @@ func buildMeHandler(repository persistence.UserRepository) http.Handler {
 
 		user, e := repository.Get(r.Context(), i.ID.String())
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
+			response.WithError(r.Context(), errors.Wrap(e, errors.NOTFOUND, "User not found"))
 			return
 		}
 
@@ -126,7 +126,7 @@ func buildGetUserHandler(repository persistence.UserRepository) http.Handler {
 
 		user, e := repository.Get(r.Context(), params.Value("id"))
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
+			response.WithError(r.Context(), errors.Wrap(e, errors.NOTFOUND, "User not found"))
 			return
 		}
 
