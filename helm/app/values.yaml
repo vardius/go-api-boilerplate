@@ -109,8 +109,8 @@ mysql:
         `clientId`   CHAR(36)     NOT NULL,
         `userId`     CHAR(36)     NOT NULL,
         `code`       VARCHAR(255) DEFAULT NULL,
-        `access`     VARCHAR(255) NOT NULL,
-        `refresh`    VARCHAR(255) NOT NULL,
+        `access`     TEXT         NOT NULL,
+        `refresh`    TEXT         NOT NULL,
         `data`       JSON         NOT NULL,
         PRIMARY KEY (`distinctId`),
         UNIQUE KEY `id` (`id`),
@@ -347,11 +347,11 @@ user:
 secret:
   type: Opaque
   data:
-    SECRET: changeme
-    USER_CLIENT_ID: changeme
-    USER_CLIENT_SECRET: changeme
-    mysql-root-password: password
-    mysql-password: password
+    SECRET: Y2hhbmdlbWUK # changeme
+    USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
+    USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
+    mysql-root-password: cGFzc3dvcmQK # password
+    mysql-password: cGFzc3dvcmQK # password
 
 configMap:
   data:
