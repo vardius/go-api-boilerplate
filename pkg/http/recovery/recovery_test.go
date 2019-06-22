@@ -3,6 +3,7 @@ package recovery
 import (
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/vardius/golog"
@@ -35,6 +36,8 @@ func TestRecoverHandler(t *testing.T) {
 	}
 }
 
+var once sync.Once
+
 func TestRecoverHandlerWithLogger(t *testing.T) {
 	t.Parallel()
 
@@ -45,7 +48,10 @@ func TestRecoverHandlerWithLogger(t *testing.T) {
 		}
 	}()
 
-	WithLogger(golog.New(golog.Debug))
+	once.Do(func() {
+		WithLogger(golog.New(golog.Debug))
+	})
+
 	handler := WithRecover(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
