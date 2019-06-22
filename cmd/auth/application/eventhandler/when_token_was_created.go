@@ -8,10 +8,8 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
-	auth_mysql "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
 // WhenTokenWasCreated handles event
@@ -38,19 +36,7 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 		}
 		defer tx.Rollback()
 
-		err = repository.Add(ctx, auth_mysql.Token{
-			ID:       e.ID.String(),
-			ClientID: e.ClientID.String(),
-			UserID:   e.UserID.String(),
-			Scope:    e.Scope,
-			Access:   e.Access,
-			Refresh:  e.Refresh,
-			Code: mysql.NullString{NullString: sql.NullString{
-				String: e.Code,
-				Valid:  e.Code != "",
-			}},
-			Data: e.Data,
-		})
+		err = repository.Add(ctx, tokenModel{e})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return
@@ -60,4 +46,48 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 	}
 
 	return eventbus.EventHandler(fn)
+}
+
+type tokenModel struct {
+	e token.WasCreated
+}
+
+// GetID the id
+func (t tokenModel) GetID() string {
+	return t.e.ID.String()
+}
+
+// GetClientID the client id
+func (t tokenModel) GetClientID() string {
+	return t.e.ClientID.String()
+}
+
+// GetUserID the user id
+func (t tokenModel) GetUserID() string {
+	return t.e.UserID.String()
+}
+
+// GetAccess access token
+func (t tokenModel) GetAccess() string {
+	return t.e.Access
+}
+
+// GetRefresh refresh token
+func (t tokenModel) GetRefresh() string {
+	return t.e.Refresh
+}
+
+// GetScope get scope of authorization
+func (t tokenModel) GetScope() string {
+	return t.e.Scope
+}
+
+// GetCode authorization code
+func (t tokenModel) GetCode() string {
+	return t.e.Code
+}
+
+// GetData token data
+func (t tokenModel) GetData() json.RawMessage {
+	return t.e.Data
 }

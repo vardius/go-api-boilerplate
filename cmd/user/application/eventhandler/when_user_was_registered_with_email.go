@@ -8,7 +8,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
-	user_mysql "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
@@ -37,10 +36,7 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 		}
 		defer tx.Rollback()
 
-		err = repository.Add(ctx, user_mysql.User{
-			ID:    e.ID.String(),
-			Email: e.Email,
-		})
+		err = repository.Add(ctx, userWasRegisteredWithEmailModel{e})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return
@@ -50,4 +46,28 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 	}
 
 	return eventbus.EventHandler(fn)
+}
+
+type userWasRegisteredWithEmailModel struct {
+	e user.WasRegisteredWithEmail
+}
+
+// GetID the id
+func (u userWasRegisteredWithEmailModel) GetID() string {
+	return u.e.ID.String()
+}
+
+// GetEmail the email
+func (u userWasRegisteredWithEmailModel) GetEmail() string {
+	return u.e.Email
+}
+
+// GetFacebookID facebook id
+func (u userWasRegisteredWithEmailModel) GetFacebookID() string {
+	return ""
+}
+
+// GetGoogleID google id
+func (u userWasRegisteredWithEmailModel) GetGoogleID() string {
+	return ""
 }

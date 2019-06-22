@@ -9,6 +9,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
 // NewTokenRepository returns mysql view model repository for token
@@ -45,9 +46,18 @@ func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (per
 }
 
 func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
-	token, ok := t.(Token)
-	if !ok {
-		return errors.New(errors.INTERNAL, "Could not parse interface to mysql type")
+	token := Token{
+		ID:       t.GetID(),
+		ClientID: t.GetClientID(),
+		UserID:   t.GetUserID(),
+		Scope:    t.GetScope(),
+		Access:   t.GetAccess(),
+		Refresh:  t.GetRefresh(),
+		Code: mysql.NullString{NullString: sql.NullString{
+			String: t.GetCode(),
+			Valid:  t.GetCode() != "",
+		}},
+		Data: t.GetData(),
 	}
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, clientId, userId, code, access, refresh, data) VALUES (?,?,?,?,?,?,?)`)

@@ -32,9 +32,12 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 }
 
 func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error {
-	client, ok := c.(Client)
-	if !ok {
-		return errors.New(errors.INTERNAL, "Could not parse interface to mysql type")
+	client := Client{
+		ID:     c.GetID(),
+		UserID: c.GetUserID(),
+		Secret: c.GetSecret(),
+		Domain: c.GetDomain(),
+		Data:   c.GetData(),
 	}
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, secret, domain, data) VALUES (?,?,?,?)`)

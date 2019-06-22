@@ -8,7 +8,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/domain/client"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
@@ -37,13 +36,7 @@ func WhenClientWasCreated(db *sql.DB, repository persistence.ClientRepository) e
 		}
 		defer tx.Rollback()
 
-		err = repository.Add(ctx, mysql.Client{
-			ID:     e.ID.String(),
-			UserID: e.UserID.String(),
-			Secret: e.Secret,
-			Domain: e.Domain,
-			Data:   e.Data,
-		})
+		err = repository.Add(ctx, clientModel{e})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v", err)
 			return
@@ -53,4 +46,33 @@ func WhenClientWasCreated(db *sql.DB, repository persistence.ClientRepository) e
 	}
 
 	return eventbus.EventHandler(fn)
+}
+
+type clientModel struct {
+	e client.WasCreated
+}
+
+// GetID client id
+func (c clientModel) GetID() string {
+	return c.e.ID.String()
+}
+
+// GetSecret client domain
+func (c clientModel) GetSecret() string {
+	return c.e.Secret
+}
+
+// GetDomain client domain
+func (c clientModel) GetDomain() string {
+	return c.e.Domain
+}
+
+// GetUserID user id
+func (c clientModel) GetUserID() string {
+	return c.e.UserID.String()
+}
+
+// GetData client data
+func (c clientModel) GetData() json.RawMessage {
+	return c.e.Data
 }

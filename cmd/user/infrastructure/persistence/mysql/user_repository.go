@@ -9,6 +9,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
 // NewUserRepository returns mysql view model repository for user
@@ -64,9 +65,17 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 }
 
 func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
-	user, ok := u.(User)
-	if !ok {
-		return errors.New(errors.INTERNAL, "Could not parse interface to mysql type")
+	user := User{
+		ID:    u.GetID(),
+		Email: u.GetEmail(),
+		FacebookID: mysql.NullString{NullString: sql.NullString{
+			String: u.GetFacebookID(),
+			Valid:  u.GetFacebookID() != "",
+		}},
+		GoogleID: mysql.NullString{NullString: sql.NullString{
+			String: u.GetGoogleID(),
+			Valid:  u.GetGoogleID() != "",
+		}},
 	}
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO users (id, emailAddress, facebookId, googleId) VALUES (?,?,?,?)`)
