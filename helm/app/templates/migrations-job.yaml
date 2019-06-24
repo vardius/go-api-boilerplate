@@ -1,0 +1,32 @@
+{{- if .Values.migrations.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-migrate
+  labels:
+    helm.sh/chart: {{ include "app.chart" . }}
+    app.kubernetes.io/name: {{ include "app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded
+spec:
+  activeDeadlineSeconds: 60
+  template:
+      name: mysql-migrate
+    spec: restartPolicy: Never
+    containers:
+      - name: mysql-migrate
+        image: "{{ .Values.migrations.image.repository }}:{{ .Values.migrations.image.tag }}"
+        imagePullPolicy: {{ .Values.migrations.image.pullPolicy }}
+        command: ['/migrate']
+        args: ['-source', 'file:///migrations', '-database', 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true', 'up']
+        volumeMounts:
+          - name: migrations
+            mountPath: /migrations
+    volumes:
+        - name: migrations
+        hostPath:
+            path: {{ .Values.migrations.path }}
+{{- end }}

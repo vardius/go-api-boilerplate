@@ -150,6 +150,13 @@ localstack:
     - name: PORT_WEB_UI
       value: "4567"
 
+migrations:
+  image:
+    repository: migrate/migrate
+    tag: v4.4.0
+    pullPolicy: IfNotPresent
+  path: /migrations
+
 pubsub:
   nameOverride: pubsub
   image:
