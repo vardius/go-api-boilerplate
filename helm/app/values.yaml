@@ -49,8 +49,6 @@ cert-manager:
   ingressShim:
     defaultIssuerName: letsencrypt
     defaultIssuerKind: Issuer
-  # @TODO: Ucomment after first deploy. For details see: https://github.com/jetstack/cert-manager/issues/870
-  # createCustomResource: false
 
 kubernetes-dashboard:
   enableInsecureLogin: true
