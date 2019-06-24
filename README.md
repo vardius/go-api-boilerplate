@@ -145,7 +145,6 @@ helm repo add jetstack https://charts.jetstack.io
 # Update your local Helm chart repository cache
 helm repo update
 ```
-
  - Install dependencies
 ```bash
 make helm-dependencies

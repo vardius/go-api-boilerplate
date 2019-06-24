@@ -3,6 +3,7 @@ apiVersion: certmanager.k8s.io/v1alpha1
 kind: {{ .Values.issuer.kind }}
 metadata:
   name: {{ .Values.issuer.name }}
+  # namespace: {{ .Release.Name }}
   labels:
     helm.sh/chart: {{ include "app.chart" . }}
     app.kubernetes.io/name: {{ include "app.name" . }}
