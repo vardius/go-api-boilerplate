@@ -30,9 +30,17 @@ dependencies:
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: heapster.enabled
   - name: cert-manager
-    version: v0.6.7
+    version: v0.5.2
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: cert-manager.enabled
+    # TODO: update version when iise fixed 
+    # namespace: cert-manager
+    # version: v0.8.1
+    # repository: https://charts.jetstack.io # `helm repo add jetstack https://charts.jetstack.io`
+    # Add required helm repositories:
+    # ```sh
+    # helm repo add jetstack https://charts.jetstack.io
+    # ```
   - name: nginx-ingress
     version: 1.6.18
     repository: https://kubernetes-charts.storage.googleapis.com/

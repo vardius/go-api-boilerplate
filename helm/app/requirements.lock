@@ -8,23 +8,26 @@ dependencies:
 - name: microservice
   repository: file://../microservice
   version: 0.1.0
+- name: microservice
+  repository: file://../microservice
+  version: 0.1.0
 - name: kubernetes-dashboard
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.2.0
+  version: 1.5.2
 - name: heapster
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 0.3.2
+  version: 0.3.3
 - name: cert-manager
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: v0.5.2
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.1.4
+  version: 1.6.18
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 0.13.0
+  version: 1.2.0
 - name: phpmyadmin
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 2.0.4
-digest: sha256:bcbcd3d4239fe5214fb70eea6abe759e31a25f8be32944eea23a1f5fd1ff3fd6
-generated: 2019-01-30T15:28:21.199355+11:00
+  version: 2.2.5
+digest: sha256:37cd40f78a11180551c5e1e7df21f45b46633c9d701f0538cd4708eb322a00ae
+generated: 2019-06-23T21:08:15.462276+10:00
