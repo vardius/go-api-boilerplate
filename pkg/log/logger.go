@@ -4,6 +4,7 @@ Package log provides Logger
 package log
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -35,6 +36,8 @@ func New(env string) *Logger {
 	} else {
 		l = golog.NewFileLogger(golog.Info, "/tmp/prod.log")
 	}
+
+	l.SetFlags(log.Llongfile | log.Ldate | log.Ltime | log.Lmicroseconds | log.LUTC)
 
 	return &Logger{l}
 }
