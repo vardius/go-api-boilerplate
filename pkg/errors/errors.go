@@ -112,7 +112,8 @@ func (e *appError) stackTrace(includeFrames bool) string {
 		// A fixed number of pcs can expand to an indefinite number of Frames.
 		for {
 			frame, more := frames.Next()
-			fmt.Fprintf(&buf, "\t%s:%d %s\n", frame.File, frame.Line, frame.Function)
+			fmt.Fprintf(&buf, "\t%s:%d\n", frame.File, frame.Line)
+
 			if !more {
 				break
 			}
