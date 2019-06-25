@@ -48,7 +48,7 @@ func New(code string, message string) error {
 	return &appError{
 		Code:    code,
 		Message: message,
-		pc:      getPCs(),
+		frame:   getFrame(3),
 	}
 }
 
@@ -57,7 +57,7 @@ func Newf(code string, message string, args ...interface{}) error {
 	return &appError{
 		Code:    code,
 		Message: fmt.Sprintf(message, args...),
-		pc:      getPCs(),
+		frame:   getFrame(3),
 	}
 }
 
@@ -67,7 +67,7 @@ func Wrap(err error, code string, message string) error {
 		Code:    code,
 		Message: message,
 		err:     err,
-		pc:      getPCs(),
+		frame:   getFrame(3),
 	}
 }
 
@@ -77,7 +77,7 @@ func Wrapf(err error, code string, message string, args ...interface{}) error {
 		Code:    code,
 		Message: fmt.Sprintf(message, args...),
 		err:     err,
-		pc:      getPCs(),
+		frame:   getFrame(3),
 	}
 }
 
@@ -85,7 +85,7 @@ type appError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	err     error
-	pc      []uintptr
+	frame   *runtime.Frame
 }
 
 // Error returns the string representation of the error message.
@@ -106,18 +106,8 @@ func (e *appError) stackTrace(includeFrames bool) string {
 
 	fmt.Fprintf(&buf, "%s\n", e.Message)
 
-	if includeFrames && len(e.pc) > 0 {
-		frames := runtime.CallersFrames(e.pc)
-		// Loop to get frames.
-		// A fixed number of pcs can expand to an indefinite number of Frames.
-		for {
-			frame, more := frames.Next()
-			fmt.Fprintf(&buf, "\t%s:%d\n", frame.File, frame.Line)
-
-			if !more {
-				break
-			}
-		}
+	if includeFrames && e.frame != nil {
+		fmt.Fprintf(&buf, "\t%s:%d\n", e.frame.File, e.frame.Line)
 	}
 
 	// If wrapping an error, print its Error() message.
@@ -128,18 +118,24 @@ func (e *appError) stackTrace(includeFrames bool) string {
 	return buf.String()
 }
 
-func getPCs() []uintptr {
-	// Ask runtime.Callers for up to 4 pcs, including:
-	// - runtime.Callers itself,
-	// - package call stack itself
-	pc := make([]uintptr, 4)
-	n := runtime.Callers(0, pc)
-
-	if n < 4 {
-		return pc[:]
+func getFrame(calldepth int) *runtime.Frame {
+	pc, file, line, ok := runtime.Caller(calldepth)
+	if !ok {
+		return nil
 	}
 
-	// pass only valid pcs to runtime.CallersFrames
-	// exclude irrelevant pcs
-	return pc[3:n]
+	frame := &runtime.Frame{
+		PC:   pc,
+		File: file,
+		Line: line,
+	}
+
+	funcForPc := runtime.FuncForPC(pc)
+	if funcForPc != nil {
+		frame.Func = funcForPc
+		frame.Function = funcForPc.Name()
+		frame.Entry = funcForPc.Entry()
+	}
+
+	return frame
 }
