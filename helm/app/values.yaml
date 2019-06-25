@@ -5,7 +5,7 @@ magic-namespace:
     labels:
       certmanager.k8s.io/disable-validation: true
   ## Optional additional ServiceAccounts
-  serviceAccounts: []
+  serviceAccounts:
   - goapiboilerplate
   # Optional additional RoleBindings. It is a good idea to specify at least one
   # to grant administrative permissions to a user or group.

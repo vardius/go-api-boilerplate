@@ -23,11 +23,14 @@ dependencies:
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.6.18
+- name: magic-namespace
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 0.5.2
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.2.0
 - name: phpmyadmin
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 2.2.5
-digest: sha256:0a1038cc6c38ae29ead5899d6a3abdaa4e3737ff2a50cc3d59b4e65489b874c5
-generated: 2019-06-24T22:36:07.285955+10:00
+digest: sha256:edada37c23eda25f048af57bfe07afd3d4f001fe746a29c08d746da323fa95c4
+generated: 2019-06-26T09:49:30.344627+10:00
