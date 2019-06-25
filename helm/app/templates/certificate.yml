@@ -4,15 +4,15 @@
 {{- $appName := include "app.fullname" . -}}
 {{- $releaseName := .Release.Name -}}
 {{- $releaseService := .Release.Service -}}
-{{- $ingressClass := .Values.ingress.class -}}
-{{- $issuerName := .Values.ingress.issuerName -}}
-{{- $issuerKind := .Values.ingress.issuerKind -}}
+{{- $values := .Values }}
 {{- range .Values.ingress.tls -}}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
   name: {{ $fullName }}
-  # namespace: {{ $releaseName }}
+  {{- if hasKey $values "namespace" }}
+  namespace: {{ $values.namespace }}
+  {{- end }}
   labels:
     helm.sh/chart: {{ $chartName }}
     app.kubernetes.io/name: {{ $appName }}
@@ -27,14 +27,14 @@ spec:
   acme:
     config:
     - http01:
-        ingressClass: {{ $ingressClass }}
+        ingressClass: {{ $values.ingress.class }}
       {{- with .hosts }}
       domains:
         {{- toYaml . | nindent 8 }}
       {{- end }}
   issuerRef:
-    name: {{ $issuerName }}
-    kind: {{ $issuerKind }}
+    name: {{ $values.ingress.issuerName }}
+    kind: {{ $values.ingress.issuerKind }}
 ---
 {{- end }}
 {{- end }}

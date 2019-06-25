@@ -20,6 +20,9 @@ spec:
         app.kubernetes.io/name: {{ include "microservice.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+    {{- if hasKey .Values "serviceAccountName" }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+    {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

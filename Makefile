@@ -60,7 +60,7 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 
 # HELM TASKS
 helm-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install`
-	helm install -n go-api-boilerplate helm/app/
+	helm install --name go-api-boilerplate --namespace go-api-boilerplate helm/app/
 
 helm-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
 	helm upgrade go-api-boilerplate helm/app/

@@ -1,5 +1,26 @@
+magic-namespace:
+  # Uncomment and set to override the namespace that will be created.
+  # namespace: go-api-boilerplate
+  namespaceAttributes:
+    labels:
+      certmanager.k8s.io/disable-validation: true
+  ## Optional additional ServiceAccounts
+  serviceAccounts: []
+  - goapiboilerplate
+  # Optional additional RoleBindings. It is a good idea to specify at least one
+  # to grant administrative permissions to a user or group.
+  roleBindings:
+  - name: admin-group-admin
+    role:
+      ## Valid values are "Role" or "ClusterRole"
+      kind: ClusterRole
+      name: admin
+    subject:
+      ## Valid values are "User", "Group", or "ServiceAccount"
+      kind: Group
+      name: <group>
+
 ingress:
-  enabled: true
   issuerName: letsencrypt
   issuerKind: Issuer
   class: nginx
@@ -36,20 +57,6 @@ ingress:
       hosts:
         - go-api-boilerplate.local
 
-issuer:
-  enabled: true
-  name: letsencrypt
-  kind: Issuer
-  server: https://acme-v02.api.letsencrypt.org/directory
-  email: example@gmail.com
-  secretName: go-api-boilerplate-tls
-  http01: true
-
-cert-manager:
-  ingressShim:
-    defaultIssuerName: letsencrypt
-    defaultIssuerKind: Issuer
-
 kubernetes-dashboard:
   enableInsecureLogin: true
   fullnameOverride: 'kubernetes-dashboard'
@@ -58,6 +65,27 @@ kubernetes-dashboard:
 
 heapster:
   fullnameOverride: 'heapster'
+
+cert-manager:
+  ingressShim:
+    defaultIssuerName: letsencrypt
+    defaultIssuerKind: Issuer
+  # Override the namespace used to store DNS provider credentials etc. for ClusterIssuer
+  # resources. By default, the same namespace as cert-manager is deployed within is
+  # used. This namespace will not be automatically created by the Helm chart.
+  # clusterResourceNamespace: go-api-boilerplate
+  # extraArgs:
+    # Use this flag to set a namespace that cert-manager will use to store
+    # supporting resources required for each ClusterIssuer (default is kube-system)
+    # - --cluster-resource-namespace=go-api-boilerplate
+
+issuer:
+  name: letsencrypt
+  kind: Issuer
+  server: https://acme-v02.api.letsencrypt.org/directory
+  email: example@gmail.com
+  secretName: go-api-boilerplate-tls
+  http01: true
 
 phpmyadmin:
   service:
@@ -153,10 +181,11 @@ migrations:
     repository: migrate/migrate
     tag: v4.4.0
     pullPolicy: IfNotPresent
-  path: /migrations
+  path: ./migrations
 
 pubsub:
   nameOverride: pubsub
+  serviceAccountName: goapiboilerplate
   image:
     repository: vardius/pubsub
     tag: 1.0.5
@@ -194,6 +223,7 @@ pubsub:
 
 auth:
   nameOverride: auth
+  serviceAccountName: goapiboilerplate
   image:
     repository: auth
     tag: latest
@@ -264,6 +294,7 @@ auth:
 
 user:
   nameOverride: user
+  serviceAccountName: goapiboilerplate
   image:
     repository: user
     tag: latest
