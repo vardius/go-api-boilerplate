@@ -21,6 +21,7 @@ import (
 	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
 	user_http "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/http"
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
@@ -138,27 +139,27 @@ func main() {
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (user.WasRegisteredWithEmail{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (user.WasRegisteredWithGoogle{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (user.WasRegisteredWithFacebook{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (user.EmailAddressWasChanged{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (user.AccessTokenWasRequested{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				break
 			}

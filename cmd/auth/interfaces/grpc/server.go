@@ -5,11 +5,11 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"gopkg.in/oauth2.v3/generates"
 	"gopkg.in/oauth2.v3/server"
 )
@@ -23,7 +23,7 @@ type authenticationServer struct {
 func (s *authenticationServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (res *proto.VerifyTokenResponse, err error) {
 	accessToken, err := jwt.ParseWithClaims(req.GetToken(), &generates.JWTAccessClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("parse error")
+			return nil, errors.Newf(errors.INTERNAL, "parse error")
 		}
 		return []byte(s.secretKey), nil
 	})

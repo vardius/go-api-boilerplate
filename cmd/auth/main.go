@@ -21,6 +21,7 @@ import (
 	auth_grpc "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/grpc"
 	auth_http "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/http"
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
@@ -132,22 +133,22 @@ func main() {
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (auth_token.WasCreated{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, auth_eventhandler.WhenTokenWasCreated(db, tokenMYSQLRepository))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (auth_token.WasRemoved{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, auth_eventhandler.WhenTokenWasRemoved(db, tokenMYSQLRepository))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (auth_client.WasCreated{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, auth_eventhandler.WhenClientWasCreated(db, clientMYSQLRepository))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
 					topic := (auth_client.WasRemoved{}).GetType()
 					err := eventBus.Subscribe(ctx, topic, auth_eventhandler.WhenClientWasRemoved(db, clientMYSQLRepository))
-					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
 				})
 				break
 			}
