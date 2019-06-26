@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enabled -}}
+{{ if or (not (hasKey .Values.ingress "enabled")) (.Values.ingress.enabled | default true) }}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:

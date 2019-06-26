@@ -1,4 +1,4 @@
-{{- if .Values.issuer.enabled -}}
+{{ if or (not (hasKey .Values.issuer "enabled")) (.Values.issuer.enabled | default true) }}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: {{ .Values.issuer.kind }}
 metadata:

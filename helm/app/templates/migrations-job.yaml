@@ -1,4 +1,4 @@
-{{- if .Values.migrations.enabled -}}
+{{ if or (not (hasKey .Values.migrations "enabled")) (.Values.migrations.enabled | default true) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -12,24 +12,28 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
   annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: hook-succeeded
 spec:
   activeDeadlineSeconds: 60
+  ttlSecondsAfterFinished: 100
   template:
-      name: mysql-migrate
-    spec: restartPolicy: Never
-    containers:
+    spec:
+      restartPolicy: Never
+      containers:
       - name: mysql-migrate
         image: "{{ .Values.migrations.image.repository }}:{{ .Values.migrations.image.tag }}"
         imagePullPolicy: {{ .Values.migrations.image.pullPolicy }}
         command: ['/migrate']
         args: ['-source', 'file:///migrations', '-database', 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true', 'up']
         volumeMounts:
-          - name: migrations
-            mountPath: /migrations
-    volumes:
         - name: migrations
+          mountPath: /migrations
+      volumes:
+      - name: migrations
         hostPath:
-            path: {{ .Values.migrations.path }}
+          path: {{ .Values.migrations.path }}
+          type: Directory
 {{- end }}

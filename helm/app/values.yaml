@@ -38,19 +38,19 @@ ingress:
             servicePort: 443
         - path: /localstack
           backend:
-            serviceName: go-api-boilerplate-localstack
+            serviceName: go-api-boilerplate-localstack.go-api-boilerplate
             servicePort: 4567
         - path: /phpmyadmin
           backend:
-            serviceName: go-api-boilerplate-phpmyadmin
+            serviceName: go-api-boilerplate-phpmyadmin.go-api-boilerplate
             servicePort: 443
         - path: /auth
           backend:
-            serviceName: go-api-boilerplate-auth
+            serviceName: go-api-boilerplate-auth.go-api-boilerplate
             servicePort: 3000
         - path: /users
           backend:
-            serviceName: go-api-boilerplate-user
+            serviceName: go-api-boilerplate-user.go-api-boilerplate
             servicePort: 3000
   tls:
     - secretName: go-api-boilerplate-tls
@@ -92,7 +92,7 @@ phpmyadmin:
     port: 443
   db:
     port: 3306
-    host: go-api-boilerplate-mysql
+    host: go-api-boilerplate-mysql.go-api-boilerplate
 
 mysql:
   existingSecret: go-api-boilerplate-app
@@ -264,9 +264,9 @@ auth:
           key: PORT_GRPC
           name: go-api-boilerplate-app
     - name: PUBSUB_HOST
-      value: 'go-api-boilerplate-pubsub'
+      value: 'go-api-boilerplate-pubsub.go-api-boilerplate'
     - name: DB_HOST
-      value: 'go-api-boilerplate-mysql'
+      value: 'go-api-boilerplate-mysql.go-api-boilerplate'
     - name: DB_PORT
       value: '3306'
     - name: DB_USER
@@ -335,11 +335,11 @@ user:
           key: PORT_GRPC
           name: go-api-boilerplate-app
     - name: AUTH_HOST
-      value: 'go-api-boilerplate-auth'
+      value: 'go-api-boilerplate-auth.go-api-boilerplate'
     - name: PUBSUB_HOST
-      value: 'go-api-boilerplate-pubsub'
+      value: 'go-api-boilerplate-pubsub.go-api-boilerplate'
     - name: DB_HOST
-      value: 'go-api-boilerplate-mysql'
+      value: 'go-api-boilerplate-mysql.go-api-boilerplate'
     - name: DB_PORT
       value: '3306'
     - name: DB_USER
@@ -402,4 +402,4 @@ configMap:
     PORT_HTTP: '3000'
     PORT_GRPC: '3001'
     AWS_REGION: 'us-east-1'
-    AWS_ENDPOINT: 'http://go-api-boilerplate-localstack:4569'
+    AWS_ENDPOINT: 'http://go-api-boilerplate-localstack.go-api-boilerplate:4569'
