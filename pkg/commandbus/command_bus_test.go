@@ -16,7 +16,7 @@ func (c *commandMock) GetName() string {
 }
 
 func TestNew(t *testing.T) {
-	logger := golog.New(golog.Debug)
+	logger := golog.New()
 	bus := New(runtime.NumCPU(), logger)
 
 	if bus == nil {
@@ -25,7 +25,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestSubscribePublish(t *testing.T) {
-	bus := New(runtime.NumCPU(), golog.New(golog.Debug))
+	bus := New(runtime.NumCPU(), golog.New())
 	ctx := context.Background()
 	c := make(chan error)
 
@@ -50,7 +50,7 @@ func TestSubscribePublish(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	bus := New(runtime.NumCPU(), golog.New(golog.Debug))
+	bus := New(runtime.NumCPU(), golog.New())
 	c := make(chan error)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

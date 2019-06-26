@@ -30,11 +30,9 @@ func (l *Logger) LogRequest(next http.Handler) http.Handler {
 
 // New creates new logger based on environment
 func New(env string) *Logger {
-	var l golog.Logger
-	if env == "development" {
-		l = golog.New(golog.Debug)
-	} else {
-		l = golog.NewFileLogger(golog.Info, "/tmp/prod.log")
+	l := golog.New()
+	if env != "development" {
+		l.SetVerbosity(golog.DefaultVerbosity &^ golog.Debug)
 	}
 
 	l.SetFlags(log.Llongfile | log.Ldate | log.Ltime | log.Lmicroseconds | log.LUTC)

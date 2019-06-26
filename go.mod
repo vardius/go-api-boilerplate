@@ -15,7 +15,7 @@ require (
 	github.com/rs/cors v1.6.0
 	github.com/tidwall/buntdb v1.0.0
 	github.com/vardius/gollback v1.0.6
-	github.com/vardius/golog v1.0.4
+	github.com/vardius/golog v1.1.1
 	github.com/vardius/gorouter/v4 v4.0.0
 	github.com/vardius/message-bus v1.1.3
 	github.com/vardius/pubsub v1.0.5

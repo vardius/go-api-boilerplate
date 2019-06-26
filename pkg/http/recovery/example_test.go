@@ -27,7 +27,7 @@ func ExampleWithRecover() {
 }
 
 func ExampleWithLogger() {
-	recovery.WithLogger(golog.New(golog.Debug))
+	recovery.WithLogger(golog.New())
 	handler := recovery.WithRecover(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
