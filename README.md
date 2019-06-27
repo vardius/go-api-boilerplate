@@ -186,7 +186,7 @@ T: Exit cleanup in progress
 # --docker-run --rm -it -v -p=3001:3001 user:latest
 ```
 ### Kubernetes
-The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local](https://go-api-boilerplate.local/#!/overview?namespace=go-api-boilerplate) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
+The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local/dashboard](https://go-api-boilerplate.local/dashboard/#!/overview?namespace=go-api-boilerplate) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
 ```bash
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 ```
