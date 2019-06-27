@@ -1,5 +1,5 @@
 START TRANSACTION;
-CREATE TABLE `clients` (
+CREATE TABLE IF NOT EXISTS `clients` (
     `distinctId` INT          NOT NULL AUTO_INCREMENT,
     `id`         CHAR(36)     NOT NULL,
     `userId`     CHAR(36)     NOT NULL,

@@ -1,5 +1,5 @@
 START TRANSACTION;
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
     `distinctId`   INT                                    NOT NULL AUTO_INCREMENT,
     `id`           CHAR(36)                               NOT NULL,
     `emailAddress` VARCHAR(255) COLLATE utf8_general_ci   NOT NULL,
