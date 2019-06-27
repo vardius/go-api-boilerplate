@@ -104,8 +104,8 @@ func (c *Client) Remove() error {
 
 func (c *Client) trackChange(e domain.RawEvent) error {
 	c.transition(e)
-	event, err := domain.NewEvent(c.id, StreamName, c.version, e)
 
+	event, err := domain.NewEvent(c.id, StreamName, c.version, e)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Client trackChange error")
 	}

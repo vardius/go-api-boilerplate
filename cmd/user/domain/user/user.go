@@ -179,8 +179,8 @@ func (u *User) RequestAccessToken() error {
 
 func (u *User) trackChange(e domain.RawEvent) error {
 	u.transition(e)
-	event, err := domain.NewEvent(u.id, StreamName, u.version, e)
 
+	event, err := domain.NewEvent(u.id, StreamName, u.version, e)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "User trackChange error")
 	}
