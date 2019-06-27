@@ -16,7 +16,7 @@ type clientRepository struct {
 }
 
 func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Client, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT * FROM clients WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, userId, secret, domain, data FROM clients WHERE id=? LIMIT 1`, id)
 
 	client := Client{}
 

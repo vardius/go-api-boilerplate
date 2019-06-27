@@ -22,25 +22,25 @@ type tokenRepository struct {
 }
 
 func (r *tokenRepository) Get(ctx context.Context, id string) (persistence.Token, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT * FROM auth_tokens WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, clientId, userId, code, access, refresh, data FROM auth_tokens WHERE id=? LIMIT 1`, id)
 
 	return r.getTokenFromRow(row)
 }
 
 func (r *tokenRepository) GetByCode(ctx context.Context, code string) (persistence.Token, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT * FROM auth_tokens WHERE code=? LIMIT 1`, code)
+	row := r.db.QueryRowContext(ctx, `SELECT id, clientId, userId, code, access, refresh, data FROM auth_tokens WHERE code=? LIMIT 1`, code)
 
 	return r.getTokenFromRow(row)
 }
 
 func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (persistence.Token, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT * FROM auth_tokens WHERE access=? LIMIT 1`, access)
+	row := r.db.QueryRowContext(ctx, `SELECT id, clientId, userId, code, access, refresh, data FROM auth_tokens WHERE access=? LIMIT 1`, access)
 
 	return r.getTokenFromRow(row)
 }
 
 func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (persistence.Token, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT * FROM auth_tokens WHERE refresh=? LIMIT 1`, refresh)
+	row := r.db.QueryRowContext(ctx, `SELECT id, clientId, userId, code, access, refresh, data FROM auth_tokens WHERE refresh=? LIMIT 1`, refresh)
 
 	return r.getTokenFromRow(row)
 }
