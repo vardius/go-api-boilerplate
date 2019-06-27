@@ -28,29 +28,31 @@ ingress:
     kubernetes.io/tls-acme: "true"
     kubernetes.io/secure-backends: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^(/dashboard)$ $1/ permanent;
   hosts:
     - host: go-api-boilerplate.local
       paths:
-        - path: /
+        - path: /dashboard(/|$)(.*)
           backend:
             serviceName: kubernetes-dashboard
             servicePort: 443
-        - path: /localstack
+        # - path: /localstack(/|$)(.*)
+        #   backend:
+        #     serviceName: go-api-boilerplate-localstack
+        #     servicePort: 4567
+        - path: /phpmyadmin(/|$)(.*)
           backend:
-            serviceName: go-api-boilerplate-localstack.go-api-boilerplate
-            servicePort: 4567
-        - path: /phpmyadmin
-          backend:
-            serviceName: go-api-boilerplate-phpmyadmin.go-api-boilerplate
+            serviceName: go-api-boilerplate-phpmyadmin
             servicePort: 443
-        - path: /auth
+        - path: /auth(/|$)(.*)
           backend:
-            serviceName: go-api-boilerplate-auth.go-api-boilerplate
+            serviceName: go-api-boilerplate-auth
             servicePort: 3000
-        - path: /users
+        - path: /users(/|$)(.*)
           backend:
-            serviceName: go-api-boilerplate-user.go-api-boilerplate
+            serviceName: go-api-boilerplate-user
             servicePort: 3000
   tls:
     - secretName: go-api-boilerplate-tls
@@ -92,7 +94,7 @@ phpmyadmin:
     port: 443
   db:
     port: 3306
-    host: go-api-boilerplate-mysql.go-api-boilerplate
+    host: go-api-boilerplate-mysql
 
 mysql:
   existingSecret: go-api-boilerplate-app
@@ -105,7 +107,7 @@ mysql:
     base_schema.sql: |-
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
       USE goapiboilerplate;
-      CREATE TABLE `users` (
+      CREATE TABLE IF NOT EXISTS `users` (
         `distinctId`   INT                                    NOT NULL AUTO_INCREMENT,
         `id`           CHAR(36)                               NOT NULL,
         `emailAddress` VARCHAR(255) COLLATE utf8_general_ci   NOT NULL,
@@ -120,7 +122,7 @@ mysql:
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8
         COLLATE = utf8_bin;
-      CREATE TABLE `clients` (
+      CREATE TABLE IF NOT EXISTS `clients` (
         `distinctId` INT          NOT NULL AUTO_INCREMENT,
         `id`         CHAR(36)     NOT NULL,
         `userId`     CHAR(36)     NOT NULL,
@@ -134,21 +136,21 @@ mysql:
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8
         COLLATE = utf8_bin;
-      CREATE TABLE `auth_tokens` (
+      CREATE TABLE IF NOT EXISTS `auth_tokens` (
         `distinctId` INT          NOT NULL AUTO_INCREMENT,
         `id`         CHAR(36)     NOT NULL,
         `clientId`   CHAR(36)     NOT NULL,
         `userId`     CHAR(36)     NOT NULL,
         `code`       VARCHAR(255) DEFAULT NULL,
-        `access`     TEXT         NOT NULL,
-        `refresh`    TEXT         NOT NULL,
+        `refresh`    VARCHAR(255) NOT NULL,
+        `access`     VARCHAR(300) NOT NULL,
         `data`       JSON         NOT NULL,
         PRIMARY KEY (`distinctId`),
         UNIQUE KEY `id` (`id`),
         INDEX `i_userId` (`userId`),
         INDEX `i_code` (`code`),
-        INDEX `i_access` (`access`),
-        INDEX `i_refresh` (`refresh`)
+        INDEX `i_refresh` (`refresh`),
+        INDEX `i_access` (`access`)
       )
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8
@@ -157,26 +159,27 @@ mysql:
 # AWS localstack https://github.com/localstack/localstack
 localstack:
   enabled: false
-  nameOverride: localstack
-  image:
-    repository: localstack/localstack
-    tag: 0.8.10
-    pullPolicy: IfNotPresent
-  service:
-    ports:
-      - name: dynamodb
-        internalPort: 4569
-        externalPort: 4569
-      - name: ui
-        internalPort: 4567
-        externalPort: 4567
-  env:
-    - name: SERVICES
-      value: "dynamodb:4569"
-    - name: PORT_WEB_UI
-      value: "4567"
+#   nameOverride: localstack
+#   image:
+#     repository: localstack/localstack
+#     tag: 0.8.10
+#     pullPolicy: IfNotPresent
+#   service:
+#     ports:
+#       - name: dynamodb
+#         internalPort: 4569
+#         externalPort: 4569
+#       - name: ui
+#         internalPort: 4567
+#         externalPort: 4567
+#   env:
+#     - name: SERVICES
+#       value: "dynamodb:4569"
+#     - name: PORT_WEB_UI
+#       value: "4567"
 
 migrations:
+  enabled: false
   image:
     repository: migrate/migrate
     tag: v4.4.0
@@ -264,9 +267,9 @@ auth:
           key: PORT_GRPC
           name: go-api-boilerplate-app
     - name: PUBSUB_HOST
-      value: 'go-api-boilerplate-pubsub.go-api-boilerplate'
+      value: 'go-api-boilerplate-pubsub'
     - name: DB_HOST
-      value: 'go-api-boilerplate-mysql.go-api-boilerplate'
+      value: 'go-api-boilerplate-mysql'
     - name: DB_PORT
       value: '3306'
     - name: DB_USER
@@ -335,11 +338,11 @@ user:
           key: PORT_GRPC
           name: go-api-boilerplate-app
     - name: AUTH_HOST
-      value: 'go-api-boilerplate-auth.go-api-boilerplate'
+      value: 'go-api-boilerplate-auth'
     - name: PUBSUB_HOST
-      value: 'go-api-boilerplate-pubsub.go-api-boilerplate'
+      value: 'go-api-boilerplate-pubsub'
     - name: DB_HOST
-      value: 'go-api-boilerplate-mysql.go-api-boilerplate'
+      value: 'go-api-boilerplate-mysql'
     - name: DB_PORT
       value: '3306'
     - name: DB_USER
@@ -361,16 +364,16 @@ user:
           name: go-api-boilerplate-app
     - name: DB_NAME
       value: 'goapiboilerplate'
-    - name: AWS_REGION
-      valueFrom:
-        configMapKeyRef:
-          key: AWS_REGION
-          name: go-api-boilerplate-app
-    - name: AWS_ENDPOINT
-      valueFrom:
-        configMapKeyRef:
-          key: AWS_ENDPOINT
-          name: go-api-boilerplate-app
+    # - name: AWS_REGION
+    #   valueFrom:
+    #     configMapKeyRef:
+    #       key: AWS_REGION
+    #       name: go-api-boilerplate-app
+    # - name: AWS_ENDPOINT
+    #   valueFrom:
+    #     configMapKeyRef:
+    #       key: AWS_ENDPOINT
+    #       name: go-api-boilerplate-app
     - name: COMMAND_BUS_BUFFER
       value: '100'
   readiness:
@@ -401,5 +404,5 @@ configMap:
     HOST: '0.0.0.0'
     PORT_HTTP: '3000'
     PORT_GRPC: '3001'
-    AWS_REGION: 'us-east-1'
-    AWS_ENDPOINT: 'http://go-api-boilerplate-localstack.go-api-boilerplate:4569'
+    # AWS_REGION: 'us-east-1'
+    # AWS_ENDPOINT: 'http://go-api-boilerplate-localstack:4569'

@@ -1,4 +1,4 @@
-{{ if or (not (hasKey .Values.migrations "enabled")) (.Values.migrations.enabled | default true) }}
+{{ if or (not (hasKey .Values.migrations "enabled")) (.Values.migrations.enabled | default false) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
