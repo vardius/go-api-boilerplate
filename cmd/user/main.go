@@ -83,7 +83,7 @@ func main() {
 	healthServer := grpc_health.NewServer()
 	healthServer.SetServingStatus("user", grpc_health_proto.HealthCheckResponse_SERVING)
 
-	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, user_persistence.NewUserRepository(db), logger))
+	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, user_persistence.NewUserRepository(db)))
 
 	http_recovery.WithLogger(logger)
 	http_response.WithLogger(logger)

@@ -20,7 +20,7 @@ type authenticationServer struct {
 }
 
 // VerifyToken verifies token
-func (s *authenticationServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (res *proto.VerifyTokenResponse, err error) {
+func (s *authenticationServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (*proto.VerifyTokenResponse, error) {
 	accessToken, err := jwt.ParseWithClaims(req.GetToken(), &generates.JWTAccessClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.Newf(errors.INTERNAL, "parse error")
@@ -28,23 +28,23 @@ func (s *authenticationServer) VerifyToken(ctx context.Context, req *proto.Verif
 		return []byte(s.secretKey), nil
 	})
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, errors.INTERNAL, "Token parse error")
 	}
 
 	_, ok := accessToken.Claims.(*generates.JWTAccessClaims)
 	if !ok || !accessToken.Valid {
-		return
+		return nil, errors.New(errors.INTERNAL, "Token is not valid, could not parse claims")
 	}
 
 	tokenInfo, err := s.server.Manager.LoadAccessToken(req.GetToken())
 
-	res = &proto.VerifyTokenResponse{
+	res := &proto.VerifyTokenResponse{
 		ExpiresIn: int64(tokenInfo.GetAccessCreateAt().Add(tokenInfo.GetAccessExpiresIn()).Sub(time.Now()).Seconds()),
 		ClientId:  tokenInfo.GetClientID(),
 		UserId:    tokenInfo.GetUserID(),
 	}
 
-	return
+	return res, errors.Wrap(err, errors.NOTFOUND, "Could not load token")
 }
 
 // NewServer returns new user server object

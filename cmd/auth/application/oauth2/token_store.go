@@ -83,7 +83,7 @@ func (ts *TokenStore) RemoveByRefresh(refresh string) error {
 func (ts *TokenStore) GetByCode(code string) (oauth2.TokenInfo, error) {
 	t, err := ts.repository.GetByCode(context.Background(), code)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, errors.INTERNAL, "Token not found")
 	}
 
 	return ts.toTokenInfo(t.GetData())
@@ -93,7 +93,7 @@ func (ts *TokenStore) GetByCode(code string) (oauth2.TokenInfo, error) {
 func (ts *TokenStore) GetByAccess(access string) (oauth2.TokenInfo, error) {
 	t, err := ts.repository.GetByAccess(context.Background(), access)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, errors.INTERNAL, "Token not found")
 	}
 
 	return ts.toTokenInfo(t.GetData())
@@ -103,7 +103,7 @@ func (ts *TokenStore) GetByAccess(access string) (oauth2.TokenInfo, error) {
 func (ts *TokenStore) GetByRefresh(refresh string) (oauth2.TokenInfo, error) {
 	t, err := ts.repository.GetByRefresh(context.Background(), refresh)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, errors.INTERNAL, "Token not found")
 	}
 
 	return ts.toTokenInfo(t.GetData())
@@ -113,7 +113,7 @@ func (ts *TokenStore) toTokenInfo(data []byte) (oauth2.TokenInfo, error) {
 	info := oauth2_models.Token{}
 	err := json.Unmarshal(data, &info)
 
-	return &info, err
+	return &info, errors.Wrap(err, errors.INTERNAL, "Token not found")
 }
 
 func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {

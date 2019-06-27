@@ -65,5 +65,5 @@ func (cs *ClientStore) toClientInfo(data []byte) (oauth2.ClientInfo, error) {
 	info := oauth2_models.Client{}
 	err := json.Unmarshal(data, &info)
 
-	return &info, err
+	return &info, errors.Wrap(err, errors.INTERNAL, "Could not unmarshal token info")
 }
