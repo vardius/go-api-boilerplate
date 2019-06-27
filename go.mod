@@ -20,6 +20,7 @@ require (
 	github.com/vardius/message-bus v1.1.3
 	github.com/vardius/pubsub v1.0.5
 	github.com/vardius/shutdown v1.0.0
+	github.com/vardius/trace v1.0.1
 	go.opencensus.io v0.22.0 // indirect
 	golang.org/x/image v0.0.0-20190523035834-f03afa92d3ff // indirect
 	golang.org/x/mod v0.1.0 // indirect

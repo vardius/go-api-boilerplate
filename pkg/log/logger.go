@@ -35,7 +35,7 @@ func New(env string) *Logger {
 		l.SetVerbosity(golog.DefaultVerbosity &^ golog.Debug)
 	}
 
-	l.SetFlags(log.Llongfile | log.Ldate | log.Ltime | log.Lmicroseconds | log.LUTC)
+	l.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.LUTC)
 
 	return &Logger{l}
 }

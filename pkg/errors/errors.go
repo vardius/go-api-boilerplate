@@ -4,7 +4,8 @@ package errors
 import (
 	"bytes"
 	"fmt"
-	"runtime"
+
+	"github.com/vardius/trace"
 )
 
 // Application error codes.
@@ -48,7 +49,7 @@ func New(code string, message string) error {
 	return &appError{
 		Code:    code,
 		Message: message,
-		frame:   getFrame(3),
+		trace:   trace.FromParent(1, trace.Lfile|trace.Lline),
 	}
 }
 
@@ -57,7 +58,7 @@ func Newf(code string, message string, args ...interface{}) error {
 	return &appError{
 		Code:    code,
 		Message: fmt.Sprintf(message, args...),
-		frame:   getFrame(3),
+		trace:   trace.FromParent(1, trace.Lfile|trace.Lline),
 	}
 }
 
@@ -66,8 +67,8 @@ func Wrap(err error, code string, message string) error {
 	return &appError{
 		Code:    code,
 		Message: message,
+		trace:   trace.FromParent(1, trace.Lfile|trace.Lline),
 		err:     err,
-		frame:   getFrame(3),
 	}
 }
 
@@ -77,15 +78,15 @@ func Wrapf(err error, code string, message string, args ...interface{}) error {
 		Code:    code,
 		Message: fmt.Sprintf(message, args...),
 		err:     err,
-		frame:   getFrame(3),
+		trace:   trace.FromParent(1, trace.Lfile|trace.Lline),
 	}
 }
 
 type appError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+	trace   string
 	err     error
-	frame   *runtime.Frame
 }
 
 // Error returns the string representation of the error message.
@@ -95,8 +96,8 @@ func (e *appError) Error() string {
 }
 
 // StackTrace returns the string representation of the error stack trace,
-// includeFrames appends caller pcs frames to each error message if possible.
-func (e *appError) stackTrace(includeFrames bool) string {
+// includeTrace appends caller pcs frames to each error message if possible.
+func (e *appError) stackTrace(includeTrace bool) string {
 	var buf bytes.Buffer
 
 	// Print the current error in our stack, if any.
@@ -106,8 +107,8 @@ func (e *appError) stackTrace(includeFrames bool) string {
 
 	fmt.Fprintf(&buf, "%s\n", e.Message)
 
-	if includeFrames && e.frame != nil {
-		fmt.Fprintf(&buf, "\t%s:%d\n", e.frame.File, e.frame.Line)
+	if includeTrace && e.trace != "" {
+		fmt.Fprintf(&buf, "\t%s", e.trace)
 	}
 
 	// If wrapping an error, print its Error() message.
@@ -116,26 +117,4 @@ func (e *appError) stackTrace(includeFrames bool) string {
 	}
 
 	return buf.String()
-}
-
-func getFrame(calldepth int) *runtime.Frame {
-	pc, file, line, ok := runtime.Caller(calldepth)
-	if !ok {
-		return nil
-	}
-
-	frame := &runtime.Frame{
-		PC:   pc,
-		File: file,
-		Line: line,
-	}
-
-	funcForPc := runtime.FuncForPC(pc)
-	if funcForPc != nil {
-		frame.Func = funcForPc
-		frame.Function = funcForPc.Name()
-		frame.Entry = funcForPc.Entry()
-	}
-
-	return frame
 }

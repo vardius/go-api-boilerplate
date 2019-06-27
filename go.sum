@@ -76,7 +76,6 @@ github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV
 github.com/vardius/gollback v1.0.6 h1:+TY/NoiJmXyD06+GYc4yiz3nkV5NF00WIz3+9TzVLGA=
 github.com/vardius/gollback v1.0.6/go.mod h1:TvQesoeQMEJYia80/dsGskkuGc9/Sh0sWnq/D1qDoeM=
 github.com/vardius/golog v1.0.4/go.mod h1:mqo2VxWBUb0syu3GDSU1JOnHsY4IjyBcPfTzGE4bMqU=
-github.com/vardius/golog v1.1.0/go.mod h1:mqo2VxWBUb0syu3GDSU1JOnHsY4IjyBcPfTzGE4bMqU=
 github.com/vardius/golog v1.1.1 h1:BsQDbgzKWkUzZbeOQ/xJMkqFOKLTQyjOVlyNCqIbWug=
 github.com/vardius/golog v1.1.1/go.mod h1:mqo2VxWBUb0syu3GDSU1JOnHsY4IjyBcPfTzGE4bMqU=
 github.com/vardius/gorouter/v4 v4.0.0 h1:9hurOSePRTnQPxQ2NfOxjmPsZ69PtHNM0Fs1HjOOlYo=
@@ -87,6 +86,8 @@ github.com/vardius/pubsub v1.0.5 h1:F5VHmalTKLtABWGFMv+YjG4PyUYaYZV4v0f439yTvcI=
 github.com/vardius/pubsub v1.0.5/go.mod h1:vLKZ+bh872k/GSIeNMYi6NcllCgxkHJtpZ+cCfW/Jy0=
 github.com/vardius/shutdown v1.0.0 h1:eu9BwdoiujMP8Axrh4jwYpNcqXGLPSwNx4EI4S9VHKo=
 github.com/vardius/shutdown v1.0.0/go.mod h1:hGnuGROeriE1DM1K219eoZeJmmfR0N2SUVND6buRs5Y=
+github.com/vardius/trace v1.0.1 h1:EZBeNVEp9QDYoDEUKA5ECYgmx+9j/ytxxxBi0FOLjEc=
+github.com/vardius/trace v1.0.1/go.mod h1:SXRiQ52Rldls58Kx6W6o37OZ7qvlaiu3WYd8VSQNQvk=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
 github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415/go.mod h1:GwrjFmJcFw6At/Gs6z4yjiIwzuJ1/+UwLxMQDVQXShQ=
 github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56/go.mod h1:5yf86TLmAcydyeJq5YvxkGPE2fm/u4myDekKRoLuqhs=
