@@ -59,10 +59,10 @@ func (s *eventStore) Get(id uuid.UUID) (domain.Event, error) {
 
 	es, err := s.query(params)
 	if len(es) > 0 {
-		return es[0], err
+		return es[0], errors.Wrap(err, errors.INTERNAL, "Query events failed")
 	}
 
-	return domain.NullEvent, err
+	return domain.NullEvent, nil
 }
 
 func (s *eventStore) FindAll() []domain.Event {
@@ -102,18 +102,18 @@ func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []domain.E
 func (s *eventStore) query(params *dynamodb.QueryInput) ([]domain.Event, error) {
 	resp, err := s.service.Query(params)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, errors.INTERNAL, "Query failed")
 	}
 
 	if len(resp.Items) == 0 {
-		return nil, ErrEventNotFound
+		return nil, errors.Wrap(ErrEventNotFound, errors.NOTFOUND, "Not found any items")
 	}
 
 	es := make([]domain.Event, len(resp.Items))
 	for i, item := range resp.Items {
 		e := domain.Event{}
 		if err := dynamodbattribute.UnmarshalMap(item, &e); err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, errors.INTERNAL, "Unmarshal events failed")
 		}
 		es[i] = e
 	}

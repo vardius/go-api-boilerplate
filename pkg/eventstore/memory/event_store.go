@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	baseeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
 
@@ -38,7 +39,7 @@ func (s *eventStore) Get(id uuid.UUID) (domain.Event, error) {
 	if val, ok := s.events[id.String()]; ok {
 		return val, nil
 	}
-	return domain.NullEvent, ErrEventNotFound
+	return domain.NullEvent, errors.Wrap(ErrEventNotFound, errors.NOTFOUND, "Not found any items")
 }
 
 func (s *eventStore) FindAll() []domain.Event {

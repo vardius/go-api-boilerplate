@@ -87,5 +87,10 @@ func getProfile(accessToken, apiURL string) ([]byte, error) {
 	}
 
 	defer resp.Body.Close()
-	return ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return body, errors.Wrap(err, errors.INTERNAL, "Read body error")
+	}
+
+	return body, nil
 }

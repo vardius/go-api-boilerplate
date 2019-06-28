@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	errInvalidRole = status.Errorf(codes.PermissionDenied, "invalid role")
+	errInvalidRole = status.Errorf(codes.PermissionDenied, "Invalid role")
 )
 
 // GrantAccessFor returns error if

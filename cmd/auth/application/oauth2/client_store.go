@@ -64,6 +64,9 @@ func (cs *ClientStore) SetInternal(id string, cli oauth2.ClientInfo) (err error)
 func (cs *ClientStore) toClientInfo(data []byte) (oauth2.ClientInfo, error) {
 	info := oauth2_models.Client{}
 	err := json.Unmarshal(data, &info)
+	if err != nil {
+		return nil, errors.Wrap(err, errors.INTERNAL, "Unmarshal client failed")
+	}
 
-	return &info, errors.Wrap(err, errors.INTERNAL, "Could not unmarshal token info")
+	return &info, nil
 }

@@ -40,7 +40,7 @@ func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
+		return errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context done")
 	case err := <-out:
 		return errors.Wrap(err, errors.INTERNAL, "Token Create error")
 	}
@@ -112,8 +112,11 @@ func (ts *TokenStore) GetByRefresh(refresh string) (oauth2.TokenInfo, error) {
 func (ts *TokenStore) toTokenInfo(data []byte) (oauth2.TokenInfo, error) {
 	info := oauth2_models.Token{}
 	err := json.Unmarshal(data, &info)
+	if err != nil {
+		return nil, errors.Wrap(err, errors.INTERNAL, "Unmarshal token failed")
+	}
 
-	return &info, errors.Wrap(err, errors.INTERNAL, "Token not found")
+	return &info, nil
 }
 
 func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
@@ -130,7 +133,7 @@ func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
+		return errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context done")
 	case err := <-out:
 		return errors.Wrap(err, errors.INTERNAL, "Token remove error")
 	}

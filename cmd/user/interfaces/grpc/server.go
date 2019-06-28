@@ -31,7 +31,8 @@ func NewServer(cb commandbus.CommandBus, r persistence.UserRepository) proto.Use
 func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
 	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
 	if err != nil {
-		return new(empty.Empty), err
+		return nil, status.Error(codes.Internal, "Could not build command from payload")
+		// return nil, errors.Wrap(err, errors.INTERNAL, "Could not build command from payload")
 	}
 
 	out := make(chan error)
@@ -43,9 +44,15 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 
 	select {
 	case <-ctx.Done():
-		return new(empty.Empty), ctx.Err()
+		return nil, status.Error(codes.Internal, "Context done")
+		// return nil, errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context error")
 	case err := <-out:
-		return new(empty.Empty), err
+		if err != nil {
+			return nil, status.Error(codes.Internal, "Publish command error")
+			// return nil, errors.Wrap(err, errors.INTERNAL, "Publish command error")
+		}
+
+		return new(empty.Empty), nil
 	}
 }
 
