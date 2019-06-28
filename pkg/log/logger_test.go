@@ -35,21 +35,21 @@ func TestNew(t *testing.T) {
 	}
 }
 
-// func TestLogRequest(t *testing.T) {
-// 	output := captureOutput(func() {
-// 		l := New("development")
-// 		h := l.LogRequest(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+func TestLogRequest(t *testing.T) {
+	output := captureOutput(func() {
+		l := New("development")
+		h := l.LogRequest(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
-// 		w := httptest.NewRecorder()
-// 		req, err := http.NewRequest("GET", "/", nil)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
+		w := httptest.NewRecorder()
+		req, err := http.NewRequest("GET", "/", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-// 		h.ServeHTTP(w, req)
-// 	})
+		h.ServeHTTP(w, req)
+	})
 
-// 	if output == "" {
-// 		t.Fail()
-// 	}
-// }
+	if output == "" {
+		t.Fail()
+	}
+}
