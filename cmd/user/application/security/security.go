@@ -6,26 +6,24 @@ import (
 	"github.com/google/uuid"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
 	user_persistance "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	http_authenticator "github.com/vardius/go-api-boilerplate/pkg/http/security/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
-	"github.com/vardius/golog"
 )
 
 // TokenAuthHandler provides token auth function
-func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repository user_persistance.UserRepository, logger golog.Logger) http_authenticator.TokenAuthFunc {
+func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repository user_persistance.UserRepository) http_authenticator.TokenAuthFunc {
 	fn := func(token string) (identity.Identity, error) {
 		tokenInfo, err := grpAuthClient.VerifyToken(context.Background(), &auth_proto.VerifyTokenRequest{
 			Token: token,
 		})
 		if err != nil {
-			logger.Error(context.Background(), "TokenAuthHandler Error: %v\n", err)
-			return identity.NullIdentity, err
+			return identity.NullIdentity, errors.Wrap(err, errors.UNAUTHORIZED, "Could not verify token")
 		}
 
 		user, err := repository.Get(context.Background(), tokenInfo.GetUserId())
 		if err != nil {
-			logger.Error(context.Background(), "TokenAuthHandler Error: %v\n", err)
-			return identity.NullIdentity, err
+			return identity.NullIdentity, errors.Wrap(err, errors.INTERNAL, "Could not find user for token")
 		}
 
 		i := identity.Identity{
