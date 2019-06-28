@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "microservice.fullname" . }}
+  {{- if hasKey .Values "namespace" }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
   labels:
     app.kubernetes.io/name: {{ include "microservice.name" . }}
     helm.sh/chart: {{ include "microservice.chart" . }}
@@ -19,6 +22,9 @@ spec:
         app.kubernetes.io/name: {{ include "microservice.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+    {{- if hasKey .Values "serviceAccountName" }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+    {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -55,15 +61,15 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-    {{- with .Values.nodeSelector }}
+      {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.affinity }}
+      {{- end }}
+      {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}

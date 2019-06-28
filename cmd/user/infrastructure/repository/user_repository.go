@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
@@ -18,27 +19,24 @@ type userRepository struct {
 }
 
 // Save current user changes to event store and publish each event with an event bus
-func (r *userRepository) Save(ctx context.Context, u *user.User) error {
+func (r *userRepository) Save(ctx context.Context, u user.User) error {
 	err := r.eventStore.Store(u.Changes())
 	if err != nil {
-		return err
+		return errors.Wrap(err, errors.INTERNAL, "User save error")
 	}
 
 	for _, event := range u.Changes() {
-		r.eventBus.Publish(ctx, event.Metadata.Type, *event)
+		r.eventBus.Publish(ctx, event)
 	}
 
 	return nil
 }
 
 // Get user with current state applied
-func (r *userRepository) Get(id uuid.UUID) *user.User {
+func (r *userRepository) Get(id uuid.UUID) user.User {
 	events := r.eventStore.GetStream(id, user.StreamName)
 
-	u := user.New()
-	u.FromHistory(events)
-
-	return u
+	return user.FromHistory(events)
 }
 
 // NewUserRepository creates new user event sourced repository

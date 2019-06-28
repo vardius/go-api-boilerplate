@@ -1,6 +1,8 @@
 package errors
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -68,23 +70,30 @@ func TestErrorCode(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	if New("", "").Error() != "" {
-		t.Error("Error string representation of the error message is invalid")
+	var e error
+
+	e = New("", "")
+	if !strings.Contains(e.Error(), fmt.Sprint("\n")) {
+		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
 	}
 
-	if New(INTERNAL, "").Error() == "" {
-		t.Error("Error string representation of the error message is invalid")
+	e = New(INTERNAL, "")
+	if !strings.Contains(e.Error(), fmt.Sprintf("<%s> %s\n", INTERNAL, "")) {
+		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
 	}
 
-	if New("", "internal error").Error() == "" {
-		t.Error("Error string representation of the error message is invalid")
+	e = New("", "internal error")
+	if !strings.Contains(e.Error(), fmt.Sprintf("%s\n", "internal error")) {
+		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
 	}
 
-	if New(INTERNAL, "internal error").Error() == "" {
-		t.Error("Error string representation of the error message is invalid")
+	e = New(INTERNAL, "internal error")
+	if !strings.Contains(e.Error(), fmt.Sprintf("<%s> %s\n", INTERNAL, "internal error")) {
+		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
 	}
 
-	if Wrap(New(INTERNAL, "internal error"), "", "").Error() == "" {
-		t.Error("Error string representation of the error message is invalid")
+	e = Wrap(New(INTERNAL, "internal error"), "", "")
+	if !strings.Contains(e.Error(), fmt.Sprintf("<%s> %s\n", INTERNAL, "internal error")) {
+		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
 	}
 }

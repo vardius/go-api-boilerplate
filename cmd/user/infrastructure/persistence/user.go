@@ -5,15 +5,21 @@ package persistence
 
 import (
 	"context"
-
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 )
+
+// User the user persistance model interface
+type User interface {
+	GetID() string
+	GetEmail() string
+	GetFacebookID() string
+	GetGoogleID() string
+}
 
 // UserRepository allows to get/save current state of user to mysql storage
 type UserRepository interface {
-	FindAll(ctx context.Context, limit, offset int32) ([]*proto.User, error)
-	Get(ctx context.Context, id string) (*proto.User, error)
-	Add(ctx context.Context, user *proto.User) error
+	FindAll(ctx context.Context, limit, offset int32) ([]User, error)
+	Get(ctx context.Context, id string) (User, error)
+	Add(ctx context.Context, user User) error
 	Delete(ctx context.Context, id string) error
 	Count(ctx context.Context) (int32, error)
 	UpdateEmail(ctx context.Context, id, email string) error

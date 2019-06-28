@@ -3,12 +3,90 @@ package user
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
+
+const (
+	// RequestUserAccessToken command bus contract
+	RequestUserAccessToken = "request-user-access-token"
+	// ChangeUserEmailAddress command bus contract
+	ChangeUserEmailAddress = "change-user-email-address"
+	// RegisterUserWithEmail command bus contract
+	RegisterUserWithEmail = "register-user-with-email"
+	// RegisterUserWithFacebook command bus contract
+	RegisterUserWithFacebook = "register-user-with-facebook"
+	// RegisterUserWithGoogle command bus contract
+	RegisterUserWithGoogle = "register-user-with-google"
+)
+
+// NewCommandFromPayload builds command by contract from json payload
+func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
+	switch contract {
+	case RegisterUserWithEmail:
+		registerWithEmail := RegisterWithEmail{}
+		err := unmarshalPayload(payload, &registerWithEmail)
+
+		return registerWithEmail, err
+	case RegisterUserWithGoogle:
+		registerWithGoogle := RegisterWithGoogle{}
+		err := unmarshalPayload(payload, &registerWithGoogle)
+
+		return registerWithGoogle, err
+	case RegisterUserWithFacebook:
+		registerWithFacebook := RegisterWithFacebook{}
+		err := unmarshalPayload(payload, &registerWithFacebook)
+
+		return registerWithFacebook, err
+	case ChangeUserEmailAddress:
+		changeEmailAddress := ChangeEmailAddress{}
+		err := unmarshalPayload(payload, &changeEmailAddress)
+
+		return changeEmailAddress, err
+	case RequestUserAccessToken:
+		requestAccessToken := RequestAccessToken{}
+		err := unmarshalPayload(payload, &requestAccessToken)
+
+		return requestAccessToken, err
+	default:
+		return nil, errors.New(errors.INTERNAL, "Invalid command contract")
+	}
+}
+
+// RequestAccessToken command
+type RequestAccessToken struct {
+	ID uuid.UUID `json:"id"`
+}
+
+// GetName returns command name
+func (c RequestAccessToken) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
+// OnRequestAccessToken creates command handler
+func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandHandler {
+	fn := func(ctx context.Context, c RequestAccessToken, out chan<- error) {
+		// this goroutine runs independently to request's goroutine,
+		// there for recover middlewears will not recover from panic to prevent crash
+		defer recoverCommandHandler(out)
+
+		u := repository.Get(c.ID)
+		err := u.RequestAccessToken()
+		if err != nil {
+			out <- errors.Wrap(err, errors.INTERNAL, "Error when requesting access token")
+			return
+		}
+
+		out <- repository.Save(executioncontext.ContextWithFlag(context.Background(), executioncontext.LIVE), u)
+	}
+
+	return commandbus.CommandHandler(fn)
+}
 
 // ChangeEmailAddress command
 type ChangeEmailAddress struct {
@@ -16,17 +94,17 @@ type ChangeEmailAddress struct {
 	Email string    `json:"email"`
 }
 
+// GetName returns command name
+func (c ChangeEmailAddress) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
 // OnChangeEmailAddress creates command handler
 func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *ChangeEmailAddress, out chan<- error) {
+	fn := func(ctx context.Context, c ChangeEmailAddress, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		// there for recover middlewears will not recover from panic to prevent crash
+		defer recoverCommandHandler(out)
 
 		var totalUsers int32
 
@@ -60,17 +138,17 @@ type RegisterWithEmail struct {
 	Email string `json:"email"`
 }
 
+// GetName returns command name
+func (c RegisterWithEmail) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
 // OnRegisterWithEmail creates command handler
 func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *RegisterWithEmail, out chan<- error) {
+	fn := func(ctx context.Context, c RegisterWithEmail, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		// there for recover middlewears will not recover from panic to prevent crash
+		defer recoverCommandHandler(out)
 
 		var totalUsers int32
 
@@ -111,17 +189,17 @@ type RegisterWithFacebook struct {
 	FacebookID string `json:"facebookId"`
 }
 
+// GetName returns command name
+func (c RegisterWithFacebook) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
 // OnRegisterWithFacebook creates command handler
 func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *RegisterWithFacebook, out chan<- error) {
+	fn := func(ctx context.Context, c RegisterWithFacebook, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		// there for recover middlewears will not recover from panic to prevent crash
+		defer recoverCommandHandler(out)
 
 		var id, emailAddress, facebookID string
 
@@ -137,7 +215,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 			return
 		}
 
-		var u *User
+		var u User
 		if emailAddress == c.Email {
 			u = repository.Get(uuid.MustParse(id))
 			err = u.ConnectWithFacebook(c.FacebookID)
@@ -172,17 +250,17 @@ type RegisterWithGoogle struct {
 	GoogleID string `json:"googleId"`
 }
 
+// GetName returns command name
+func (c RegisterWithGoogle) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
 // OnRegisterWithGoogle creates command handler
 func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c *RegisterWithGoogle, out chan<- error) {
+	fn := func(ctx context.Context, c RegisterWithGoogle, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover
-		// recover from panic to prevent crash
-		defer func() {
-			if r := recover(); r != nil {
-				out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
-			}
-		}()
+		// there for recover middlewears will not recover from panic to prevent crash
+		defer recoverCommandHandler(out)
 
 		var id, emailAddress, googleID string
 
@@ -198,7 +276,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 			return
 		}
 
-		var u *User
+		var u User
 		if emailAddress == c.Email {
 			u = repository.Get(uuid.MustParse(id))
 			err = u.ConnectWithGoogle(c.GoogleID)
@@ -225,4 +303,10 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 	}
 
 	return commandbus.CommandHandler(fn)
+}
+
+func recoverCommandHandler(out chan<- error) {
+	if r := recover(); r != nil {
+		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+	}
 }

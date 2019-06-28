@@ -1,9 +1,11 @@
-{{- if .Values.ingress.enabled -}}
-{{- $fullName := include "app.fullname" . -}}
+{{ if or (not (hasKey .Values.ingress "enabled")) (.Values.ingress.enabled | default false) }}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ include "app.fullname" . }}
+  {{- if hasKey .Values "namespace" }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
   labels:
     helm.sh/chart: {{ include "app.chart" . }}
     app.kubernetes.io/name: {{ include "app.name" . }}

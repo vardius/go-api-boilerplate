@@ -5,77 +5,73 @@ package grpc
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/vardius/go-api-boilerplate/cmd/user/application"
 	"github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/repository"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
-	"github.com/vardius/go-api-boilerplate/pkg/jwt"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type userServer struct {
-	commandBus commandbus.CommandBus
-	eventBus   eventbus.EventBus
-	eventStore eventstore.EventStore
-	db         *sql.DB
-	jwt        jwt.Jwt
+	commandBus     commandbus.CommandBus
+	userRepository persistence.UserRepository
+	logger         *log.Logger
 }
 
 // NewServer returns new user server object
-func NewServer(cb commandbus.CommandBus, eb eventbus.EventBus, es eventstore.EventStore, db *sql.DB, j jwt.Jwt) proto.UserServiceServer {
-	s := &userServer{cb, eb, es, db, j}
-
-	userRepository := repository.NewUserRepository(es, eb)
-	userMYSQLRepository := mysql.NewUserRepository(db)
-
-	s.registerCommandHandlers(userRepository)
-	s.registerEventHandlers(userMYSQLRepository)
+func NewServer(cb commandbus.CommandBus, r persistence.UserRepository, l *log.Logger) proto.UserServiceServer {
+	s := &userServer{cb, r, l}
 
 	return s
 }
 
 // DispatchCommand implements proto.UserServiceServer interface
 func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
-	c, err := buildDomainCommand(ctx, r.GetName(), r.GetPayload())
+	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
 	if err != nil {
-		return new(empty.Empty), err
+		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Could not build command from payload"))
+		return nil, status.Error(codes.Internal, "Could not build command from payload")
 	}
 
 	out := make(chan error)
 	defer close(out)
 
 	go func() {
-		s.commandBus.Publish(ctx, fmt.Sprintf("%T", c), c, out)
+		s.commandBus.Publish(ctx, c, out)
 	}()
 
 	select {
 	case <-ctx.Done():
-		return new(empty.Empty), ctx.Err()
+		return nil, status.Error(codes.Internal, "Context done")
 	case err := <-out:
-		return new(empty.Empty), err
+		if err != nil {
+			s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Publish command error"))
+			return nil, status.Error(codes.Internal, "Publish command error")
+		}
+
+		return new(empty.Empty), nil
 	}
 }
 
 // GetUser implements proto.UserServiceServer interface
 func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*proto.User, error) {
-	repository := mysql.NewUserRepository(s.db)
-
-	user, err := repository.Get(ctx, r.GetId())
+	user, err := s.userRepository.Get(ctx, r.GetId())
 	if err != nil {
+		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.NOTFOUND, "User not found"))
 		return nil, status.Error(codes.NotFound, "User not found")
 	}
 
-	return user, nil
+	return &proto.User{
+		Id:         user.GetID(),
+		Email:      user.GetEmail(),
+		FacebookId: user.GetFacebookID(),
+		GoogleId:   user.GetGoogleID(),
+	}, nil
 }
 
 // ListUsers implements proto.UserServiceServer interface
@@ -84,12 +80,12 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 		return nil, status.Error(codes.Internal, "Invalid page or limit value. Please provide values greater then 1")
 	}
 
-	var users []*proto.User
+	var users []persistence.User
+	var list []*proto.User
 
-	repository := mysql.NewUserRepository(s.db)
-
-	totalUsers, err := repository.Count(ctx)
+	totalUsers, err := s.userRepository.Count(ctx)
 	if err != nil {
+		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Failed to count users"))
 		return nil, status.Error(codes.Internal, "Failed to count users")
 	}
 
@@ -100,35 +96,32 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 			Page:  r.GetPage(),
 			Limit: r.GetLimit(),
 			Total: totalUsers,
-			Users: users,
+			Users: list,
 		}, nil
 	}
 
-	users, err = repository.FindAll(ctx, r.GetLimit(), offset)
+	users, err = s.userRepository.FindAll(ctx, r.GetLimit(), offset)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to fetch users")
+		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Failed to fetch users"))
+	}
+
+	list = make([]*proto.User, len(users))
+	for i := range users {
+		list[i] = &proto.User{
+			Id:         users[i].GetID(),
+			Email:      users[i].GetEmail(),
+			FacebookId: users[i].GetFacebookID(),
+			GoogleId:   users[i].GetGoogleID(),
+		}
 	}
 
 	response := &proto.ListUserResponse{
 		Page:  r.GetPage(),
 		Limit: r.GetLimit(),
 		Total: totalUsers,
-		Users: users,
+		Users: list,
 	}
 
 	return response, nil
-}
-
-func (s *userServer) registerCommandHandlers(r user.Repository) {
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithEmail{}), user.OnRegisterWithEmail(r, s.db))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithGoogle{}), user.OnRegisterWithGoogle(r, s.db))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.RegisterWithFacebook{}), user.OnRegisterWithFacebook(r, s.db))
-	s.commandBus.Subscribe(fmt.Sprintf("%T", &user.ChangeEmailAddress{}), user.OnChangeEmailAddress(r, s.db))
-}
-
-func (s *userServer) registerEventHandlers(r persistence.UserRepository) {
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithEmail{}), application.WhenUserWasRegisteredWithEmail(s.db, r))
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithGoogle{}), application.WhenUserWasRegisteredWithGoogle(s.db, r))
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.WasRegisteredWithFacebook{}), application.WhenUserWasRegisteredWithFacebook(s.db, r))
-	s.eventBus.Subscribe(fmt.Sprintf("%T", &user.EmailAddressWasChanged{}), application.WhenUserEmailAddressWasChanged(s.db, r))
 }

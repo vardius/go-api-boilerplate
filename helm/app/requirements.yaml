@@ -9,6 +9,11 @@ dependencies:
     repository: "file://../microservice"
     alias: user
     condition: user.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: pubsub
+    condition: pubsub.enabled
 # AWS localstack (for local development)
   - name: microservice
     version: 0.1.0
@@ -17,26 +22,30 @@ dependencies:
     condition: localstack.enabled
 # External charts: https://github.com/helm/charts/blob/master/stable
   - name: kubernetes-dashboard
-    version: 1.2.0
+    version: 1.5.2
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: kubernetes-dashboard.enabled
   - name: heapster
-    version: 0.3.2
+    version: 0.3.3
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: heapster.enabled
   - name: cert-manager
-    version: v0.5.2
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    version: v0.8.1
+    repository: https://charts.jetstack.io # `helm repo add jetstack https://charts.jetstack.io`
     condition: cert-manager.enabled
   - name: nginx-ingress
-    version: 1.1.4
+    version: 1.6.18
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: nginx-ingress.enabled
+  - name: magic-namespace
+    version: 0.5.2
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: magic-namespace.enabled
   - name: mysql
-    version: 0.13.0
+    version: 1.2.0
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: mysql.enabled
   - name: phpmyadmin
-    version: 2.0.4
+    version: 2.2.5
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: phpmyadmin.enabled

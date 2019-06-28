@@ -93,5 +93,5 @@ func ExampleWithError() {
 	fmt.Printf("%s\n", w.Body)
 
 	// Output:
-	// {"code":"internal","message":"response error","error":null}
+	// {"code":"internal","message":"response error"}
 }

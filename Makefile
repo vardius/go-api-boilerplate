@@ -37,11 +37,11 @@ docker-rm: docker-stop ## [DOCKER] Stop and then remove docker container. Exampl
 
 docker-publish: aws-repo-login docker-publish-latest docker-publish-version ## [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
 
-docker-publish-latest: tag-latest
+docker-publish-latest: docker-tag-latest
 	@echo 'publish latest to $(REGISTRY)'
 	docker push $(REGISTRY)/$(BIN):latest
 
-docker-publish-version: tag-version
+docker-publish-version: docker-tag-version
 	@echo 'publish $(VERSION) to $(REGISTRY)'
 	docker push $(REGISTRY)/$(BIN):$(VERSION)
 
@@ -60,7 +60,7 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 
 # HELM TASKS
 helm-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install`
-	helm install -n go-api-boilerplate helm/app/
+	helm install --name go-api-boilerplate --namespace go-api-boilerplate helm/app/
 
 helm-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
 	helm upgrade go-api-boilerplate helm/app/

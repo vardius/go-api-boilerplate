@@ -1,5 +1,26 @@
+magic-namespace:
+  # Uncomment and set to override the namespace that will be created.
+  # namespace: go-api-boilerplate
+  namespaceAttributes:
+    labels:
+      certmanager.k8s.io/disable-validation: true
+  ## Optional additional ServiceAccounts
+  serviceAccounts:
+  - goapiboilerplate
+  # Optional additional RoleBindings. It is a good idea to specify at least one
+  # to grant administrative permissions to a user or group.
+  roleBindings:
+  - name: admin-group-admin
+    role:
+      ## Valid values are "Role" or "ClusterRole"
+      kind: ClusterRole
+      name: admin
+    subject:
+      ## Valid values are "User", "Group", or "ServiceAccount"
+      kind: Group
+      name: <group>
+
 ingress:
-  enabled: true
   issuerName: letsencrypt
   issuerKind: Issuer
   class: nginx
@@ -7,27 +28,29 @@ ingress:
     kubernetes.io/tls-acme: "true"
     kubernetes.io/secure-backends: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^(/dashboard)$ $1/ permanent;
   hosts:
     - host: go-api-boilerplate.local
       paths:
-        - path: /
+        - path: /dashboard(/|$)(.*)
           backend:
             serviceName: kubernetes-dashboard
             servicePort: 443
-        - path: /localstack
-          backend:
-            serviceName: go-api-boilerplate-localstack
-            servicePort: 4567
-        - path: /phpmyadmin
+        # - path: /localstack(/|$)(.*)
+        #   backend:
+        #     serviceName: go-api-boilerplate-localstack
+        #     servicePort: 4567
+        - path: /phpmyadmin(/|$)(.*)
           backend:
             serviceName: go-api-boilerplate-phpmyadmin
             servicePort: 443
-        - path: /auth
+        - path: /auth(/|$)(.*)
           backend:
             serviceName: go-api-boilerplate-auth
             servicePort: 3000
-        - path: /users
+        - path: /users(/|$)(.*)
           backend:
             serviceName: go-api-boilerplate-user
             servicePort: 3000
@@ -35,22 +58,6 @@ ingress:
     - secretName: go-api-boilerplate-tls
       hosts:
         - go-api-boilerplate.local
-
-issuer:
-  enabled: true
-  name: letsencrypt
-  kind: Issuer
-  server: https://acme-v02.api.letsencrypt.org/directory
-  email: example@gmail.com
-  secretName: go-api-boilerplate-tls
-  http01: true
-
-cert-manager:
-  ingressShim:
-    defaultIssuerName: letsencrypt
-    defaultIssuerKind: Issuer
-  # @TODO: Ucomment after first deploy. For details see: https://github.com/jetstack/cert-manager/issues/870
-  # createCustomResource: false
 
 kubernetes-dashboard:
   enableInsecureLogin: true
@@ -61,6 +68,27 @@ kubernetes-dashboard:
 heapster:
   fullnameOverride: 'heapster'
 
+cert-manager:
+  ingressShim:
+    defaultIssuerName: letsencrypt
+    defaultIssuerKind: Issuer
+  # Override the namespace used to store DNS provider credentials etc. for ClusterIssuer
+  # resources. By default, the same namespace as cert-manager is deployed within is
+  # used. This namespace will not be automatically created by the Helm chart.
+  # clusterResourceNamespace: go-api-boilerplate
+  # extraArgs:
+    # Use this flag to set a namespace that cert-manager will use to store
+    # supporting resources required for each ClusterIssuer (default is kube-system)
+    # - --cluster-resource-namespace=go-api-boilerplate
+
+issuer:
+  name: letsencrypt
+  kind: Issuer
+  server: https://acme-v02.api.letsencrypt.org/directory
+  email: example@gmail.com
+  secretName: go-api-boilerplate-tls
+  http01: true
+
 phpmyadmin:
   service:
     port: 443
@@ -70,11 +98,16 @@ phpmyadmin:
 
 mysql:
   existingSecret: go-api-boilerplate-app
+  mysqlUser: goapiboilerplate
   initializationFiles:
+    privileges.sql: |-
+      GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+      GRANT ALL PRIVILEGES ON *.* TO 'user'@'%' WITH GRANT OPTION;
+      FLUSH PRIVILEGES;
     base_schema.sql: |-
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
       USE goapiboilerplate;
-      CREATE TABLE `users` (
+      CREATE TABLE IF NOT EXISTS `users` (
         `distinctId`   INT                                    NOT NULL AUTO_INCREMENT,
         `id`           CHAR(36)                               NOT NULL,
         `emailAddress` VARCHAR(255) COLLATE utf8_general_ci   NOT NULL,
@@ -89,31 +122,111 @@ mysql:
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8
         COLLATE = utf8_bin;
+      CREATE TABLE IF NOT EXISTS `clients` (
+        `distinctId` INT          NOT NULL AUTO_INCREMENT,
+        `id`         CHAR(36)     NOT NULL,
+        `userId`     CHAR(36)     NOT NULL,
+        `secret`     VARCHAR(255) NOT NULL,
+        `domain`     VARCHAR(255) NOT NULL,
+        `data`       JSON         NOT NULL,
+        PRIMARY KEY (`distinctId`),
+        UNIQUE KEY `id` (`id`),
+        INDEX `i_userId` (`userId`)
+      )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8
+        COLLATE = utf8_bin;
+      CREATE TABLE IF NOT EXISTS `auth_tokens` (
+        `distinctId` INT          NOT NULL AUTO_INCREMENT,
+        `id`         CHAR(36)     NOT NULL,
+        `clientId`   CHAR(36)     NOT NULL,
+        `userId`     CHAR(36)     NOT NULL,
+        `code`       VARCHAR(255) DEFAULT NULL,
+        `refresh`    VARCHAR(255) NOT NULL,
+        `access`     VARCHAR(300) NOT NULL,
+        `data`       JSON         NOT NULL,
+        PRIMARY KEY (`distinctId`),
+        UNIQUE KEY `id` (`id`),
+        INDEX `i_userId` (`userId`),
+        INDEX `i_code` (`code`),
+        INDEX `i_refresh` (`refresh`),
+        INDEX `i_access` (`access`)
+      )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8
+        COLLATE = utf8_bin;
 
 # AWS localstack https://github.com/localstack/localstack
 localstack:
   enabled: false
-  nameOverride: localstack
+#   nameOverride: localstack
+#   image:
+#     repository: localstack/localstack
+#     tag: 0.8.10
+#     pullPolicy: IfNotPresent
+#   service:
+#     ports:
+#       - name: dynamodb
+#         internalPort: 4569
+#         externalPort: 4569
+#       - name: ui
+#         internalPort: 4567
+#         externalPort: 4567
+#   env:
+#     - name: SERVICES
+#       value: "dynamodb:4569"
+#     - name: PORT_WEB_UI
+#       value: "4567"
+
+migrations:
+  enabled: false
   image:
-    repository: localstack/localstack
-    tag: 0.8.10
+    repository: migrate/migrate
+    tag: v4.4.0
+    pullPolicy: IfNotPresent
+  path: ./migrations
+
+pubsub:
+  nameOverride: pubsub
+  serviceAccountName: goapiboilerplate
+  image:
+    repository: vardius/pubsub
+    tag: 1.0.5
     pullPolicy: IfNotPresent
   service:
     ports:
-      - name: dynamodb
-        internalPort: 4569
-        externalPort: 4569
-      - name: ui
-        internalPort: 4567
-        externalPort: 4567
+      - name: grpc
+        internalPort: 3001
+        externalPort: 3001
+  envFromSecretRef: go-api-boilerplate-app
   env:
-    - name: SERVICES
-      value: "dynamodb:4569"
-    - name: PORT_WEB_UI
-      value: "4567"
+    - name: HOST
+      valueFrom:
+        configMapKeyRef:
+          key: HOST
+          name: go-api-boilerplate-app
+    - name: PORT
+      valueFrom:
+        configMapKeyRef:
+          key: PORT_GRPC
+          name: go-api-boilerplate-app
+    - name: QUEUE_BUFFER_SIZE
+      value: '100'
+    - name: LOG_VERBOSE_LEVEL
+      value: '4'
+  readiness:
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3001"]
+  liveness:
+    initialDelaySeconds: 20
+    exec:
+      command: ["/bin/grpc_health_probe", "-addr=:3001"]
 
 auth:
   nameOverride: auth
+  serviceAccountName: goapiboilerplate
   image:
     repository: auth
     tag: latest
@@ -153,13 +266,23 @@ auth:
         configMapKeyRef:
           key: PORT_GRPC
           name: go-api-boilerplate-app
-    - name: USER_HOST
-      value: go-api-boilerplate-user
-    - name: USER_PORT_GRPC
+    - name: PUBSUB_HOST
+      value: 'go-api-boilerplate-pubsub'
+    - name: DB_HOST
+      value: 'go-api-boilerplate-mysql'
+    - name: DB_PORT
+      value: '3306'
+    - name: DB_USER
+      value: 'root'
+    - name: DB_PASS
       valueFrom:
-        configMapKeyRef:
-          key: PORT_GRPC
+        secretKeyRef:
+          key: mysql-root-password
           name: go-api-boilerplate-app
+    - name: DB_NAME
+      value: 'goapiboilerplate'
+    - name: COMMAND_BUS_BUFFER
+      value: '100'
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -174,6 +297,7 @@ auth:
 
 user:
   nameOverride: user
+  serviceAccountName: goapiboilerplate
   image:
     repository: user
     tag: latest
@@ -213,6 +337,10 @@ user:
         configMapKeyRef:
           key: PORT_GRPC
           name: go-api-boilerplate-app
+    - name: AUTH_HOST
+      value: 'go-api-boilerplate-auth'
+    - name: PUBSUB_HOST
+      value: 'go-api-boilerplate-pubsub'
     - name: DB_HOST
       value: 'go-api-boilerplate-mysql'
     - name: DB_PORT
@@ -224,18 +352,30 @@ user:
         secretKeyRef:
           key: mysql-root-password
           name: go-api-boilerplate-app
+    - name: CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          key: USER_CLIENT_ID
+          name: go-api-boilerplate-app
+    - name: CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          key: USER_CLIENT_SECRET
+          name: go-api-boilerplate-app
     - name: DB_NAME
       value: 'goapiboilerplate'
-    - name: AWS_REGION
-      valueFrom:
-        configMapKeyRef:
-          key: AWS_REGION
-          name: go-api-boilerplate-app
-    - name: AWS_ENDPOINT
-      valueFrom:
-        configMapKeyRef:
-          key: AWS_ENDPOINT
-          name: go-api-boilerplate-app
+    # - name: AWS_REGION
+    #   valueFrom:
+    #     configMapKeyRef:
+    #       key: AWS_REGION
+    #       name: go-api-boilerplate-app
+    # - name: AWS_ENDPOINT
+    #   valueFrom:
+    #     configMapKeyRef:
+    #       key: AWS_ENDPOINT
+    #       name: go-api-boilerplate-app
+    - name: COMMAND_BUS_BUFFER
+      value: '100'
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -251,9 +391,11 @@ user:
 secret:
   type: Opaque
   data:
-    SECRET: changeme
-    mysql-root-password: password
-    mysql-password: password
+    SECRET: Y2hhbmdlbWU= # changeme
+    USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
+    USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
+    mysql-password: cGFzc3dvcmQ= # password
+    mysql-root-password: cGFzc3dvcmQ= # password
 
 configMap:
   data:
@@ -262,5 +404,5 @@ configMap:
     HOST: '0.0.0.0'
     PORT_HTTP: '3000'
     PORT_GRPC: '3001'
-    AWS_REGION: 'us-east-1'
-    AWS_ENDPOINT: 'http://go-api-boilerplate-localstack:4569'
+    # AWS_REGION: 'us-east-1'
+    # AWS_ENDPOINT: 'http://go-api-boilerplate-localstack:4569'

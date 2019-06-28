@@ -1,26 +1,23 @@
 package http
 
 import (
-	"context"
 	"database/sql"
 	"net/http"
 
-	"github.com/vardius/golog"
+	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
-	health_proto "google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/status"
 )
 
 // AddHealthCheckRoutes adds health checks route
-func AddHealthCheckRoutes(router gorouter.Router, log golog.Logger, uc *grpc.ClientConn, db *sql.DB) {
+func AddHealthCheckRoutes(router gorouter.Router, db *sql.DB, connMap map[string]*grpc.ClientConn) {
 	// Liveness probes are to indicate that your application is running
-	router.GET("/healthz", buildLivenessHandler(log))
+	router.GET("/healthz", buildLivenessHandler())
 	// Readiness is meant to check if your application is ready to serve traffic
-	router.GET("/readiness", buildReadinessHandler(log, uc, db))
+	router.GET("/readiness", buildReadinessHandler(db, connMap))
 }
 
-func buildLivenessHandler(log golog.Logger) http.Handler {
+func buildLivenessHandler() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write([]byte("ok"))
@@ -29,18 +26,18 @@ func buildLivenessHandler(log golog.Logger) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func buildReadinessHandler(log golog.Logger, uc *grpc.ClientConn, db *sql.DB) http.Handler {
+func buildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := db.PingContext(r.Context()); err != nil {
-			log.Warning(r.Context(), "error: mysql ping failed: %+v", err)
 			w.WriteHeader(500)
 			return
 		}
 
-		status := getStatusCodeFromGRPConnectionHealthCheck(r.Context(), log, uc, "user")
-		if status != 200 {
-			w.WriteHeader(status)
-			return
+		for name, conn := range connMap {
+			if !grpc_utils.IsConnectionServing(name, conn) {
+				w.WriteHeader(500)
+				return
+			}
 		}
 
 		w.WriteHeader(200)
@@ -48,24 +45,4 @@ func buildReadinessHandler(log golog.Logger, uc *grpc.ClientConn, db *sql.DB) ht
 	}
 
 	return http.HandlerFunc(fn)
-}
-
-func getStatusCodeFromGRPConnectionHealthCheck(ctx context.Context, log golog.Logger, conn *grpc.ClientConn, service string) int {
-	resp, err := health_proto.NewHealthClient(conn).Check(ctx, &health_proto.HealthCheckRequest{Service: service})
-	if err != nil {
-		if stat, ok := status.FromError(err); ok {
-			log.Warning(ctx, "error %d: health rpc failed: %+v", stat.Code(), err)
-		} else {
-			log.Warning(ctx, "error: health rpc failed: %+v", err)
-		}
-
-		return 500
-	}
-
-	if resp.GetStatus() != health_proto.HealthCheckResponse_SERVING {
-
-		return 500
-	}
-
-	return 200
 }

@@ -7,13 +7,17 @@ import (
 	"github.com/google/uuid"
 )
 
-type mockData struct {
+type rawEventMock struct {
 	Page   int      `json:"page"`
 	Fruits []string `json:"fruits"`
 }
 
+func (e rawEventMock) GetType() string {
+	return "test.Mock"
+}
+
 func TestEvent(t *testing.T) {
-	event, err := NewEvent(uuid.New(), "streamName", 0, mockData{Page: 1, Fruits: []string{"apple", "peach", "pear"}})
+	event, err := NewEvent(uuid.New(), "streamName", 0, rawEventMock{Page: 1, Fruits: []string{"apple", "peach", "pear"}})
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -33,8 +37,16 @@ func TestEvent(t *testing.T) {
 	}
 }
 
+type invalidRawEventMock struct {
+	C chan int
+}
+
+func (e invalidRawEventMock) GetType() string {
+	return "test.Mock"
+}
+
 func TestNewEventInvalidValue(t *testing.T) {
-	_, err := NewEvent(uuid.New(), "streamName", 0, make(chan int))
+	_, err := NewEvent(uuid.New(), "streamName", 0, invalidRawEventMock{make(chan int)})
 	if err == nil {
 		t.Error("Parsing value to json should fail")
 	}

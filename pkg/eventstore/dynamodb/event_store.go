@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	baseeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
 
@@ -19,16 +20,16 @@ type eventStore struct {
 	tableName string
 }
 
-func (s *eventStore) Store(events []*domain.Event) error {
+func (s *eventStore) Store(events []domain.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
 
-	//todo: check event version
+	// @TODO: check event version
 	for _, e := range events {
 		item, err := dynamodbattribute.MarshalMap(e)
 		if err != nil {
-			return err
+			return errors.Wrap(err, errors.INTERNAL, "EventStore events marshal error")
 		}
 		putParams := &dynamodb.PutItemInput{
 			TableName:           aws.String(s.tableName),
@@ -37,16 +38,16 @@ func (s *eventStore) Store(events []*domain.Event) error {
 		}
 		if _, err = s.service.PutItem(putParams); err != nil {
 			if err, ok := err.(awserr.RequestFailure); ok && err.Code() == "ConditionalCheckFailedException" {
-				return err
+				return errors.Wrap(err, errors.INTERNAL, "EventStore PutItem request failureerror")
 			}
-			return err
+			return errors.Wrap(err, errors.INTERNAL, "EventStore PutItem error")
 		}
 	}
 
 	return nil
 }
 
-func (s *eventStore) Get(id uuid.UUID) (*domain.Event, error) {
+func (s *eventStore) Get(id uuid.UUID) (domain.Event, error) {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String(s.tableName),
 		KeyConditionExpression: aws.String("id = :id"),
@@ -58,13 +59,13 @@ func (s *eventStore) Get(id uuid.UUID) (*domain.Event, error) {
 
 	es, err := s.query(params)
 	if len(es) > 0 {
-		return es[0], err
+		return es[0], errors.Wrap(err, errors.INTERNAL, "Query events failed")
 	}
 
-	return nil, err
+	return domain.NullEvent, nil
 }
 
-func (s *eventStore) FindAll() []*domain.Event {
+func (s *eventStore) FindAll() []domain.Event {
 	params := &dynamodb.QueryInput{
 		TableName:      aws.String(s.tableName),
 		ConsistentRead: aws.Bool(true),
@@ -73,13 +74,13 @@ func (s *eventStore) FindAll() []*domain.Event {
 	es, _ := s.query(params)
 
 	if es == nil {
-		es = make([]*domain.Event, 0)
+		return make([]domain.Event, 0)
 	}
 
 	return es
 }
 
-func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.Event {
+func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []domain.Event {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String(s.tableName),
 		KeyConditionExpression: aws.String("metadata.streamID = :streamID"),
@@ -92,27 +93,27 @@ func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []*domain.
 	es, _ := s.query(params)
 
 	if es == nil {
-		es = make([]*domain.Event, 0)
+		return make([]domain.Event, 0)
 	}
 
 	return es
 }
 
-func (s *eventStore) query(params *dynamodb.QueryInput) ([]*domain.Event, error) {
+func (s *eventStore) query(params *dynamodb.QueryInput) ([]domain.Event, error) {
 	resp, err := s.service.Query(params)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, errors.INTERNAL, "Query failed")
 	}
 
 	if len(resp.Items) == 0 {
-		return nil, ErrEventNotFound
+		return nil, errors.Wrap(ErrEventNotFound, errors.NOTFOUND, "Not found any items")
 	}
 
-	es := make([]*domain.Event, len(resp.Items))
+	es := make([]domain.Event, len(resp.Items))
 	for i, item := range resp.Items {
-		e := &domain.Event{}
-		if err := dynamodbattribute.UnmarshalMap(item, e); err != nil {
-			return nil, err
+		e := domain.Event{}
+		if err := dynamodbattribute.UnmarshalMap(item, &e); err != nil {
+			return nil, errors.Wrap(err, errors.INTERNAL, "Unmarshal events failed")
 		}
 		es[i] = e
 	}

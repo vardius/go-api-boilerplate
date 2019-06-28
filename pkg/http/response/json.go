@@ -20,6 +20,10 @@ func AsJSON(next http.Handler) http.Handler {
 			if response.payload != nil {
 				switch t := response.payload.(type) {
 				case error:
+					if logger != nil {
+						logger.Debug(r.Context(), "JSON response error:", response.payload.(error).Error())
+					}
+
 					w.WriteHeader(errors.HTTPStatusCode(t))
 				}
 

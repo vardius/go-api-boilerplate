@@ -7,35 +7,32 @@ import (
 	"github.com/google/uuid"
 )
 
+// NullIdentity represents empty Identity
+var NullIdentity = Identity{}
+
 // Identity data to be encode in auth token
 type Identity struct {
 	ID    uuid.UUID `json:"id"`
+	Token string    `json:"token"`
 	Email string    `json:"email"`
 	Roles []string  `json:"roles"`
 }
 
-// WithEmail returns a new Identity with given email value
-func WithEmail(email string) (*Identity, error) {
-	i, err := New()
-	if err != nil {
-		return nil, err
-	}
-
+// WithEmail returns copy of an identity with given email value
+func (i Identity) WithEmail(email string) Identity {
 	i.Email = email
 
-	return i, nil
+	return i
 }
 
-// WithValues returns a new Identity for given values
-func WithValues(id uuid.UUID, email string, roles []string) *Identity {
-	return &Identity{id, email, roles}
+// WithToken returns copy of an identity with given oauth2 token
+func (i Identity) WithToken(token string) Identity {
+	i.Token = token
+
+	return i
 }
 
 // New returns a new Identity
-func New() (*Identity, error) {
-	id, err := uuid.NewRandom()
-
-	return &Identity{
-		ID: id,
-	}, err
+func New(id, token, email string, roles []string) Identity {
+	return Identity{uuid.MustParse(id), token, email, roles}
 }

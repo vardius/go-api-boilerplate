@@ -7,8 +7,8 @@ import (
 
 // EventStore methods allow to save, load events and event streams
 type EventStore interface {
-	Store([]*domain.Event) error
-	Get(uuid.UUID) (*domain.Event, error)
-	FindAll() []*domain.Event
-	GetStream(uuid.UUID, string) []*domain.Event
+	Store([]domain.Event) error
+	Get(uuid.UUID) (domain.Event, error)
+	FindAll() []domain.Event
+	GetStream(uuid.UUID, string) []domain.Event
 }

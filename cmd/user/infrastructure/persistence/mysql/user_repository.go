@@ -8,26 +8,31 @@ import (
 	"database/sql"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
+
+// NewUserRepository returns mysql view model repository for user
+func NewUserRepository(db *sql.DB) persistence.UserRepository {
+	return &userRepository{db}
+}
 
 type userRepository struct {
 	db *sql.DB
 }
 
-func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]*proto.User, error) {
+func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, errors.INTERNAL, "Could not query database")
 	}
 	defer rows.Close()
 
-	users := []*proto.User{}
+	var users []persistence.User
 
 	for rows.Next() {
-		user := &proto.User{}
-		err = rows.Scan(&user.Id, &user.Email, &user.FacebookId, &user.GoogleId)
+		user := User{}
+		err = rows.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
 		if err != nil {
 			return nil, errors.Wrap(err, errors.INTERNAL, "Error while scanning users table")
 		}
@@ -43,12 +48,12 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]*p
 	return users, nil
 }
 
-func (r *userRepository) Get(ctx context.Context, id string) (*proto.User, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users WHERE id=?`, id)
+func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, error) {
+	row := r.db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users WHERE id=? LIMIT 1`, id)
 
-	user := &proto.User{}
+	user := User{}
 
-	err := row.Scan(&user.Id, &user.Email, &user.FacebookId, &user.GoogleId)
+	err := row.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, errors.Wrap(err, errors.NOTFOUND, "User not found")
@@ -59,14 +64,27 @@ func (r *userRepository) Get(ctx context.Context, id string) (*proto.User, error
 	}
 }
 
-func (r *userRepository) Add(ctx context.Context, user *proto.User) error {
+func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
+	user := User{
+		ID:    u.GetID(),
+		Email: u.GetEmail(),
+		FacebookID: mysql.NullString{NullString: sql.NullString{
+			String: u.GetFacebookID(),
+			Valid:  u.GetFacebookID() != "",
+		}},
+		GoogleID: mysql.NullString{NullString: sql.NullString{
+			String: u.GetGoogleID(),
+			Valid:  u.GetGoogleID() != "",
+		}},
+	}
+
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO users (id, emailAddress, facebookId, googleId) VALUES (?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid user insert query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, user.Id, user.Email, user.FacebookId, user.GoogleId)
+	result, err := stmt.ExecContext(ctx, user.ID, user.Email, user.FacebookID, user.GoogleID)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not add user")
 	}
@@ -189,9 +207,4 @@ func (r *userRepository) Count(ctx context.Context) (int32, error) {
 	}
 
 	return totalUsers, nil
-}
-
-// NewUserRepository returns mysql view model repository for user
-func NewUserRepository(db *sql.DB) persistence.UserRepository {
-	return &userRepository{db}
 }

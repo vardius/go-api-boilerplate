@@ -52,7 +52,7 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 
 // func TestOnChangeEmailAddress(t *testing.T) {
 // 	handler := OnChangeEmailAddress(new(repositoryMock))
-// 	cmd := &ChangeEmailAddress{}
+// 	cmd := ChangeEmailAddress{}
 
 // 	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
 // 		if f, ok := handler.(func(context.Context, *ChangeEmailAddress, chan<- error)); ok {
@@ -65,7 +65,7 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 
 // func TestOnRegisterWithEmail(t *testing.T) {
 // 	handler := OnRegisterWithEmail(new(repositoryMock))
-// 	cmd := &RegisterWithEmail{}
+// 	cmd := RegisterWithEmail{}
 
 // 	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
 // 		if f, ok := handler.(func(context.Context, *RegisterWithEmail, chan<- error)); ok {
@@ -78,7 +78,7 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 
 // func TestOnRegisterWithFacebook(t *testing.T) {
 // 	handler := OnRegisterWithFacebook(new(repositoryMock))
-// 	cmd := &RegisterWithFacebook{}
+// 	cmd := RegisterWithFacebook{}
 
 // 	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
 // 		if f, ok := handler.(func(context.Context, *RegisterWithFacebook, chan<- error)); ok {
@@ -91,7 +91,7 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 
 // func TestOnRegisterWithGoogle(t *testing.T) {
 // 	handler := OnRegisterWithGoogle(new(repositoryMock))
-// 	cmd := &RegisterWithGoogle{}
+// 	cmd := RegisterWithGoogle{}
 
 // 	testCommandHandler(t, func(ctx context.Context, out chan<- error) {
 // 		if f, ok := handler.(func(context.Context, *RegisterWithGoogle, chan<- error)); ok {
@@ -104,11 +104,11 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 
 type repositoryMock int
 
-func (r *repositoryMock) Save(ctx context.Context, u *User) error {
+func (r *repositoryMock) Save(ctx context.Context, u User) error {
 	return nil
 }
 
-func (r *repositoryMock) Get(id uuid.UUID) *User {
+func (r *repositoryMock) Get(id uuid.UUID) User {
 	return New()
 }
 

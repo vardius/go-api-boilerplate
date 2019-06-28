@@ -4,6 +4,7 @@ Package log provides Logger
 package log
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -27,23 +28,14 @@ func (l *Logger) LogRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func getLogLevelByEnv(env string) string {
-	logLevel := "info"
-	if env == "development" {
-		logLevel = "debug"
-	}
-
-	return logLevel
-}
-
 // New creates new logger based on environment
 func New(env string) *Logger {
-	var l golog.Logger
-	if env == "development" {
-		l = golog.New(getLogLevelByEnv(env))
-	} else {
-		l = golog.NewFileLogger(getLogLevelByEnv(env), "/tmp/prod.log")
+	l := golog.New()
+	if env != "development" {
+		l.SetVerbosity(golog.DefaultVerbosity &^ golog.Debug)
 	}
+
+	l.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.LUTC)
 
 	return &Logger{l}
 }

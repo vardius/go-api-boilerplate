@@ -2,11 +2,19 @@ package domain
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
+
+// NullEvent represents empty event
+var NullEvent = Event{}
+
+// RawEvent represents raw event that it is aware of its type
+type RawEvent interface {
+	GetType() string
+}
 
 // Event contains id, payload and metadata
 type Event struct {
@@ -25,28 +33,34 @@ type EventMetaData struct {
 }
 
 // NewEvent create new event
-func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, data interface{}) (*Event, error) {
+func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent RawEvent) (Event, error) {
 	meta := EventMetaData{
-		Type:          fmt.Sprintf("%T", data),
+		Type:          rawEvent.GetType(),
 		StreamID:      streamID,
 		StreamName:    streamName,
 		StreamVersion: streamVersion,
 		OccurredAt:    time.Now(),
 	}
 
-	payload, err := json.Marshal(data)
+	payload, err := json.Marshal(rawEvent)
 	if err != nil {
-		return nil, err
+		return NullEvent, errors.Wrap(err, errors.INTERNAL, "Marshal rawEvent failed")
 	}
 
 	id, err := uuid.NewRandom()
+	if err != nil {
+		return NullEvent, errors.Wrap(err, errors.INTERNAL, "Generate event id failed")
+	}
 
-	return &Event{id, meta, payload}, err
+	return Event{id, meta, payload}, nil
 }
 
 // MakeEvent makes a event object from metadata and payload
-func MakeEvent(meta EventMetaData, payload json.RawMessage) (*Event, error) {
+func MakeEvent(meta EventMetaData, payload json.RawMessage) (Event, error) {
 	id, err := uuid.NewRandom()
+	if err != nil {
+		return NullEvent, errors.Wrap(err, errors.INTERNAL, "Generate event id failed")
+	}
 
-	return &Event{id, meta, payload}, err
+	return Event{id, meta, payload}, nil
 }
