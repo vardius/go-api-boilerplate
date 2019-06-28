@@ -3,6 +3,8 @@ package log
 import (
 	"bytes"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 )
