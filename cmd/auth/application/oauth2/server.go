@@ -25,28 +25,30 @@ func InitServer(manager oauth2.Manager, db *sql.DB, logger golog.Logger, secretK
 		gServer.SetAllowedGrantType(oauth2.PasswordCredentials, oauth2.Refreshing)
 		gServer.SetClientInfoHandler(oauth2_server.ClientFormHandler)
 
-		gServer.SetPasswordAuthorizationHandler(func(email, password string) (userID string, err error) {
+		gServer.SetPasswordAuthorizationHandler(func(email, password string) (string, error) {
 			// we allow password grant only within our system, due to email passwordless authentication
 			// password value here should contain secretKey
-			if password == secretKey {
-				userID, err = getUserIDByEmail(context.Background(), db, email)
-			} else {
-				err = errors.Wrap(err, errors.UNAUTHORIZED, "Invalid client, user password does not match secret key")
+			if password != secretKey {
+				return "", errors.New(errors.UNAUTHORIZED, "Invalid client, user password does not match secret key")
 			}
 
+			userID, err := getUserIDByEmail(context.Background(), db, email)
 			if err != nil {
-				logger.Error(context.Background(), "oAuth2 PasswordAuthorizationHandler Error [email <%s> password <%s> secretKey <%s>] %v\n", email, password, secretKey, err)
+				return "", errors.Wrapf(err, errors.UNAUTHORIZED, "Could not find user id for given email (%s)", email)
 			}
-			return
+
+			return userID, nil
 		})
 
 		gServer.SetInternalErrorHandler(func(err error) (re *oauth2_errors.Response) {
-			logger.Error(context.Background(), "oAuth2 Internal Error: %v\n", err)
-			return
+			logger.Error(context.Background(), "oAuth2 Server internal error: %s\n", err.Error())
+			return &oauth2_errors.Response{
+				Error: errors.Wrap(err, errors.INTERNAL, "Internal error"),
+			}
 		})
 
 		gServer.SetResponseErrorHandler(func(re *oauth2_errors.Response) {
-			logger.Error(context.Background(), "oAuth2 Response Error %v\n", re.Error)
+			logger.Error(context.Background(), "oAuth2 Server response error: %s\n%v\n", re.Error.Error(), re)
 		})
 	})
 
