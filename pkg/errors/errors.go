@@ -108,7 +108,7 @@ func (e *appError) stackTrace(includeTrace bool) string {
 	fmt.Fprintf(&buf, "%s\n", e.Message)
 
 	if includeTrace && e.trace != "" {
-		fmt.Fprintf(&buf, "\t%s", e.trace)
+		fmt.Fprintf(&buf, "\t%s\n", e.trace)
 	}
 
 	// If wrapping an error, print its Error() message.
