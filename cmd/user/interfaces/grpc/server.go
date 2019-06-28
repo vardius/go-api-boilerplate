@@ -11,6 +11,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -18,11 +20,12 @@ import (
 type userServer struct {
 	commandBus     commandbus.CommandBus
 	userRepository persistence.UserRepository
+	logger         *log.Logger
 }
 
 // NewServer returns new user server object
-func NewServer(cb commandbus.CommandBus, r persistence.UserRepository) proto.UserServiceServer {
-	s := &userServer{cb, r}
+func NewServer(cb commandbus.CommandBus, r persistence.UserRepository, l *log.Logger) proto.UserServiceServer {
+	s := &userServer{cb, r, l}
 
 	return s
 }
@@ -31,8 +34,8 @@ func NewServer(cb commandbus.CommandBus, r persistence.UserRepository) proto.Use
 func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
 	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
 	if err != nil {
+		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Could not build command from payload"))
 		return nil, status.Error(codes.Internal, "Could not build command from payload")
-		// return nil, errors.Wrap(err, errors.INTERNAL, "Could not build command from payload")
 	}
 
 	out := make(chan error)
@@ -45,11 +48,10 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 	select {
 	case <-ctx.Done():
 		return nil, status.Error(codes.Internal, "Context done")
-		// return nil, errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context error")
 	case err := <-out:
 		if err != nil {
+			s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Publish command error"))
 			return nil, status.Error(codes.Internal, "Publish command error")
-			// return nil, errors.Wrap(err, errors.INTERNAL, "Publish command error")
 		}
 
 		return new(empty.Empty), nil
@@ -60,6 +62,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*proto.User, error) {
 	user, err := s.userRepository.Get(ctx, r.GetId())
 	if err != nil {
+		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.NOTFOUND, "User not found"))
 		return nil, status.Error(codes.NotFound, "User not found")
 	}
 
@@ -82,6 +85,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 
 	totalUsers, err := s.userRepository.Count(ctx)
 	if err != nil {
+		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Failed to count users"))
 		return nil, status.Error(codes.Internal, "Failed to count users")
 	}
 
@@ -99,6 +103,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 	users, err = s.userRepository.FindAll(ctx, r.GetLimit(), offset)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to fetch users")
+		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Failed to fetch users"))
 	}
 
 	list = make([]*proto.User, len(users))

@@ -70,7 +70,7 @@ func main() {
 	userRepository := user_repository.NewUserRepository(eventStore, eventBus)
 	userMYSQLRepository := user_persistence.NewUserRepository(db)
 
-	userServer := user_grpc.NewServer(commandBus, userMYSQLRepository)
+	userServer := user_grpc.NewServer(commandBus, userMYSQLRepository, logger)
 
 	authConn := grpc_utils.NewConnection(ctx, user_config.Env.AuthHost, user_config.Env.PortGRPC, logger)
 	defer authConn.Close()

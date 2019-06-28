@@ -76,7 +76,7 @@ func main() {
 	oauth2Server := auth_oauth2.InitServer(manager, db, logger, auth_config.Env.Secret)
 
 	grpcServer := grpc_utils.NewServer(logger)
-	authServer := auth_grpc.NewServer(oauth2Server, auth_config.Env.Secret)
+	authServer := auth_grpc.NewServer(oauth2Server, logger, auth_config.Env.Secret)
 
 	authConn := grpc_utils.NewConnection(ctx, auth_config.Env.Host, auth_config.Env.PortGRPC, logger)
 	defer authConn.Close()
