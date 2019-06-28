@@ -14,7 +14,7 @@ import (
 type NullInt64 struct{ sql.NullInt64 }
 
 // MarshalJSON for NullInt64
-func (ni *NullInt64) MarshalJSON() ([]byte, error) {
+func (ni NullInt64) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
@@ -28,7 +28,7 @@ func (ni *NullInt64) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON for NullInt64
-func (ni *NullInt64) UnmarshalJSON(b []byte) error {
+func (ni NullInt64) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &ni.Int64)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "MySQL NullInt64 unmarshal error")
@@ -43,7 +43,7 @@ func (ni *NullInt64) UnmarshalJSON(b []byte) error {
 type NullBool struct{ sql.NullBool }
 
 // MarshalJSON for NullBool
-func (nb *NullBool) MarshalJSON() ([]byte, error) {
+func (nb NullBool) MarshalJSON() ([]byte, error) {
 	if !nb.Valid {
 		return []byte("null"), nil
 	}
@@ -57,7 +57,7 @@ func (nb *NullBool) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON for NullBool
-func (nb *NullBool) UnmarshalJSON(b []byte) error {
+func (nb NullBool) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nb.Bool)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "MySQL NullBool unmarshal error")
@@ -72,7 +72,7 @@ func (nb *NullBool) UnmarshalJSON(b []byte) error {
 type NullFloat64 struct{ sql.NullFloat64 }
 
 // MarshalJSON for NullFloat64
-func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
+func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 	if !nf.Valid {
 		return []byte("null"), nil
 	}
@@ -86,7 +86,7 @@ func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON for NullFloat64
-func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
+func (nf NullFloat64) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nf.Float64)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "MySQL NullFloat64 unmarshal error")
@@ -101,7 +101,7 @@ func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
 type NullString struct{ sql.NullString }
 
 // MarshalJSON for NullString
-func (ns *NullString) MarshalJSON() ([]byte, error) {
+func (ns NullString) MarshalJSON() ([]byte, error) {
 	if !ns.Valid {
 		return []byte("null"), nil
 	}
@@ -115,7 +115,7 @@ func (ns *NullString) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON for NullString
-func (ns *NullString) UnmarshalJSON(b []byte) error {
+func (ns NullString) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &ns.String)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "MySQL NullString unmarshal error")
@@ -130,7 +130,7 @@ func (ns *NullString) UnmarshalJSON(b []byte) error {
 type NullTime struct{ mysql.NullTime }
 
 // MarshalJSON for NullTime
-func (nt *NullTime) MarshalJSON() ([]byte, error) {
+func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
 	}
@@ -139,7 +139,7 @@ func (nt *NullTime) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON for NullTime
-func (nt *NullTime) UnmarshalJSON(b []byte) error {
+func (nt NullTime) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nt.Time)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "MySQL NullTime unmarshal error")
