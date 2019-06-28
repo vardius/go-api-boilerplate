@@ -42,7 +42,10 @@ func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 	case <-ctx.Done():
 		return errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context done")
 	case err := <-out:
-		return errors.Wrap(err, errors.INTERNAL, "Token Create error")
+		if err != nil {
+			return errors.Wrap(err, errors.INTERNAL, "Create token failed")
+		}
+		return nil
 	}
 }
 
@@ -135,6 +138,9 @@ func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 	case <-ctx.Done():
 		return errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context done")
 	case err := <-out:
-		return errors.Wrap(err, errors.INTERNAL, "Token remove error")
+		if err != nil {
+			return errors.Wrap(err, errors.INTERNAL, "Token remove failed")
+		}
+		return nil
 	}
 }
