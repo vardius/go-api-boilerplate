@@ -107,8 +107,8 @@ func (t *Token) Remove() error {
 
 func (t *Token) trackChange(e domain.RawEvent) error {
 	t.transition(e)
-	event, err := domain.NewEvent(t.id, StreamName, t.version, e)
 
+	event, err := domain.NewEvent(t.id, StreamName, t.version, e)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Token trackChange error")
 	}
