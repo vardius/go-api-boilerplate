@@ -18,13 +18,13 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
   - [Prerequisites](#prerequisites)
     - [Localhost alias](#localhost-alias)
     - [Helm charts](#helm-charts)
+  - [Vendor](#vendor)
+  - [Kubernetes](#kubernetes)
   - [Makefile](#makefile)
   - [Running](#running)
     - [Build docker image](#step-1-build-docker-image)
     - [Deploy](#step-2-deploy)
     - [Debug](#step-3-debug)
-  - [Kubernetes](#kubernetes)
-  - [Vendor](#vendor)
 - [Documentation](#documentation)
 - [Example](#example)
   - [Domain](#domain)
@@ -102,6 +102,21 @@ To deploy application on Kubernetes using Helm you will typically follow these s
 6. Update the source code and the Helm chart
 
 [Install And Configure Helm And Tiller](https://docs.helm.sh/using_helm/#install-helm)
+### Vendor
+Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
+```bash
+go build ./...
+```
+For more read: https://github.com/golang/go/wiki/Modules
+### Kubernetes
+The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local/dashboard](https://go-api-boilerplate.local/dashboard/#!/overview?namespace=go-api-boilerplate) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
+```bash
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+```
+To remove release run:
+```bash
+make helm-delete
+```
 ### Makefile
 ```bash
 ➜  go-api-boilerplate git:(master) ✗ make help
@@ -168,36 +183,17 @@ telepresence \
 	--docker-run -i -t --rm -p=3001:3001 --name="user" user:latest
 T: Volumes are rooted at $TELEPRESENCE_ROOT. See https://telepresence.io/howto/volumes.html for
 T: details.
-2019/01/10 06:24:37.963250 INFO:  [CommandBus|Subscribe]: *user.RegisterWithEmail
-2019/01/10 06:24:37.963332 INFO:  [CommandBus|Subscribe]: *user.RegisterWithGoogle
-2019/01/10 06:24:37.963357 INFO:  [CommandBus|Subscribe]: *user.RegisterWithFacebook
-2019/01/10 06:24:37.963428 INFO:  [CommandBus|Subscribe]: *user.ChangeEmailAddress
-2019/01/10 06:24:37.963445 INFO:  [EventBus|Subscribe]: *user.WasRegisteredWithEmail
-2019/01/10 06:24:37.963493 INFO:  [EventBus|Subscribe]: *user.WasRegisteredWithGoogle
-2019/01/10 06:24:37.963540 INFO:  [EventBus|Subscribe]: *user.WasRegisteredWithFacebook
-2019/01/10 06:24:37.963561 INFO:  [EventBus|Subscribe]: *user.EmailAddressWasChanged
-2019/01/10 06:24:37.964452 INFO: running at 0.0.0.0:3000
+.
+.
+.
+2019/01/10 06:24:37.963561 INFO: tcp running at 0.0.0.0:3001
+2019/01/10 06:24:37.964452 INFO: http running at 0.0.0.0:3000
 ^C
 2019/01/10 06:30:16.266108 INFO: shutting down...
 2019/01/10 06:30:16.283392 INFO: gracefully stopped
 T: Exit cleanup in progress
 # --docker-run --rm -it -v -p=3001:3001 user:latest
 ```
-### Kubernetes
-The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local/dashboard](https://go-api-boilerplate.local/dashboard/#!/overview?namespace=go-api-boilerplate) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
-```bash
-kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
-```
-To remove release run:
-```bash
-make helm-delete
-```
-### Vendor
-Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
-```bash
-go build ./...
-```
-For more read: https://github.com/golang/go/wiki/Modules
 
 DOCUMENTATION
 ==================================================
