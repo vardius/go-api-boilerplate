@@ -229,7 +229,7 @@ Get list of users [https://go-api-boilerplate.local/users?page=1&limit=10](https
 {"page":1,"limit":20,"total":1,"users":[{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}]}
 ```
 ### Protected routes
-Access protected route using auth token [https://go-api-boilerplate.local/users/me](https://go-api-boilerplate.local/users/me)
+Access protected route using auth token [https://go-api-boilerplate.local/users/me](https://go-api-boilerplate.local/users/me). Get your access token from user pod event handler logs.
 ```json
 {"code": "401","message": "Unauthorized"}
 ```
