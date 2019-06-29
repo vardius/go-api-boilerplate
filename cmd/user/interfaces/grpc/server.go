@@ -102,8 +102,8 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 
 	users, err = s.userRepository.FindAll(ctx, r.GetLimit(), offset)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Failed to fetch users")
 		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Failed to fetch users"))
+		return nil, status.Error(codes.Internal, "Failed to fetch users")
 	}
 
 	list = make([]*proto.User, len(users))
