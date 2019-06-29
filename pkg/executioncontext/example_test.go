@@ -3,49 +3,47 @@ package executioncontext_test
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
 
-func ExampleContextWithFlag() {
+func ExampleWithFlag() {
 	ctx := context.Background()
-	ctx = executioncontext.ContextWithFlag(ctx, "test")
+	ctx = executioncontext.WithFlag(ctx, executioncontext.LIVE)
 
-	fmt.Printf("%v\n", executioncontext.HasFlag(ctx, "test"))
+	fmt.Printf("%v\n", executioncontext.Has(ctx, executioncontext.LIVE))
 
 	// Output:
 	// true
 }
 
-func ExampleHasFlag() {
+func ExampleHas() {
 	ctx := context.Background()
 
-	fmt.Printf("%v\n", executioncontext.HasFlag(ctx, "test"))
+	fmt.Printf("%v\n", executioncontext.Has(ctx, executioncontext.LIVE))
 
-	ctx = executioncontext.ContextWithFlag(ctx, "test")
+	ctx = executioncontext.WithFlag(ctx, executioncontext.LIVE)
 
-	fmt.Printf("%v\n", executioncontext.HasFlag(ctx, "test"))
+	fmt.Printf("%v\n", executioncontext.Has(ctx, executioncontext.LIVE))
 
 	// Output:
 	// false
 	// true
 }
 
-func ExampleFlagsFromContext() {
+func ExampleFromContext() {
 	ctx := context.Background()
-	flags := executioncontext.FlagsFromContext(ctx)
+	flags := executioncontext.FromContext(ctx)
 
 	fmt.Printf("%v\n", flags)
 
-	ctx = executioncontext.ContextWithFlag(ctx, "foo")
-	ctx = executioncontext.ContextWithFlag(ctx, "bar")
-	flags = executioncontext.FlagsFromContext(ctx)
+	ctx = executioncontext.WithFlag(ctx, executioncontext.LIVE)
+	ctx = executioncontext.WithFlag(ctx, executioncontext.REPLAY)
+	flags = executioncontext.FromContext(ctx)
 
-	sort.Strings(flags)
 	fmt.Printf("%v\n", flags)
 
 	// Output:
-	// []
-	// [bar foo]
+	// 0
+	// 3
 }
