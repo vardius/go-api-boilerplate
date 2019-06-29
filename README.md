@@ -190,7 +190,7 @@ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | gre
 ```
 To remove release run:
 ```bash
-make helm-delete && kubectl delete customresourcedefinition certificates.certmanager.k8s.io && kubectl delete customresourcedefinition clusterissuers.certmanager.k8s.io && kubectl delete customresourcedefinition issuers.certmanager.k8s.io
+make helm-delete
 ```
 ### Vendor
 Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
