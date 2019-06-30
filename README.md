@@ -14,17 +14,6 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 <!-- toc -->
 
 - [About](#about)
-- [How to use](#how-to-use)
-  - [Prerequisites](#prerequisites)
-    - [Localhost alias](#localhost-alias)
-    - [Helm charts](#helm-charts)
-  - [Vendor](#vendor)
-  - [Kubernetes](#kubernetes)
-  - [Makefile](#makefile)
-  - [Running](#running)
-    - [Build docker image](#step-1-build-docker-image)
-    - [Deploy](#step-2-deploy)
-    - [Debug](#step-3-debug)
 - [Documentation](#documentation)
 - [Example](#example)
   - [Domain](#domain)
@@ -71,135 +60,15 @@ Worth getting to know packages used in this boilerplate:
 4. [shutdown](https://github.com/vardius/shutdown)
 5. [pubsub](https://github.com/vardius/pubsub)
 
-HOW TO USE
-==================================================
-
-## Getting started
-### Prerequisites
-In order to run this project you need to have Docker > 1.17.05 for building the production image and Kubernetes cluster > 1.11 for running pods installed.
-#### Localhost alias
-For examples below to work, edit `/etc/hosts` to add localhost alias
-```bash
-➜  go-api-boilerplate git:(master) cat /etc/hosts
-##
-# Host Database
-#
-# localhost is used to configure the loopback interface
-# when the system is booting.  Do not change this entry.
-##
-127.0.0.1       localhost go-api-boilerplate.local
-```
-#### Helm charts
-Helm chart are used to automate the application deployment in a Kubernetes cluster. Once the application is deployed and working, it also explores how to modify the source code for publishing a new application release and how to perform rolling updates in Kubernetes using the Helm CLI.
-
-To deploy application on Kubernetes using Helm you will typically follow these steps:
-
-1. Add application to cmd directory
-2. Build the Docker image
-3. Publish the Docker image
-4. Create the Helm Chart (extend microservice chart)
-5. Deploy the application in Kubernetes
-6. Update the source code and the Helm chart
-
-[Install And Configure Helm And Tiller](https://docs.helm.sh/using_helm/#install-helm)
-### Vendor
-Build the module. This will automatically add missing or unconverted dependencies as needed to satisfy imports for this particular build invocation
-```bash
-go build ./...
-```
-For more read: https://github.com/golang/go/wiki/Modules
-### Kubernetes
-The [Dashboard UI](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) is accessible at [https://go-api-boilerplate.local/dashboard](https://go-api-boilerplate.local/dashboard/#!/overview?namespace=go-api-boilerplate) thanks to kubernetes-dashboard [helm chart](https://github.com/helm/charts/tree/master/stable/kubernetes-dashboard). To see available tokens for login run:
-```bash
-kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
-```
-To remove release run:
-```bash
-make helm-delete
-```
-### Makefile
-```bash
-➜  go-api-boilerplate git:(master) ✗ make help
-version                        Show version
-key                            [HTTP] Generate key
-cert                           [HTTP] Generate self signed certificate
-docker-build                   [DOCKER] Build given container. Example: `make docker-build BIN=user`
-docker-run                     [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
-docker-stop                    [DOCKER] Stop docker container. Example: `make docker-stop BIN=user`
-docker-rm                      [DOCKER] Stop and then remove docker container. Example: `make docker-rm BIN=user`
-docker-publish                 [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
-docker-tag                     [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
-docker-release                 [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
-helm-install                   [HELM] Deploy the Helm chart for application. Example: `make helm-install`
-helm-upgrade                   [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
-helm-history                   [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history`
-helm-dependencies              [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies`
-helm-delete                    [HELM] Delete helm chart for application. Example: `make helm-delete`
-telepresence-swap-local        [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
-telepresence-swap-docker       [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
-aws-repo-login                 [HELPER] login to AWS-ECR
-```
-### Running
-To run services repeat following steps for each service defined in [`./cmd/`](../master/cmd) directory. Changing `BIN=` value to directory name from `./cmd/{service_name}` path.
-#### STEP 1. Build docker image
-```bash
-make docker-build BIN=user
-```
-#### STEP 2. Deploy
-In order to [install a cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#installing-with-helm) Helm chart, you must run
- - Install cert-manager resources
- ```bash
- # Install the CustomResourceDefinition resources separately
-kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
-```
- - Add external charts repositories
-```bash
-# Add the Jetstack Helm repository
-helm repo add jetstack https://charts.jetstack.io
-# Update your local Helm chart repository cache
-helm repo update
-```
- - Install dependencies
-```bash
-make helm-dependencies
-```
- - Deploy to kubernetes cluster
-```bash
-make helm-install
-```
-This will deploy every service to the kubernetes cluster using your local docker image (built in the first step).
-
-Each service defined in [`./cmd/`](../master/cmd) directory should contain helm chart (extension of microservice chart) later on referenced in app chart requirements alongside other external services required to run complete environment like `mysql`. For more details please see [helm chart](../master/helm/app/requirements.yaml)
-#### STEP 3. Debug
-To debug deployment you can simply use [telepresence](https://www.telepresence.io/reference/install) and swap kubernetes deployment for local go service or local docker image. For example to swap for local docker image run:
-```sh
-make telepresence-swap-docker BIN=user PORT=3001 DEPLOYMENT=go-api-boilerplate-user
-```
-This command should swap deployment giving similar output to the one below:
-```
-➜  go-api-boilerplate git:(master) ✗ make telepresence-swap-docker BIN=user PORT=3001 DEPLOYMENT=go-api-boilerplate-user
-telepresence \
-	--swap-deployment go-api-boilerplate-user \
-	--docker-run -i -t --rm -p=3001:3001 --name="user" user:latest
-T: Volumes are rooted at $TELEPRESENCE_ROOT. See https://telepresence.io/howto/volumes.html for
-T: details.
-.
-.
-.
-2019/01/10 06:24:37.963561 INFO: tcp running at 0.0.0.0:3001
-2019/01/10 06:24:37.964452 INFO: http running at 0.0.0.0:3000
-^C
-2019/01/10 06:30:16.266108 INFO: shutting down...
-2019/01/10 06:30:16.283392 INFO: gracefully stopped
-T: Exit cleanup in progress
-# --docker-run --rm -it -v -p=3001:3001 user:latest
-```
-
 DOCUMENTATION
 ==================================================
 
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
 * [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
+* [Getting Started](https://github.com/vardius/go-api-boilerplate/wiki/1.-Getting-Started)
+* [Installing and Setting up](https://github.com/vardius/go-api-boilerplate/wiki/2.-Installing-and-Setting-up)
+* [Configuration](https://github.com/vardius/go-api-boilerplate/wiki/3.-Configuration)
+* [Guides](https://github.com/vardius/go-api-boilerplate/wiki/4.-Guides)
 
 EXAMPLE
 ==================================================
