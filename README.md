@@ -79,10 +79,6 @@ Send example JSON via POST request
 ```sh
 curl -sSL -D -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/dispatch/register-user-with-email -o /dev/null --insecure
 ```
-Request access token for user
-```sh
-curl -sSL -D -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/dispatch/request-user-access-token -o /dev/null --insecure
-```
 ## View
 ### Public routes
 Get user details [https://go-api-boilerplate.local/users/34e7ed39-aa94-4ef2-9422-401bba9fc812](https://go-api-boilerplate.local/users/34e7ed39-aa94-4ef2-9422-401bba9fc812)
@@ -94,10 +90,16 @@ Get list of users [https://go-api-boilerplate.local/users?page=1&limit=10](https
 {"page":1,"limit":20,"total":1,"users":[{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}]}
 ```
 ### Protected routes
-Access protected route using auth token [https://go-api-boilerplate.local/users/me](https://go-api-boilerplate.local/users/me). Get your access token from user pod event handler logs.
+Access protected route using auth token [https://go-api-boilerplate.local/users/me](https://go-api-boilerplate.local/users/me).
 ```json
 {"code": "401","message": "Unauthorized"}
 ```
+Request access token for user
+```sh
+curl -sSL -D -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/dispatch/request-user-access-token -o /dev/null --insecure
+```
+Get your access token from user pod event handler logs.
+
 Access protected route using auth token [https://go-api-boilerplate.local/users/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ](https://go-api-boilerplate.local/users/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ)
 ```json
 {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
