@@ -6,19 +6,19 @@ magic-namespace:
       certmanager.k8s.io/disable-validation: true
   ## Optional additional ServiceAccounts
   serviceAccounts:
-  - goapiboilerplate
-  # Optional additional RoleBindings. It is a good idea to specify at least one
-  # to grant administrative permissions to a user or group.
+    - goapiboilerplate
+    # Optional additional RoleBindings. It is a good idea to specify at least one
+    # to grant administrative permissions to a user or group.
   roleBindings:
-  - name: admin-group-admin
-    role:
-      ## Valid values are "Role" or "ClusterRole"
-      kind: ClusterRole
-      name: admin
-    subject:
-      ## Valid values are "User", "Group", or "ServiceAccount"
-      kind: Group
-      name: <group>
+    - name: admin-group-admin
+      role:
+        ## Valid values are "Role" or "ClusterRole"
+        kind: ClusterRole
+        name: admin
+      subject:
+        ## Valid values are "User", "Group", or "ServiceAccount"
+        kind: Group
+        name: <group>
 
 ingress:
   issuerName: letsencrypt
@@ -97,7 +97,7 @@ phpmyadmin:
     host: go-api-boilerplate-mysql
 
 mysql:
-  existingSecret: go-api-boilerplate-app
+  existingSecret: mysql-secret
   mysqlUser: goapiboilerplate
   initializationFiles:
     privileges.sql: |-
@@ -198,18 +198,19 @@ pubsub:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  envFromSecretRef: go-api-boilerplate-app
+  envFromConfigMapRefs:
+    - pubsub-config
   env:
     - name: HOST
       valueFrom:
         configMapKeyRef:
           key: HOST
-          name: go-api-boilerplate-app
+          name: global-config
     - name: PORT
       valueFrom:
         configMapKeyRef:
           key: PORT_GRPC
-          name: go-api-boilerplate-app
+          name: global-config
     - name: QUEUE_BUFFER_SIZE
       value: '100'
     - name: LOG_VERBOSE_LEVEL
@@ -239,50 +240,21 @@ auth:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  envFromSecretRef: go-api-boilerplate-app
+  envFromSecretRefs:
+    - global-secret
+    - user-secret
+  envFromConfigMapRefs:
+    - global-config
+    - auth-config
+    - mysql-config
+    - pubsub-config
+    # - aws-config
   env:
-    - name: ENV
-      valueFrom:
-        configMapKeyRef:
-          key: ENV
-          name: go-api-boilerplate-app
-    - name: ORIGINS
-      valueFrom:
-        configMapKeyRef:
-          key: ORIGINS
-          name: go-api-boilerplate-app
-    - name: HOST
-      valueFrom:
-        configMapKeyRef:
-          key: HOST
-          name: go-api-boilerplate-app
-    - name: PORT_HTTP
-      valueFrom:
-        configMapKeyRef:
-          key: PORT_HTTP
-          name: go-api-boilerplate-app
-    - name: PORT_GRPC
-      valueFrom:
-        configMapKeyRef:
-          key: PORT_GRPC
-          name: go-api-boilerplate-app
-    - name: PUBSUB_HOST
-      value: 'go-api-boilerplate-pubsub'
-    - name: DB_HOST
-      value: 'go-api-boilerplate-mysql'
-    - name: DB_PORT
-      value: '3306'
-    - name: DB_USER
-      value: 'root'
     - name: DB_PASS
       valueFrom:
         secretKeyRef:
           key: mysql-root-password
-          name: go-api-boilerplate-app
-    - name: DB_NAME
-      value: 'goapiboilerplate'
-    - name: COMMAND_BUS_BUFFER
-      value: '100'
+          name: mysql-secret
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -310,72 +282,22 @@ user:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  envFromSecretRef: go-api-boilerplate-app
+  envFromSecretRefs:
+    - global-secret
+    - user-secret
+  envFromConfigMapRefs:
+    - global-config
+    - user-config
+    - mysql-config
+    - auth-config
+    - pubsub-config
+    # - aws-config
   env:
-    - name: ENV
-      valueFrom:
-        configMapKeyRef:
-          key: ENV
-          name: go-api-boilerplate-app
-    - name: ORIGINS
-      valueFrom:
-        configMapKeyRef:
-          key: ORIGINS
-          name: go-api-boilerplate-app
-    - name: HOST
-      valueFrom:
-        configMapKeyRef:
-          key: HOST
-          name: go-api-boilerplate-app
-    - name: PORT_HTTP
-      valueFrom:
-        configMapKeyRef:
-          key: PORT_HTTP
-          name: go-api-boilerplate-app
-    - name: PORT_GRPC
-      valueFrom:
-        configMapKeyRef:
-          key: PORT_GRPC
-          name: go-api-boilerplate-app
-    - name: AUTH_HOST
-      value: 'go-api-boilerplate-auth'
-    - name: PUBSUB_HOST
-      value: 'go-api-boilerplate-pubsub'
-    - name: DB_HOST
-      value: 'go-api-boilerplate-mysql'
-    - name: DB_PORT
-      value: '3306'
-    - name: DB_USER
-      value: 'root'
     - name: DB_PASS
       valueFrom:
         secretKeyRef:
           key: mysql-root-password
           name: go-api-boilerplate-app
-    - name: CLIENT_ID
-      valueFrom:
-        secretKeyRef:
-          key: USER_CLIENT_ID
-          name: go-api-boilerplate-app
-    - name: CLIENT_SECRET
-      valueFrom:
-        secretKeyRef:
-          key: USER_CLIENT_SECRET
-          name: go-api-boilerplate-app
-    - name: DB_NAME
-      value: 'goapiboilerplate'
-    # - name: AWS_REGION
-    #   valueFrom:
-    #     configMapKeyRef:
-    #       key: AWS_REGION
-    #       name: go-api-boilerplate-app
-    # - name: AWS_ENDPOINT
-    #   valueFrom:
-    #     configMapKeyRef:
-    #       key: AWS_ENDPOINT
-    #       name: go-api-boilerplate-app
-    - name: COMMAND_BUS_BUFFER
-      value: '100'
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -388,21 +310,69 @@ user:
       path: /healthz
       port: 3000
 
-secret:
-  type: Opaque
-  data:
-    SECRET: Y2hhbmdlbWU= # changeme
-    USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
-    USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
-    mysql-password: cGFzc3dvcmQ= # password
-    mysql-root-password: cGFzc3dvcmQ= # password
+secrets:
+  - name: global-secret
+    type: Opaque
+    data:
+      SECRET: Y2hhbmdlbWU= # changeme
+  - name: mysql-secret
+    type: Opaque
+    data:
+      mysql-password: cGFzc3dvcmQ= # password
+      mysql-root-password: cGFzc3dvcmQ= # password
+  - name: user-secret
+    type: Opaque
+    data:
+      USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
+      USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
 
-configMap:
-  data:
-    ENV: development
-    ORIGINS: go-api-boilerplate.local|localhost|0.0.0.0|127.0.0.1
-    HOST: '0.0.0.0'
-    PORT_HTTP: '3000'
-    PORT_GRPC: '3001'
-    # AWS_REGION: 'us-east-1'
-    # AWS_ENDPOINT: 'http://go-api-boilerplate-localstack:4569'
+configMaps:
+  - name: global-config
+    data:
+      ENV: development
+      ORIGINS: go-api-boilerplate.local|localhost|0.0.0.0|127.0.0.1
+      HOST: '0.0.0.0'
+      PORT_HTTP: '3000'
+      PORT_GRPC: '3001'
+  - name: mysql-config
+    data:
+      DB_HOST: 'go-api-boilerplate-mysql'
+      DB_PORT: '3306'
+      DB_NAME: 'goapiboilerplate'
+      DB_USER: 'root'
+  - name: pubsub-config
+    data:
+      PUBSUB_HOST: 'go-api-boilerplate-pubsub'
+      QUEUE_BUFFER_SIZE: '100'
+      KEEPALIVE_MIN_TIME: '5m' # if a client pings more than once every 5 minutes (default), terminate the connection
+      KEEPALIVE_TIME: '2h'     # ping the client if it is idle for 2 hours (default) to ensure the connection is still active
+      KEEPALIVE_TIMEOUT: '20s' # wait 20 second (default) for the ping ack before assuming the connection is dead
+      LOG_VERBOSE_LEVEL: '3'
+  - name: auth-config
+    data:
+      AUTH_HOST: 'go-api-boilerplate-auth'
+      AUTH_COMMAND_BUS_BUFFER: '100'
+      AUTH_GRPC_SERVER_MIN_TIME: '5m'    # if a client pings more than once every 5 minutes (default), terminate the connection
+      AUTH_GRPC_SERVER_TIME: '2h'        # ping the client if it is idle for 2 hours (default) to ensure the connection is still active
+      AUTH_GRPC_SERVER_TIMEOUT: '20s'    # wait 20 second (default) for the ping ack before assuming the connection is dead
+      AUTH_GRPC_CLIENT_TIME: '10s'       # send pings every 10 seconds if there is no activity
+      AUTH_GRPC_CLIENT_TIMEOUT: '20s'    # wait 20 second for ping ack before considering the connection dead
+      AUTH_MYSQL_CONN_MAX_LIFETIME: '5m' #  sets the maximum amount of time a connection may be reused
+      AUTH_MYSQL_MAX_IDLE_CONNS: '0'     # sets the maximum number of connections in the idle
+      AUTH_MYSQL_MAX_OPEN_CONNS: '5'     # sets the maximum number of connections in the idle
+  - name: user-config
+    data:
+      USER_HOST: 'go-api-boilerplate-user'
+      USER_COMMAND_BUS_BUFFER: '100'
+      USER_GRPC_SERVER_MIN_TIME: '5m'    # if a client pings more than once every 5 minutes (default), terminate the connection
+      USER_GRPC_SERVER_TIME: '2h'        # ping the client if it is idle for 2 hours (default) to ensure the connection is still active
+      USER_GRPC_SERVER_TIMEOUT: '20s'    # wait 20 second (default) for the ping ack before assuming the connection is dead
+      USER_GRPC_CLIENT_TIME: '10s'       # send pings every 10 seconds if there is no activity
+      USER_GRPC_CLIENT_TIMEOUT: '20s'    # wait 20 second for ping ack before considering the connection dead
+      USER_MYSQL_CONN_MAX_LIFETIME: '5m' #  sets the maximum amount of time a connection may be reused
+      USER_MYSQL_MAX_IDLE_CONNS: '0'     # sets the maximum number of connections in the idle
+      USER_MYSQL_MAX_OPEN_CONNS: '5'     # sets the maximum number of connections in the idle
+  # - name: aws-config
+  #   data:
+      # AWS_REGION: 'us-east-1'
+      # AWS_ENDPOINT: 'http://go-api-boilerplate-localstack:4569'

@@ -34,15 +34,15 @@ spec:
           - name: {{ .name }}
             containerPort: {{ .internalPort }}
           {{- end }}
-          {{- if ( or .Values.envFromSecretRef .Values.envFromConfigMapRef ) }}
+          {{- if ( or .Values.envFromSecretRefs .Values.envFromConfigMapRefs ) }}
           envFrom:
-            {{- if .Values.envFromSecretRef }}
+            {{- range .Values.envFromSecretRefs }}
             - secretRef:
-                name: {{ .Values.envFromSecretRef }}
+                name: {{ . }}
             {{- end }}
-            {{- if .Values.envFromConfigMapRef }}
+            {{- range .Values.envFromConfigMapRefs }}
             - configMapRef:
-                name: {{ .Values.envFromConfigMapRef }}
+                name: {{ . }}
             {{- end }}
           {{- end }}
           {{- if .Values.env }}

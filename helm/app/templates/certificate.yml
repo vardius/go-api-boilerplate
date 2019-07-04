@@ -1,23 +1,18 @@
 {{- if .Values.ingress.tls -}}
-{{- $fullName := include "app.fullname" . -}}
-{{- $chartName := include "app.fullname" . -}}
-{{- $appName := include "app.fullname" . -}}
-{{- $releaseName := .Release.Name -}}
-{{- $releaseService := .Release.Service -}}
 {{- $values := .Values }}
 {{- range .Values.ingress.tls -}}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
-  name: {{ $fullName }}
+  name: {{ include "app.fullname" $ }}
   {{- if hasKey $values "namespace" }}
   namespace: {{ $values.namespace }}
   {{- end }}
   labels:
-    helm.sh/chart: {{ $chartName }}
-    app.kubernetes.io/name: {{ $appName }}
-    app.kubernetes.io/instance: {{ $releaseName }}
-    app.kubernetes.io/managed-by: {{ $releaseService }}
+    helm.sh/chart: {{ include "app.chart" $ }}
+    app.kubernetes.io/name: {{ include "app.name" $ }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
 spec:
   secretName: {{ .secretName }}
   {{- with .hosts }}

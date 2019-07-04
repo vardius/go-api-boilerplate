@@ -43,9 +43,9 @@ import (
 func main() {
 	ctx := context.Background()
 	logger := log.New(user_config.Env.Environment)
-	grpcServer := grpc_utils.NewServer(logger)
+	grpcServer := grpc_utils.NewServer(user_config.Env, logger)
 
-	db := mysql.NewConnection(ctx, user_config.Env.DbHost, user_config.Env.DbPort, user_config.Env.DbUser, user_config.Env.DbPass, user_config.Env.DbName, logger)
+	db := mysql.NewConnection(ctx, user_config.Env, logger)
 	defer db.Close()
 
 	oauth2Config := oauth2.Config{
@@ -58,7 +58,7 @@ func main() {
 		},
 	}
 
-	pubsubConn := grpc_utils.NewConnection(ctx, user_config.Env.PubSubHost, user_config.Env.PortGRPC, logger)
+	pubsubConn := grpc_utils.NewConnection(ctx, user_config.Env.PubSubHost, user_config.Env.PortGRPC, user_config.Env, logger)
 	defer pubsubConn.Close()
 
 	grpPubSubClient := pubsub_proto.NewMessageBusClient(pubsubConn)
@@ -72,10 +72,10 @@ func main() {
 
 	userServer := user_grpc.NewServer(commandBus, userMYSQLRepository, logger)
 
-	authConn := grpc_utils.NewConnection(ctx, user_config.Env.AuthHost, user_config.Env.PortGRPC, logger)
+	authConn := grpc_utils.NewConnection(ctx, user_config.Env.AuthHost, user_config.Env.PortGRPC, user_config.Env, logger)
 	defer authConn.Close()
 
-	userConn := grpc_utils.NewConnection(ctx, user_config.Env.Host, user_config.Env.PortGRPC, logger)
+	userConn := grpc_utils.NewConnection(ctx, user_config.Env.Host, user_config.Env.PortGRPC, user_config.Env, logger)
 	defer userConn.Close()
 
 	grpAuthClient := auth_proto.NewAuthenticationServiceClient(authConn)
