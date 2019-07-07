@@ -61,7 +61,7 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.nodeSelector }}
+      {{- if .Values.initContainers }}
       initContainers:
       {{- range .Values.initContainers }}
         - name: {{ .name }}
@@ -70,7 +70,7 @@ spec:
           command:
             {{- toYaml .command | nindent 12 }}
           args:
-            {{- toYaml .command | nindent 12 }}
+            {{- toYaml .args | nindent 12 }}
       {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}

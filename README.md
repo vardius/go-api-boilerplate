@@ -16,6 +16,10 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 - [About](#about)
 - [Documentation](#documentation)
 - [Example](#example)
+  - [Quick start](#quick-start)
+    - [Build release](#build-release)
+    - [Deploy release](#build-release)
+  - [Dashboard](#dashboard)
   - [Domain](#domain)
     - [Dispatching command](#dispatching-command)
   - [View](#view)
@@ -72,6 +76,21 @@ DOCUMENTATION
 
 EXAMPLE
 ==================================================
+## Quick start
+
+### Build release
+```sh
+make docker-build BIN=auth
+make docker-build BIN=migrate
+make docker-build BIN=user
+```
+### Deploy release
+```sh
+make helm-install
+```
+
+## Dashboard
+https://go-api-boilerplate.local/dashboard/#!/overview?namespace=go-api-boilerplate
 
 ## Domain
 ### Dispatching command
