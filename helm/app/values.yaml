@@ -106,55 +106,6 @@ mysql:
       FLUSH PRIVILEGES;
     base_schema.sql: |-
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
-      USE goapiboilerplate;
-      CREATE TABLE IF NOT EXISTS `users` (
-        `distinctId`   INT                                    NOT NULL AUTO_INCREMENT,
-        `id`           CHAR(36)                               NOT NULL,
-        `emailAddress` VARCHAR(255) COLLATE utf8_general_ci   NOT NULL,
-        `facebookId`   VARCHAR(255)                                     DEFAULT NULL,
-        `googleId`     VARCHAR(255)                                     DEFAULT NULL,
-        PRIMARY KEY (`distinctId`),
-        UNIQUE KEY `id` (`id`),
-        UNIQUE KEY `emailAddress` (`emailAddress`),
-        INDEX `i_facebookId` (`facebookId`),
-        INDEX `i_googleId` (`googleId`)
-      )
-        ENGINE = InnoDB
-        DEFAULT CHARSET = utf8
-        COLLATE = utf8_bin;
-      CREATE TABLE IF NOT EXISTS `clients` (
-        `distinctId` INT          NOT NULL AUTO_INCREMENT,
-        `id`         CHAR(36)     NOT NULL,
-        `userId`     CHAR(36)     NOT NULL,
-        `secret`     VARCHAR(255) NOT NULL,
-        `domain`     VARCHAR(255) NOT NULL,
-        `data`       JSON         NOT NULL,
-        PRIMARY KEY (`distinctId`),
-        UNIQUE KEY `id` (`id`),
-        INDEX `i_userId` (`userId`)
-      )
-        ENGINE = InnoDB
-        DEFAULT CHARSET = utf8
-        COLLATE = utf8_bin;
-      CREATE TABLE IF NOT EXISTS `auth_tokens` (
-        `distinctId` INT          NOT NULL AUTO_INCREMENT,
-        `id`         CHAR(36)     NOT NULL,
-        `clientId`   CHAR(36)     NOT NULL,
-        `userId`     CHAR(36)     NOT NULL,
-        `code`       VARCHAR(255) DEFAULT NULL,
-        `refresh`    VARCHAR(255) NOT NULL,
-        `access`     VARCHAR(300) NOT NULL,
-        `data`       JSON         NOT NULL,
-        PRIMARY KEY (`distinctId`),
-        UNIQUE KEY `id` (`id`),
-        INDEX `i_userId` (`userId`),
-        INDEX `i_code` (`code`),
-        INDEX `i_refresh` (`refresh`),
-        INDEX `i_access` (`access`)
-      )
-        ENGINE = InnoDB
-        DEFAULT CHARSET = utf8
-        COLLATE = utf8_bin;
 
 # AWS localstack https://github.com/localstack/localstack
 localstack:
@@ -177,14 +128,6 @@ localstack:
 #       value: "dynamodb:4569"
 #     - name: PORT_WEB_UI
 #       value: "4567"
-
-migrations:
-  enabled: false
-  image:
-    repository: migrate/migrate
-    tag: v4.4.0
-    pullPolicy: IfNotPresent
-  path: ./migrations
 
 pubsub:
   nameOverride: pubsub
@@ -240,6 +183,20 @@ auth:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
+  initContainers:
+    - name: migrations
+      image:
+        repository: migrate
+        tag: latest
+        pullPolicy: IfNotPresent
+      command:
+        - '/migrate'
+      args:
+        - '-source'
+        - 'file:///migrations/auth'
+        - '-database'
+        - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
+        - 'up'
   envFromSecretRefs:
     - global-secret
     - user-secret
@@ -282,6 +239,20 @@ user:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
+  initContainers:
+    - name: migrations
+      image:
+        repository: migrate
+        tag: latest
+        pullPolicy: IfNotPresent
+      command:
+        - '/migrate'
+      args:
+        - '-source'
+        - 'file:///migrations/user'
+        - '-database'
+        - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
+        - 'up'
   envFromSecretRefs:
     - global-secret
     - user-secret
@@ -297,7 +268,7 @@ user:
       valueFrom:
         secretKeyRef:
           key: mysql-root-password
-          name: go-api-boilerplate-app
+          name: mysql-secret
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
