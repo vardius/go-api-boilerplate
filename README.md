@@ -40,7 +40,7 @@ This is mono-repository of many services such as authentication or user domain. 
 Tthis project setup should reduce the time spent on enviroment configuration for the whole kubernetes cluster and/or each of microservice. Extracting each of services to own repository or keeping it as mono-repo should be a matter of preference.
 
 <p align="center">
-  <img src="(https://opencollective.com/go-api-boilerplate/tiers/backer.svg">
+  <img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg">
   <img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg">
 </p>
 
