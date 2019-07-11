@@ -5,6 +5,8 @@ Golang API Starter Kit
 [![codecov](https://codecov.io/gh/vardius/go-api-boilerplate/branch/master/graph/badge.svg)](https://codecov.io/gh/vardius/go-api-boilerplate)
 [![](https://godoc.org/github.com/vardius/go-api-boilerplate?status.svg)](http://godoc.org/github.com/vardius/go-api-boilerplate)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/vardius/go-api-boilerplate/blob/master/LICENSE.md)
+[![baker](https://opencollective.com/go-api-boilerplate/tiers/backer/badge.svg?label=backer&color=brightgreen)](https://opencollective.com/go-api-boilerplate/tiers/backer/badge.svg?label=backer&color=brightgreen)
+[![sponsor](https://opencollective.com/go-api-boilerplate/tiers/sponsor/badge.svg?label=sponsor&color=brightgreen)](https://opencollective.com/go-api-boilerplate/tiers/sponsor/badge.svg?label=sponsor&color=brightgreen)
 
 Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
@@ -31,7 +33,16 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
 ABOUT
 ==================================================
-This repository was created for personal use and needs, may contain bugs. If found please report. If you think some things could be done better, or if this repository is missing something feel free to contribute and create pull request.
+The main purpose of this project is to provide boilerplate project setup using using best practices, DDD, CQRS, ES, gRPC. Futuring kubernetes for both development and production enviroments. Allowing to work with enviroment reflecting production one, allowing to reduce any misconfigurations.
+
+This is mono-repository of many services such as authentication or user domain. Each service has it own code base with exception of shared packages to simplify things for this boilerplate. Services comunicate witch each other using gRPC. Each searvice might expose HTTP API for external communication or/and gRPC.
+
+Tthis project setup should reduce the time spent on enviroment configuration for the whole kubernetes cluster and/or each of microservice. Extracting each of services to own repository or keeping it as mono-repo should be a matter of preference.
+
+<p align="center">
+  <img src="(https://opencollective.com/go-api-boilerplate/tiers/backer.svg">
+  <img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg">
+</p>
 
 Contributors:
 
