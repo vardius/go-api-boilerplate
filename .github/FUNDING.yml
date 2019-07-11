@@ -1,6 +1,6 @@
 # These are supported funding model platforms
 
-github: [vardius]
+github: # [vardius]
 patreon: # Replace with a single Patreon username
 open_collective: vardius-go-api-boilerplate
 ko_fi: # Replace with a single Ko-fi username
