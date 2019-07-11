@@ -5,8 +5,8 @@ Golang API Starter Kit
 [![codecov](https://codecov.io/gh/vardius/go-api-boilerplate/branch/master/graph/badge.svg)](https://codecov.io/gh/vardius/go-api-boilerplate)
 [![](https://godoc.org/github.com/vardius/go-api-boilerplate?status.svg)](http://godoc.org/github.com/vardius/go-api-boilerplate)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/vardius/go-api-boilerplate/blob/master/LICENSE.md)
-[![baker](https://opencollective.com/go-api-boilerplate/tiers/backer/badge.svg?label=backer&color=brightgreen)](https://opencollective.com/go-api-boilerplate/tiers/backer/badge.svg?label=backer&color=brightgreen)
-[![sponsor](https://opencollective.com/go-api-boilerplate/tiers/sponsor/badge.svg?label=sponsor&color=brightgreen)](https://opencollective.com/go-api-boilerplate/tiers/sponsor/badge.svg?label=sponsor&color=brightgreen)
+[![baker](https://opencollective.com/go-api-boilerplate/tiers/backer/badge.svg?label=backer&color=brightgreen)](https://opencollective.com/go-api-boilerplate/contribute/backer-10349/checkout)
+[![sponsor](https://opencollective.com/go-api-boilerplate/tiers/sponsor/badge.svg?label=sponsor&color=brightgreen)](https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout)
 
 Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
@@ -40,8 +40,8 @@ This is mono-repository of many services such as authentication or user domain. 
 Tthis project setup should reduce the time spent on enviroment configuration for the whole kubernetes cluster and/or each of microservice. Extracting each of services to own repository or keeping it as mono-repo should be a matter of preference.
 
 <p align="center">
-  <img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg">
-  <img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg">
+  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
+  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
 </p>
 
 Contributors:
