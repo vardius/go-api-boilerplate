@@ -18,6 +18,11 @@ type userRepository struct {
 	eventBus   eventbus.EventBus
 }
 
+// NewUserRepository creates new user event sourced repository
+func NewUserRepository(store eventstore.EventStore, bus eventbus.EventBus) user.Repository {
+	return &userRepository{store, bus}
+}
+
 // Save current user changes to event store and publish each event with an event bus
 func (r *userRepository) Save(ctx context.Context, u user.User) error {
 	err := r.eventStore.Store(u.Changes())
@@ -37,9 +42,4 @@ func (r *userRepository) Get(id uuid.UUID) user.User {
 	events := r.eventStore.GetStream(id, user.StreamName)
 
 	return user.FromHistory(events)
-}
-
-// NewUserRepository creates new user event sourced repository
-func NewUserRepository(store eventstore.EventStore, bus eventbus.EventBus) user.Repository {
-	return &userRepository{store, bus}
 }

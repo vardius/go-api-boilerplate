@@ -21,7 +21,6 @@ import (
 	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
 	user_http "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/http"
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
@@ -30,7 +29,6 @@ import (
 	http_authenticator "github.com/vardius/go-api-boilerplate/pkg/http/security/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
-	"github.com/vardius/gollback"
 	gorouter "github.com/vardius/gorouter/v4"
 	pubsub_proto "github.com/vardius/pubsub/proto"
 	"github.com/vardius/shutdown"
@@ -53,8 +51,8 @@ func main() {
 		ClientSecret: user_config.Env.ClientSecret,
 		Scopes:       []string{"all"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  fmt.Sprintf("http://%s:%d/%s", user_config.Env.AuthHost, user_config.Env.PortHTTP, "authorize"),
-			TokenURL: fmt.Sprintf("http://%s:%d/%s", user_config.Env.AuthHost, user_config.Env.PortHTTP, "token"),
+			AuthURL:  fmt.Sprintf("http://%s:%d/authorize", user_config.Env.AuthHost, user_config.Env.PortHTTP),
+			TokenURL: fmt.Sprintf("http://%s:%d/token", user_config.Env.AuthHost, user_config.Env.PortHTTP),
 		},
 	}
 
@@ -132,39 +130,18 @@ func main() {
 	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, db))
 
 	go func() {
-		gb := gollback.New(ctx)
-		for {
-			if grpc_utils.IsConnectionServing("pubsub", pubsubConn) {
-				// Will resubscribe to handler on error infinitely
-				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					topic := (user.WasRegisteredWithEmail{}).GetType()
-					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository))
-					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
-				})
-				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					topic := (user.WasRegisteredWithGoogle{}).GetType()
-					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository))
-					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
-				})
-				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					topic := (user.WasRegisteredWithFacebook{}).GetType()
-					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository))
-					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
-				})
-				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					topic := (user.EmailAddressWasChanged{}).GetType()
-					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository))
-					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
-				})
-				go gb.Retry(0, func(ctx context.Context) (interface{}, error) {
-					topic := (user.AccessTokenWasRequested{}).GetType()
-					err := eventBus.Subscribe(ctx, topic, user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret))
-					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
-				})
-				break
-			}
-			time.Sleep(1 * time.Second)
-		}
+		user_eventhandler.Register(
+			pubsubConn,
+			eventBus,
+			map[string]eventbus.EventHandler{
+				(user.WasRegisteredWithEmail{}).GetType():    user_eventhandler.WhenUserWasRegisteredWithEmail(db, userMYSQLRepository),
+				(user.WasRegisteredWithGoogle{}).GetType():   user_eventhandler.WhenUserWasRegisteredWithGoogle(db, userMYSQLRepository),
+				(user.WasRegisteredWithFacebook{}).GetType(): user_eventhandler.WhenUserWasRegisteredWithFacebook(db, userMYSQLRepository),
+				(user.EmailAddressWasChanged{}).GetType():    user_eventhandler.WhenUserEmailAddressWasChanged(db, userMYSQLRepository),
+				(user.AccessTokenWasRequested{}).GetType():   user_eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, user_config.Env.Secret),
+			},
+			5*time.Minute,
+		)
 	}()
 
 	stop := func() {
