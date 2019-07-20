@@ -125,11 +125,6 @@ Access protected route using auth token [https://go-api-boilerplate.local/users/
 Sponsoring
 ==================================================
 
-<p align="center">
-  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
-  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
-</p>
-
 ## 🚀 Contributing
 
 Want to contribute ? Feel free to send pull requests!
@@ -151,9 +146,14 @@ We are using the github [issue tracker](https://github.com/vardius/go-api-boiler
   </tbody>
 </table>
 
+<p align="center">
+  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
+  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
+</p>
+
 ## 👥 Backers
 
-Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/go-api-boilerplate#backer)]
+Support us with a monthly donation and help us continue our activities.
 
 <a href="https://opencollective.com/go-api-boilerplate/backer/0/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/0/avatar.svg"></a>
 <a href="https://opencollective.com/go-api-boilerplate/backer/1/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/1/avatar.svg"></a>
