@@ -125,6 +125,11 @@ Access protected route using auth token [https://go-api-boilerplate.local/users/
 Sponsoring
 ==================================================
 
+<p align="center">
+  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
+  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
+</p>
+
 ## 🚀 Contributing
 
 Want to contribute ? Feel free to send pull requests!
@@ -145,11 +150,6 @@ We are using the github [issue tracker](https://github.com/vardius/go-api-boiler
      </tr>
   </tbody>
 </table>
-
-<p align="center">
-  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
-  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
-</p>
 
 ## 👥 Backers
 
