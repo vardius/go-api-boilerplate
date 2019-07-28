@@ -27,6 +27,7 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
   - [View](#view)
     - [Public routes](#public-routes)
     - [Protected routes](#protected-routes)
+- [Sponsoring](#sponsoring)
 <!-- tocstop -->
 
 </details>
@@ -38,20 +39,6 @@ The main purpose of this project is to provide boilerplate project setup using u
 This is mono-repository of many services such as authentication or user domain. Each service has it own code base with exception of shared packages to simplify things for this boilerplate. Services communicate witch each other using gRPC. Each service might expose HTTP API for external communication or/and gRPC.
 
 This project setup should reduce the time spent on environment configuration for the whole kubernetes cluster and/or each of microservice. Extracting each of services to own repository or keeping it as mono-repo should be a matter of preference.
-
-<p align="center">
-  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
-  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
-</p>
-
-Contributors:
-
-* [Rafał Lorenz](http://rafallorenz.com)
-
-Want to contribute ? Feel free to send pull requests!
-
-Have problems, bugs, feature ideas?
-We are using the github [issue tracker](https://github.com/vardius/go-api-boilerplate/issues) to manage them.
 
 ![Dashboard](../master/.github/kubernetes-dashboard-overview.png)
 ![Dashboard](../master/.github/kubernetes-dashboard-pods.png)
@@ -134,3 +121,73 @@ Access protected route using auth token [https://go-api-boilerplate.local/users/
 ```json
 {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
 ```
+
+Sponsoring
+==================================================
+
+<p align="center">
+  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
+  <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
+</p>
+
+## 🚀 Contributing
+
+Want to contribute ? Feel free to send pull requests!
+
+Have problems, bugs, feature ideas?
+We are using the github [issue tracker](https://github.com/vardius/go-api-boilerplate/issues) to manage them.
+
+## 👨🏻‍💻👩🏾‍💻 Core Team:
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top">
+        <img width="150" height="150" src="https://github.com/vardius.png?s=150">
+        <br>
+        <a href="http://rafallorenz.com">Rafał Lorenz</a>
+      </td>
+     </tr>
+  </tbody>
+</table>
+
+## 👥 Backers
+
+Support us with a monthly donation and help us continue our activities.
+
+<a href="https://opencollective.com/go-api-boilerplate/backer/0/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/0/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/1/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/1/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/2/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/2/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/3/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/3/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/4/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/4/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/5/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/5/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/6/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/6/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/7/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/7/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/8/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/8/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/9/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/9/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/10/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/10/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/11/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/11/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/12/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/12/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/13/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/13/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/14/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/14/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/15/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/15/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/16/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/16/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/17/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/17/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/18/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/18/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/19/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/19/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/20/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/20/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/21/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/21/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/22/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/22/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/23/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/23/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/24/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/24/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/25/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/25/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/26/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/26/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/27/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/27/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/28/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/28/avatar.svg"></a>
+<a href="https://opencollective.com/go-api-boilerplate/backer/29/website" target="_blank"><img src="https://opencollective.com/go-api-boilerplate/backer/29/avatar.svg"></a>
+
+## 🥇 Sponsors
+
+Proudly sponsored by [Open Collective sponsors](https://opencollective.com/go-api-boilerplate#sponsor).
+
+- 👥 [Contribute on Open Collective](https://opencollective.com/go-api-boilerplate#sponsor)
