@@ -10,7 +10,6 @@ import (
 	eventhandler "github.com/vardius/go-api-boilerplate/cmd/auth/application/eventhandler"
 	oauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/application/oauth2"
 	router "github.com/vardius/go-api-boilerplate/cmd/auth/application/router"
-	server "github.com/vardius/go-api-boilerplate/cmd/auth/application/server"
 	client "github.com/vardius/go-api-boilerplate/cmd/auth/domain/client"
 	token "github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
@@ -24,6 +23,8 @@ import (
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	log "github.com/vardius/go-api-boilerplate/pkg/log"
 	mysql "github.com/vardius/go-api-boilerplate/pkg/mysql"
+	server "github.com/vardius/go-api-boilerplate/pkg/server"
+	version_utils "github.com/vardius/go-api-boilerplate/pkg/version"
 	pubsub_proto "github.com/vardius/pubsub/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
@@ -31,7 +32,16 @@ import (
 	oauth2_models "gopkg.in/oauth2.v3/models"
 )
 
+var (
+	// Baked by go build -ldflags "-X main.version=$VERSION"
+	version string
+	// Baked by go build -ldflags "-X main.gitCommit=$GIT_COMMIT"
+	gitCommit string
+)
+
 func main() {
+	version_utils.PrintVersionOrContinue(version, gitCommit)
+
 	ctx := context.Background()
 
 	logger := log.New(config.Env.Environment)

@@ -11,7 +11,6 @@ import (
 	eventhandler "github.com/vardius/go-api-boilerplate/cmd/user/application/eventhandler"
 	oauth2 "github.com/vardius/go-api-boilerplate/cmd/user/application/oauth2"
 	router "github.com/vardius/go-api-boilerplate/cmd/user/application/router"
-	server "github.com/vardius/go-api-boilerplate/cmd/user/application/server"
 	user "github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
 	user_proto "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
@@ -24,13 +23,24 @@ import (
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	log "github.com/vardius/go-api-boilerplate/pkg/log"
 	mysql "github.com/vardius/go-api-boilerplate/pkg/mysql"
+	server "github.com/vardius/go-api-boilerplate/pkg/server"
+	version_utils "github.com/vardius/go-api-boilerplate/pkg/version"
 	pubsub_proto "github.com/vardius/pubsub/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
 
+var (
+	// Baked by go build -ldflags "-X main.version=$VERSION"
+	version string
+	// Baked by go build -ldflags "-X main.gitCommit=$GIT_COMMIT"
+	gitCommit string
+)
+
 func main() {
+	version_utils.PrintVersionOrContinue(version, gitCommit)
+
 	ctx := context.Background()
 
 	logger := log.New(config.Env.Environment)

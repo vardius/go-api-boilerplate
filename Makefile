@@ -1,5 +1,6 @@
 # This version-strategy uses git tags to set the version string
 VERSION := $(shell git describe --tags --always --dirty)
+GIT_COMMIT := $(shell git rev-list -1 HEAD)
 
 # HELP
 # This will output the help for each task
@@ -12,7 +13,7 @@ help:
 .DEFAULT_GOAL := help
 
 version: ## Show version
-	@echo $(VERSION)
+	@echo $(VERSION) \(git commit: $(GIT_COMMIT)\)
 
 # HTTPS TASK
 key: ## [HTTP] Generate key
@@ -24,7 +25,7 @@ cert: ## [HTTP] Generate self signed certificate
 
 # DOCKER TASKS
 docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`
-	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) -t $(BIN) .
+	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) --build-arg VERSION=$(VERSION) --build-arg GIT_COMMIT=$(GIT_COMMIT) -t $(BIN) .
 
 docker-run: ## [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
 	docker run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN)
