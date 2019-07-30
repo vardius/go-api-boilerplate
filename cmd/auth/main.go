@@ -17,6 +17,7 @@ import (
 	repository "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/repository"
 	auth_grpc "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/grpc"
 	http "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/http"
+	buildinfo "github.com/vardius/go-api-boilerplate/pkg/buildinfo"
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
@@ -24,7 +25,6 @@ import (
 	log "github.com/vardius/go-api-boilerplate/pkg/log"
 	mysql "github.com/vardius/go-api-boilerplate/pkg/mysql"
 	server "github.com/vardius/go-api-boilerplate/pkg/server"
-	version_utils "github.com/vardius/go-api-boilerplate/pkg/version"
 	pubsub_proto "github.com/vardius/pubsub/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
@@ -32,15 +32,8 @@ import (
 	oauth2_models "gopkg.in/oauth2.v3/models"
 )
 
-var (
-	// Baked by go build -ldflags "-X main.version=$VERSION"
-	version string
-	// Baked by go build -ldflags "-X main.gitCommit=$GIT_COMMIT"
-	gitCommit string
-)
-
 func main() {
-	version_utils.PrintVersionOrContinue(version, gitCommit)
+	buildinfo.PrintVersionOrContinue()
 
 	ctx := context.Background()
 

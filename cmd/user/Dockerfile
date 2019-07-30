@@ -20,7 +20,9 @@ RUN go mod download
 RUN go test ./...
 RUN go mod verify
 
-RUN go build -ldflags "-X main.version=$VERSION" -ldflags "-X main.gitCommit=$GIT_COMMIT" -a -o /go/bin/app ./cmd/"$BIN"
+RUN go build \
+    -ldflags "-X github.com/vardius/go-api-boilerplate/pkg/buildinfo.Version=$VERSION -X github.com/vardius/go-api-boilerplate/pkg/buildinfo.GitCommit=$GIT_COMMIT -X 'github.com/vardius/go-api-boilerplate/pkg/buildinfo.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'" \
+    -a -o /go/bin/app ./cmd/"$BIN"
 
 FROM scratch
 COPY --from=buildenv /go/bin/app /go/bin/app
