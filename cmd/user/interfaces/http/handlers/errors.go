@@ -1,7 +1,4 @@
-/*
-Package http provides user http client
-*/
-package http
+package handlers
 
 import "github.com/vardius/go-api-boilerplate/pkg/errors"
 

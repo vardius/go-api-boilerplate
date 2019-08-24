@@ -1,4 +1,4 @@
-package http
+package handlers
 
 import (
 	"encoding/json"
@@ -10,25 +10,15 @@ import (
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
-	"github.com/vardius/gorouter/v4"
 	"golang.org/x/oauth2"
 )
-
-const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
-const facebookAPIURL = "https://graph.facebook.com/me"
 
 type requestBody struct {
 	Email string `json:"email"`
 }
 
-// AddAuthRoutes adds user social media sign-in routes to router
-func AddAuthRoutes(router gorouter.Router, cb commandbus.CommandBus, config oauth2.Config, secretKey string) {
-	router.POST("/google/callback", buildSocialAuthHandler(googleAPIURL, cb, user.RegisterUserWithGoogle, secretKey, config))
-	router.POST("/facebook/callback", buildSocialAuthHandler(facebookAPIURL, cb, user.RegisterUserWithFacebook, secretKey, config))
-}
-
-// buildSocialAuthHandler wraps user gRPC client with http.Handler
-func buildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName, secretKey string, config oauth2.Config) http.Handler {
+// BuildSocialAuthHandler wraps user gRPC client with http.Handler
+func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName, secretKey string, config oauth2.Config) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		accessToken := r.FormValue("accessToken")
 		profileData, e := getProfile(accessToken, apiURL)

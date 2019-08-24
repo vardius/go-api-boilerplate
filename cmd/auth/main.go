@@ -6,17 +6,16 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	application "github.com/vardius/go-api-boilerplate/cmd/auth/application"
 	config "github.com/vardius/go-api-boilerplate/cmd/auth/application/config"
 	eventhandler "github.com/vardius/go-api-boilerplate/cmd/auth/application/eventhandler"
 	oauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/application/oauth2"
-	router "github.com/vardius/go-api-boilerplate/cmd/auth/application/router"
 	client "github.com/vardius/go-api-boilerplate/cmd/auth/domain/client"
 	token "github.com/vardius/go-api-boilerplate/cmd/auth/domain/token"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/persistence/mysql"
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
 	repository "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/repository"
 	auth_grpc "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/grpc"
-	http "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/http"
+	auth_http "github.com/vardius/go-api-boilerplate/cmd/auth/interfaces/http"
 	buildinfo "github.com/vardius/go-api-boilerplate/pkg/buildinfo"
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
@@ -24,11 +23,9 @@ import (
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	log "github.com/vardius/go-api-boilerplate/pkg/log"
 	mysql "github.com/vardius/go-api-boilerplate/pkg/mysql"
-	server "github.com/vardius/go-api-boilerplate/pkg/server"
 	pubsub_proto "github.com/vardius/pubsub/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
-	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 	oauth2_models "gopkg.in/oauth2.v3/models"
 )
 
@@ -61,12 +58,16 @@ func main() {
 	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.Secret)
 	grpcHealthServer := grpc_health.NewServer()
 	grpcAuthServer := auth_grpc.NewServer(oauth2Server, logger, config.Env.Secret)
-	router := router.New(logger)
-	server := server.New(
+	router := auth_http.NewRouter(
 		logger,
-		fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortHTTP),
-		fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortGRPC),
+		oauth2Server,
+		mysqlConnection,
+		map[string]*grpc.ClientConn{
+			"auth":   grpcAuthConn,
+			"pubsub": grpcPubsubConn,
+		},
 	)
+	app := application.New(logger)
 
 	// store our internal user service client
 	clientStore.SetInternal(config.Env.UserClientID, &oauth2_models.Client{
@@ -96,18 +97,18 @@ func main() {
 		}()
 	}()
 
-	http.AddHealthCheckRoutes(
-		router,
-		mysqlConnection,
-		map[string]*grpc.ClientConn{
-			"auth":   grpcAuthConn,
-			"pubsub": grpcPubsubConn,
-		},
+	app.AddAdapters(
+		auth_http.NewAdapter(
+			fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortHTTP),
+			router,
+		),
+		auth_grpc.NewAdapter(
+			fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortGRPC),
+			grpcServer,
+			grpcHealthServer,
+			grpcAuthServer,
+		),
 	)
-	http.AddAuthRoutes(router, oauth2Server)
 
-	auth_proto.RegisterAuthenticationServiceServer(grpcServer, grpcAuthServer)
-	grpc_health_proto.RegisterHealthServer(grpcServer, grpcHealthServer)
-
-	server.Run(ctx, router, grpcServer, grpcHealthServer)
+	app.Run(ctx)
 }

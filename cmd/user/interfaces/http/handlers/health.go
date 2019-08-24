@@ -1,23 +1,15 @@
-package http
+package handlers
 
 import (
 	"database/sql"
 	"net/http"
 
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
-	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 )
 
-// AddHealthCheckRoutes adds health checks route
-func AddHealthCheckRoutes(router gorouter.Router, db *sql.DB, connMap map[string]*grpc.ClientConn) {
-	// Liveness probes are to indicate that your application is running
-	router.GET("/healthz", buildLivenessHandler())
-	// Readiness is meant to check if your application is ready to serve traffic
-	router.GET("/readiness", buildReadinessHandler(db, connMap))
-}
-
-func buildLivenessHandler() http.Handler {
+// BuildLivenessHandler provides liveness handler
+func BuildLivenessHandler() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write([]byte("ok"))
@@ -26,7 +18,8 @@ func buildLivenessHandler() http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func buildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http.Handler {
+// BuildReadinessHandler provides readiness handler
+func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := db.PingContext(r.Context()); err != nil {
 			w.WriteHeader(500)

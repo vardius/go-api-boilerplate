@@ -7,16 +7,15 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/infrastructure/proto"
+	application "github.com/vardius/go-api-boilerplate/cmd/user/application"
 	config "github.com/vardius/go-api-boilerplate/cmd/user/application/config"
 	eventhandler "github.com/vardius/go-api-boilerplate/cmd/user/application/eventhandler"
 	oauth2 "github.com/vardius/go-api-boilerplate/cmd/user/application/oauth2"
-	router "github.com/vardius/go-api-boilerplate/cmd/user/application/router"
 	user "github.com/vardius/go-api-boilerplate/cmd/user/domain/user"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/persistence/mysql"
-	user_proto "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/proto"
 	repository "github.com/vardius/go-api-boilerplate/cmd/user/infrastructure/repository"
 	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/grpc"
-	http "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/http"
+	user_http "github.com/vardius/go-api-boilerplate/cmd/user/interfaces/http"
 	buildinfo "github.com/vardius/go-api-boilerplate/pkg/buildinfo"
 	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
@@ -24,11 +23,9 @@ import (
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	log "github.com/vardius/go-api-boilerplate/pkg/log"
 	mysql "github.com/vardius/go-api-boilerplate/pkg/mysql"
-	server "github.com/vardius/go-api-boilerplate/pkg/server"
 	pubsub_proto "github.com/vardius/pubsub/proto"
-	"google.golang.org/grpc"
+	grpc "google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
-	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func main() {
@@ -58,12 +55,21 @@ func main() {
 	grpcAuthClient := auth_proto.NewAuthenticationServiceClient(grpcAuthConn)
 	grpcHealthServer := grpc_health.NewServer()
 	grpcUserServer := user_grpc.NewServer(commandBus, userPersistenceRepository, logger)
-	router := router.New(logger, grpcAuthClient, userPersistenceRepository)
-	server := server.New(
+	router := user_http.NewRouter(
 		logger,
-		fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortHTTP),
-		fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortGRPC),
+		userPersistenceRepository,
+		commandBus,
+		mysqlConnection,
+		grpcAuthClient,
+		map[string]*grpc.ClientConn{
+			"user":   grpcUserConn,
+			"auth":   grpcAuthConn,
+			"pubsub": grpcPubsubConn,
+		},
+		oauth2Config,
+		config.Env.Secret,
 	)
+	app := application.New(logger)
 
 	commandBus.Subscribe((user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, mysqlConnection))
 	commandBus.Subscribe((user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, mysqlConnection))
@@ -86,20 +92,18 @@ func main() {
 		)
 	}()
 
-	http.AddHealthCheckRoutes(
-		router,
-		mysqlConnection,
-		map[string]*grpc.ClientConn{
-			"user":   grpcUserConn,
-			"auth":   grpcAuthConn,
-			"pubsub": grpcPubsubConn,
-		},
+	app.AddAdapters(
+		user_http.NewAdapter(
+			fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortHTTP),
+			router,
+		),
+		user_grpc.NewAdapter(
+			fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortGRPC),
+			grpcServer,
+			grpcHealthServer,
+			grpcUserServer,
+		),
 	)
-	http.AddAuthRoutes(router, commandBus, oauth2Config, config.Env.Secret)
-	http.AddUserRoutes(router, commandBus, userPersistenceRepository)
 
-	user_proto.RegisterUserServiceServer(grpcServer, grpcUserServer)
-	grpc_health_proto.RegisterHealthServer(grpcServer, grpcHealthServer)
-
-	server.Run(ctx, router, grpcServer, grpcHealthServer)
+	app.Run(ctx)
 }

@@ -1,4 +1,4 @@
-package http
+package handlers
 
 import (
 	"io/ioutil"
@@ -11,25 +11,12 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/http/security/firewall"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/gorouter/v4"
 )
 
-// AddUserRoutes adds user routes to router
-func AddUserRoutes(router gorouter.Router, cb commandbus.CommandBus, r persistence.UserRepository) {
-	router.POST("/dispatch/{command}", buildCommandDispatchHandler(cb))
-	router.USE(gorouter.POST, "/dispatch/"+user.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
-
-	router.GET("/me", buildMeHandler(r))
-	router.USE(gorouter.GET, "/me", firewall.GrantAccessFor("USER"))
-
-	router.GET("/", buildListUserHandler(r))
-	router.GET("/{id}", buildGetUserHandler(r))
-}
-
-// buildCommandDispatchHandler wraps user gRPC client with http.Handler
-func buildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
+// BuildCommandDispatchHandler wraps user gRPC client with http.Handler
+func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
 
@@ -83,8 +70,8 @@ func buildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// buildMeHandler wraps user gRPC client with http.Handler
-func buildMeHandler(repository persistence.UserRepository) http.Handler {
+// BuildMeHandler wraps user gRPC client with http.Handler
+func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
 
@@ -108,8 +95,8 @@ func buildMeHandler(repository persistence.UserRepository) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// buildGetUserHandler wraps user gRPC client with http.Handler
-func buildGetUserHandler(repository persistence.UserRepository) http.Handler {
+// BuildGetUserHandler wraps user gRPC client with http.Handler
+func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
 
@@ -137,8 +124,8 @@ func buildGetUserHandler(repository persistence.UserRepository) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// buildListUserHandler wraps user gRPC client with http.Handler
-func buildListUserHandler(repository persistence.UserRepository) http.Handler {
+// BuildListUserHandler wraps user gRPC client with http.Handler
+func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
 
