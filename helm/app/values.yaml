@@ -21,7 +21,7 @@ magic-namespace:
         name: <group>
 
 ingress:
-  issuerName: letsencrypt
+  issuerName: selfsigned #letsencrypt
   issuerKind: Issuer
   class: nginx
   annotations:
@@ -70,7 +70,7 @@ heapster:
 
 cert-manager:
   ingressShim:
-    defaultIssuerName: letsencrypt
+    defaultIssuerName: selfsigned #letsencrypt
     defaultIssuerKind: Issuer
   # Override the namespace used to store DNS provider credentials etc. for ClusterIssuer
   # resources. By default, the same namespace as cert-manager is deployed within is
@@ -82,12 +82,15 @@ cert-manager:
     # - --cluster-resource-namespace=go-api-boilerplate
 
 issuer:
-  name: letsencrypt
+  name: selfsigned
   kind: Issuer
-  server: https://acme-v02.api.letsencrypt.org/directory
-  email: example@example.com
-  secretName: go-api-boilerplate-tls
-  http01: true
+  selfSigned: true
+  # name: letsencrypt
+  # kind: Issuer
+  # server: https://acme-v02.api.letsencrypt.org/directory
+  # email: example@example.com
+  # secretName: go-api-boilerplate-tls
+  # http01: true
 
 phpmyadmin:
   service:

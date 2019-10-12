@@ -12,6 +12,9 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
+{{- if .Values.issuer.selfSigned }}
+  selfSigned: {}
+{{- else -}}
   acme:
     server: {{ .Values.issuer.server }}
     email: {{ .Values.issuer.email }}
@@ -35,4 +38,5 @@ spec:
             key:  {{ .secretAccessKey.Secret }}
       {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}
