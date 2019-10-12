@@ -85,7 +85,7 @@ issuer:
   name: letsencrypt
   kind: Issuer
   server: https://acme-v02.api.letsencrypt.org/directory
-  email: example@gmail.com
+  email: example@example.com
   secretName: go-api-boilerplate-tls
   http01: true
 
