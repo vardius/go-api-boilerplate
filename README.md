@@ -128,6 +128,7 @@ Sponsoring
 <p align="center">
   <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
   <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
+<a href="https://app.fossa.io/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate.svg?type=shield"/></a>
 </p>
 
 ## 🚀 Contributing
@@ -191,3 +192,7 @@ Support us with a monthly donation and help us continue our activities.
 Proudly sponsored by [Open Collective sponsors](https://opencollective.com/go-api-boilerplate#sponsor).
 
 - 👥 [Contribute on Open Collective](https://opencollective.com/go-api-boilerplate#sponsor)
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate?ref=badge_large)
