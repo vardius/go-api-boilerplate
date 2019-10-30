@@ -29,12 +29,12 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 	)
 
 	// Liveness probes are to indicate that your application is running
-	router.GET("/healthz", handlers.BuildLivenessHandler())
+	router.GET("/v1/health", handlers.BuildLivenessHandler())
 	// Readiness is meant to check if your application is ready to serve traffic
-	router.GET("/readiness", handlers.BuildReadinessHandler(mysqlConnection, grpcConnectionMap))
+	router.GET("/v1/readiness", handlers.BuildReadinessHandler(mysqlConnection, grpcConnectionMap))
 
-	router.POST("/authorize", handlers.BuildAuthorizeHandler(server))
-	router.POST("/token", handlers.BuildTokenHandler(server))
+	router.POST("/v1/authorize", handlers.BuildAuthorizeHandler(server))
+	router.POST("/v1/token", handlers.BuildTokenHandler(server))
 
 	return router
 }

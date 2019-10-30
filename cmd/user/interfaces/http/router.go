@@ -43,23 +43,23 @@ func NewRouter(logger *log.Logger, repository user_persistance.UserRepository, c
 	)
 
 	// Liveness probes are to indicate that your application is running
-	router.GET("/healthz", handlers.BuildLivenessHandler())
+	router.GET("/v1/health", handlers.BuildLivenessHandler())
 	// Readiness is meant to check if your application is ready to serve traffic
-	router.GET("/readiness", handlers.BuildReadinessHandler(mysqlConnection, grpcConnectionMap))
+	router.GET("/v1/readiness", handlers.BuildReadinessHandler(mysqlConnection, grpcConnectionMap))
 
 	// Auth routes
-	router.POST("/google/callback", handlers.BuildSocialAuthHandler(googleAPIURL, commandBus, user.RegisterUserWithGoogle, secretKey, oauth2Config))
-	router.POST("/facebook/callback", handlers.BuildSocialAuthHandler(facebookAPIURL, commandBus, user.RegisterUserWithFacebook, secretKey, oauth2Config))
+	router.POST("/v1/google/callback", handlers.BuildSocialAuthHandler(googleAPIURL, commandBus, user.RegisterUserWithGoogle, secretKey, oauth2Config))
+	router.POST("/v1/facebook/callback", handlers.BuildSocialAuthHandler(facebookAPIURL, commandBus, user.RegisterUserWithFacebook, secretKey, oauth2Config))
 
 	// User routes
-	router.POST("/dispatch/{command}", handlers.BuildCommandDispatchHandler(commandBus))
-	router.USE(gorouter.POST, "/dispatch/"+user.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
+	router.POST("/v1/dispatch/{command}", handlers.BuildCommandDispatchHandler(commandBus))
+	router.USE(gorouter.POST, "/v1/dispatch/"+user.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
 
-	router.GET("/me", handlers.BuildMeHandler(repository))
-	router.USE(gorouter.GET, "/me", firewall.GrantAccessFor("USER"))
+	router.GET("/v1/me", handlers.BuildMeHandler(repository))
+	router.USE(gorouter.GET, "/v1/me", firewall.GrantAccessFor("USER"))
 
-	router.GET("/", handlers.BuildListUserHandler(repository))
-	router.GET("/{id}", handlers.BuildGetUserHandler(repository))
+	router.GET("/v1/", handlers.BuildListUserHandler(repository))
+	router.GET("/v1/{id}", handlers.BuildGetUserHandler(repository))
 
 	return router
 }

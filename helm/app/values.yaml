@@ -219,12 +219,12 @@ auth:
     initialDelaySeconds: 20
     timeoutSeconds: 5
     httpGet:
-      path: /readiness
+      path: /v1/readiness
       port: 3000
   liveness:
     initialDelaySeconds: 20
     httpGet:
-      path: /healthz
+      path: /v1/health
       port: 3000
 
 user:
@@ -276,12 +276,12 @@ user:
     initialDelaySeconds: 20
     timeoutSeconds: 5
     httpGet:
-      path: /readiness
+      path: /v1/readiness
       port: 3000
   liveness:
     initialDelaySeconds: 20
     httpGet:
-      path: /healthz
+      path: /v1/health
       port: 3000
 
 secrets:
