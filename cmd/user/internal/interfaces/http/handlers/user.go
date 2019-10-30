@@ -13,6 +13,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/gorouter/v4"
+    "github.com/vardius/gorouter/v4/context"
 )
 
 // BuildCommandDispatchHandler wraps user gRPC client with http.Handler
@@ -25,7 +26,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			return
 		}
 
-		params, ok := gorouter.FromContext(r.Context())
+		params, ok := context.Parameters(r.Context())
 		if !ok {
 			response.WithError(r.Context(), ErrInvalidURLParams)
 			return
@@ -105,7 +106,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 			return
 		}
 
-		params, ok := gorouter.FromContext(r.Context())
+		params, ok := context.Parameters(r.Context())
 		if !ok {
 			response.WithError(r.Context(), ErrInvalidURLParams)
 			return
