@@ -24,9 +24,8 @@ WORKDIR /app
 RUN go mod download
 
 # Copy the source code into the container.
-COPY cmd cmd
-COPY pkg pkg
 COPY internal internal
+COPY cmd cmd
 
 # RUN go test ./...
 # RUN go mod verify
