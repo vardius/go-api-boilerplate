@@ -1,54 +1,47 @@
+/*
+Package response provides helpers and utils for working with HTTP response
+*/
 package response
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 )
 
-// AsJSON wraps handler and parse payload to json response
-func ResponseJSON(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+// WithPayloadAsJSON adds payload to context for response
+func WithPayloadAsJSON(ctx context.Context, w http.ResponseWriter, payload interface{}, statusCode int) {
 
-		ctx := contextWithResponse(r.Context())
+	// If there is something to marshal otherwise set status code and do not marshal
+	if payload != nil && statusCode != http.StatusNoContent {
+		encoder := json.NewEncoder(w)
+		encoder.SetEscapeHTML(true)
+		encoder.SetIndent("", "")
 
-		next.ServeHTTP(w, r.WithContext(ctx))
+		err := encoder.Encode(payload)
 
-		if response, ok := fromContext(ctx); ok {
-			if response.payload != nil {
-				switch t := response.payload.(type) {
-				case error:
-					if logger != nil {
-						logger.Debug(r.Context(), "JSON response error:", response.payload.(error).Error())
-					}
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			encoder.Encode(NewErrorFromHTTPStatus(http.StatusInternalServerError))
 
-					w.WriteHeader(errors.HTTPStatusCode(t))
-				}
-
-				encoder := json.NewEncoder(w)
-				encoder.SetEscapeHTML(true)
-				encoder.SetIndent("", "")
-
-				err := encoder.Encode(response.payload)
-
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					encoder.Encode(NewErrorFromHTTPStatus(http.StatusInternalServerError))
-
-					return
-				}
-			}
-
-			if f, ok := w.(http.Flusher); ok {
-				f.Flush()
-			} else {
-				// Write nil in case of setting http.StatusOK header if header not set
-				w.Write(nil)
-			}
+			return
 		}
 	}
 
-	return http.HandlerFunc(fn)
+	w.WriteHeader(statusCode)
+
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	} else {
+		// Write nil in case of setting http.StatusOK header if header not set
+		w.Write(nil)
+	}
+}
+
+// WithErrorAsJSON adds error to context for response
+// uses WithPayloadAsJSON internally
+func WithErrorAsJSON(ctx context.Context, w http.ResponseWriter, err error) {
+	WithPayloadAsJSON(ctx, w, err, errors.HTTPStatusCode(err))
 }
