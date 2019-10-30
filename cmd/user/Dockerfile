@@ -13,14 +13,26 @@ ENV GIT_COMMIT=${GIT_COMMIT}
 ENV GO111MODULE=on
 ENV CGO_ENABLED=0
 
-WORKDIR /app
-ADD . /app
+# Create a location in the container for the source code.
+RUN mkdir -p /app
 
+# Copy the module files first and then download the dependencies. If this
+# doesn't change, we won't need to do this again in future builds.
+COPY go.* /app/
+
+WORKDIR /app
 RUN go mod download
-RUN go test ./...
-RUN go mod verify
+
+# Copy the source code into the container.
+COPY cmd cmd
+COPY pkg pkg
+COPY internal internal
+
+# RUN go test ./...
+# RUN go mod verify
 
 RUN go build \
+    -mod=readonly \
     -ldflags "-X github.com/vardius/go-api-boilerplate/pkg/buildinfo.Version=$VERSION -X github.com/vardius/go-api-boilerplate/pkg/buildinfo.GitCommit=$GIT_COMMIT -X 'github.com/vardius/go-api-boilerplate/pkg/buildinfo.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'" \
     -a -o /go/bin/app ./cmd/"$BIN"
 
