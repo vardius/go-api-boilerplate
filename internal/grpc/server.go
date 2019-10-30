@@ -13,10 +13,10 @@ import (
 )
 
 // ServerConfig provides values for gRPC server configuration
-type ServerConfig interface {
-	GetGrpcServerMinTime() time.Duration
-	GetGrpcServerTime() time.Duration
-	GetGrpcServerTimeout() time.Duration
+type ServerConfig struct {
+	ServerMinTime time.Duration
+	ServerTime time.Duration
+	ServerTimeout time.Duration
 }
 
 // NewServer provides new grpc server
@@ -31,12 +31,12 @@ func NewServer(cfg ServerConfig, logger golog.Logger) *grpc.Server {
 
 	server := grpc.NewServer(
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
-			MinTime:             cfg.GetGrpcServerMinTime(), // If a client pings more than once every 5 minutes, terminate the connection
-			PermitWithoutStream: true,                       // Allow pings even when there are no active streams
+			MinTime:             cfg.ServerMinTime, // If a client pings more than once every 5 minutes, terminate the connection
+			PermitWithoutStream: true,              // Allow pings even when there are no active streams
 		}),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
-			Time:    cfg.GetGrpcServerTime(),    // Ping the client if it is idle for 2 hours to ensure the connection is still active
-			Timeout: cfg.GetGrpcServerTimeout(), // Wait 20 second for the ping ack before assuming the connection is dead
+			Time:    cfg.ServerTime,    // Ping the client if it is idle for 2 hours to ensure the connection is still active
+			Timeout: cfg.ServerTimeout, // Wait 20 second for the ping ack before assuming the connection is dead
 		}),
 		grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(opts...),

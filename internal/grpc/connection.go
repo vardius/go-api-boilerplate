@@ -12,9 +12,9 @@ import (
 )
 
 // ConnectionConfig provides values for gRPC connection configuration
-type ConnectionConfig interface {
-	GetGrpcConnTime() time.Duration
-	GetGrpcConnTimeout() time.Duration
+type ConnectionConfig struct {
+	ConnTime time.Duration
+	ConnTimeout time.Duration
 }
 
 // NewConnection provides new grpc connection
@@ -22,9 +22,9 @@ func NewConnection(ctx context.Context, host string, port int, cfg ConnectionCon
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:                cfg.GetGrpcConnTime(),    // send pings every 10 seconds if there is no activity
-			Timeout:             cfg.GetGrpcConnTimeout(), // wait 20 second for ping ack before considering the connection dead
-			PermitWithoutStream: true,                     // send pings even without active streams
+			Time:                cfg.ConnTime,    // send pings every 10 seconds if there is no activity
+			Timeout:             cfg.ConnTimeout, // wait 20 second for ping ack before considering the connection dead
+			PermitWithoutStream: true,            // send pings even without active streams
 		}),
 	}
 	conn, err := grpc.DialContext(ctx, fmt.Sprintf("%s:%d", host, port), opts...)
