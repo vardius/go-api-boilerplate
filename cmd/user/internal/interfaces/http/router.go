@@ -75,10 +75,10 @@ func NewRouter(logger *log.Logger, repository user_persistance.UserRepository, c
 
 	// User routes
 	router.POST("/v1/dispatch/{command}", handlers.BuildCommandDispatchHandler(commandBus))
-	router.USE(gorouter.POST, "/v1/dispatch/"+user.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
+	router.USE(http.MethodPost, "/v1/dispatch/"+user.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
 
 	router.GET("/v1/me", handlers.BuildMeHandler(repository))
-	router.USE(gorouter.GET, "/v1/me", firewall.GrantAccessFor("USER"))
+	router.USE(http.MethodGet, "/v1/me", firewall.GrantAccessFor("USER"))
 
 	router.GET("/v1/", handlers.BuildListUserHandler(repository))
 	router.GET("/v1/{id}", handlers.BuildGetUserHandler(repository))
