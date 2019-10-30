@@ -38,7 +38,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 		return nil, status.Error(codes.Internal, "Could not build command from payload")
 	}
 
-	out := make(chan error)
+	out := make(chan error, 1)
 	defer close(out)
 
 	go func() {

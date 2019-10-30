@@ -44,7 +44,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			return
 		}
 
-		out := make(chan error)
+		out := make(chan error, 1)
 		defer close(out)
 
 		go func() {

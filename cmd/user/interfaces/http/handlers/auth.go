@@ -33,7 +33,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			return
 		}
 
-		out := make(chan error)
+		out := make(chan error, 1)
 		defer close(out)
 
 		go func() {

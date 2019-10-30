@@ -27,7 +27,7 @@ type TokenStore struct {
 // Create create and store the new token information
 func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 	ctx := context.Background()
-	out := make(chan error)
+	out := make(chan error, 1)
 	defer close(out)
 
 	c := token.Create{
@@ -123,7 +123,7 @@ func (ts *TokenStore) toTokenInfo(data []byte) (oauth2.TokenInfo, error) {
 }
 
 func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
-	out := make(chan error)
+	out := make(chan error, 1)
 	defer close(out)
 
 	c := token.Remove{

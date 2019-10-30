@@ -114,7 +114,7 @@ func (r *repositoryMock) Get(id uuid.UUID) User {
 
 func testCommandHandler(t *testing.T, fn func(context.Context, chan<- error)) {
 	ctx := context.Background()
-	out := make(chan error)
+	out := make(chan error, 1)
 	defer close(out)
 
 	go fn(ctx, out)
