@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/golog"
@@ -20,7 +21,7 @@ func WithRecover(next http.Handler) http.Handler {
 		defer func() {
 			if rec := recover(); rec != nil {
 				if logger != nil {
-					logger.Critical(r.Context(), "[HTTP] Recovered in %v", rec)
+					logger.Critical(r.Context(), "[HTTP] Recovered in %v\n%s", rec, debug.Stack())
 				}
 
 				writeError(r.Context(), w)

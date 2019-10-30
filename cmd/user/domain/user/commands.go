@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"runtime/debug"
 
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
@@ -308,5 +310,8 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 func recoverCommandHandler(out chan<- error) {
 	if r := recover(); r != nil {
 		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+
+		// Log the Go stack trace for this panic'd goroutine.
+		log.Printf("%s", debug.Stack())
 	}
 }

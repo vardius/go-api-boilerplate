@@ -1,9 +1,12 @@
 package eventhandler
 
-import "log"
+import (
+	"log"
+	"runtime/debug"
+)
 
 func recoverEventHandler() {
 	if r := recover(); r != nil {
-		log.Printf("[EventHandler] Recovered in %v", r)
+		log.Printf("[EventHandler] Recovered in %v\n%s", r, debug.Stack())
 	}
 }
