@@ -47,6 +47,7 @@ func (app *App) Run(ctx context.Context) {
 			go func(adapter Adapter) {
 				if err := adapter.Stop(ctx); err != nil {
 					app.logger.Critical(ctx, "shutdown error: %v\n", err)
+					os.Exit(1)
 				}
 			}(adapter)
 		}
@@ -56,9 +57,14 @@ func (app *App) Run(ctx context.Context) {
 
 	for _, adapter := range app.adapters {
 		go func(adapter Adapter) {
-			app.logger.Critical(ctx, "%v\n", adapter.Start(ctx))
+			err := adapter.Start(ctx)
+
 			stop()
-			os.Exit(1)
+
+			if err != nil {
+				app.logger.Critical(ctx, "%v\n", adapter.Start(ctx))
+				os.Exit(1)
+			}
 		}(adapter)
 	}
 
