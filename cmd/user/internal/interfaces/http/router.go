@@ -26,26 +26,6 @@ import (
 const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
-// ctxKey represents the type of value for the context key.
-type ctxKey int
-
-// KeyValues is how request values or stored/retrieved.
-const KeyValues ctxKey = 1
-
-// Values represent state for each request.
-type Values struct {
-	TraceID    string
-	Now        time.Time
-	StatusCode int
-}
-
-// A Handler is a type that handles an http request within our own little mini
-// framework.
-type Handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error
-
-// @TODO: add trace id https://github.com/ardanlabs/service/blob/master/internal/platform/web/web.go#L87
-// so u can differentiate logs
-
 // NewRouter provides new router
 func NewRouter(logger *log.Logger, repository user_persistance.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient auth_proto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
 	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, repository))
@@ -54,7 +34,7 @@ func NewRouter(logger *log.Logger, repository user_persistance.UserRepository, c
 	http_response.WithLogger(logger)
 
 	// Global middleware
-	router := gorouter.New(
+	router := goroter.New(
 		logger.LogRequest,
 		http_cors.Default().Handler,
 		http_response.WithXSS,
