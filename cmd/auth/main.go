@@ -6,7 +6,6 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	application "github.com/vardius/go-api-boilerplate/cmd/auth/internal/application"
 	config "github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	eventhandler "github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
 	oauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/oauth2"
@@ -16,13 +15,15 @@ import (
 	repository "github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/repository"
 	auth_grpc "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/grpc"
 	auth_http "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http"
-	buildinfo "github.com/vardius/go-api-boilerplate/pkg/buildinfo"
-	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
-	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
-	log "github.com/vardius/go-api-boilerplate/pkg/log"
-	mysql "github.com/vardius/go-api-boilerplate/pkg/mysql"
+	application "github.com/vardius/go-api-boilerplate/internal/application"
+	buildinfo "github.com/vardius/go-api-boilerplate/internal/buildinfo"
+	commandbus "github.com/vardius/go-api-boilerplate/internal/commandbus"
+	debug "github.com/vardius/go-api-boilerplate/internal/debug"
+	eventbus "github.com/vardius/go-api-boilerplate/internal/eventbus"
+	eventstore "github.com/vardius/go-api-boilerplate/internal/eventstore/memory"
+	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
+	log "github.com/vardius/go-api-boilerplate/internal/log"
+	mysql "github.com/vardius/go-api-boilerplate/internal/mysql"
 	pubsub_proto "github.com/vardius/pubsub/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
@@ -34,16 +35,54 @@ func main() {
 
 	ctx := context.Background()
 
-	logger := log.New(config.Env.Environment)
+	logger := log.New(config.Env.APP.Environment)
 	eventStore := eventstore.New()
-	grpcServer := grpc_utils.NewServer(config.Env, logger)
-	commandBus := commandbus.New(config.Env.CommandBusQueueSize, logger)
+	grpcServer := grpc_utils.NewServer(
+		grpc_utils.ServerConfig{
+			ServerMinTime: config.Env.GRPC.ServerMinTime,
+			ServerTime:    config.Env.GRPC.ServerTime,
+			ServerTimeout: config.Env.GRPC.ServerTimeout,
+		},
+		logger,
+	)
+	commandBus := commandbus.New(config.Env.CommandBus.QueueSize, logger)
 
-	mysqlConnection := mysql.NewConnection(ctx, config.Env, logger)
+	mysqlConnection := mysql.NewConnection(
+		ctx,
+		mysql.ConnectionConfig{
+			Host:            config.Env.DB.Host,
+			Port:            config.Env.DB.Port,
+			User:            config.Env.DB.User,
+			Pass:            config.Env.DB.Pass,
+			Database:        config.Env.DB.Database,
+			ConnMaxLifetime: config.Env.DB.ConnMaxLifetime,
+			MaxIdleConns:    config.Env.DB.MaxIdleConns,
+			MaxOpenConns:    config.Env.DB.MaxOpenConns,
+		},
+		logger,
+	)
 	defer mysqlConnection.Close()
-	grpcPubsubConn := grpc_utils.NewConnection(ctx, config.Env.PubSubHost, config.Env.PortGRPC, config.Env, logger)
+	grpcPubsubConn := grpc_utils.NewConnection(
+		ctx,
+		config.Env.PubSub.Host,
+		config.Env.GRPC.Port,
+		grpc_utils.ConnectionConfig{
+			ConnTime:    config.Env.GRPC.ConnTime,
+			ConnTimeout: config.Env.GRPC.ConnTimeout,
+		},
+		logger,
+	)
 	defer grpcPubsubConn.Close()
-	grpcAuthConn := grpc_utils.NewConnection(ctx, config.Env.Host, config.Env.PortGRPC, config.Env, logger)
+	grpcAuthConn := grpc_utils.NewConnection(
+		ctx,
+		config.Env.GRPC.Host,
+		config.Env.GRPC.Port,
+		grpc_utils.ConnectionConfig{
+			ConnTime:    config.Env.GRPC.ConnTime,
+			ConnTimeout: config.Env.GRPC.ConnTimeout,
+		},
+		logger,
+	)
 	defer grpcAuthConn.Close()
 
 	grpPubsubClient := pubsub_proto.NewMessageBusClient(grpcPubsubConn)
@@ -54,10 +93,10 @@ func main() {
 	clientPersistenceRepository := persistence.NewClientRepository(mysqlConnection)
 	tokenStore := oauth2.NewTokenStore(tokenPersistenceRepository, commandBus)
 	clientStore := oauth2.NewClientStore(clientPersistenceRepository)
-	manager := oauth2.NewManager(tokenStore, clientStore, []byte(config.Env.Secret))
-	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.Secret)
+	manager := oauth2.NewManager(tokenStore, clientStore, []byte(config.Env.APP.Secret))
+	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.APP.Secret)
 	grpcHealthServer := grpc_health.NewServer()
-	grpcAuthServer := auth_grpc.NewServer(oauth2Server, logger, config.Env.Secret)
+	grpcAuthServer := auth_grpc.NewServer(oauth2Server, logger, config.Env.APP.Secret)
 	router := auth_http.NewRouter(
 		logger,
 		oauth2Server,
@@ -70,10 +109,10 @@ func main() {
 	app := application.New(logger)
 
 	// store our internal user service client
-	clientStore.SetInternal(config.Env.UserClientID, &oauth2_models.Client{
-		ID:     config.Env.UserClientID,
-		Secret: config.Env.UserClientSecret,
-		Domain: fmt.Sprintf("http://%s:%d", config.Env.UserHost, config.Env.PortHTTP),
+	clientStore.SetInternal(config.Env.User.ClientID, &oauth2_models.Client{
+		ID:     config.Env.User.ClientID,
+		Secret: config.Env.User.ClientSecret,
+		Domain: fmt.Sprintf("http://%s:%d", config.Env.User.Host, config.Env.HTTP.Port),
 	})
 
 	commandBus.Subscribe((token.Create{}).GetName(), token.OnCreate(tokenRepository, mysqlConnection))
@@ -99,16 +138,25 @@ func main() {
 
 	app.AddAdapters(
 		auth_http.NewAdapter(
-			fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortHTTP),
+			fmt.Sprintf("%s:%d", config.Env.HTTP.Host, config.Env.HTTP.Port),
 			router,
 		),
 		auth_grpc.NewAdapter(
-			fmt.Sprintf("%s:%d", config.Env.Host, config.Env.PortGRPC),
+			fmt.Sprintf("%s:%d", config.Env.GRPC.Host, config.Env.GRPC.Port),
 			grpcServer,
 			grpcHealthServer,
 			grpcAuthServer,
 		),
 	)
 
+	if config.Env.APP.Environment == "development" {
+		app.AddAdapters(
+			debug.NewAdapter(
+				fmt.Sprintf("%s:%d", config.Env.Debug.Host, config.Env.Debug.Port),
+			),
+		)
+	}
+
+	app.WithShutdownTimeout(config.Env.APP.ShutdownTimeout)
 	app.Run(ctx)
 }
