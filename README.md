@@ -61,6 +61,7 @@ Worth getting to know packages used in this boilerplate:
 3. [gollback](https://github.com/vardius/gollback)
 4. [shutdown](https://github.com/vardius/shutdown)
 5. [pubsub](https://github.com/vardius/pubsub)
+6. [ardanlabs/service](https://github.com/ardanlabs/service)
 
 DOCUMENTATION
 ==================================================
