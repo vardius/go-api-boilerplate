@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"runtime"
 	"time"
 
@@ -11,19 +12,24 @@ import (
 var Env *environment
 
 type environment struct {
-	Environment string `env:"ENV"     envDefault:"development"`
-
+	APP struct {
+		Environment     string        `env:"ENV"     envDefault:"development"`
+		ShutdownTimeout time.Duration `env:"HTTP_SERVER_SHUTDOWN_TIMEOUT" envDefault:"5s"`
+		Secret          string        `env:"SECRET"  envDefault:"secret"`
+	}
+	Debug struct {
+		Host string `env:"DEBUG_HOST"      envDefault:"0.0.0.0"`
+		Port int    `env:"DEBUG_PORT_HTTP" envDefault:"4000"`
+	}
 	HTTP struct {
-		Secret  string   `env:"SECRET"  envDefault:"secret"`
 		Origins []string `env:"ORIGINS" envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]
 
 		Host string `env:"HOST"      envDefault:"0.0.0.0"`
 		Port int    `env:"PORT_HTTP" envDefault:"3000"`
 
-		ReadTimeout     time.Duration `env:"HTTP_SERVER_READ_TIMEOUT" envDefault:"5s"`
-		WriteTimeout    time.Duration `env:"HTTP_SERVER_WRITE_TIMEOUT" envDefault:"10s"`
-		IdleTimeout     time.Duration `env:"HTTP_SERVER_SHUTDOWN_TIMEOUT" envDefault:"120s"`
-		ShutdownTimeout time.Duration `env:"HTTP_SERVER_SHUTDOWN_TIMEOUT" envDefault:"5s"`
+		ReadTimeout  time.Duration `env:"HTTP_SERVER_READ_TIMEOUT" envDefault:"5s"`
+		WriteTimeout time.Duration `env:"HTTP_SERVER_WRITE_TIMEOUT" envDefault:"10s"`
+		IdleTimeout  time.Duration `env:"HTTP_SERVER_SHUTDOWN_TIMEOUT" envDefault:"120s"`
 	}
 	GRPC struct {
 		Host string `env:"HOST"      envDefault:"0.0.0.0"`
@@ -36,11 +42,11 @@ type environment struct {
 		ConnTimeout   time.Duration `env:"GRPC_CONN_TIMEOUT" envDefault:"20s"`   // wait 20 second for ping ack before considering the connection dead
 	}
 	DB struct {
-		Host string `env:"DB_HOST" envDefault:"0.0.0.0"`
-		Port int    `env:"DB_PORT" envDefault:"3306"`
-		User string `env:"DB_USER" envDefault:"root"`
-		Pass string `env:"DB_PASS" envDefault:"password"`
-		Name string `env:"DB_NAME" envDefault:"goapiboilerplate"`
+		Host     string `env:"DB_HOST" envDefault:"0.0.0.0"`
+		Port     int    `env:"DB_PORT" envDefault:"3306"`
+		User     string `env:"DB_USER" envDefault:"root"`
+		Pass     string `env:"DB_PASS" envDefault:"password"`
+		Database string `env:"DB_NAME" envDefault:"goapiboilerplate"`
 
 		ConnMaxLifetime time.Duration `env:"MYSQL_CONN_MAX_LIFETIME" envDefault:"5m"` //  sets the maximum amount of time a connection may be reused
 		MaxIdleConns    int           `env:"MYSQL_MAX_IDLE_CONNS" envDefault:"0"`     // sets the maximum number of connections in the idle
@@ -53,14 +59,10 @@ type environment struct {
 	}
 	PubSub struct {
 		Host string `env:"PUBSUB_HOST" envDefault:"0.0.0.0"`
+		Port int    `env:"PUBSUB_HTTP" envDefault:"3001"`
 	}
 	CommandBus struct {
 		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
-	}
-	Debug struct {
-		// @TODO https://github.com/ardanlabs/service/blob/master/cmd/sales-api/main.go#L106
-		Host string `env:"DEBUG_HOST"      envDefault:"0.0.0.0"`
-		Port int    `env:"DEBUG_PORT_HTTP" envDefault:"4000"`
 	}
 }
 
@@ -71,4 +73,6 @@ func init() {
 	if Env.CommandBus.QueueSize == 0 {
 		Env.CommandBus.QueueSize = runtime.NumCPU()
 	}
+
+	log.Printf("config init : Env :\n%v\n", Env)
 }
