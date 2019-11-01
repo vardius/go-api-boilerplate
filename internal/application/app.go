@@ -17,14 +17,17 @@ type Adapter interface {
 
 // App represents application service
 type App struct {
-	logger   golog.Logger
-	adapters []Adapter
+	adapters        []Adapter
+	shutdownTimeout time.Duration
+
+	logger golog.Logger
 }
 
 // New provides new service application
 func New(logger golog.Logger) *App {
 	return &App{
-		logger: logger,
+		shutdownTimeout: 5 * time.Second, // Default shutdown timeout
+		logger:          logger,
 	}
 }
 
@@ -35,10 +38,15 @@ func (app *App) AddAdapters(adapters ...Adapter) *App {
 	}
 }
 
+// WithShutdownTimeout overrides default shutdown timout
+func (app *App) WithShutdownTimeout(timeout time.Duration) {
+	app.shutdownTimeout = timeout
+}
+
 // Run runs the service application
 func (app *App) Run(ctx context.Context) {
 	stop := func() {
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, app.shutdownTimeout)
 		defer cancel()
 
 		app.logger.Info(ctx, "shutting down...\n")
@@ -57,13 +65,9 @@ func (app *App) Run(ctx context.Context) {
 
 	for _, adapter := range app.adapters {
 		go func(adapter Adapter) {
-			err := adapter.Start(ctx)
-
-			stop()
-
-			if err != nil {
-				app.logger.Critical(ctx, "%v\n", adapter.Start(ctx))
-				os.Exit(1)
+			if err := adapter.Start(ctx); err != nil {
+				app.logger.Critical(ctx, "%v\n", err)
+				stop()
 			}
 		}(adapter)
 	}
