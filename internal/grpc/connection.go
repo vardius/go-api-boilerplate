@@ -13,7 +13,7 @@ import (
 
 // ConnectionConfig provides values for gRPC connection configuration
 type ConnectionConfig struct {
-	ConnTime time.Duration
+	ConnTime    time.Duration
 	ConnTimeout time.Duration
 }
 

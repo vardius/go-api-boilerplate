@@ -15,7 +15,7 @@ import (
 // ServerConfig provides values for gRPC server configuration
 type ServerConfig struct {
 	ServerMinTime time.Duration
-	ServerTime time.Duration
+	ServerTime    time.Duration
 	ServerTimeout time.Duration
 }
 
