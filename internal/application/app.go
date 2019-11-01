@@ -65,10 +65,9 @@ func (app *App) Run(ctx context.Context) {
 
 	for _, adapter := range app.adapters {
 		go func(adapter Adapter) {
-			if err := adapter.Start(ctx); err != nil {
-				app.logger.Critical(ctx, "%v\n", err)
-				stop()
-			}
+			app.logger.Critical(ctx, "adapter start error: %v\n", adapter.Start(ctx))
+			stop()
+			os.Exit(1)
 		}(adapter)
 	}
 
