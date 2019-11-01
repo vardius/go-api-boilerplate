@@ -23,13 +23,13 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		accessToken := r.FormValue("accessToken")
 		profileData, e := getProfile(accessToken, apiURL)
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INVALID, "Invalid access token"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INVALID, "Invalid access token"))
 			return
 		}
 
 		c, err := user.NewCommandFromPayload(commandName, profileData)
 		if err != nil {
-			response.WithError(r.Context(), errors.Wrap(err, errors.INTERNAL, "Invalid request"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Invalid request"))
 			return
 		}
 
@@ -42,11 +42,11 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 
 		select {
 		case <-r.Context().Done():
-			response.WithError(r.Context(), errors.Wrap(r.Context().Err(), errors.INTERNAL, "Invalid request"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(r.Context().Err(), errors.INTERNAL, "Invalid request"))
 			return
 		case err = <-out:
 			if e != nil {
-				response.WithError(r.Context(), errors.Wrap(err, errors.INTERNAL, "Invalid request"))
+				response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Invalid request"))
 				return
 			}
 		}
@@ -54,17 +54,17 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		emailData := requestBody{}
 		e = json.Unmarshal(profileData, &emailData)
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body"))
 			return
 		}
 
 		token, err := config.PasswordCredentialsToken(r.Context(), emailData.Email, secretKey)
 		if err != nil {
-			response.WithError(r.Context(), errors.Wrap(err, errors.INTERNAL, "Generate token failure"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Generate token failure"))
 			return
 		}
 
-		response.WithPayload(r.Context(), token)
+		response.RespondJSON(r.Context(), w, token, http.StatusOK)
 	}
 
 	return http.HandlerFunc(fn)

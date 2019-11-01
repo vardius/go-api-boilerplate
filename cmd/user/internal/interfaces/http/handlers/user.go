@@ -21,26 +21,26 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.WithError(r.Context(), ErrEmptyRequestBody)
+			response.RespondJSONError(r.Context(), w, ErrEmptyRequestBody)
 			return
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.WithError(r.Context(), ErrInvalidURLParams)
+			response.RespondJSONError(r.Context(), w, ErrInvalidURLParams)
 			return
 		}
 
 		defer r.Body.Close()
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request body"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid request body"))
 			return
 		}
 
 		c, e := user.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid command payload"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid command payload"))
 			return
 		}
 
@@ -53,11 +53,11 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 
 		select {
 		case <-r.Context().Done():
-			response.WithError(r.Context(), errors.Wrap(r.Context().Err(), errors.TIMEOUT, "Request timeout"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(r.Context().Err(), errors.TIMEOUT, "Request timeout"))
 			return
 		case e = <-out:
 			if e != nil {
-				response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Command handler error"))
+				response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Command handler error"))
 				return
 			}
 		}
@@ -76,7 +76,7 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.WithError(r.Context(), ErrEmptyRequestBody)
+			response.RespondJSONError(r.Context(), w, ErrEmptyRequestBody)
 			return
 		}
 
@@ -84,11 +84,11 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 
 		user, e := repository.Get(r.Context(), i.ID.String())
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.NOTFOUND, "User not found"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.NOTFOUND, "User not found"))
 			return
 		}
 
-		response.WithPayload(r.Context(), user)
+		response.RespondJSON(r.Context(), w, user, http.StatusOK)
 		return
 	}
 
@@ -101,23 +101,23 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.WithError(r.Context(), ErrEmptyRequestBody)
+			response.RespondJSONError(r.Context(), w, ErrEmptyRequestBody)
 			return
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.WithError(r.Context(), ErrInvalidURLParams)
+			response.RespondJSONError(r.Context(), w, ErrInvalidURLParams)
 			return
 		}
 
 		user, e := repository.Get(r.Context(), params.Value("id"))
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.NOTFOUND, "User not found"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.NOTFOUND, "User not found"))
 			return
 		}
 
-		response.WithPayload(r.Context(), user)
+		response.RespondJSON(r.Context(), w, user, http.StatusOK)
 		return
 	}
 
@@ -130,7 +130,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.WithError(r.Context(), ErrEmptyRequestBody)
+			response.RespondJSONError(r.Context(), w, ErrEmptyRequestBody)
 			return
 		}
 
@@ -141,7 +141,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 
 		totalUsers, e := repository.Count(r.Context())
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid request"))
 			return
 		}
 
@@ -159,17 +159,17 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
-			response.WithPayload(r.Context(), paginatedList)
+			response.RespondJSON(r.Context(), w, paginatedList, http.StatusOK)
 			return
 		}
 
 		paginatedList.Users, e = repository.FindAll(r.Context(), limit, offset)
 		if e != nil {
-			response.WithError(r.Context(), errors.Wrap(e, errors.INTERNAL, "Invalid request"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid request"))
 			return
 		}
 
-		response.WithPayload(r.Context(), paginatedList)
+		response.RespondJSON(r.Context(), w, paginatedList, http.StatusOK)
 		return
 	}
 

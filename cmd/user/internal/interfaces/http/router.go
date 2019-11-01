@@ -1,23 +1,21 @@
 package http
 
 import (
-	"context"
 	"database/sql"
 	"net/http"
-	"time"
 
 	http_cors "github.com/rs/cors"
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/proto"
+	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	user_security "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	user_persistance "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	handlers "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
-	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	http_recovery "github.com/vardius/go-api-boilerplate/pkg/http/recovery"
-	http_response "github.com/vardius/go-api-boilerplate/pkg/http/response"
-	http_authenticator "github.com/vardius/go-api-boilerplate/pkg/http/security/authenticator"
-	"github.com/vardius/go-api-boilerplate/pkg/http/security/firewall"
-	log "github.com/vardius/go-api-boilerplate/pkg/log"
+	commandbus "github.com/vardius/go-api-boilerplate/internal/commandbus"
+	http_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware"
+	http_authenticator "github.com/vardius/go-api-boilerplate/internal/http/middleware/authenticator"
+	"github.com/vardius/go-api-boilerplate/internal/http/middleware/firewall"
+	http_metadata_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
+	log "github.com/vardius/go-api-boilerplate/internal/log"
 	gorouter "github.com/vardius/gorouter/v4"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
@@ -30,18 +28,18 @@ const facebookAPIURL = "https://graph.facebook.com/me"
 func NewRouter(logger *log.Logger, repository user_persistance.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient auth_proto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
 	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, repository))
 
-	http_recovery.WithLogger(logger)
-	http_response.WithLogger(logger)
-
 	// Global middleware
-	router := goroter.New(
-		logger.LogRequest,
+	router := gorouter.New(
+		http_metadata_middleware.WithMetadata(),
+		http_middleware.Logger(logger),
+		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 		http_cors.Default().Handler,
-		http_response.WithXSS,
-		http_response.WithHSTS,
+		http_middleware.XSS(),
+		http_middleware.HSTS(),
 		auth.FromHeader("USER"),
 		auth.FromQuery("authToken"),
-		http_recovery.WithRecover,
+		http_middleware.Metrics(),
+		http_middleware.Recover(logger),
 	)
 
 	// Liveness probes are to indicate that your application is running
