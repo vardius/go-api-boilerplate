@@ -12,14 +12,14 @@ import (
 
 // ConnectionConfig provides values for gRPC connection configuration
 type ConnectionConfig struct {
-	Host string
-	Port int
-	User string
-	Pass string
-	Database string
+	Host            string
+	Port            int
+	User            string
+	Pass            string
+	Database        string
 	ConnMaxLifetime time.Duration
-	MaxIdleConns int
-	MaxOpenConns int
+	MaxIdleConns    int
+	MaxOpenConns    int
 }
 
 // NewConnection provides new mysql connection
