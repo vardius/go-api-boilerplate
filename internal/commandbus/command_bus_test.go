@@ -35,9 +35,10 @@ func TestSubscribePublish(t *testing.T) {
 
 	bus.Publish(ctx, &commandMock{}, c)
 
+	ctxDoneCh := ctx.Done()
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctxDoneCh:
 			t.Fatal(ctx.Err())
 			return
 		case err := <-c:
@@ -64,9 +65,10 @@ func TestUnsubscribe(t *testing.T) {
 
 	bus.Publish(ctx, &commandMock{}, c)
 
+	ctxDoneCh := ctx.Done()
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctxDoneCh:
 			return
 		}
 	}

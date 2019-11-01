@@ -38,8 +38,9 @@ func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 		ts.commandBus.Publish(ctx, c, out)
 	}()
 
+	ctxDoneCh := ctx.Done()
 	select {
-	case <-ctx.Done():
+	case <-ctxDoneCh:
 		return errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context done")
 	case err := <-out:
 		if err != nil {
@@ -134,8 +135,9 @@ func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 		ts.commandBus.Publish(ctx, c, out)
 	}()
 
+	ctxDoneCh := ctx.Done()
 	select {
-	case <-ctx.Done():
+	case <-ctxDoneCh:
 		return errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context done")
 	case err := <-out:
 		if err != nil {

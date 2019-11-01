@@ -45,8 +45,9 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 		s.commandBus.Publish(ctx, c, out)
 	}()
 
+	ctxDoneCh := ctx.Done()
 	select {
-	case <-ctx.Done():
+	case <-ctxDoneCh:
 		return nil, status.Error(codes.Internal, "Context done")
 	case err := <-out:
 		if err != nil {

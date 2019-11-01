@@ -119,8 +119,9 @@ func testCommandHandler(t *testing.T, fn func(context.Context, chan<- error)) {
 
 	go fn(ctx, out)
 
+	ctxDoneCh := ctx.Done()
 	select {
-	case <-ctx.Done():
+	case <-ctxDoneCh:
 		t.Fatal(ctx.Err())
 	case err := <-out:
 		if err != nil {
