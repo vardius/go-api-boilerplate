@@ -30,6 +30,13 @@ spec:
   issuerRef:
     name: {{ $values.ingress.issuerName }}
     kind: {{ $values.ingress.issuerKind }}
+  # DCOS-60297 Update certificate to comply with Apple security requirements
+  # https://support.apple.com/en-us/HT210176
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+  - code signing
 ---
 {{- end }}
 {{- end }}
