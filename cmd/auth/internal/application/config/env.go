@@ -68,7 +68,15 @@ type environment struct {
 
 func init() {
 	Env = &environment{}
-	env.Parse(Env)
+
+	env.Parse(&Env.APP)
+	env.Parse(&Env.Debug)
+	env.Parse(&Env.HTTP)
+	env.Parse(&Env.GRPC)
+	env.Parse(&Env.DB)
+	env.Parse(&Env.User)
+	env.Parse(&Env.PubSub)
+	env.Parse(&Env.CommandBus)
 
 	if Env.CommandBus.QueueSize == 0 {
 		Env.CommandBus.QueueSize = runtime.NumCPU()
