@@ -4,11 +4,7 @@
 profile.out
 coverage.txt
 
-.env
-cmd/**/.env
 *.log*
 
 debug
 vendor
-
-cmd/server/server
