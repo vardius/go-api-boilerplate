@@ -8,8 +8,8 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/internal/domain"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 )
 
 // StreamName for user domain

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 )
 
 // NullInt64 is an alias for sql.NullInt64 data type

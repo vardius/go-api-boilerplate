@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/internal/domain"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/golog"
 	"github.com/vardius/pubsub/proto"
 )

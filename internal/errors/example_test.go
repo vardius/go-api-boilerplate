@@ -3,7 +3,7 @@ package errors_test
 import (
 	"fmt"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 )
 
 func ExampleNew() {

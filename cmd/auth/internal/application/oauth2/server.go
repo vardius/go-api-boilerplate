@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"sync"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/golog"
 	oauth2 "gopkg.in/oauth2.v3"
 	oauth2_errors "gopkg.in/oauth2.v3/errors"

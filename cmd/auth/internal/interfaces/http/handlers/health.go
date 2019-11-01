@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
+	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
 	"google.golang.org/grpc"
 )
 

@@ -2,7 +2,7 @@ package eventstore
 
 import (
 	"github.com/google/uuid"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/internal/domain"
 )
 
 // EventStore methods allow to save, load events and event streams

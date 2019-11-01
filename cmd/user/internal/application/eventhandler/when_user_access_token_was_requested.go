@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/internal/domain"
+	"github.com/vardius/go-api-boilerplate/internal/eventbus"
 	"golang.org/x/oauth2"
 )
 

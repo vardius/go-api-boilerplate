@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/proto"
+	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	user_persistance "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	http_authenticator "github.com/vardius/go-api-boilerplate/pkg/http/security/authenticator"
-	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	http_authenticator "github.com/vardius/go-api-boilerplate/internal/http/middleware/authenticator"
+	"github.com/vardius/go-api-boilerplate/internal/identity"
 )
 
 // TokenAuthHandler provides token auth function

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
+	"github.com/vardius/go-api-boilerplate/internal/executioncontext"
 )
 
 func ExampleWithFlag() {

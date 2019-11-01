@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/http/response"
 	"gopkg.in/oauth2.v3/server"
 )
 

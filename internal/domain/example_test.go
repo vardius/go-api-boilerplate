@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/internal/domain"
 )
 
 type Test struct {

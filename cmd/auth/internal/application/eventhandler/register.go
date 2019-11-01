@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/eventbus"
+	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
 	"github.com/vardius/gollback"
 	"google.golang.org/grpc"
 )

@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 	oauth2 "gopkg.in/oauth2.v3"
 	oauth2_models "gopkg.in/oauth2.v3/models"
 )

@@ -3,7 +3,7 @@ package firewall
 import (
 	"context"
 
-	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/internal/identity"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

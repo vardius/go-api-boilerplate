@@ -4,7 +4,7 @@ Package mysql holds view model repositories
 package mysql
 
 import (
-	"github.com/vardius/go-api-boilerplate/pkg/mysql"
+	"github.com/vardius/go-api-boilerplate/internal/mysql"
 )
 
 // User model

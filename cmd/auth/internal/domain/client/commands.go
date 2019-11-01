@@ -8,9 +8,9 @@ import (
 	"runtime/debug"
 
 	"github.com/google/uuid"
-	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
+	"github.com/vardius/go-api-boilerplate/internal/commandbus"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/executioncontext"
 	oauth2 "gopkg.in/oauth2.v3"
 )
 

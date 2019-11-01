@@ -8,8 +8,8 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/internal/domain"
+	"github.com/vardius/go-api-boilerplate/internal/eventbus"
 )
 
 // WhenClientWasCreated handles event
