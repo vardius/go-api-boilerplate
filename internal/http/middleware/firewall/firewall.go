@@ -6,8 +6,9 @@ package firewall
 import (
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/http/response"
+	"github.com/vardius/go-api-boilerplate/internal/identity"
 )
 
 // GrantAccessFor returns Status Unauthorized if
@@ -26,7 +27,7 @@ func GrantAccessFor(role string) func(next http.Handler) http.Handler {
 				}
 			}
 
-			response.WithError(r.Context(), response.NewErrorFromHTTPStatus(http.StatusUnauthorized))
+			response.RespondJSONError(r.Context(), w, errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized)))
 		}
 
 		return http.HandlerFunc(fn)

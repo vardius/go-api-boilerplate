@@ -9,10 +9,11 @@ import (
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
 )
 
-// WithPayloadAsJSON adds payload to context for response
-func WithPayloadAsJSON(ctx context.Context, w http.ResponseWriter, payload interface{}, statusCode int) {
+// RespondJSON returns data as json response
+func RespondJSON(ctx context.Context, w http.ResponseWriter, payload interface{}, statusCode int) {
 
 	// If there is something to marshal otherwise set status code and do not marshal
 	if payload != nil && statusCode != http.StatusNoContent {
@@ -24,13 +25,18 @@ func WithPayloadAsJSON(ctx context.Context, w http.ResponseWriter, payload inter
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			encoder.Encode(NewErrorFromHTTPStatus(http.StatusInternalServerError))
+
+			RespondJSONError(ctx, w, errors.New(errors.INTERNAL, "Could not parse response to JSON."))
 
 			return
 		}
 	}
 
 	w.WriteHeader(statusCode)
+
+	if metadata, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
+		metadata.StatusCode = statusCode
+	}
 
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
@@ -40,8 +46,8 @@ func WithPayloadAsJSON(ctx context.Context, w http.ResponseWriter, payload inter
 	}
 }
 
-// WithErrorAsJSON adds error to context for response
+// RespondJSONError returns error response
 // uses WithPayloadAsJSON internally
-func WithErrorAsJSON(ctx context.Context, w http.ResponseWriter, err error) {
-	WithPayloadAsJSON(ctx, w, err, errors.HTTPStatusCode(err))
+func RespondJSONError(ctx context.Context, w http.ResponseWriter, err error) {
+	RespondJSON(ctx, w, err, errors.HTTPStatusCode(err))
 }

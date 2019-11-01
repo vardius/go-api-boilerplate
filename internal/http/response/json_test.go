@@ -6,55 +6,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 )
 
-type jsonResponse struct {
-	Name string `json:"name"`
-}
-
-func TestWithPayloadPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("WithPayload should panic if contextWithResponse was not called first")
-		}
-	}()
-
-	WithPayload(context.Background(), nil)
-}
-
-func TestWithPayload(t *testing.T) {
-	ctx := contextWithResponse(context.Background())
-	response := "test"
-
-	WithPayload(ctx, response)
-
-	resp, ok := fromContext(ctx)
-	if ok && resp.payload == response {
-		return
+func TestRespondJSON(t *testing.T) {
+	type jsonResponse struct {
+		Name string `json:"name"`
 	}
 
-	t.Error("WithPayload failed")
-}
-
-func TestWithError(t *testing.T) {
-	ctx := contextWithResponse(context.Background())
-	respErr := errors.New(errors.INVALID, "Invalid request")
-
-	WithError(ctx, respErr)
-
-	resp, ok := fromContext(ctx)
-	if ok && resp.payload == respErr {
-		return
-	}
-
-	t.Error("WithPayload failed")
-}
-
-func TestAsJSON(t *testing.T) {
-	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithPayload(r.Context(), jsonResponse{"John"})
-	}))
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		RespondJSON(r.Context(), w, jsonResponse{"John"}, http.StatusOK)
+	})
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -66,19 +28,19 @@ func TestAsJSON(t *testing.T) {
 
 	header := w.Header()
 	if header.Get("Content-Type") != "application/json" {
-		t.Error("AsJSON did not set proper headers")
+		t.Error("RespondJSON did not set proper headers")
 	}
 
 	cmp := bytes.Compare(w.Body.Bytes(), append([]byte(`{"name":"John"}`), 10))
 	if cmp != 0 {
-		t.Errorf("AsJSON returned wrong body: %s | %d", w.Body.String(), cmp)
+		t.Errorf("RespondJSON returned wrong body: %s | %d", w.Body.String(), cmp)
 	}
 }
 
-func TestErrorAsJSON(t *testing.T) {
-	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithError(r.Context(), errors.New(errors.INVALID, "Invalid request"))
-	}))
+func TestRespondJSONError(t *testing.T) {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		RespondJSONError(r.Context(), w, errors.New(errors.INVALID, "Invalid request"))
+	})
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -90,41 +52,18 @@ func TestErrorAsJSON(t *testing.T) {
 
 	header := w.Header()
 	if header.Get("Content-Type") != "application/json" {
-		t.Error("AsJSON did not set proper headers")
+		t.Error("RespondJSONError did not set proper headers")
 	}
 
 	if w.Code != http.StatusBadRequest {
-		t.Errorf("AsJSON error code not handled %d", w.Code)
-	}
-}
-
-func TestErrorPayloadAsJSON(t *testing.T) {
-	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithPayload(r.Context(), errors.New(errors.INVALID, "Invalid request"))
-	}))
-
-	w := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/x", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	h.ServeHTTP(w, req)
-
-	header := w.Header()
-	if header.Get("Content-Type") != "application/json" {
-		t.Error("AsJSON did not set proper headers")
-	}
-
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("AsJSON error code not handled %d", w.Code)
+		t.Errorf("RespondJSONError error code not handled %d", w.Code)
 	}
 }
 
 func TestInvalidPayloadAsJSON(t *testing.T) {
-	h := AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		WithPayload(r.Context(), make(chan int))
-	}))
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		RespondJSON(r.Context(), w, make(chan int), http.StatusOK)
+	})
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -136,10 +75,10 @@ func TestInvalidPayloadAsJSON(t *testing.T) {
 
 	header := w.Header()
 	if header.Get("Content-Type") != "application/json" {
-		t.Error("AsJSON did not set proper headers")
+		t.Error("RespondJSON did not set proper headers")
 	}
 
 	if w.Code != http.StatusInternalServerError {
-		t.Errorf("AsJSON error code not handled %d", w.Code)
+		t.Errorf("RespondJSON error code not handled %d", w.Code)
 	}
 }

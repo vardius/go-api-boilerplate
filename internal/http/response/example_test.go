@@ -5,69 +5,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/http/response"
 )
 
-func ExampleWithHSTS() {
-	h := response.WithHSTS(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
-
-	h.ServeHTTP(w, req)
-
-	fmt.Printf("%s\n", w.Header().Get("Strict-Transport-Security"))
-
-	// Output:
-	// max-age=63072000; includeSubDomains
-}
-
-func ExampleWithXSS() {
-	h := response.WithXSS(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
-
-	h.ServeHTTP(w, req)
-
-	fmt.Printf("%s\n", w.Header().Get("X-Content-Type-Options"))
-	fmt.Printf("%s\n", w.Header().Get("X-Frame-Options"))
-
-	// Output:
-	// nosniff
-	// DENY
-}
-
-func ExampleAsJSON() {
+func ExampleRespondJSON() {
 	type example struct {
 		Name string `json:"name"`
 	}
 
-	h := response.AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		response.WithPayload(r.Context(), example{"John"})
-	}))
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
-
-	h.ServeHTTP(w, req)
-
-	fmt.Printf("%s\n%s\n", w.Header().Get("Content-Type"), w.Body)
-
-	// Output:
-	// application/json
-	// {"name":"John"}
-}
-
-func ExampleWithPayload() {
-	type example struct {
-		Name string `json:"name"`
-	}
-
-	h := response.AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		response.WithPayload(r.Context(), example{"John"})
-	}))
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response.RespondJSON(r.Context(), w, example{"John"}, http.StatusOK)
+	})
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
@@ -80,10 +29,10 @@ func ExampleWithPayload() {
 	// {"name":"John"}
 }
 
-func ExampleWithError() {
-	h := response.AsJSON(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		response.WithError(r.Context(), errors.New(errors.INTERNAL, "response error"))
-	}))
+func ExampleRespondJSONError() {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response.RespondJSONError(r.Context(), w, errors.New(errors.INTERNAL, "response error"))
+	})
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)

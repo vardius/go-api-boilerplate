@@ -3,9 +3,9 @@ package authenticator
 import (
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/http/response"
+	"github.com/vardius/go-api-boilerplate/internal/identity"
 )
 
 // CredentialsAuthFunc returns Identity from username and password combination
@@ -31,7 +31,7 @@ func (a *credentialsAuth) FromBasicAuth(next http.Handler) http.Handler {
 			if err != nil {
 				w.Header().Set("WWW-Authenticate", `Basic`)
 
-				response.WithError(r.Context(), errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
+				response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
 				return
 			}
 

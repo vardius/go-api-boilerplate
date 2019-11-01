@@ -3,8 +3,6 @@ package log
 import (
 	"bytes"
 	"io"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 )
@@ -33,25 +31,6 @@ func TestNew(t *testing.T) {
 	bus := New("development")
 
 	if bus == nil {
-		t.Fail()
-	}
-}
-
-func TestLogRequest(t *testing.T) {
-	output := captureOutput(func() {
-		l := New("development")
-		h := l.LogRequest(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
-
-		w := httptest.NewRecorder()
-		req, err := http.NewRequest("GET", "/", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		h.ServeHTTP(w, req)
-	})
-
-	if output == "" {
 		t.Fail()
 	}
 }

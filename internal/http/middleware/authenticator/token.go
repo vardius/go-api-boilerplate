@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
-	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/http/response"
+	"github.com/vardius/go-api-boilerplate/internal/identity"
 )
 
 // TokenAuthFunc returns Identity from token
@@ -42,7 +42,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 					i, err := a.afn(string(bearer))
 					if err != nil {
 						w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-						response.WithError(r.Context(), errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
+						response.RespondJSONError(r.Context(), w, errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized)))
 						return
 					}
 
@@ -52,7 +52,8 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 			}
 
 			w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-			response.WithError(r.Context(), response.NewErrorFromHTTPStatus(http.StatusUnauthorized))
+			response.RespondJSONError(r.Context(), w, errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized)))
+			return
 		}
 
 		return http.HandlerFunc(fn)
@@ -70,11 +71,12 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 
 			i, err := a.afn(token)
 			if err != nil {
-				response.WithError(r.Context(), errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
+				response.RespondJSONError(r.Context(), w, errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized)))
 				return
 			}
 
 			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
+			return
 		}
 
 		return http.HandlerFunc(fn)
@@ -92,11 +94,12 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 
 			i, err := a.afn(cookie.Value)
 			if err != nil {
-				response.WithError(r.Context(), errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
+				response.RespondJSONError(r.Context(), w, errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized)))
 				return
 			}
 
 			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
+			return
 		}
 
 		return http.HandlerFunc(fn)
