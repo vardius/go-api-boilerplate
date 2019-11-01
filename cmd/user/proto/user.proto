@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "goapiboilerplate.grpc.proto";
+option java_outer_classname = "UserProto";
+
+package proto;
+
+import "google/protobuf/empty.proto";
+
+// UserService handles commands dispatch and user view actions
+service UserService {
+  rpc DispatchCommand(DispatchCommandRequest) returns (google.protobuf.Empty);
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc ListUsers(ListUserRequest) returns (ListUserResponse);
+}
+
+// DispatchCommandRequest is passed when dispatching
+message DispatchCommandRequest {
+  string name = 1;
+  bytes payload = 2;
+}
+
+// User object
+message User {
+  string id = 1;
+  string email = 2;
+  string facebookId = 3;
+  string googleId = 4;
+}
+
+// GetUserRequest is a request data to read user
+message GetUserRequest {
+  string id = 1;
+}
+
+// ListUserRequest is a request data to read all user for a given page
+message ListUserRequest {
+  int32 page = 1;
+  int32 limit = 2;
+}
+
+// ListUserResponse list of all users
+message ListUserResponse {
+  repeated User users = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int32 total = 4;
+}
