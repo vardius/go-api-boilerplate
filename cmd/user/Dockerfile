@@ -25,6 +25,7 @@ RUN go mod download
 RUN go mod verify
 
 # Copy the source code into the container.
+COPY migrations/user migrations/user
 COPY internal internal
 COPY cmd cmd
 
