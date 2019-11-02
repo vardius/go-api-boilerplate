@@ -30,16 +30,16 @@ func NewRouter(logger *log.Logger, repository user_persistance.UserRepository, c
 
 	// Global middleware
 	router := gorouter.New(
+		http_middleware.Recover(logger),
 		http_metadata_middleware.WithMetadata(),
 		http_middleware.Logger(logger),
-		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 		http_cors.Default().Handler,
 		http_middleware.XSS(),
 		http_middleware.HSTS(),
+		http_middleware.Metrics(),
+		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 		auth.FromHeader("USER"),
 		auth.FromQuery("authToken"),
-		http_middleware.Metrics(),
-		http_middleware.Recover(logger),
 	)
 
 	// Liveness probes are to indicate that your application is running

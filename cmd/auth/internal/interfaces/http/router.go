@@ -17,14 +17,14 @@ import (
 func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
 	// Global middleware
 	router := gorouter.New(
+		http_middleware.Recover(logger),
 		http_metadata_middleware.WithMetadata(),
 		http_middleware.Logger(logger),
-		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 		http_cors.Default().Handler,
 		http_middleware.XSS(),
 		http_middleware.HSTS(),
 		http_middleware.Metrics(),
-		http_middleware.Recover(logger),
+		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 	)
 
 	// Liveness probes are to indicate that your application is running
