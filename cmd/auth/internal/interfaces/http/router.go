@@ -35,5 +35,7 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 	router.POST("/v1/authorize", handlers.BuildAuthorizeHandler(server))
 	router.POST("/v1/token", handlers.BuildTokenHandler(server))
 
+	router.Compile()
+
 	return router
 }
