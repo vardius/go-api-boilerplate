@@ -49,23 +49,32 @@ func (app *App) Run(ctx context.Context) {
 
 		app.logger.Info(ctxWithTimeout, "shutting down...\n")
 
+		var errorOccurred bool
+		errCh := make(chan error, len(app.adapters))
+
 		for _, adapter := range app.adapters {
 			go func(adapter Adapter) {
-				if err := adapter.Stop(ctxWithTimeout); err != nil {
-					app.logger.Critical(ctxWithTimeout, "shutdown error: %v\n", err)
-					os.Exit(1)
-				}
+				errCh <- adapter.Stop(ctxWithTimeout)
 			}(adapter)
 		}
 
+		for i := 0; i < len(app.adapters); i++ {
+			if err := <-errCh; err != nil {
+				errorOccurred = true
+				app.logger.Critical(ctxWithTimeout, "shutdown error: %v\n", err)
+			}
+		}
+
 		app.logger.Info(ctxWithTimeout, "gracefully stopped\n")
+
+		if errorOccurred {
+			os.Exit(1)
+		}
 	}
 
 	for _, adapter := range app.adapters {
 		go func(adapter Adapter) {
 			app.logger.Critical(ctx, "adapter start error: %v\n", adapter.Start(ctx))
-			stop()
-			os.Exit(1)
 		}(adapter)
 	}
 
