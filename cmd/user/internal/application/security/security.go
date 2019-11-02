@@ -5,14 +5,14 @@ import (
 
 	"github.com/google/uuid"
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
-	user_persistance "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
+	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	http_authenticator "github.com/vardius/go-api-boilerplate/internal/http/middleware/authenticator"
 	"github.com/vardius/go-api-boilerplate/internal/identity"
 )
 
 // TokenAuthHandler provides token auth function
-func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repository user_persistance.UserRepository) http_authenticator.TokenAuthFunc {
+func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repository user_persistence.UserRepository) http_authenticator.TokenAuthFunc {
 	fn := func(token string) (identity.Identity, error) {
 		tokenInfo, err := grpAuthClient.VerifyToken(context.Background(), &auth_proto.VerifyTokenRequest{
 			Token: token,

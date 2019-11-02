@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 )
 
-// Client the client persistance model interface
+// Client the client persistence model interface
 type Client interface {
 	GetID() string
 	GetUserID() string

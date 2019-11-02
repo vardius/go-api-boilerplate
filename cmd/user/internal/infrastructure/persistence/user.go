@@ -7,7 +7,7 @@ import (
 	"context"
 )
 
-// User the user persistance model interface
+// User the user persistence model interface
 type User interface {
 	GetID() string
 	GetEmail() string

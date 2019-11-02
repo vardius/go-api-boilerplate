@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 )
 
-// Token the token persistance model interface
+// Token the token persistence model interface
 type Token interface {
 	GetID() string
 	GetClientID() string

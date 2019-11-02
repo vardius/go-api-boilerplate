@@ -8,7 +8,7 @@ import (
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	user_security "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	user_persistance "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
+	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	handlers "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
 	commandbus "github.com/vardius/go-api-boilerplate/internal/commandbus"
 	http_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware"
@@ -25,7 +25,7 @@ const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
 // NewRouter provides new router
-func NewRouter(logger *log.Logger, repository user_persistance.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient auth_proto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
+func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient auth_proto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
 	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, repository))
 
 	// Global middleware
