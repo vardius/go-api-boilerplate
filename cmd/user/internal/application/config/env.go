@@ -81,5 +81,5 @@ func init() {
 		Env.CommandBus.QueueSize = runtime.NumCPU()
 	}
 
-	log.Printf("config init : Env :\n%v\n", Env)
+	log.Printf("Env:\n%v\n", Env)
 }
