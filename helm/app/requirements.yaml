@@ -22,7 +22,7 @@ dependencies:
     condition: localstack.enabled
 # External charts: https://github.com/helm/charts/blob/master/stable
   - name: kubernetes-dashboard
-    version: 1.5.2
+    version: 1.10.0
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: kubernetes-dashboard.enabled
   - name: heapster
@@ -30,11 +30,11 @@ dependencies:
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: heapster.enabled
   - name: cert-manager
-    version: v0.8.1
+    version: v0.11.0
     repository: https://charts.jetstack.io # `helm repo add jetstack https://charts.jetstack.io`
     condition: cert-manager.enabled
   - name: nginx-ingress
-    version: 1.6.18
+    version: 1.24.5
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: nginx-ingress.enabled
   - name: magic-namespace
@@ -42,10 +42,10 @@ dependencies:
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: magic-namespace.enabled
   - name: mysql
-    version: 1.2.0
+    version: 1.4.0
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: mysql.enabled
   - name: phpmyadmin
-    version: 2.2.5
+    version: 4.1.1
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: phpmyadmin.enabled

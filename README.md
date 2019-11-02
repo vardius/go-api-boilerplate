@@ -21,6 +21,7 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 - [Example](#example)
   - [Quick start](#quick-start)
     - [Build release](#build-release)
+    - [Install Cert Manager](#install-cert-manager)
     - [Deploy release](#build-release)
   - [Dashboard](#dashboard)
   - [Domain](#domain)
@@ -62,6 +63,7 @@ Worth getting to know packages used in this boilerplate:
 3. [gollback](https://github.com/vardius/gollback)
 4. [shutdown](https://github.com/vardius/shutdown)
 5. [pubsub](https://github.com/vardius/pubsub)
+6. [ardanlabs/service](https://github.com/ardanlabs/service)
 
 DOCUMENTATION
 ==================================================
@@ -82,6 +84,15 @@ EXAMPLE
 make docker-build BIN=auth
 make docker-build BIN=migrate
 make docker-build BIN=user
+```
+### Install [Cert Manager](https://github.com/vardius/go-api-boilerplate/wiki/3.3.-Cert-manager)
+```sh
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml
+
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+
+make helm-dependencies
 ```
 ### Deploy release
 ```sh

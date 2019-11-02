@@ -1,6 +1,6 @@
 module github.com/vardius/go-api-boilerplate
 
-go 1.12
+go 1.13
 
 require (
 	github.com/aws/aws-sdk-go v1.21.7
@@ -13,7 +13,7 @@ require (
 	github.com/rs/cors v1.6.0
 	github.com/vardius/gollback v1.0.6
 	github.com/vardius/golog v1.1.1
-	github.com/vardius/gorouter/v4 v4.0.0
+	github.com/vardius/gorouter/v4 v4.2.3
 	github.com/vardius/message-bus v1.1.4
 	github.com/vardius/pubsub v1.0.6
 	github.com/vardius/shutdown v1.0.0
