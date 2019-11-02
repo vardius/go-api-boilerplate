@@ -32,10 +32,8 @@ func New(logger golog.Logger) *App {
 }
 
 // AddAdapters adds adapters to application service
-func (app *App) AddAdapters(adapters ...Adapter) *App {
-	return &App{
-		adapters: append(app.adapters, adapters...),
-	}
+func (app *App) AddAdapters(adapters ...Adapter) {
+	app.adapters = append(app.adapters, adapters...)
 }
 
 // WithShutdownTimeout overrides default shutdown timout
@@ -63,8 +61,11 @@ func (app *App) Run(ctx context.Context) {
 		app.logger.Info(ctxWithTimeout, "gracefully stopped\n")
 	}
 
+	app.logger.Debug(ctx, "App adapters %d\n", len(app.adapters))
+
 	for _, adapter := range app.adapters {
 		go func(adapter Adapter) {
+			app.logger.Debug(ctx, "App adapter start %v\n", adapter)
 			app.logger.Critical(ctx, "adapter start error: %v\n", adapter.Start(ctx))
 			stop()
 			os.Exit(1)
