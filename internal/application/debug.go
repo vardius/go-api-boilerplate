@@ -1,4 +1,4 @@
-package appdebug
+package application
 
 import (
 	"context"
@@ -13,10 +13,10 @@ type DebugAdapter struct {
 	*http.ServeMux
 }
 
-// NewAdapter provides new debug adapter
+// NewDebugAdapter provides new debug adapter
 // /debug/pprof - Added to the default mux by importing the net/http/pprof package.
 // /debug/vars - Added to the default mux by importing the expvar package.
-func NewAdapter(address string) *DebugAdapter {
+func NewDebugAdapter(address string) *DebugAdapter {
 	return &DebugAdapter{
 		address:  address,
 		ServeMux: http.DefaultServeMux,

@@ -18,7 +18,6 @@ import (
 	application "github.com/vardius/go-api-boilerplate/internal/application"
 	buildinfo "github.com/vardius/go-api-boilerplate/internal/buildinfo"
 	commandbus "github.com/vardius/go-api-boilerplate/internal/commandbus"
-	debug "github.com/vardius/go-api-boilerplate/internal/appdebug"
 	eventbus "github.com/vardius/go-api-boilerplate/internal/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/internal/eventstore/memory"
 	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
@@ -155,7 +154,7 @@ func main() {
 
 	if config.Env.APP.Environment == "development" {
 		app.AddAdapters(
-			debug.NewAdapter(
+			application.NewDebugAdapter(
 				fmt.Sprintf("%s:%d", config.Env.Debug.Host, config.Env.Debug.Port),
 			),
 		)

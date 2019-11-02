@@ -151,7 +151,7 @@ func main() {
 
 	if config.Env.APP.Environment == "development" {
 		app.AddAdapters(
-			debug.NewAdapter(
+			application.NewDebugAdapter(
 				fmt.Sprintf("%s:%d", config.Env.Debug.Host, config.Env.Debug.Port),
 			),
 		)
