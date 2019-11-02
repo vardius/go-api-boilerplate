@@ -24,15 +24,15 @@ func Logger(logger golog.Logger) gorouter.MiddlewareFunc {
 				now = metadata.Now
 			}
 
-			logger.Info(r.Context(), "[Request|Start]: %s : (%d) : %s %s -> %s (%s)",
+			logger.Info(r.Context(), "[Request|Start]: %s : (%d) : %s %s -> %s",
 				traceID, statusCode,
 				r.Method, r.URL.Path,
-				r.RemoteAddr, now,
+				r.RemoteAddr,
 			)
 
 			next.ServeHTTP(w, r)
 
-			logger.Info(r.Context(), "[Request|Start]: %s : (%d) : %s %s -> %s (%s)",
+			logger.Info(r.Context(), "[Request|End]: %s : (%d) : %s %s -> %s (%s)",
 				traceID, statusCode,
 				r.Method, r.URL.Path,
 				r.RemoteAddr, time.Since(now),
