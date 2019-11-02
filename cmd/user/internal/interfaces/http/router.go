@@ -61,7 +61,5 @@ func NewRouter(logger *log.Logger, repository user_persistance.UserRepository, c
 	router.GET("/v1/", handlers.BuildListUserHandler(repository))
 	router.GET("/v1/{id}", handlers.BuildGetUserHandler(repository))
 
-	router.Compile()
-
 	return router
 }
