@@ -15,29 +15,31 @@ import (
 // RespondJSON returns data as json response
 func RespondJSON(ctx context.Context, w http.ResponseWriter, payload interface{}, statusCode int) {
 
-	// If there is something to marshal otherwise set status code and do not marshal
-	if payload != nil && statusCode != http.StatusNoContent {
-		encoder := json.NewEncoder(w)
-		encoder.SetEscapeHTML(true)
-		encoder.SetIndent("", "")
-
-		err := encoder.Encode(payload)
-
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-
-			RespondJSONError(ctx, w, errors.New(errors.INTERNAL, "Could not parse response to JSON."))
-
-			return
+	// If there is nothing to marshal then set status code and return.
+	if payload == nil || statusCode == http.StatusNoContent {
+		w.WriteHeader(statusCode)
+		if metadata, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
+			metadata.StatusCode = statusCode
 		}
+		return
+	}
+
+	encoder := json.NewEncoder(w)
+	encoder.SetEscapeHTML(true)
+	encoder.SetIndent("", "")
+
+	if err := encoder.Encode(payload); err != nil {
+		panic(err)
 	}
 
 	w.WriteHeader(statusCode)
+	w.Header().Set("Content-Type", "application/json")
 
 	if metadata, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
 		metadata.StatusCode = statusCode
 	}
 
+	// Check if it is stream response
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
 	} else {

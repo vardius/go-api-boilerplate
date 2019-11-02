@@ -61,6 +61,13 @@ func TestRespondJSONError(t *testing.T) {
 }
 
 func TestInvalidPayloadAsJSON(t *testing.T) {
+	paniced := false
+	defer func() {
+		if rcv := recover(); rcv != nil {
+			paniced = true
+		}
+	}()
+
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		RespondJSON(r.Context(), w, make(chan int), http.StatusOK)
 	})
@@ -76,6 +83,10 @@ func TestInvalidPayloadAsJSON(t *testing.T) {
 	header := w.Header()
 	if header.Get("Content-Type") != "application/json" {
 		t.Error("RespondJSON did not set proper headers")
+	}
+
+	if paniced == true {
+		t.Error("Did not panic")
 	}
 
 	if w.Code != http.StatusInternalServerError {
