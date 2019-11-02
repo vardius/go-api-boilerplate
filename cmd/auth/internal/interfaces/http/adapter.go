@@ -24,12 +24,12 @@ func NewAdapter(address string, router http.Handler) *Adapter {
 	}
 }
 
-// Start starts http server
+// Start start http application adapter
 func (adapter *Adapter) Start(ctx context.Context) error {
 	return adapter.ListenAndServe()
 }
 
-// Stop stops http server
+// Stop stops http application adapter
 func (adapter *Adapter) Stop(ctx context.Context) error {
 	return adapter.Shutdown(ctx)
 }

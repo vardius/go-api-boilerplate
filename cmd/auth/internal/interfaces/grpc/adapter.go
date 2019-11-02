@@ -28,6 +28,7 @@ func NewAdapter(address string, server *grpc_main.Server, healthServer *grpc_hea
 	}
 }
 
+// Start start grpc application adapter
 func (adapter *Adapter) Start(ctx context.Context) error {
 	auth_proto.RegisterAuthenticationServiceServer(adapter.server, adapter.authServer)
 	grpc_health_proto.RegisterHealthServer(adapter.server, adapter.healthServer)
@@ -42,6 +43,7 @@ func (adapter *Adapter) Start(ctx context.Context) error {
 	return adapter.server.Serve(lis)
 }
 
+// Stop stops grpc application adapter
 func (adapter *Adapter) Stop(ctx context.Context) error {
 	adapter.healthServer.SetServingStatus("auth", grpc_health_proto.HealthCheckResponse_NOT_SERVING)
 
