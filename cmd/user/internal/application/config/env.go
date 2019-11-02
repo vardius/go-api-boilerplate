@@ -68,14 +68,30 @@ type environment struct {
 func init() {
 	Env = &environment{}
 
-	env.Parse(&Env.APP)
-	env.Parse(&Env.Debug)
-	env.Parse(&Env.HTTP)
-	env.Parse(&Env.GRPC)
-	env.Parse(&Env.DB)
-	env.Parse(&Env.Auth)
-	env.Parse(&Env.PubSub)
-	env.Parse(&Env.CommandBus)
+	if err := env.Parse(&Env.APP); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.Debug); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.HTTP); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.GRPC); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.DB); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.Auth); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.PubSub); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.CommandBus); err != nil {
+		panic(err)
+	}
 
 	if Env.CommandBus.QueueSize == 0 {
 		Env.CommandBus.QueueSize = runtime.NumCPU()
