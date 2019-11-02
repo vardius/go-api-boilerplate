@@ -7,13 +7,14 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 )
 
-type HttpAdapter struct {
+// Adapter is http server app adapter
+type Adapter struct {
 	*http.Server
 }
 
 // NewAdapter provides new primary adapter
-func NewAdapter(address string, router http.Handler) *HttpAdapter {
-	return &HttpAdapter{&http.Server{
+func NewAdapter(address string, router http.Handler) *Adapter {
+	return &Adapter{&http.Server{
 		Addr:         address,
 		ReadTimeout:  config.Env.HTTP.ReadTimeout,
 		WriteTimeout: config.Env.HTTP.WriteTimeout,
@@ -24,11 +25,11 @@ func NewAdapter(address string, router http.Handler) *HttpAdapter {
 }
 
 // Start starts http server
-func (adapter *HttpAdapter) Start(ctx context.Context) error {
+func (adapter *Adapter) Start(ctx context.Context) error {
 	return adapter.ListenAndServe()
 }
 
 // Stop stops http server
-func (adapter *HttpAdapter) Stop(ctx context.Context) error {
+func (adapter *Adapter) Stop(ctx context.Context) error {
 	return adapter.Shutdown(ctx)
 }

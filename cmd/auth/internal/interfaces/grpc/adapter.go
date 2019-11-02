@@ -10,7 +10,8 @@ import (
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
 )
 
-type GRPCAdapter struct {
+// Adapter is grpc server app adapter
+type Adapter struct {
 	address      string
 	server       *grpc_main.Server
 	healthServer *grpc_health.Server
@@ -18,8 +19,8 @@ type GRPCAdapter struct {
 }
 
 // NewAdapter provides new primary adapter
-func NewAdapter(address string, server *grpc_main.Server, healthServer *grpc_health.Server, authServer auth_proto.AuthenticationServiceServer) *GRPCAdapter {
-	return &GRPCAdapter{
+func NewAdapter(address string, server *grpc_main.Server, healthServer *grpc_health.Server, authServer auth_proto.AuthenticationServiceServer) *Adapter {
+	return &Adapter{
 		address:      address,
 		server:       server,
 		healthServer: healthServer,
@@ -27,7 +28,7 @@ func NewAdapter(address string, server *grpc_main.Server, healthServer *grpc_hea
 	}
 }
 
-func (adapter *GRPCAdapter) Start(ctx context.Context) error {
+func (adapter *Adapter) Start(ctx context.Context) error {
 	auth_proto.RegisterAuthenticationServiceServer(adapter.server, adapter.authServer)
 	grpc_health_proto.RegisterHealthServer(adapter.server, adapter.healthServer)
 
@@ -41,7 +42,7 @@ func (adapter *GRPCAdapter) Start(ctx context.Context) error {
 	return adapter.server.Serve(lis)
 }
 
-func (adapter *GRPCAdapter) Stop(ctx context.Context) error {
+func (adapter *Adapter) Stop(ctx context.Context) error {
 	adapter.healthServer.SetServingStatus("auth", grpc_health_proto.HealthCheckResponse_NOT_SERVING)
 
 	adapter.server.GracefulStop()
