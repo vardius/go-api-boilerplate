@@ -108,11 +108,13 @@ func main() {
 	app := application.New(logger)
 
 	// store our internal user service client
-	clientStore.SetInternal(config.Env.User.ClientID, &oauth2_models.Client{
+	if err := clientStore.SetInternal(config.Env.User.ClientID, &oauth2_models.Client{
 		ID:     config.Env.User.ClientID,
 		Secret: config.Env.User.ClientSecret,
 		Domain: fmt.Sprintf("http://%s:%d", config.Env.User.Host, config.Env.HTTP.Port),
-	})
+	}); err != nil {
+		panic(err)
+	}
 
 	commandBus.Subscribe((token.Create{}).GetName(), token.OnCreate(tokenRepository, mysqlConnection))
 	commandBus.Subscribe((token.Remove{}).GetName(), token.OnRemove(tokenRepository, mysqlConnection))
