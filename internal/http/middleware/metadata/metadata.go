@@ -33,9 +33,9 @@ func WithMetadata() gorouter.MiddlewareFunc {
 				Now:     time.Now(),
 			}
 
-			r.WithContext(context.WithValue(r.Context(), KeyMetadataValues, &m))
+			ctx := context.WithValue(r.Context(), KeyMetadataValues, &m)
 
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)
