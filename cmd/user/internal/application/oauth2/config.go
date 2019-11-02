@@ -3,7 +3,6 @@ package oauth2
 import (
 	"fmt"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"golang.org/x/oauth2"
 )
