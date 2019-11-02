@@ -28,12 +28,12 @@ func RespondJSON(ctx context.Context, w http.ResponseWriter, payload interface{}
 	encoder.SetEscapeHTML(true)
 	encoder.SetIndent("", "")
 
+	w.WriteHeader(statusCode)
+	w.Header().Set("Content-Type", "application/json")
+
 	if err := encoder.Encode(payload); err != nil {
 		panic(err)
 	}
-
-	w.WriteHeader(statusCode)
-	w.Header().Set("Content-Type", "application/json")
 
 	if metadata, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
 		metadata.StatusCode = statusCode
