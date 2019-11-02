@@ -53,7 +53,6 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 
 			w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
 			response.RespondJSONError(r.Context(), w, errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized)))
-			return
 		}
 
 		return http.HandlerFunc(fn)
@@ -76,7 +75,6 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 			}
 
 			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
-			return
 		}
 
 		return http.HandlerFunc(fn)
@@ -99,7 +97,6 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 			}
 
 			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
-			return
 		}
 
 		return http.HandlerFunc(fn)
