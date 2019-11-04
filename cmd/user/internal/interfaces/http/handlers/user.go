@@ -62,9 +62,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			}
 		}
 
-		w.WriteHeader(http.StatusCreated)
-
-		return
+		response.RespondJSON(r.Context(), w, nil, http.StatusCreated)
 	}
 
 	return http.HandlerFunc(fn)
