@@ -42,9 +42,6 @@ func RespondJSON(ctx context.Context, w http.ResponseWriter, payload interface{}
 	// Check if it is stream response
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
-	} else {
-		// Write nil in case of setting http.StatusOK header if header not set
-		w.Write(nil)
 	}
 }
 
