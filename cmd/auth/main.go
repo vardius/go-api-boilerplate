@@ -34,7 +34,7 @@ func main() {
 
 	ctx := context.Background()
 
-	logger := log.New(config.Env.APP.Environment)
+	logger := log.New(config.Env.App.Environment)
 	eventStore := eventstore.New()
 	grpcServer := grpc_utils.NewServer(
 		grpc_utils.ServerConfig{
@@ -49,14 +49,14 @@ func main() {
 	mysqlConnection := mysql.NewConnection(
 		ctx,
 		mysql.ConnectionConfig{
-			Host:            config.Env.DB.Host,
-			Port:            config.Env.DB.Port,
-			User:            config.Env.DB.User,
-			Pass:            config.Env.DB.Pass,
-			Database:        config.Env.DB.Database,
-			ConnMaxLifetime: config.Env.DB.ConnMaxLifetime,
-			MaxIdleConns:    config.Env.DB.MaxIdleConns,
-			MaxOpenConns:    config.Env.DB.MaxOpenConns,
+			Host:            config.Env.MYSQL.Host,
+			Port:            config.Env.MYSQL.Port,
+			User:            config.Env.MYSQL.User,
+			Pass:            config.Env.MYSQL.Pass,
+			Database:        config.Env.MYSQL.Database,
+			ConnMaxLifetime: config.Env.MYSQL.ConnMaxLifetime,
+			MaxIdleConns:    config.Env.MYSQL.MaxIdleConns,
+			MaxOpenConns:    config.Env.MYSQL.MaxOpenConns,
 		},
 		logger,
 	)
@@ -92,10 +92,10 @@ func main() {
 	clientPersistenceRepository := persistence.NewClientRepository(mysqlConnection)
 	tokenStore := oauth2.NewTokenStore(tokenPersistenceRepository, commandBus)
 	clientStore := oauth2.NewClientStore(clientPersistenceRepository)
-	manager := oauth2.NewManager(tokenStore, clientStore, []byte(config.Env.APP.Secret))
-	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.APP.Secret)
+	manager := oauth2.NewManager(tokenStore, clientStore, []byte(config.Env.App.Secret))
+	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.App.Secret)
 	grpcHealthServer := grpc_health.NewServer()
-	grpcAuthServer := auth_grpc.NewServer(oauth2Server, logger, config.Env.APP.Secret)
+	grpcAuthServer := auth_grpc.NewServer(oauth2Server, logger, config.Env.App.Secret)
 	router := auth_http.NewRouter(
 		logger,
 		oauth2Server,
@@ -150,7 +150,7 @@ func main() {
 		),
 	)
 
-	if config.Env.APP.Environment == "development" {
+	if config.Env.App.Environment == "development" {
 		app.AddAdapters(
 			application.NewDebugAdapter(
 				fmt.Sprintf("%s:%d", config.Env.Debug.Host, config.Env.Debug.Port),
@@ -158,6 +158,6 @@ func main() {
 		)
 	}
 
-	app.WithShutdownTimeout(config.Env.APP.ShutdownTimeout)
+	app.WithShutdownTimeout(config.Env.App.ShutdownTimeout)
 	app.Run(ctx)
 }

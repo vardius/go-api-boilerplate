@@ -33,7 +33,7 @@ func main() {
 
 	ctx := context.Background()
 
-	logger := log.New(config.Env.APP.Environment)
+	logger := log.New(config.Env.App.Environment)
 	eventStore := eventstore.New()
 	oauth2Config := oauth2.NewConfig()
 	grpcServer := grpc_utils.NewServer(
@@ -49,14 +49,14 @@ func main() {
 	mysqlConnection := mysql.NewConnection(
 		ctx,
 		mysql.ConnectionConfig{
-			Host:            config.Env.DB.Host,
-			Port:            config.Env.DB.Port,
-			User:            config.Env.DB.User,
-			Pass:            config.Env.DB.Pass,
-			Database:        config.Env.DB.Database,
-			ConnMaxLifetime: config.Env.DB.ConnMaxLifetime,
-			MaxIdleConns:    config.Env.DB.MaxIdleConns,
-			MaxOpenConns:    config.Env.DB.MaxOpenConns,
+			Host:            config.Env.MYSQL.Host,
+			Port:            config.Env.MYSQL.Port,
+			User:            config.Env.MYSQL.User,
+			Pass:            config.Env.MYSQL.Pass,
+			Database:        config.Env.MYSQL.Database,
+			ConnMaxLifetime: config.Env.MYSQL.ConnMaxLifetime,
+			MaxIdleConns:    config.Env.MYSQL.MaxIdleConns,
+			MaxOpenConns:    config.Env.MYSQL.MaxOpenConns,
 		},
 		logger,
 	)
@@ -114,7 +114,7 @@ func main() {
 			"pubsub": grpcPubsubConn,
 		},
 		oauth2Config,
-		config.Env.APP.Secret,
+		config.Env.App.Secret,
 	)
 	app := application.New(logger)
 
@@ -133,7 +133,7 @@ func main() {
 				(user.WasRegisteredWithGoogle{}).GetType():   eventhandler.WhenUserWasRegisteredWithGoogle(mysqlConnection, userPersistenceRepository),
 				(user.WasRegisteredWithFacebook{}).GetType(): eventhandler.WhenUserWasRegisteredWithFacebook(mysqlConnection, userPersistenceRepository),
 				(user.EmailAddressWasChanged{}).GetType():    eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository),
-				(user.AccessTokenWasRequested{}).GetType():   eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, config.Env.APP.Secret),
+				(user.AccessTokenWasRequested{}).GetType():   eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, config.Env.App.Secret),
 			},
 			5*time.Minute,
 		)
@@ -152,7 +152,7 @@ func main() {
 		),
 	)
 
-	if config.Env.APP.Environment == "development" {
+	if config.Env.App.Environment == "development" {
 		app.AddAdapters(
 			application.NewDebugAdapter(
 				fmt.Sprintf("%s:%d", config.Env.Debug.Host, config.Env.Debug.Port),
@@ -160,6 +160,6 @@ func main() {
 		)
 	}
 
-	app.WithShutdownTimeout(config.Env.APP.ShutdownTimeout)
+	app.WithShutdownTimeout(config.Env.App.ShutdownTimeout)
 	app.Run(ctx)
 }
