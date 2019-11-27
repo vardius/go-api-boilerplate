@@ -6,6 +6,7 @@ package response
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/internal/errors"
@@ -48,5 +49,7 @@ func RespondJSON(ctx context.Context, w http.ResponseWriter, payload interface{}
 // RespondJSONError returns error response
 // uses WithPayloadAsJSON internally
 func RespondJSONError(ctx context.Context, w http.ResponseWriter, err error) {
+	log.Printf("RespondJSONError: %v\n", err)
+
 	RespondJSON(ctx, w, err, errors.HTTPStatusCode(err))
 }
