@@ -41,7 +41,7 @@ func FromHistory(events []domain.Event) Client {
 			wasCreated := WasCreated{}
 			err := unmarshalPayload(domainEvent.Payload, &wasCreated)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal client event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal client event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = wasCreated
@@ -49,12 +49,12 @@ func FromHistory(events []domain.Event) Client {
 			wasRemoved := WasRemoved{}
 			err := unmarshalPayload(domainEvent.Payload, &wasRemoved)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal client event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal client event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = wasRemoved
 		default:
-			log.Panicf("Unhandled client event %s", domainEvent.Metadata.Type)
+			log.Panicf("Unhandled client event %s\n", domainEvent.Metadata.Type)
 		}
 
 		c.transition(e)

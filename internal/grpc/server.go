@@ -23,9 +23,9 @@ type ServerConfig struct {
 func NewServer(cfg ServerConfig, logger golog.Logger) *grpc.Server {
 	opts := []grpc_recovery.Option{
 		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
-			logger.Critical(ctx, "[gRPC Server] Recovered in %v", rec)
+			logger.Critical(ctx, "[gRPC Server] Recovered in %v\n", rec)
 
-			return grpc.Errorf(codes.Internal, "[gRPC Server] Recovered in %v", rec)
+			return grpc.Errorf(codes.Internal, "[gRPC Server] Recovered in %v\n", rec)
 		}),
 	}
 

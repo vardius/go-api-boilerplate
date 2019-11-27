@@ -79,6 +79,6 @@ func recoverCommandHandler(out chan<- error) {
 		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
 
 		// Log the Go stack trace for this panic'd goroutine.
-		log.Printf("%s", debug.Stack())
+		log.Printf("%s\n", debug.Stack())
 	}
 }

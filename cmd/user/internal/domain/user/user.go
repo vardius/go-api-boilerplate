@@ -41,7 +41,7 @@ func FromHistory(events []domain.Event) User {
 			accessTokenWasRequested := AccessTokenWasRequested{}
 			err := unmarshalPayload(domainEvent.Payload, &accessTokenWasRequested)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = accessTokenWasRequested
@@ -49,7 +49,7 @@ func FromHistory(events []domain.Event) User {
 			emailAddressWasChanged := EmailAddressWasChanged{}
 			err := unmarshalPayload(domainEvent.Payload, &emailAddressWasChanged)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = emailAddressWasChanged
@@ -57,7 +57,7 @@ func FromHistory(events []domain.Event) User {
 			wasRegisteredWithEmail := WasRegisteredWithEmail{}
 			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithEmail)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = wasRegisteredWithEmail
@@ -65,7 +65,7 @@ func FromHistory(events []domain.Event) User {
 			wasRegisteredWithFacebook := WasRegisteredWithFacebook{}
 			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithFacebook)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = wasRegisteredWithFacebook
@@ -73,7 +73,7 @@ func FromHistory(events []domain.Event) User {
 			connectedWithFacebook := ConnectedWithFacebook{}
 			err := unmarshalPayload(domainEvent.Payload, &connectedWithFacebook)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = connectedWithFacebook
@@ -81,7 +81,7 @@ func FromHistory(events []domain.Event) User {
 			wasRegisteredWithGoogle := WasRegisteredWithGoogle{}
 			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithGoogle)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = wasRegisteredWithGoogle
@@ -89,12 +89,12 @@ func FromHistory(events []domain.Event) User {
 			connectedWithGoogle := ConnectedWithGoogle{}
 			err := unmarshalPayload(domainEvent.Payload, &connectedWithGoogle)
 			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = connectedWithGoogle
 		default:
-			log.Panicf("Unhandled user event %s", domainEvent.Metadata.Type)
+			log.Panicf("Unhandled user event %s\n", domainEvent.Metadata.Type)
 		}
 
 		u.transition(e)

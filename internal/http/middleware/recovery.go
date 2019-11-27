@@ -16,7 +16,7 @@ func Recover(logger golog.Logger) gorouter.MiddlewareFunc {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if rec := recover(); rec != nil {
-					logger.Critical(r.Context(), "[HTTP] Recovered in %v\n%s", rec, debug.Stack())
+					logger.Critical(r.Context(), "[HTTP] Recovered in %v\n%s\n", rec, debug.Stack())
 
 					response.RespondJSONError(r.Context(), w, errors.New(errors.INTERNAL, http.StatusText(http.StatusInternalServerError)))
 				}

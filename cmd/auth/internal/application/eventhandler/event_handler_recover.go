@@ -8,6 +8,6 @@ import (
 
 func recoverEventHandler() {
 	if r := recover(); r != nil {
-		log.Printf("[EventHandler] Recovered in %v\n%s", r, debug.Stack())
+		log.Printf("[EventHandler] Recovered in %v\n%s\n", r, debug.Stack())
 	}
 }

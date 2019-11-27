@@ -19,26 +19,26 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverEventHandler()
 
-		log.Printf("[EventHandler] %s", event.Payload)
+		log.Printf("[EventHandler] %s\n", event.Payload)
 
 		e := user.WasRegisteredWithEmail{}
 
 		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v", err)
+			log.Printf("[EventHandler] Error: %v\n", err)
 			return
 		}
 
 		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v", err)
+			log.Printf("[EventHandler] Error: %v\n", err)
 			return
 		}
 		defer tx.Rollback()
 
 		err = repository.Add(ctx, userWasRegisteredWithEmailModel{e})
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v", err)
+			log.Printf("[EventHandler] Error: %v\n", err)
 			return
 		}
 

@@ -34,7 +34,7 @@ func NewServer(cb commandbus.CommandBus, r persistence.UserRepository, l *log.Lo
 func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
 	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
 	if err != nil {
-		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Could not build command from payload"))
+		s.logger.Error(ctx, "%v\n", errors.Wrap(err, errors.INTERNAL, "Could not build command from payload"))
 		return nil, status.Error(codes.Internal, "Could not build command from payload")
 	}
 
@@ -51,7 +51,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 		return nil, status.Error(codes.Internal, "Context done")
 	case err := <-out:
 		if err != nil {
-			s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Publish command error"))
+			s.logger.Error(ctx, "%v\n", errors.Wrap(err, errors.INTERNAL, "Publish command error"))
 			return nil, status.Error(codes.Internal, "Publish command error")
 		}
 
@@ -63,7 +63,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*proto.User, error) {
 	user, err := s.userRepository.Get(ctx, r.GetId())
 	if err != nil {
-		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.NOTFOUND, "User not found"))
+		s.logger.Error(ctx, "%v\n", errors.Wrap(err, errors.NOTFOUND, "User not found"))
 		return nil, status.Error(codes.NotFound, "User not found")
 	}
 
@@ -86,7 +86,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 
 	totalUsers, err := s.userRepository.Count(ctx)
 	if err != nil {
-		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Failed to count users"))
+		s.logger.Error(ctx, "%v\n", errors.Wrap(err, errors.INTERNAL, "Failed to count users"))
 		return nil, status.Error(codes.Internal, "Failed to count users")
 	}
 
@@ -103,7 +103,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 
 	users, err = s.userRepository.FindAll(ctx, r.GetLimit(), offset)
 	if err != nil {
-		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Failed to fetch users"))
+		s.logger.Error(ctx, "%v\n", errors.Wrap(err, errors.INTERNAL, "Failed to fetch users"))
 		return nil, status.Error(codes.Internal, "Failed to fetch users")
 	}
 

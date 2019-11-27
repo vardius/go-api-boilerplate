@@ -19,26 +19,26 @@ func WhenUserConnectedWithFacebook(db *sql.DB, repository persistence.UserReposi
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverEventHandler()
 
-		log.Printf("[EventHandler] %s", event.Payload)
+		log.Printf("[EventHandler] %s\n", event.Payload)
 
 		e := user.ConnectedWithFacebook{}
 
 		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v", err)
+			log.Printf("[EventHandler] Error: %v\n", err)
 			return
 		}
 
 		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v", err)
+			log.Printf("[EventHandler] Error: %v\n", err)
 			return
 		}
 		defer tx.Rollback()
 
 		err = repository.UpdateFacebookID(ctx, e.ID.String(), e.FacebookID)
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v", err)
+			log.Printf("[EventHandler] Error: %v\n", err)
 			return
 		}
 

@@ -41,19 +41,19 @@ func (s *authenticationServer) VerifyToken(ctx context.Context, req *proto.Verif
 		return []byte(s.secretKey), nil
 	})
 	if err != nil {
-		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.INTERNAL, "Token parse error"))
+		s.logger.Error(ctx, "%v\n", errors.Wrap(err, errors.INTERNAL, "Token parse error"))
 		return nil, status.Error(codes.Internal, "Failed to parse token with claims")
 	}
 
 	_, ok := accessToken.Claims.(*generates.JWTAccessClaims)
 	if !ok || !accessToken.Valid {
-		s.logger.Error(ctx, "%v", errors.New(errors.INTERNAL, "Token is not valid, could not parse claims"))
+		s.logger.Error(ctx, "%v\n", errors.New(errors.INTERNAL, "Token is not valid, could not parse claims"))
 		return nil, status.Error(codes.Internal, "Token is not valid, could not parse claims")
 	}
 
 	tokenInfo, err := s.server.Manager.LoadAccessToken(req.GetToken())
 	if err != nil {
-		s.logger.Error(ctx, "%v", errors.Wrap(err, errors.NOTFOUND, "Could not load token"))
+		s.logger.Error(ctx, "%v\n", errors.Wrap(err, errors.NOTFOUND, "Could not load token"))
 		return nil, status.Error(codes.NotFound, "Could not load token")
 	}
 

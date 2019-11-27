@@ -24,7 +24,7 @@ func Logger(logger golog.Logger) gorouter.MiddlewareFunc {
 				now = metadata.Now
 			}
 
-			logger.Info(r.Context(), "[Request|Start]: %s : (%d) : %s %s -> %s",
+			logger.Info(r.Context(), "[Request|Start]: %s : (%d) : %s %s -> %s\n",
 				traceID, statusCode,
 				r.Method, r.URL.Path,
 				r.RemoteAddr,
@@ -32,7 +32,7 @@ func Logger(logger golog.Logger) gorouter.MiddlewareFunc {
 
 			next.ServeHTTP(w, r)
 
-			logger.Info(r.Context(), "[Request|End]: %s : (%d) : %s %s -> %s (%s)",
+			logger.Info(r.Context(), "[Request|End]: %s : (%d) : %s %s -> %s (%s)\n",
 				traceID, statusCode,
 				r.Method, r.URL.Path,
 				r.RemoteAddr, time.Since(now),
