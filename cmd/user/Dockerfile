@@ -15,6 +15,7 @@ ENV CGO_ENABLED=0
 
 # Create a location in the container for the source code.
 RUN mkdir -p /app
+RUN mkdir -p /go/bin/app
 
 # Copy the module files first and then download the dependencies. If this
 # doesn't change, we won't need to do this again in future builds.
@@ -25,7 +26,7 @@ RUN go mod download
 RUN go mod verify
 
 # Copy the source code into the container.
-COPY migrations/user migrations/user
+COPY migrations/"$BIN" migrations/"$BIN"
 COPY internal internal
 COPY cmd cmd
 
@@ -34,6 +35,11 @@ RUN go build \
     -ldflags "-X github.com/vardius/go-api-boilerplate/internal/buildinfo.Version=$VERSION -X github.com/vardius/go-api-boilerplate/internal/buildinfo.GitCommit=$GIT_COMMIT -X 'github.com/vardius/go-api-boilerplate/internal/buildinfo.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'" \
     -a -o /go/bin/app ./cmd/"$BIN"
 
+RUN ls /app -all
+RUN ls /go/bin/app -all
+RUN ls /app/migrations/"$BIN" -all
+
 FROM scratch
+COPY --from=buildenv /app/migrations/"$BIN" /go/bin/app/migrations/"$BIN"
 COPY --from=buildenv /go/bin/app /go/bin/app
 ENTRYPOINT ["/go/bin/app"]

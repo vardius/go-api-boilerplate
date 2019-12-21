@@ -1,4 +1,4 @@
-FROM migrate/migrate:v4.4.0
+FROM migrate/migrate:v4.7.1
 
 LABEL maintainer="Rafał Lorenz <vardius@gmail.com>"
 
