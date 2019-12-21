@@ -26,7 +26,6 @@ RUN go mod download
 RUN go mod verify
 
 # Copy the source code into the container.
-COPY migrations/"$BIN" migrations/"$BIN"
 COPY internal internal
 COPY cmd cmd
 
@@ -36,6 +35,5 @@ RUN go build \
     -a -o /go/bin/app ./cmd/"$BIN"
 
 FROM scratch
-COPY --from=buildenv /app/migrations/"$BIN" /go/bin/app/migrations/"$BIN"
 COPY --from=buildenv /go/bin/app /go/bin/app
 ENTRYPOINT ["/go/bin/app"]
