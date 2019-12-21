@@ -34,6 +34,7 @@ RUN go build \
     -ldflags "-X github.com/vardius/go-api-boilerplate/internal/buildinfo.Version=$VERSION -X github.com/vardius/go-api-boilerplate/internal/buildinfo.GitCommit=$GIT_COMMIT -X 'github.com/vardius/go-api-boilerplate/internal/buildinfo.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'" \
     -a -o /go/bin/app ./cmd/"$BIN"
 
-FROM scratch
+FROM alpine
 COPY --from=buildenv /go/bin/app /go/bin/app
+COPY --from=buildenv /app/migrations/"$BIN" /migrations/"$BIN"
 ENTRYPOINT ["/go/bin/app"]

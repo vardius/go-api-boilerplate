@@ -5,7 +5,7 @@ replicaCount: 1
 
 image: 
   repository: golang
-  tag: latest
+  tag: local
   pullPolicy: IfNotPresent
 
 nameOverride: ""

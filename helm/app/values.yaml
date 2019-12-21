@@ -4,21 +4,6 @@ magic-namespace:
   namespaceAttributes:
     labels:
       certmanager.k8s.io/disable-validation: true
-  ## Optional additional ServiceAccounts
-  serviceAccounts:
-    - goapiboilerplate
-    # Optional additional RoleBindings. It is a good idea to specify at least one
-    # to grant administrative permissions to a user or group.
-  roleBindings:
-    - name: admin-group-admin
-      role:
-        ## Valid values are "Role" or "ClusterRole"
-        kind: ClusterRole
-        name: admin
-      subject:
-        ## Valid values are "User", "Group", or "ServiceAccount"
-        kind: Group
-        name: <group>
 
 ingress:
   issuerName: selfsigned #letsencrypt
@@ -134,7 +119,6 @@ localstack:
 
 pubsub:
   nameOverride: pubsub
-  serviceAccountName: goapiboilerplate
   image:
     repository: vardius/pubsub
     tag: 1.0.6
@@ -158,10 +142,9 @@ pubsub:
 
 auth:
   nameOverride: auth
-  serviceAccountName: goapiboilerplate
   image:
     repository: auth
-    tag: latest
+    tag: local
     pullPolicy: Never
   service:
     ports:
@@ -175,7 +158,7 @@ auth:
     - name: migrations
       image:
         repository: migrate
-        tag: latest
+        tag: local
         pullPolicy: IfNotPresent
       command:
         - '/migrate'
@@ -215,10 +198,9 @@ auth:
 
 user:
   nameOverride: user
-  serviceAccountName: goapiboilerplate
   image:
     repository: user
-    tag: latest
+    tag: local
     pullPolicy: Never
   service:
     ports:
@@ -232,7 +214,7 @@ user:
     - name: migrations
       image:
         repository: migrate
-        tag: latest
+        tag: local
         pullPolicy: IfNotPresent
       command:
         - '/migrate'
