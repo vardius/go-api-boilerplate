@@ -89,13 +89,8 @@ helm-app-dependencies: ## [HELM] Update helm chart's dependencies for applicatio
 	cd helm/app/ && helm dependency update
 
 helm-app-delete: ## [HELM] Delete helm chart for application. Example: `make helm-app-delete`
-<<<<<<< Updated upstream
-	# keep alias helm delete --purge instead of uninstall for backward compatibility with v2.16.0 until v3 widely replaces it
-	helm delete --purge go-api-boilerplate --namespace go-api-boilerplate
-=======
 	helm delete --purge go-api-boilerplate
->>>>>>> Stashed changes
-
+	
 helm-install: ## [HELM] Deploy the Helm chart for all charts (app and namespace). Example: `make helm-install`
 	make helm-namespace-install && make helm-app-install
 
