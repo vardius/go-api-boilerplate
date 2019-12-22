@@ -34,6 +34,13 @@ spec:
           - name: {{ .name }}
             containerPort: {{ .internalPort }}
           {{- end }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+          {{- range .Values.volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+          {{- end }}
+          {{- end }}
           {{- if ( or .Values.envFromSecretRefs .Values.envFromConfigMapRefs ) }}
           envFrom:
             {{- range .Values.envFromSecretRefs }}
@@ -61,13 +68,6 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.volumeMounts }}
-      volumeMounts:
-      {{- range .Values.volumeMounts }}
-        - name: {{ .name }}
-          mountPath: {{ .mountPath }}
-      {{- end }}
-      {{- end }}
       {{- if .Values.initContainers }}
       initContainers:
       {{- range .Values.initContainers }}
