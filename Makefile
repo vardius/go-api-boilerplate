@@ -73,7 +73,7 @@ helm-dependencies: ## [HELM] Update helm chart's dependencies for application. E
 	cd helm/app/ && helm dependency update
 
 helm-delete: ## [HELM] Delete helm chart for application. Example: `make helm-delete`
-	kubectl delete namespace go-api-boilerplate && helm uninstall go-api-boilerplate --namespace go-api-boilerplate
+	helm uninstall go-api-boilerplate --namespace go-api-boilerplate && kubectl delete namespace go-api-boilerplate
 
 # TELEPRESENCE TASKS
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
