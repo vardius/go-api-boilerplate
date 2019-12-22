@@ -7,5 +7,8 @@ ENV BIN=${BIN}
 
 RUN mkdir -p /migrations
 
+COPY cmd/auth/migrations /migrations/auth
+COPY cmd/user/migrations /migrations/user
+
 ENTRYPOINT ["/migrate"]
 CMD ["--help"]

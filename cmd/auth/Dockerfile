@@ -28,7 +28,6 @@ RUN go mod verify
 # Copy the source code into the container.
 COPY internal internal
 COPY cmd/"$BIN" cmd/"$BIN"
-COPY cmd/"$BIN"/migrations migrations
 
 RUN go build \
     -mod=readonly \
@@ -37,5 +36,4 @@ RUN go build \
 
 FROM scratch
 COPY --from=buildenv /go/bin/app /go/bin/app
-COPY --from=buildenv /app/migrations /go/bin/app/migrations
 ENTRYPOINT ["/go/bin/app"]

@@ -1,7 +1,9 @@
 magic-namespace:
 #  enabled: false
   # Uncomment and set to override the namespace that will be created.
-  namespace: go-api-boilerplate
+  # namespace created with `kubectl create namespace go-api-boilerplate`
+  # https://github.com/vardius/go-api-boilerplate/issues/24
+  # namespace: go-api-boilerplate
   tiller:
     enabled: false
   namespaceAttributes:
@@ -174,29 +176,20 @@ auth:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  volumeMounts:
-    - name: migrations
-      mountPath: /go/bin/app/migrations
   initContainers:
     - name: migrations
       image:
         repository: migrate
         tag: latest
         pullPolicy: IfNotPresent
-      volumeMounts:
-        - name: migrations
-          mountPath: "/migrations"
       command:
         - '/migrate'
       args:
         - '-source'
-        - 'file:///migrations'
+        - 'file:///migrations/auth'
         - '-database'
         - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
         - 'up'
-  volumes:
-    - name: migrations
-      emptyDir: {}
   envFromSecretRefs:
     - app-secret
     - user-secret
@@ -240,29 +233,20 @@ user:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  volumeMounts:
-    - name: migrations
-      mountPath: /go/bin/app/migrations
   initContainers:
     - name: migrations
       image:
         repository: migrate
         tag: latest
         pullPolicy: IfNotPresent
-      volumeMounts:
-        - name: migrations
-          mountPath: "/migrations"
       command:
         - '/migrate'
       args:
         - '-source'
-        - 'file:///migrations'
+        - 'file:///migrations/user'
         - '-database'
         - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
         - 'up'
-  volumes:
-    - name: migrations
-      emptyDir: {}
   envFromSecretRefs:
     - app-secret
     - user-secret
