@@ -109,9 +109,9 @@ func main() {
 		mysqlConnection,
 		grpcAuthClient,
 		map[string]*grpc.ClientConn{
-			"user":   grpcUserConn,
 			"auth":   grpcAuthConn,
 			"pubsub": grpcPubsubConn,
+			"user":   grpcUserConn,
 		},
 		oauth2Config,
 		config.Env.App.Secret,

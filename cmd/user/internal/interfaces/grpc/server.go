@@ -61,17 +61,17 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 
 // GetUser implements proto.UserServiceServer interface
 func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*proto.User, error) {
-	user, err := s.userRepository.Get(ctx, r.GetId())
+	u, err := s.userRepository.Get(ctx, r.GetId())
 	if err != nil {
 		s.logger.Error(ctx, "%v\n", errors.Wrap(err, errors.NOTFOUND, "User not found"))
 		return nil, status.Error(codes.NotFound, "User not found")
 	}
 
 	return &proto.User{
-		Id:         user.GetID(),
-		Email:      user.GetEmail(),
-		FacebookId: user.GetFacebookID(),
-		GoogleId:   user.GetGoogleID(),
+		Id:         u.GetID(),
+		Email:      u.GetEmail(),
+		FacebookId: u.GetFacebookID(),
+		GoogleId:   u.GetGoogleID(),
 	}, nil
 }
 
