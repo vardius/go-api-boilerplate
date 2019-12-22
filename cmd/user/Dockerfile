@@ -29,6 +29,8 @@ RUN go mod verify
 COPY internal internal
 COPY cmd/"$BIN" cmd/"$BIN"
 COPY cmd/"$BIN"/migrations migrations
+# Copy required proto files
+COPY cmd/auth/proto cmd/auth/proto
 
 RUN go build \
     -mod=readonly \
