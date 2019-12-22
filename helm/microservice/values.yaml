@@ -3,7 +3,7 @@
 
 replicaCount: 1
 
-image: 
+image:
   repository: golang
   tag: latest
   pullPolicy: IfNotPresent
