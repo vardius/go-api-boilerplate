@@ -37,10 +37,6 @@ dependencies:
     version: 1.27.0
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: nginx-ingress.enabled
-  - name: magic-namespace
-    version: 0.5.2
-    repository: https://kubernetes-charts.storage.googleapis.com/
-    condition: magic-namespace.enabled
   - name: mysql
     version: 1.6.2
     repository: https://kubernetes-charts.storage.googleapis.com/
