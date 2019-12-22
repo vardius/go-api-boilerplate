@@ -61,7 +61,7 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 
 # HELM TASKS
 helm-namespace-install: ## [HELM] Deploy the Helm chart for namespace. Example: `make helm-namespace-install`
-	helm install go-api-boilerplate-namespace helm/namespace/
+	helm install --name go-api-boilerplate-namespace helm/namespace/
 
 helm-namespace-upgrade: ## [HELM] Update the Helm chart for namespace. Example: `make helm-namespace-upgrade`
 	helm upgrade go-api-boilerplate-namespace helm/namespace/
@@ -73,10 +73,11 @@ helm-namespace-dependencies: ## [HELM] Update helm chart's dependencies for name
 	cd helm/namespace/ && helm dependency update
 
 helm-namespace-delete: ## [HELM] Delete helm chart for namespace. Example: `make helm-namespace-delete`
-	helm uninstall go-api-boilerplate-namespace
+	# keep alias helm delete --purge instead of uninstall for backward compatibility with v2.16.0 until v3 widely replaces it
+	helm delete --purge go-api-boilerplate-namespace
 
 helm-app-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-app-install`
-	helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
+	helm install --name go-api-boilerplate helm/app/ --namespace go-api-boilerplate
 
 helm-app-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-app-upgrade`
 	helm upgrade go-api-boilerplate helm/app/ --namespace go-api-boilerplate
@@ -88,7 +89,8 @@ helm-app-dependencies: ## [HELM] Update helm chart's dependencies for applicatio
 	cd helm/app/ && helm dependency update
 
 helm-app-delete: ## [HELM] Delete helm chart for application. Example: `make helm-app-delete`
-	helm uninstall go-api-boilerplate --namespace go-api-boilerplate
+	# keep alias helm delete --purge instead of uninstall for backward compatibility with v2.16.0 until v3 widely replaces it
+	helm delete --purge go-api-boilerplate --namespace go-api-boilerplate
 
 helm-install: ## [HELM] Deploy the Helm chart for all charts (app and namespace). Example: `make helm-install`
 	make helm-namespace-install && make helm-app-install

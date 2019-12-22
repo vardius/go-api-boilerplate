@@ -29,5 +29,5 @@ dependencies:
 - name: phpmyadmin
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 4.2.4
-digest: sha256:3d2059ef7fd1c9dcce44c9f8e12c541e66d7d583d5720969573065c87dce3875
-generated: "2019-12-22T23:18:05.640234+11:00"
+digest: sha256:db6318538a61532146211d527f621c657abe16bf8cd5b4387dc7232c802c793b
+generated: "2019-12-22T16:08:20.254624881+02:00"
