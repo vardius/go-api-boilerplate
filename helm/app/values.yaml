@@ -186,7 +186,7 @@ auth:
         - '/migrate'
       args:
         - '-source'
-        - 'file:///migrations/auth'
+        - 'file:///migrations'
         - '-database'
         - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
         - 'up'
@@ -243,7 +243,7 @@ user:
         - '/migrate'
       args:
         - '-source'
-        - 'file:///migrations/user'
+        - 'file:///migrations'
         - '-database'
         - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
         - 'up'
