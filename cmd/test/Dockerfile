@@ -15,6 +15,7 @@ ENV CGO_ENABLED=0
 
 # Create a location in the container for the source code.
 RUN mkdir -p /app
+RUN mkdir -p /go/bin/app
 
 # Copy the module files first and then download the dependencies. If this
 # doesn't change, we won't need to do this again in future builds.
@@ -25,7 +26,6 @@ RUN go mod download
 RUN go mod verify
 
 # Copy the source code into the container.
-COPY migrations/auth migrations/auth
 COPY internal internal
 COPY cmd cmd
 

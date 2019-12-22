@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"database/sql"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/http/response"
 	"net/http"
 
 	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
@@ -22,13 +24,13 @@ func BuildLivenessHandler() http.Handler {
 func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := db.PingContext(r.Context()); err != nil {
-			w.WriteHeader(500)
+			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Database is not responding"))
 			return
 		}
 
 		for name, conn := range connMap {
 			if !grpc_utils.IsConnectionServing(name, conn) {
-				w.WriteHeader(500)
+				response.RespondJSONError(r.Context(), w, errors.Newf(errors.INTERNAL, "gRPC connection %s is not serving", name))
 				return
 			}
 		}

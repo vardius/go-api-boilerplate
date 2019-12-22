@@ -3,9 +3,9 @@
 
 replicaCount: 1
 
-image: 
+image:
   repository: golang
-  tag: local
+  tag: latest
   pullPolicy: IfNotPresent
 
 nameOverride: ""

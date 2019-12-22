@@ -34,6 +34,13 @@ spec:
           - name: {{ .name }}
             containerPort: {{ .internalPort }}
           {{- end }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+          {{- range .Values.volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+          {{- end }}
+          {{- end }}
           {{- if ( or .Values.envFromSecretRefs .Values.envFromConfigMapRefs ) }}
           envFrom:
             {{- range .Values.envFromSecretRefs }}
@@ -61,13 +68,6 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.volumeMounts }}
-      volumeMounts:
-      {{- range .Values.volumeMounts }}
-        - name: {{ .name }}
-          mountPath: {{ .mountPath }}
-      {{- end }}
-      {{- end }}
       {{- if .Values.initContainers }}
       initContainers:
       {{- range .Values.initContainers }}
@@ -78,7 +78,18 @@ spec:
             {{- toYaml .command | nindent 12 }}
           args:
             {{- toYaml .args | nindent 12 }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+          {{- range .volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+          {{- end }}
+          {{- end }}
       {{- end }}
+      {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

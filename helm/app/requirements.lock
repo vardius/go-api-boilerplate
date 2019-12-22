@@ -13,24 +13,21 @@ dependencies:
   version: 0.1.0
 - name: kubernetes-dashboard
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.10.0
+  version: 1.10.1
 - name: heapster
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 0.3.3
+  version: 1.0.2
 - name: cert-manager
   repository: https://charts.jetstack.io
   version: v0.12.0
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.24.5
-- name: magic-namespace
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 0.5.2
+  version: 1.27.0
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.4.0
+  version: 1.6.2
 - name: phpmyadmin
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 4.1.1
-digest: sha256:a6b35a425fc1cf1eea5e94d2542a59f15a7ac26f7933cd5655c84d3eda0bdd87
-generated: 2019-12-10T20:59:37.511793+11:00
+  version: 4.2.4
+digest: sha256:3d2059ef7fd1c9dcce44c9f8e12c541e66d7d583d5720969573065c87dce3875
+generated: "2019-12-22T23:18:05.640234+11:00"

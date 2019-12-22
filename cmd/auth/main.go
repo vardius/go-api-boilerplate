@@ -101,8 +101,8 @@ func main() {
 		oauth2Server,
 		mysqlConnection,
 		map[string]*grpc.ClientConn{
-			"auth":   grpcAuthConn,
 			"pubsub": grpcPubsubConn,
+			"auth":   grpcAuthConn,
 		},
 	)
 	app := application.New(logger)

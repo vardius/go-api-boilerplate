@@ -25,16 +25,14 @@ RUN go mod download
 RUN go mod verify
 
 # Copy the source code into the container.
-COPY migrations/auth migrations/auth
 COPY internal internal
-COPY cmd cmd
+COPY cmd/"$BIN" cmd/"$BIN"
 
 RUN go build \
     -mod=readonly \
     -ldflags "-X github.com/vardius/go-api-boilerplate/internal/buildinfo.Version=$VERSION -X github.com/vardius/go-api-boilerplate/internal/buildinfo.GitCommit=$GIT_COMMIT -X 'github.com/vardius/go-api-boilerplate/internal/buildinfo.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'" \
     -a -o /go/bin/app ./cmd/"$BIN"
 
-FROM alpine
+FROM scratch
 COPY --from=buildenv /go/bin/app /go/bin/app
-COPY --from=buildenv /app/migrations/"$BIN" /migrations/"$BIN"
 ENTRYPOINT ["/go/bin/app"]

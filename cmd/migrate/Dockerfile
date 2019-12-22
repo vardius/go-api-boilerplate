@@ -5,7 +5,10 @@ LABEL maintainer="Rafał Lorenz <vardius@gmail.com>"
 ARG BIN
 ENV BIN=${BIN}
 
-COPY migrations migrations
+RUN mkdir -p /migrations
+
+COPY cmd/auth/migrations /migrations
+COPY cmd/user/migrations /migrations
 
 ENTRYPOINT ["/migrate"]
 CMD ["--help"]
