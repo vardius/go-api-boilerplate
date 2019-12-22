@@ -60,8 +60,8 @@ docker-tag-version:
 docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 
 # HELM TASKS
-helm-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install`. To install release in different namespace. Example: `make helm-install --namespace go-api-boilerplate`
-	kubectl create namspace go-api-boilerplate && helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
+helm-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install`
+	helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
 
 helm-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
 	helm upgrade go-api-boilerplate helm/app/

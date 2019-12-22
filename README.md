@@ -96,6 +96,7 @@ make helm-dependencies
 ```
 ### Deploy release
 ```sh
+kubectl create namespace go-api-boilerplate
 make helm-install
 ```
 
