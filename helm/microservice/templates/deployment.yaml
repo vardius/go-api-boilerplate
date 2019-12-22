@@ -61,6 +61,13 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+      {{- if .Values.volumeMounts }}
+      volumeMounts:
+      {{- range .Values.volumeMounts }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+      {{- end }}
+      {{- end }}
       {{- if .Values.initContainers }}
       initContainers:
       {{- range .Values.initContainers }}
