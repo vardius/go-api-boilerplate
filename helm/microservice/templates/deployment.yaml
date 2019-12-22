@@ -78,7 +78,18 @@ spec:
             {{- toYaml .command | nindent 12 }}
           args:
             {{- toYaml .args | nindent 12 }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+          {{- range .volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+          {{- end }}
+          {{- end }}
       {{- end }}
+      {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
