@@ -174,20 +174,29 @@ auth:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
+  volumeMounts:
+    - name: migrations
+      mountPath: /go/bin/app/migrations
   initContainers:
     - name: migrations
       image:
         repository: migrate
         tag: latest
         pullPolicy: IfNotPresent
+      volumeMounts:
+        - name: migrations
+          mountPath: "/migrations"
       command:
         - '/migrate'
       args:
         - '-source'
-        - 'file:///migrations/auth'
+        - 'file:///migrations'
         - '-database'
         - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
         - 'up'
+  volumes:
+    - name: migrations
+      emptyDir: {}
   envFromSecretRefs:
     - app-secret
     - user-secret
@@ -231,20 +240,29 @@ user:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
+  volumeMounts:
+    - name: migrations
+      mountPath: /go/bin/app/migrations
   initContainers:
     - name: migrations
       image:
         repository: migrate
         tag: latest
         pullPolicy: IfNotPresent
+      volumeMounts:
+        - name: migrations
+          mountPath: "/migrations"
       command:
         - '/migrate'
       args:
         - '-source'
-        - 'file:///migrations/user'
+        - 'file:///migrations'
         - '-database'
         - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
         - 'up'
+  volumes:
+    - name: migrations
+      emptyDir: {}
   envFromSecretRefs:
     - app-secret
     - user-secret
