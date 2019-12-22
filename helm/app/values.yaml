@@ -76,17 +76,32 @@ phpmyadmin:
   db:
     port: 3306
     host: go-api-boilerplate-mysql
-
-mysql:
-  existingSecret: mysql-secret
-  mysqlUser: goapiboilerplate
-  initializationFiles:
-    privileges.sql: |-
-      GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-      GRANT ALL PRIVILEGES ON *.* TO 'user'@'%' WITH GRANT OPTION;
-      FLUSH PRIVILEGES;
-    base_schema.sql: |-
-      CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+migrate:
+  nameOverride: migrate
+  serviceAccountName: goapiboilerplate
+  image:
+    repository: migrate
+    tag: local
+    pullPolicy: IfNotPresent
+  command:
+    - '/migrate'
+  args:
+    - '-path'
+    - 'migrations'
+    - '-database'
+    - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
+    - 'up'
+  initContainers:
+    mysql:
+      existingSecret: mysql-secret
+      mysqlUser: goapiboilerplate
+      initializationFiles:
+        privileges.sql: |-
+          GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+          GRANT ALL PRIVILEGES ON *.* TO 'user'@'%' WITH GRANT OPTION;
+          FLUSH PRIVILEGES;
+        base_schema.sql: |-
+          CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
 
 # AWS localstack https://github.com/localstack/localstack
 localstack:
@@ -149,20 +164,6 @@ auth:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  initContainers:
-    - name: migrations
-      image:
-        repository: migrate
-        tag: local
-        pullPolicy: IfNotPresent
-      command:
-        - '/migrate'
-      args:
-        - '-source'
-        - 'file:///migrations'
-        - '-database'
-        - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
-        - 'up'
   envFromSecretRefs:
     - app-secret
     - user-secret
@@ -206,20 +207,6 @@ user:
       - name: grpc
         internalPort: 3001
         externalPort: 3001
-  initContainers:
-    - name: migrations
-      image:
-        repository: migrate
-        tag: local
-        pullPolicy: IfNotPresent
-      command:
-        - '/migrate'
-      args:
-        - '-source'
-        - 'file:///migrations'
-        - '-database'
-        - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
-        - 'up'
   envFromSecretRefs:
     - app-secret
     - user-secret

@@ -73,7 +73,7 @@ helm-namespace-dependencies: ## [HELM] Update helm chart's dependencies for name
 	cd helm/namespace/ && helm dependency update
 
 helm-namespace-delete: ## [HELM] Delete helm chart for namespace. Example: `make helm-namespace-delete`
-	helm uninstall go-api-boilerplate-namespace
+	helm delete --purge go-api-boilerplate-namespace
 
 helm-app-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-app-install`
 	helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
@@ -88,7 +88,7 @@ helm-app-dependencies: ## [HELM] Update helm chart's dependencies for applicatio
 	cd helm/app/ && helm dependency update
 
 helm-app-delete: ## [HELM] Delete helm chart for application. Example: `make helm-app-delete`
-	helm uninstall go-api-boilerplate --namespace go-api-boilerplate
+	helm delete --purge go-api-boilerplate --namespace go-api-boilerplate
 
 helm-install: ## [HELM] Deploy the Helm chart for all charts (app and namespace). Example: `make helm-install`
 	make helm-namespace-install && make helm-app-install
