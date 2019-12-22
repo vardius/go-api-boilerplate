@@ -61,19 +61,19 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 
 # HELM TASKS
 helm-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install`
-	helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
+	kubectl create namespace go-api-boilerplate && helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
 
 helm-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
-	helm upgrade go-api-boilerplate helm/app/
+	helm upgrade go-api-boilerplate helm/app/ --namespace go-api-boilerplate
 
 helm-history: ## [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history`
-	helm history go-api-boilerplate
+	helm history go-api-boilerplate --namespace go-api-boilerplate
 
 helm-dependencies: ## [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies`
 	cd helm/app/ && helm dependency update
 
 helm-delete: ## [HELM] Delete helm chart for application. Example: `make helm-delete`
-	helm uninstall go-api-boilerplate
+	kubectl delete namespace go-api-boilerplate && helm uninstall go-api-boilerplate --namespace go-api-boilerplate
 
 # TELEPRESENCE TASKS
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
