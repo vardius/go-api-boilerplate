@@ -19,6 +19,18 @@ spec:
   dnsNames:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- if $values.issuer.selfSigned }}
+    # @TODO: how to do if not ?
+  {{- else }}
+  acme:
+    config:
+    - http01:
+        ingressClass: {{ $values.ingress.class }}
+      {{- with .hosts }}
+      domains:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- end }}
   issuerRef:
     name: {{ $values.ingress.issuerName }}
     kind: {{ $values.ingress.issuerKind }}
