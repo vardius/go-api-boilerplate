@@ -20,7 +20,7 @@ func WhenUserAccessTokenWasRequested(config oauth2.Config, secretKey string) eve
 
 		log.Printf("[EventHandler] %s\n", event.Payload)
 
-		e := user.WasRegisteredWithGoogle{}
+		e := user.WasRegisteredWithEmail{}
 
 		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {

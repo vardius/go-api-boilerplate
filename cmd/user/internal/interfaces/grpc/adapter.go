@@ -39,7 +39,6 @@ func (adapter *Adapter) Start(ctx context.Context) error {
 	}
 
 	adapter.healthServer.SetServingStatus("user", grpc_health_proto.HealthCheckResponse_SERVING)
-	adapter.healthServer.SetServingStatus("pubsub", grpc_health_proto.HealthCheckResponse_SERVING)
 
 	return adapter.server.Serve(lis)
 }
@@ -47,7 +46,6 @@ func (adapter *Adapter) Start(ctx context.Context) error {
 // Stop stops grpc application adapter
 func (adapter *Adapter) Stop(ctx context.Context) error {
 	adapter.healthServer.SetServingStatus("user", grpc_health_proto.HealthCheckResponse_NOT_SERVING)
-	adapter.healthServer.SetServingStatus("pubsub", grpc_health_proto.HealthCheckResponse_NOT_SERVING)
 
 	adapter.server.GracefulStop()
 
