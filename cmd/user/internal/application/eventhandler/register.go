@@ -25,10 +25,12 @@ func Register(conn *grpc.ClientConn, eventBus eventbus.EventBus, topicToHandlerM
 
 			for topic, handler := range topicToHandlerMap {
 				// Will resubscribe to handler on error infinitely
-				go gollback.New(context.Background()).Retry(0, func(ctx context.Context) (interface{}, error) {
-					err := eventBus.Subscribe(ctx, topic, handler)
-					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
-				})
+				go func(topic string, handler eventbus.EventHandler) {
+					gollback.New(context.Background()).Retry(0, func(ctx context.Context) (interface{}, error) {
+						err := eventBus.Subscribe(ctx, topic, handler)
+						return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
+					})
+				}(topic, handler)
 			}
 
 			return nil, nil
