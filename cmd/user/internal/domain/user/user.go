@@ -203,5 +203,8 @@ func (u *User) transition(e domain.RawEvent) {
 		u.email = e.Email
 	case EmailAddressWasChanged:
 		u.email = e.Email
+	case AccessTokenWasRequested:
+		u.id = e.ID
+		u.email = e.Email
 	}
 }
