@@ -14,8 +14,8 @@ func NewConfig() oauth2.Config {
 		ClientSecret: config.Env.App.ClientSecret,
 		Scopes:       []string{"all"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  fmt.Sprintf("http://%s:%d/authorize", config.Env.Auth.Host, config.Env.HTTP.Port),
-			TokenURL: fmt.Sprintf("http://%s:%d/token", config.Env.Auth.Host, config.Env.HTTP.Port),
+			AuthURL:  fmt.Sprintf("http://%s:%d/v1/authorize", config.Env.Auth.Host, config.Env.HTTP.Port),
+			TokenURL: fmt.Sprintf("http://%s:%d/v1/token", config.Env.Auth.Host, config.Env.HTTP.Port),
 		},
 	}
 }
