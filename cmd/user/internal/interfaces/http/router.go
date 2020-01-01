@@ -51,12 +51,14 @@ func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, c
 	router.POST("/v1/google/callback", handlers.BuildSocialAuthHandler(googleAPIURL, commandBus, user.RegisterUserWithGoogle, secretKey, oauth2Config))
 	router.POST("/v1/facebook/callback", handlers.BuildSocialAuthHandler(facebookAPIURL, commandBus, user.RegisterUserWithFacebook, secretKey, oauth2Config))
 
+	commandDispatchHandler := handlers.BuildCommandDispatchHandler(commandBus)
+
 	// Protected User routes
-	router.POST("/v1/dispatch/"+user.ChangeUserEmailAddress, handlers.BuildCommandDispatchHandler(commandBus))
+	router.POST("/v1/dispatch/"+user.ChangeUserEmailAddress, commandDispatchHandler)
 	router.USE(http.MethodPost, "/v1/dispatch/"+user.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
 
 	// Public User routes
-	router.POST("/v1/dispatch/{command}", handlers.BuildCommandDispatchHandler(commandBus))
+	router.POST("/v1/dispatch/{command}", commandDispatchHandler)
 
 	router.GET("/v1/me", handlers.BuildMeHandler(repository))
 	router.USE(http.MethodGet, "/v1/me", firewall.GrantAccessFor("USER"))
