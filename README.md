@@ -106,7 +106,7 @@ https://go-api-boilerplate.local/dashboard/#!/overview?namespace=go-api-boilerpl
 ### Dispatching command
 Send example JSON via POST request
 ```sh
-curl -sSL -D -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/v1/dispatch/register-user-with-email -o /dev/null --insecure
+curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/v1/dispatch/register-user-with-email --insecure
 ```
 ## View
 ### Public routes
@@ -125,7 +125,7 @@ Access protected route using auth token [https://go-api-boilerplate.local/users/
 ```
 Request access token for user
 ```sh
-curl -sSL -D -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/v1/dispatch/request-user-access-token -o /dev/null --insecure
+curl -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/v1/dispatch/request-user-access-token --insecure
 ```
 Get your access token from user pod event handler logs.
 
