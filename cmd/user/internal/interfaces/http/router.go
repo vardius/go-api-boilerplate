@@ -54,6 +54,7 @@ func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, c
 	commandDispatchHandler := handlers.BuildCommandDispatchHandler(commandBus)
 
 	// Protected User routes
+	// @TODO: @FIXME: https://github.com/vardius/gorouter/issues/14
 	router.POST("/v1/dispatch/"+user.ChangeUserEmailAddress, commandDispatchHandler)
 	router.USE(http.MethodPost, "/v1/dispatch/"+user.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
 
