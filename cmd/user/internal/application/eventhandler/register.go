@@ -20,7 +20,7 @@ func Register(conn *grpc.ClientConn, eventBus eventbus.EventBus, topicToHandlerM
 	connName := "pubsub"
 
 	// Will retry infinitely until timeouts by context (after 5 seconds)
-	gollback.New(ctx).Retry(0, func(ctx context.Context) (interface{}, error) {
+	_, err := gollback.New(ctx).Retry(0, func(ctx context.Context) (interface{}, error) {
 		if !grpc_utils.IsConnectionServing(connName, conn) {
 			return nil, errors.Newf(" %s gRPC connection is not serving", connName)
 		}
@@ -38,4 +38,8 @@ func Register(conn *grpc.ClientConn, eventBus eventbus.EventBus, topicToHandlerM
 
 		return nil, nil
 	})
+
+	if err != nil {
+		panic(err)
+	}
 }

@@ -24,7 +24,7 @@ func Register(conn *grpc.ClientConn, eventBus eventbus.EventBus, topicToHandlerM
 		if !grpc_utils.IsConnectionServing(connName, conn) {
 			return nil, errors.Newf(" %s gRPC connection is not serving", connName)
 		}
-    
+
 		for topic, handler := range topicToHandlerMap {
 			// Will resubscribe to handler on error infinitely
 			go func(topic string, handler eventbus.EventHandler) {
@@ -37,9 +37,6 @@ func Register(conn *grpc.ClientConn, eventBus eventbus.EventBus, topicToHandlerM
 		}
 
 		return nil, nil
-	})
-
-		return nil, errors.Newf(" %s gRPC connection is not serving", connName)
 	})
 
 	if err != nil {
