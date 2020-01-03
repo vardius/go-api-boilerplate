@@ -3,6 +3,8 @@
 
 replicaCount: 1
 
+namespace: go-api-boilerplate
+
 image:
   repository: golang
   tag: latest
