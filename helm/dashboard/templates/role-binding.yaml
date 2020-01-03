@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: go-api-boilerplate-dashboard
+  namespace: go-api-boilerplate
+  labels:
+    app: kubernetes-dashboard
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: go-api-boilerplate-dashboard
+subjects:
+- kind: ServiceAccount
+  name: dash-kubernetes-dashboard
+  namespace: default

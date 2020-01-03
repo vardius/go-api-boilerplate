@@ -22,7 +22,7 @@ dependencies:
     condition: localstack.enabled
 # External charts: https://github.com/helm/charts/blob/master/stable
   - name: kubernetes-dashboard
-    version: 1.10.1
+    version: v2.0.0-beta8
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: kubernetes-dashboard.enabled
   - name: heapster
