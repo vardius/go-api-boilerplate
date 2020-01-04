@@ -10,4 +10,5 @@ subjects:
 - kind: ServiceAccount
   name: goapiboilerplate
   namespace: go-api-boilerplate
-  
+
+
