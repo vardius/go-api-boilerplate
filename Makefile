@@ -61,7 +61,6 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 
 helm-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install`
 	kubectl create namespace go-api-boilerplate \
-	&& helm install go-api-boilerplate-cluster helm/cluster \
 	&& helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
 
 helm-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
@@ -75,7 +74,6 @@ helm-dependencies: ## [HELM] Update helm chart's dependencies for application. E
 
 helm-delete: ## [HELM] Delete helm chart for application. Example: `make helm-delete`
 	helm uninstall go-api-boilerplate --namespace go-api-boilerplate \
-	&& helm uninstall go-api-boilerplate-cluster \
 	&& kubectl delete namespace go-api-boilerplate
 
 # TELEPRESENCE TASKS

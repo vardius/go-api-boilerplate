@@ -1,7 +1,0 @@
-# define cluster-wide rbac
-namespace: go-api-boilerplate
-
-serviceAccountName: goapiboilerplate
-
-clusterRoleName: admin
-
