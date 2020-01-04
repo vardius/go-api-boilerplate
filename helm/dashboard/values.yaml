@@ -1,6 +1,0 @@
-kubernetes-dashboard:
-  enableInsecureLogin: true
-  fullnameOverride: 'kubernetes-dashboard'
-  extraArgs:
-    - --namespace go-api-boilerplate
-    - '--heapster-host=http://heapster.default:8082'
