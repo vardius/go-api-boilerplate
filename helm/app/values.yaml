@@ -43,7 +43,7 @@ kubernetes-dashboard:
   extraArgs:
     - --namespace go-api-boilerplate
     - '--heapster-host=http://heapster.default:8082'
-    
+
 heapster:
   fullnameOverride: 'heapster'
 
@@ -264,6 +264,10 @@ secrets:
     data:
       USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
       USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
+  - name: dashboard-secret
+    type: Opaque
+    data:
+      csrf: ""
 
 configMaps:
   - name: app-config

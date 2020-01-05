@@ -1,10 +1,15 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
-  name: go-api-boilerplate-dashboard
-  namespace: go-api-boilerplate
+  name: {{ include "app.fullname" $ }}
+  {{- if hasKey $values "namespace" }}
+  namespace: {{ $values.namespace }}
+  {{- end }}
   labels:
-    app: kubernetes-dashboard
+    helm.sh/chart: {{ include "app.chart" $ }}
+    app.kubernetes.io/name: {{ include "app.name" $ }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
