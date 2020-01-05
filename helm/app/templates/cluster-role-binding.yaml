@@ -1,13 +1,17 @@
-apiVersion: rbac.authorization.k8s.io/v1
+{{ if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/{{ required "A valid .Values.rbac.apiVersion entry required!" .Values.rbac.apiVersion }}
 kind: ClusterRoleBinding
 metadata:
-  name: goapiboilerplate
+  name: {{ include "app.fullname" $ }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: admin
+  name: {{ .Values.rbac.roleRef | default (printf "%s" (include "app.fullname" $))}}
 subjects:
 - kind: ServiceAccount
-  name: goapiboilerplate
-  namespace: go-api-boilerplate
+  name: {{ include "app.fullname" $ }}
+  {{- if hasKey .Values "namespace" }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+{{ end }}
 
