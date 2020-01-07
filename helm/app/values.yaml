@@ -14,7 +14,8 @@ serviceAccount:
   # The name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template
   # If create is false and a name is not specified, the default service account is used for the cluster role binding.
-  name: goapiboilerplate
+  # empty defaults to: include "app.fullname" $)
+  name:
 
 ingress:
   issuerName: selfsigned #letsencrypt
@@ -130,7 +131,6 @@ localstack:
 
 pubsub:
   nameOverride: pubsub
-  serviceAccountName: goapiboilerplate
   image:
     repository: vardius/pubsub
     tag: 1.0.6
@@ -154,7 +154,6 @@ pubsub:
 
 auth:
   nameOverride: auth
-  serviceAccountName: goapiboilerplate
   image:
     repository: auth
     tag: local
@@ -211,7 +210,6 @@ auth:
 
 user:
   nameOverride: user
-  serviceAccountName: goapiboilerplate
   image:
     repository: user
     tag: local

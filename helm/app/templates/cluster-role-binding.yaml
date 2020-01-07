@@ -10,8 +10,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {{ include "app.fullname" $ }}
-  {{- if hasKey .Values "namespace" }}
-  namespace: {{ .Values.namespace }}
-  {{- end }}
+  namespace: {{ $.Release.Namespace }}
 {{ end }}
 

@@ -3,9 +3,7 @@ apiVersion: cert-manager.io/v1alpha2
 kind: {{ .Values.issuer.kind }}
 metadata:
   name: {{ .Values.issuer.name }}
-  {{- if hasKey .Values "namespace" }}
-  namespace: {{ .Values.namespace }}
-  {{- end }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     helm.sh/chart: {{ include "app.chart" . }}
     app.kubernetes.io/name: {{ include "app.name" . }}
