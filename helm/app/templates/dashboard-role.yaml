@@ -2,9 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
   name: {{ include "app.fullname" $ }}
-  {{- if hasKey $values "namespace" }}
-  namespace: {{ $values.namespace }}
-  {{- end }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     helm.sh/chart: {{ include "app.chart" $ }}
     app.kubernetes.io/name: {{ include "app.name" $ }}
@@ -26,7 +24,7 @@ rules:
 - apiGroups:
   - ""
   resourceNames:
-  - kubernetes-dashboard-csrf
+  - dashboard-secret
   resources:
   - secrets
   verbs:

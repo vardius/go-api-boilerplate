@@ -2,9 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   name: {{ include "app.fullname" $ }}
-  {{- if hasKey $values "namespace" }}
-  namespace: {{ $values.namespace }}
-  {{- end }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     helm.sh/chart: {{ include "app.chart" $ }}
     app.kubernetes.io/name: {{ include "app.name" $ }}
@@ -13,8 +11,8 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: go-api-boilerplate-dashboard
+  name: {{ .Values.rbac.roleRef }}
 subjects:
 - kind: ServiceAccount
-  name: dash-kubernetes-dashboard
-  namespace: default
+  name: {{ .Values.serviceAccount.name | default (printf "%s" (include "app.fullname" $))}}
+  namespace: {{ $.Release.Namespace }}
