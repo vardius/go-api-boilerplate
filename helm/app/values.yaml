@@ -6,24 +6,6 @@ rbac:
   # Create a cluster role binding with the existing role, do not create a new one. If left blank, a new cluster role is created.
   roleRef: admin
 
-  role:
-    ## Rules to create. It follows the role specification
-    rules:
-    - apiGroups:
-      - "*"
-      resources:
-      - "*"
-      verbs:
-      - get
-      - list
-      - watch
-      - describe
-      - exec
-      - update
-      - delete
-      resourceNames:
-      - dashboard-secret
-
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -76,8 +58,25 @@ kubernetes-dashboard:
   enableInsecureLogin: true
   fullnameOverride: 'kubernetes-dashboard'
   extraArgs:
-    - --namespace go-api-boilerplate
+    - '--namespace go-api-boilerplate'
     - '--heapster-host=http://heapster.default:8082'
+  role:
+    ## Rules to create. It follows the role specification
+    rules:
+    - apiGroups:
+      - "*"
+      resources:
+      - "*"
+      verbs:
+      - get
+      - list
+      - watch
+      - describe
+      - exec
+      - update
+      - delete
+      resourceNames:
+      - dashboard-secret
 
 heapster:
   fullnameOverride: 'heapster'
