@@ -59,51 +59,22 @@ docker-tag-version:
 
 docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 
-# HELM TASKS
-helm-namespace-install: ## [HELM] Deploy the Helm chart for namespace. Example: `make helm-namespace-install`
-	helm install go-api-boilerplate-namespace helm/namespace/
+helm-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install`
+	kubectl create namespace go-api-boilerplate \
+	&& helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
 
-helm-namespace-upgrade: ## [HELM] Update the Helm chart for namespace. Example: `make helm-namespace-upgrade`
-	helm upgrade go-api-boilerplate-namespace helm/namespace/
-
-helm-namespace-history: ## [HELM] See what revisions have been made to the namespace's helm chart. Example: `make helm-namespace-history`
-	helm history go-api-boilerplate-namespace helm/namespace/
-
-helm-namespace-dependencies: ## [HELM] Update helm chart's dependencies for namespace. Example: `make helm-namespace-dependencies`
-	cd helm/namespace/ && helm dependency update
-
-helm-namespace-delete: ## [HELM] Delete helm chart for namespace. Example: `make helm-namespace-delete`
-	helm uninstall go-api-boilerplate-namespace
-
-helm-app-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-app-install`
-	helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
-
-helm-app-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-app-upgrade`
+helm-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
 	helm upgrade go-api-boilerplate helm/app/ --namespace go-api-boilerplate
 
-helm-app-history: ## [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-app-history`
+helm-history: ## [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history`
 	helm history go-api-boilerplate --namespace go-api-boilerplate
 
-helm-app-dependencies: ## [HELM] Update helm chart's dependencies for application. Example: `make helm-app-dependencies`
+helm-dependencies: ## [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies`
 	cd helm/app/ && helm dependency update
 
-helm-app-delete: ## [HELM] Delete helm chart for application. Example: `make helm-app-delete`
-	helm uninstall go-api-boilerplate --namespace go-api-boilerplate
-
-helm-install: ## [HELM] Deploy the Helm chart for all charts (app and namespace). Example: `make helm-install`
-	make helm-namespace-install && make helm-app-install
-
-helm-upgrade: ## [HELM] Update the Helm chart for all charts (app and namespace). Example: `make helm-upgrade`
-	make helm-namespace-upgrade && make helm-app-upgrade
-
-helm-history: ## [HELM] See what revisions have been made to the all charts (app and namespace)'s helm chart. Example: `make helm-history`
-	make helm-namespace-history && make helm-app-history
-
-helm-dependencies: ## [HELM] Update helm chart's dependencies for all charts (app and namespace). Example: `make helm-dependencies`
-	make helm-namespace-dependencies && make helm-app-dependencies
-
-helm-delete: ## [HELM] Delete helm chart for all charts (app and namespace). Example: `make helm-delete`
-	make helm-app-delete && make helm-namespace-delete
+helm-delete: ## [HELM] Delete helm chart for application. Example: `make helm-delete`
+	helm uninstall go-api-boilerplate --namespace go-api-boilerplate \
+	&& kubectl delete namespace go-api-boilerplate
 
 # TELEPRESENCE TASKS
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`

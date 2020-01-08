@@ -1,6 +1,0 @@
-dependencies:
-- name: magic-namespace
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 0.5.2
-digest: sha256:92996c62f3111149fd17035fda8665ff4e2f70995432db62035551d3c15d05b7
-generated: "2019-12-22T21:54:50.317981+11:00"

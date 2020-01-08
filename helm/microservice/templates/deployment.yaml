@@ -2,9 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "microservice.fullname" . }}
-  {{- if hasKey .Values "namespace" }}
-  namespace: {{ .Values.namespace }}
-  {{- end }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     app.kubernetes.io/name: {{ include "microservice.name" . }}
     helm.sh/chart: {{ include "microservice.chart" . }}
@@ -22,9 +20,7 @@ spec:
         app.kubernetes.io/name: {{ include "microservice.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
-    {{- if hasKey .Values "serviceAccountName" }}
-      serviceAccountName: {{ .Values.serviceAccountName }}
-    {{- end }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default (printf "%s" (include "app.fullname" $))}}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

@@ -148,7 +148,6 @@ localstack:
 
 pubsub:
   nameOverride: pubsub
-  serviceAccountName: goapiboilerplate
   image:
     repository: vardius/pubsub
     tag: 1.0.6
@@ -172,7 +171,6 @@ pubsub:
 
 auth:
   nameOverride: auth
-  serviceAccountName: goapiboilerplate
   image:
     repository: auth
     tag: local
@@ -229,7 +227,6 @@ auth:
 
 user:
   nameOverride: user
-  serviceAccountName: goapiboilerplate
   image:
     repository: user
     tag: local
