@@ -5,9 +5,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .name }}
-  {{- if hasKey $values "namespace" }}
-  namespace: {{ $values.namespace }}
-  {{- end }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     helm.sh/chart: {{ include "app.chart" $ }}
     app.kubernetes.io/name: {{ include "app.name" $ }}
