@@ -12,5 +12,3 @@ subjects:
   name: {{ include "app.fullname" $ }}
   namespace: {{ $.Release.Namespace }}
 {{ end }}
-
-
