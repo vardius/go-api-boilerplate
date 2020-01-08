@@ -1,3 +1,4 @@
+{{ if or (not (hasKey .Values.kubernetes-dashboard "enabled")) (.Values.kubernetes-dashboard.enabled | default true) }}
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
@@ -16,3 +17,4 @@ subjects:
 - kind: ServiceAccount
   name: {{ .Values.serviceAccount.name | default (printf "%s" (include "app.fullname" $))}}
   namespace: {{ $.Release.Namespace }}
+{{- end }}
