@@ -3,9 +3,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ include "app.fullname" . }}
-  {{- if hasKey .Values "namespace" }}
-  namespace: {{ .Values.namespace }}
-  {{- end }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     helm.sh/chart: {{ include "app.chart" . }}
     app.kubernetes.io/name: {{ include "app.name" . }}
