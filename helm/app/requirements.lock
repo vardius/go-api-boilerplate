@@ -11,7 +11,7 @@ dependencies:
 - name: microservice
   repository: file://../microservice
   version: 0.1.0
-- name: kubernetes-dashboard
+- name: dashboard
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.10.1
 - name: heapster

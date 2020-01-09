@@ -31,7 +31,7 @@ ingress:
       paths:
         - path: /dashboard(/|$)(.*)
           backend:
-            serviceName: kubernetes-dashboard
+            serviceName: dashboard
             servicePort: 443
         # - path: /localstack(/|$)(.*)
         #   backend:
