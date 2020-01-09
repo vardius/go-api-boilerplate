@@ -54,9 +54,9 @@ ingress:
       hosts:
         - go-api-boilerplate.local
 
-kubernetes-dashboard:
+dashboard:
   enableInsecureLogin: true
-  fullnameOverride: 'kubernetes-dashboard'
+  fullnameOverride: 'dashboard'
   extraArgs:
     - '--namespace go-api-boilerplate'
     - '--heapster-host=http://heapster.default:8082'
