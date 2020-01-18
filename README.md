@@ -160,6 +160,13 @@ We are using the github [issue tracker](https://github.com/vardius/go-api-boiler
         <a href="http://rafallorenz.com">Rafał Lorenz</a>
       </td>
      </tr>
+    <tr>
+      <td align="center" valign="top">
+        <img width="150" height="150" src="https://github.com/mar1n3r0.png?s=150">
+        <br>
+        <a href="https://github.com/mar1n3r0">Marin Kirkov</a>
+      </td>
+     </tr>
   </tbody>
 </table>
 
