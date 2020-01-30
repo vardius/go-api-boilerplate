@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"google.golang.org/grpc/status"
 	"time"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -25,7 +26,7 @@ func NewServer(cfg ServerConfig, logger golog.Logger) *grpc.Server {
 		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
 			logger.Critical(ctx, "[gRPC Server] Recovered in %v\n", rec)
 
-			return grpc.Errorf(codes.Internal, "[gRPC Server] Recovered in %v\n", rec)
+			return status.Errorf(codes.Internal, "[gRPC Server] Recovered in %v\n", rec)
 		}),
 	}
 

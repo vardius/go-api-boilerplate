@@ -127,8 +127,11 @@ func New(tableName string, config *aws.Config) baseeventstore.EventStore {
 		tableName = "events"
 	}
 
+	// @TODO:  handle error
+	s, _ := session.NewSession()
+
 	return &eventStore{
-		service:   dynamodb.New(session.New(), config),
+		service:   dynamodb.New(s, config),
 		tableName: tableName,
 	}
 }
