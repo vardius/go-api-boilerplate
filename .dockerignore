@@ -2,7 +2,6 @@
 .git
 .gitattributes
 .gitignore
-.editorconfig
 
 .DS_Store
 .idea
