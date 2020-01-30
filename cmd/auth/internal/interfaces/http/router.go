@@ -4,11 +4,11 @@ import (
 	"database/sql"
 
 	http_cors "github.com/rs/cors"
-	handlers "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http/handlers"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http/handlers"
 	http_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware"
 	http_metadata_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
-	log "github.com/vardius/go-api-boilerplate/internal/log"
-	gorouter "github.com/vardius/gorouter/v4"
+	"github.com/vardius/go-api-boilerplate/internal/log"
+	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 	"gopkg.in/oauth2.v3/server"
 )

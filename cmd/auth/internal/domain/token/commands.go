@@ -11,7 +11,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/executioncontext"
-	oauth2 "gopkg.in/oauth2.v3"
+	"gopkg.in/oauth2.v3"
 )
 
 // Remove command

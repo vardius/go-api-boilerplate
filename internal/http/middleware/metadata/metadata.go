@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	gorouter "github.com/vardius/gorouter/v4"
+	"github.com/vardius/gorouter/v4"
 )
 
 // ctxMetadataKey represents the type of value for the context key.

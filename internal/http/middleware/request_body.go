@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	gorouter "github.com/vardius/gorouter/v4"
+	"github.com/vardius/gorouter/v4"
 )
 
 // LimitRequestBody limits the request body

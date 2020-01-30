@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"runtime"
 
-	gorouter "github.com/vardius/gorouter/v4"
+	"github.com/vardius/gorouter/v4"
 )
 
 // m contains the global program counters for the application.

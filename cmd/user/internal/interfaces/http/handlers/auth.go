@@ -7,7 +7,7 @@ import (
 	"net/url"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	commandbus "github.com/vardius/go-api-boilerplate/internal/commandbus"
+	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/http/response"
 	"golang.org/x/oauth2"

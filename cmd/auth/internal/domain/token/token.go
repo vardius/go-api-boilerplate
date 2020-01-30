@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/vardius/go-api-boilerplate/internal/domain"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
-	oauth2 "gopkg.in/oauth2.v3"
+	"gopkg.in/oauth2.v3"
 )
 
 // StreamName for token domain

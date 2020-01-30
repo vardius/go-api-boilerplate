@@ -2,7 +2,7 @@ package oauth2
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	oauth2 "gopkg.in/oauth2.v3"
+	"gopkg.in/oauth2.v3"
 	oauth2_generates "gopkg.in/oauth2.v3/generates"
 	oauth2_manage "gopkg.in/oauth2.v3/manage"
 )

@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	gorouter "github.com/vardius/gorouter/v4"
+	"github.com/vardius/gorouter/v4"
 )
 
 // HSTS HTTP Strict Transport Security
