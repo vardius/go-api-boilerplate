@@ -45,7 +45,7 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 		tx.Commit()
 	}
 
-	return eventbus.EventHandler(fn)
+	return fn
 }
 
 type userWasRegisteredWithGoogleModel struct {

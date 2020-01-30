@@ -36,5 +36,5 @@ func TokenAuthHandler(grpAuthClient auth_proto.AuthenticationServiceClient, repo
 		return i, nil
 	}
 
-	return http_authenticator.TokenAuthFunc(fn)
+	return fn
 }

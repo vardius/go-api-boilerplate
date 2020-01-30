@@ -44,5 +44,5 @@ func WhenUserConnectedWithGoogle(db *sql.DB, repository persistence.UserReposito
 		tx.Commit()
 	}
 
-	return eventbus.EventHandler(fn)
+	return fn
 }

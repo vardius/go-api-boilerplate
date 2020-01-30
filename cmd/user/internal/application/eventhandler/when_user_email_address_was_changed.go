@@ -45,5 +45,5 @@ func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepos
 		tx.Commit()
 	}
 
-	return eventbus.EventHandler(fn)
+	return fn
 }

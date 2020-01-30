@@ -45,7 +45,7 @@ func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRe
 		tx.Commit()
 	}
 
-	return eventbus.EventHandler(fn)
+	return fn
 }
 
 type userWasRegisteredWithFacebookModel struct {

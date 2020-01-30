@@ -45,7 +45,7 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 		tx.Commit()
 	}
 
-	return eventbus.EventHandler(fn)
+	return fn
 }
 
 type tokenModel struct {

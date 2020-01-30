@@ -45,5 +45,5 @@ func WhenClientWasRemoved(db *sql.DB, repository persistence.ClientRepository) e
 		tx.Commit()
 	}
 
-	return eventbus.EventHandler(fn)
+	return fn
 }

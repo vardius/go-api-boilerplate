@@ -45,5 +45,5 @@ func WhenUserConnectedWithFacebook(db *sql.DB, repository persistence.UserReposi
 		tx.Commit()
 	}
 
-	return eventbus.EventHandler(fn)
+	return fn
 }

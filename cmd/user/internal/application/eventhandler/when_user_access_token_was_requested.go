@@ -44,5 +44,5 @@ func WhenUserAccessTokenWasRequested(config oauth2.Config, secretKey string) eve
 		log.Printf("[EventHandler] Access Token: %s\n", string(b))
 	}
 
-	return eventbus.EventHandler(fn)
+	return fn
 }
