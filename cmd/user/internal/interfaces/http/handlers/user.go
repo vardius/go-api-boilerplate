@@ -80,13 +80,13 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 
 		i, _ := identity.FromContext(r.Context())
 
-		user, e := repository.Get(r.Context(), i.ID.String())
+		u, e := repository.Get(r.Context(), i.ID.String())
 		if e != nil {
 			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.NOTFOUND, "User not found"))
 			return
 		}
 
-		response.RespondJSON(r.Context(), w, user, http.StatusOK)
+		response.RespondJSON(r.Context(), w, u, http.StatusOK)
 		return
 	}
 
@@ -109,13 +109,13 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 			return
 		}
 
-		user, e := repository.Get(r.Context(), params.Value("id"))
+		u, e := repository.Get(r.Context(), params.Value("id"))
 		if e != nil {
 			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.NOTFOUND, "User not found"))
 			return
 		}
 
-		response.RespondJSON(r.Context(), w, user, http.StatusOK)
+		response.RespondJSON(r.Context(), w, u, http.StatusOK)
 		return
 	}
 

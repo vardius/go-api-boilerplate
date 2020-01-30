@@ -19,8 +19,8 @@ func RespondJSON(ctx context.Context, w http.ResponseWriter, payload interface{}
 	// If there is nothing to marshal then set status code and return.
 	if payload == nil || statusCode == http.StatusNoContent {
 		w.WriteHeader(statusCode)
-		if metadata, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
-			metadata.StatusCode = statusCode
+		if mtd, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
+			mtd.StatusCode = statusCode
 		}
 		return
 	}
@@ -36,8 +36,8 @@ func RespondJSON(ctx context.Context, w http.ResponseWriter, payload interface{}
 		panic(err)
 	}
 
-	if metadata, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
-		metadata.StatusCode = statusCode
+	if mtd, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
+		mtd.StatusCode = statusCode
 	}
 
 	// Check if it is stream response

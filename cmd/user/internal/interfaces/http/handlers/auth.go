@@ -45,7 +45,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			response.RespondJSONError(r.Context(), w, errors.Wrap(r.Context().Err(), errors.INTERNAL, "Invalid request"))
 			return
 		case err = <-out:
-			if e != nil {
+			if err != nil {
 				response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Invalid request"))
 				return
 			}

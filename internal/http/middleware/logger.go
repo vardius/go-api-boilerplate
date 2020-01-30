@@ -17,11 +17,11 @@ func Logger(logger golog.Logger) gorouter.MiddlewareFunc {
 			var statusCode int
 			now := time.Now()
 
-			metadata, ok := r.Context().Value(metadata.KeyMetadataValues).(*metadata.Metadata)
+			mtd, ok := r.Context().Value(metadata.KeyMetadataValues).(*metadata.Metadata)
 			if ok {
-				traceID = metadata.TraceID
-				statusCode = metadata.StatusCode
-				now = metadata.Now
+				traceID = mtd.TraceID
+				statusCode = mtd.StatusCode
+				now = mtd.Now
 			}
 
 			logger.Info(r.Context(), "[Request|Start]: %s : (%d) : %s %s -> %s\n",
