@@ -138,6 +138,7 @@ github.com/vardius/golog v1.1.1 h1:BsQDbgzKWkUzZbeOQ/xJMkqFOKLTQyjOVlyNCqIbWug=
 github.com/vardius/golog v1.1.1/go.mod h1:mqo2VxWBUb0syu3GDSU1JOnHsY4IjyBcPfTzGE4bMqU=
 github.com/vardius/gorouter/v4 v4.4.0 h1:1mLBlUGIiGWp2GMYlxW0EtF2liNpe/Piyz4s1VPsaD8=
 github.com/vardius/gorouter/v4 v4.4.0/go.mod h1:CqwuN5abHWzQNibpDgDlipb85ES6xF18C8vzOUozfew=
+github.com/vardius/gorouter/v4 v4.4.1/go.mod h1:CqwuN5abHWzQNibpDgDlipb85ES6xF18C8vzOUozfew=
 github.com/vardius/message-bus v1.1.4 h1:qJnTHJ8AvhbVndSMlCYbnHhxFX180Vf25okxe4pKSaU=
 github.com/vardius/message-bus v1.1.4/go.mod h1:6xladCV2lMkUAE4bzzS85qKOiB5miV7aBVRafiTJGqw=
 github.com/vardius/pubsub v1.0.7 h1:SVq2YPbH4CiIEo2usxjWRjQtOKm5jwhEXURLj3U8LlI=
