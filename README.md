@@ -210,5 +210,5 @@ Proudly sponsored by [Open Collective sponsors](https://opencollective.com/go-ap
 - 👥 [Contribute on Open Collective](https://opencollective.com/go-api-boilerplate#sponsor)
 
 
-📜 [License](LICENSE.md)
+## 📜 [License](LICENSE.md)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate?ref=badge_large)
