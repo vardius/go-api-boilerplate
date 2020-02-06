@@ -34,7 +34,7 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
 </details>
 
-ABOUT
+📖 ABOUT
 ==================================================
 The main purpose of this project is to provide boilerplate project setup using using best practices, DDD, CQRS, ES, gRPC. Featuring kubernetes for both development and production environments. Allowing to work with environment reflecting production one, allowing to reduce any misconfigurations.
 
@@ -65,7 +65,7 @@ Worth getting to know packages used in this boilerplate:
 5. [pubsub](https://github.com/vardius/pubsub)
 6. [ardanlabs/service](https://github.com/ardanlabs/service)
 
-DOCUMENTATION
+📚 DOCUMENTATION
 ==================================================
 
 * [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
@@ -75,7 +75,7 @@ DOCUMENTATION
 * [Configuration](https://github.com/vardius/go-api-boilerplate/wiki/3.-Configuration)
 * [Guides](https://github.com/vardius/go-api-boilerplate/wiki/4.-Guides)
 
-EXAMPLE
+🏫 EXAMPLE
 ==================================================
 ## Quick start
 
@@ -134,7 +134,7 @@ Access protected route using auth token [https://go-api-boilerplate.local/users/
 {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
 ```
 
-Sponsoring
+💲 Sponsoring
 ==================================================
 
 <p align="center">
@@ -210,5 +210,5 @@ Proudly sponsored by [Open Collective sponsors](https://opencollective.com/go-ap
 - 👥 [Contribute on Open Collective](https://opencollective.com/go-api-boilerplate#sponsor)
 
 
-## License
+📜 [License](LICENSE.md)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate?ref=badge_large)
