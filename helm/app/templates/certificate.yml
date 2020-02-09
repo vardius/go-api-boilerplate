@@ -1,6 +1,6 @@
 {{- if .Values.ingress.tls -}}
-        {{- $values := .Values }}
-        {{- range .Values.ingress.tls -}}
+{{- $values := .Values }}
+{{- range .Values.ingress.tls -}}
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
@@ -13,13 +13,13 @@ metadata:
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
 spec:
   secretName: {{ .secretName }}
-        {{- with .hosts }}
+  {{- with .hosts }}
   dnsNames:
-        {{- toYaml . | nindent 4 }}
-        {{- end }}
-        {{- if $values.issuer.selfSigned }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if $values.issuer.selfSigned }}
   # @TODO: how to do if not ?
-        {{- else }}
+  {{- else }}
   acme:
     config:
       - http01:
@@ -39,6 +39,5 @@ spec:
     - key encipherment
     - server auth
     - code signing
----
 {{- end }}
-        {{- end }}
+{{- end }}
