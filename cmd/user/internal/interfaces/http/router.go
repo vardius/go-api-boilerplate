@@ -5,6 +5,10 @@ import (
 	"net/http"
 
 	http_cors "github.com/rs/cors"
+	"github.com/vardius/gorouter/v4"
+	"golang.org/x/oauth2"
+	"google.golang.org/grpc"
+
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	user_security "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
@@ -16,9 +20,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/http/middleware/firewall"
 	http_metadata_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
 	"github.com/vardius/go-api-boilerplate/internal/log"
-	"github.com/vardius/gorouter/v4"
-	"golang.org/x/oauth2"
-	"google.golang.org/grpc"
 )
 
 const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"

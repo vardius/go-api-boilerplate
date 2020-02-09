@@ -2,8 +2,9 @@ package grpc
 
 import (
 	"context"
-	"google.golang.org/grpc/status"
 	"time"
+
+	"google.golang.org/grpc/status"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"

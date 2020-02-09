@@ -14,7 +14,7 @@ roleRef:
   kind: Role
   name: {{ .Values.rbac.roleRef }}
 subjects:
-- kind: ServiceAccount
-  name: {{ .Values.serviceAccount.name | default (printf "%s" (include "app.fullname" $))}}
-  namespace: {{ $.Release.Namespace }}
-{{- end }}
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name | default (printf "%s" (include "app.fullname" $))}}
+    namespace: {{ $.Release.Namespace }}
+        {{- end }}

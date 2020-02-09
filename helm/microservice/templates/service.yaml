@@ -14,8 +14,8 @@ spec:
     app.kubernetes.io/name: {{ include "microservice.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
-  {{- range .Values.service.ports }}
-  - port: {{ .externalPort }}
-    name: {{ .name }}
-    targetPort: {{ .internalPort }}
-  {{- end }}
+          {{- range .Values.service.ports }}
+    - port: {{ .externalPort }}
+      name: {{ .name }}
+      targetPort: {{ .internalPort }}
+        {{- end }}

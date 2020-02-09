@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"sync"
 
-	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/golog"
 	"gopkg.in/oauth2.v3"
 	oauth2_errors "gopkg.in/oauth2.v3/errors"
 	oauth2_server "gopkg.in/oauth2.v3/server"
+
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 )
 
 var (

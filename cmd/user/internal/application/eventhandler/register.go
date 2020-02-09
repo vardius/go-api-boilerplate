@@ -4,11 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/vardius/gollback"
+	"google.golang.org/grpc"
+
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/eventbus"
 	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
-	"github.com/vardius/gollback"
-	"google.golang.org/grpc"
 )
 
 // Register registers event handlers for topics

@@ -63,20 +63,20 @@ dashboard:
   role:
     ## Rules to create. It follows the role specification
     rules:
-    - apiGroups:
-      - "*"
-      resources:
-      - "*"
-      verbs:
-      - get
-      - list
-      - watch
-      - describe
-      - exec
-      - update
-      - delete
-      resourceNames:
-      - dashboard-secret
+      - apiGroups:
+          - "*"
+        resources:
+          - "*"
+        verbs:
+          - get
+          - list
+          - watch
+          - describe
+          - exec
+          - update
+          - delete
+        resourceNames:
+          - dashboard-secret
 
 heapster:
   fullnameOverride: 'heapster'
@@ -357,7 +357,7 @@ configMaps:
       MYSQL_CONN_MAX_LIFETIME: '5m' #  sets the maximum amount of time a connection may be reused
       MYSQL_MAX_IDLE_CONNS: '0'     # sets the maximum number of connections in the idle
       MYSQL_MAX_OPEN_CONNS: '5'     # sets the maximum number of connections in the idle
-  # - name: aws-config
-  #   data:
+      # - name: aws-config
+      #   data:
       # AWS_REGION: 'us-east-1'
       # AWS_ENDPOINT: 'http://go-api-boilerplate-localstack:4569'

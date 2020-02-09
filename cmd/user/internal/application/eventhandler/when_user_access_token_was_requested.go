@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"log"
 
+	"golang.org/x/oauth2"
+
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/internal/domain"
 	"github.com/vardius/go-api-boilerplate/internal/eventbus"
-	"golang.org/x/oauth2"
 )
 
 // WhenUserAccessTokenWasRequested handles event

@@ -3,8 +3,9 @@ package oauth2
 import (
 	"fmt"
 
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"golang.org/x/oauth2"
+
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 )
 
 // NewConfig provides oauth2 config

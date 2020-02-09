@@ -14,13 +14,13 @@ dependencies:
     repository: "file://../microservice"
     alias: pubsub
     condition: pubsub.enabled
-# AWS localstack (for local development)
+  # AWS localstack (for local development)
   - name: microservice
     version: 0.1.0
     repository: "file://../microservice"
     alias: localstack
     condition: localstack.enabled
-# External charts: https://github.com/helm/charts/blob/master/stable
+  # External charts: https://github.com/helm/charts/blob/master/stable
   - name: dashboard
     version: 1.10.1
     repository: https://kubernetes-charts.storage.googleapis.com/

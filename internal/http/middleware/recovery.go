@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"github.com/vardius/go-api-boilerplate/internal/http/response"
 	"github.com/vardius/golog"
 	"github.com/vardius/gorouter/v4"
+
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/http/response"
 )
 
 // Recover middleware recovers from panic

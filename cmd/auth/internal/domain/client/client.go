@@ -9,9 +9,10 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"gopkg.in/oauth2.v3"
+
 	"github.com/vardius/go-api-boilerplate/internal/domain"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"gopkg.in/oauth2.v3"
 )
 
 // StreamName for client domain

@@ -10,31 +10,31 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-{{- if .Values.issuer.selfSigned }}
+        {{- if .Values.issuer.selfSigned }}
   selfSigned: {}
-{{- else -}}
+        {{- else -}}
   acme:
     server: {{ .Values.issuer.server }}
     email: {{ .Values.issuer.email }}
     privateKeySecretRef:
       name: {{ .Values.issuer.secretName }}
-  {{- if .Values.issuer.http01 }}
+          {{- if .Values.issuer.http01 }}
     http01: {}
-  {{- end }}
-  {{- with .Values.issuer.dns01 }}
+            {{- end }}
+          {{- with .Values.issuer.dns01 }}
     dns01:
       providers:
-      - name: route53
-        route53:
-        region: {{ .region }}
-      {{- if .accessKeyID  }}
-        accessKeyID: {{ .accessKeyID  }}
-      {{- end }}
-      {{- if .secretAccessKey }}
-        secretAccessKeySecretRef:
+        - name: route53
+          route53:
+          region: {{ .region }}
+                {{- if .accessKeyID  }}
+          accessKeyID: {{ .accessKeyID  }}
+                {{- end }}
+                {{- if .secretAccessKey }}
+          secretAccessKeySecretRef:
             name:  {{ .secretAccessKey.Name }}
             key:  {{ .secretAccessKey.Secret }}
-      {{- end }}
-  {{- end }}
-{{- end }}
-{{- end }}
+                  {{- end }}
+                  {{- end }}
+              {{- end }}
+        {{- end }}

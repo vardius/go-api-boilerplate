@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
+	"gopkg.in/oauth2.v3"
+	oauth2_models "gopkg.in/oauth2.v3/models"
+
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"gopkg.in/oauth2.v3"
-	oauth2_models "gopkg.in/oauth2.v3/models"
 )
 
 // NewTokenStore create a token store instance

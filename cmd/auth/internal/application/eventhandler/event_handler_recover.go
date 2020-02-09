@@ -1,6 +1,6 @@
 package eventhandler
 
-//@TODO: use internal logger
+// @TODO: use internal logger
 import (
 	"log"
 	"runtime/debug"

@@ -6,6 +6,11 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	pubsub_proto "github.com/vardius/pubsub/proto"
+	"google.golang.org/grpc"
+	grpc_health "google.golang.org/grpc/health"
+	oauth2_models "gopkg.in/oauth2.v3/models"
+
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/oauth2"
@@ -23,10 +28,6 @@ import (
 	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
 	"github.com/vardius/go-api-boilerplate/internal/log"
 	"github.com/vardius/go-api-boilerplate/internal/mysql"
-	pubsub_proto "github.com/vardius/pubsub/proto"
-	"google.golang.org/grpc"
-	grpc_health "google.golang.org/grpc/health"
-	oauth2_models "gopkg.in/oauth2.v3/models"
 )
 
 func main() {

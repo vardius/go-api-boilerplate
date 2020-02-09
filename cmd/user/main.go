@@ -6,6 +6,10 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	pubsub_proto "github.com/vardius/pubsub/proto"
+	"google.golang.org/grpc"
+	grpc_health "google.golang.org/grpc/health"
+
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/eventhandler"
@@ -23,9 +27,6 @@ import (
 	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
 	"github.com/vardius/go-api-boilerplate/internal/log"
 	"github.com/vardius/go-api-boilerplate/internal/mysql"
-	pubsub_proto "github.com/vardius/pubsub/proto"
-	"google.golang.org/grpc"
-	grpc_health "google.golang.org/grpc/health"
 )
 
 func main() {

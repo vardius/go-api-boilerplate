@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
-	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"github.com/vardius/go-api-boilerplate/internal/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gopkg.in/oauth2.v3/generates"
 	"gopkg.in/oauth2.v3/server"
+
+	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/internal/log"
 )
 
 type authenticationServer struct {

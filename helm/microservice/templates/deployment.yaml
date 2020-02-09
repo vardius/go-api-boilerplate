@@ -25,76 +25,76 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-          {{- range .Values.service.ports }}
-          - name: {{ .name }}
-            containerPort: {{ .internalPort }}
-          {{- end }}
-          {{- if .Values.volumeMounts }}
+                  {{- range .Values.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .internalPort }}
+                    {{- end }}
+                {{- if .Values.volumeMounts }}
           volumeMounts:
-          {{- range .Values.volumeMounts }}
+                  {{- range .Values.volumeMounts }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
-          {{- end }}
-          {{- end }}
-          {{- if ( or .Values.envFromSecretRefs .Values.envFromConfigMapRefs ) }}
+                    {{- end }}
+                    {{- end }}
+                {{- if ( or .Values.envFromSecretRefs .Values.envFromConfigMapRefs ) }}
           envFrom:
-            {{- range .Values.envFromSecretRefs }}
+                  {{- range .Values.envFromSecretRefs }}
             - secretRef:
                 name: {{ . }}
-            {{- end }}
-            {{- range .Values.envFromConfigMapRefs }}
+                      {{- end }}
+                  {{- range .Values.envFromConfigMapRefs }}
             - configMapRef:
                 name: {{ . }}
-            {{- end }}
-          {{- end }}
-          {{- if .Values.env }}
+                      {{- end }}
+                      {{- end }}
+                {{- if .Values.env }}
           env:
-            {{ toYaml .Values.env | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readiness }}
+                {{ toYaml .Values.env | nindent 12 }}
+                {{- end }}
+                {{- with .Values.readiness }}
           readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.liveness }}
+                {{- toYaml . | nindent 12 }}
+                {{- end }}
+                {{- with .Values.liveness }}
           livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.resources }}
+                {{- toYaml . | nindent 12 }}
+                {{- end }}
+                {{- with .Values.resources }}
           resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- if .Values.initContainers }}
+                {{- toYaml . | nindent 12 }}
+                {{- end }}
+            {{- if .Values.initContainers }}
       initContainers:
-      {{- range .Values.initContainers }}
+              {{- range .Values.initContainers }}
         - name: {{ .name }}
           image: "{{ .image.repository }}:{{ .image.tag }}"
           imagePullPolicy: {{ .image.pullPolicy }}
           command:
-            {{- toYaml .command | nindent 12 }}
+                {{- toYaml .command | nindent 12 }}
           args:
-            {{- toYaml .args | nindent 12 }}
-          {{- if .volumeMounts }}
+                {{- toYaml .args | nindent 12 }}
+                {{- if .volumeMounts }}
           volumeMounts:
-          {{- range .volumeMounts }}
+                  {{- range .volumeMounts }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
-          {{- end }}
-          {{- end }}
-      {{- end }}
-      {{- end }}
-      {{- with .Values.volumes }}
+                    {{- end }}
+                    {{- end }}
+                    {{- end }}
+                  {{- end }}
+            {{- with .Values.volumes }}
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
+            {{- toYaml . | nindent 8 }}
+            {{- end }}
+            {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
+            {{- toYaml . | nindent 8 }}
+            {{- end }}
+            {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
+            {{- toYaml . | nindent 8 }}
+            {{- end }}
+            {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}

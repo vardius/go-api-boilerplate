@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"gopkg.in/oauth2.v3"
 	oauth2_models "gopkg.in/oauth2.v3/models"
+
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/internal/errors"
 )
 
 // NewClientStore create client store

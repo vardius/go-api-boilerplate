@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/eventbus"

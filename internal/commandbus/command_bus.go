@@ -3,9 +3,10 @@ package commandbus
 import (
 	"context"
 
-	"github.com/vardius/go-api-boilerplate/internal/domain"
 	"github.com/vardius/golog"
 	messagebus "github.com/vardius/message-bus"
+
+	"github.com/vardius/go-api-boilerplate/internal/domain"
 )
 
 // CommandHandler function

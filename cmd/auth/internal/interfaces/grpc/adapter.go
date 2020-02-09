@@ -4,10 +4,11 @@ import (
 	"context"
 	"net"
 
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	grpc_main "google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
 	grpc_health_proto "google.golang.org/grpc/health/grpc_health_v1"
+
+	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 )
 
 // Adapter is grpc server app adapter

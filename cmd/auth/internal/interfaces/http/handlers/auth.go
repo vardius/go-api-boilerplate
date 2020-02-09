@@ -3,9 +3,10 @@ package handlers
 import (
 	"net/http"
 
+	"gopkg.in/oauth2.v3/server"
+
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/http/response"
-	"gopkg.in/oauth2.v3/server"
 )
 
 // BuildAuthorizeHandler provides authorize handler

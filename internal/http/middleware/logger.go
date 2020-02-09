@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
 	"github.com/vardius/golog"
 	"github.com/vardius/gorouter/v4"
+
+	"github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
 )
 
 // Logger wraps http.Handler with a logger middleware

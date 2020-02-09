@@ -8,10 +8,11 @@ import (
 	"runtime/debug"
 
 	"github.com/google/uuid"
+	"gopkg.in/oauth2.v3"
+
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/executioncontext"
-	"gopkg.in/oauth2.v3"
 )
 
 // Remove command

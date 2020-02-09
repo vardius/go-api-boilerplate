@@ -1,5 +1,5 @@
 {{- $values := .Values }}
-{{- range .Values.configMaps }}
+        {{- range .Values.configMaps }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -12,5 +12,5 @@ metadata:
     app.kubernetes.io/instance: {{ $.Release.Name }}
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
 data:
-  {{- toYaml .data | nindent 2 }}
-{{- end }}
+        {{- toYaml .data | nindent 2 }}
+        {{- end }}

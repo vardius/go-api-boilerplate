@@ -3,10 +3,11 @@ package firewall
 import (
 	"context"
 
-	"github.com/vardius/go-api-boilerplate/internal/identity"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/vardius/go-api-boilerplate/internal/identity"
 )
 
 var (
