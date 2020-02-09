@@ -15,7 +15,7 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/vardius/gollback v1.0.6
 	github.com/vardius/golog v1.1.1
-	github.com/vardius/gorouter/v4 v4.4.2
+	github.com/vardius/gorouter/v4 v4.4.3
 	github.com/vardius/message-bus v1.1.4
 	github.com/vardius/pubsub v1.0.7
 	github.com/vardius/shutdown v1.0.0

@@ -134,8 +134,8 @@ github.com/vardius/gollback v1.0.6 h1:+TY/NoiJmXyD06+GYc4yiz3nkV5NF00WIz3+9TzVLG
 github.com/vardius/gollback v1.0.6/go.mod h1:TvQesoeQMEJYia80/dsGskkuGc9/Sh0sWnq/D1qDoeM=
 github.com/vardius/golog v1.1.1 h1:BsQDbgzKWkUzZbeOQ/xJMkqFOKLTQyjOVlyNCqIbWug=
 github.com/vardius/golog v1.1.1/go.mod h1:mqo2VxWBUb0syu3GDSU1JOnHsY4IjyBcPfTzGE4bMqU=
-github.com/vardius/gorouter/v4 v4.4.2 h1:+UHDTzxlNo5yGYYvgboDZpbalaNTPi+HBlxyosn1EE0=
-github.com/vardius/gorouter/v4 v4.4.2/go.mod h1:sBAgnGMwx2WPQjP3cSVFqu8u/8sw2ubB0hsVZFKuocA=
+github.com/vardius/gorouter/v4 v4.4.3 h1:+/2R8Tc6ze+KnOn+XNUHzRjrzBfabP6YCzCquHp3Zi8=
+github.com/vardius/gorouter/v4 v4.4.3/go.mod h1:sBAgnGMwx2WPQjP3cSVFqu8u/8sw2ubB0hsVZFKuocA=
 github.com/vardius/message-bus v1.1.4 h1:qJnTHJ8AvhbVndSMlCYbnHhxFX180Vf25okxe4pKSaU=
 github.com/vardius/message-bus v1.1.4/go.mod h1:6xladCV2lMkUAE4bzzS85qKOiB5miV7aBVRafiTJGqw=
 github.com/vardius/pubsub v1.0.7 h1:SVq2YPbH4CiIEo2usxjWRjQtOKm5jwhEXURLj3U8LlI=
