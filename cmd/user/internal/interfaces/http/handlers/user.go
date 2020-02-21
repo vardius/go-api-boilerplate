@@ -34,7 +34,12 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			return
 		}
 
-		r.ParseMultipartForm(10 << 20)
+		e := r.ParseMultipartForm(10 << 20)
+
+		if e != nil {
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Could not parse request form"))
+			return
+		}
 
 		defer r.Body.Close()
 
