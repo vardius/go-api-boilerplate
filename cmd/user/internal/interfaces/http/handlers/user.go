@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
+		var payload []byte
 
 		if r.Body == nil {
 			response.RespondJSONError(r.Context(), w, ErrEmptyRequestBody)
@@ -33,13 +35,36 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		}
 
 		defer r.Body.Close()
-		body, e := ioutil.ReadAll(r.Body)
-		if e != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid request body"))
-			return
+
+		if len(r.Form) == 0 {
+			body, e := ioutil.ReadAll(r.Body)
+			if e != nil {
+				response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid request body"))
+				return
+			}
+
+			payload = body
+		} else {
+			e = r.ParseMultipartForm(10 << 20)
+
+			if e != nil {
+				response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Could not parse request form"))
+				return
+			}
+
+			mp := map[string]interface{}{}
+			for key := range r.Form {
+				mp[key] = r.PostFormValue(key)
+			}
+
+			payload, e = json.Marshal(mp)
+			if e != nil {
+				response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Could not JSON encode POST form"))
+				return
+			}
 		}
 
-		c, e := user.NewCommandFromPayload(params.Value("command"), body)
+		c, e := user.NewCommandFromPayload(params.Value("command"), payload)
 		if e != nil {
 			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid command payload"))
 			return
@@ -163,6 +188,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		paginatedList.Users, e = repository.FindAll(r.Context(), limit, offset)
+
 		if e != nil {
 			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid request"))
 			return

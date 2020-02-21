@@ -3,11 +3,14 @@ package user
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"runtime/debug"
 
 	"github.com/google/uuid"
+	"github.com/thedevsaddam/govalidator"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/domain"
@@ -34,6 +37,24 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	case RegisterUserWithEmail:
 		registerWithEmail := RegisterWithEmail{}
 		err := unmarshalPayload(payload, &registerWithEmail)
+		// validation rules
+		rules := govalidator.MapData{
+			"name":     []string{"required", "min:8", "max:32", "alpha_space"},
+			"email":    []string{"required", "min:8", "max:32", "email"},
+			"password": []string{"required", "min:8", "max:32"},
+		}
+
+		opts := govalidator.Options{
+			Data:  &registerWithEmail,
+			Rules: rules,
+		}
+
+		v := govalidator.New(opts)
+		e := v.ValidateStruct()
+		if len(e) > 0 {
+			data, _ := json.MarshalIndent(e, "", "  ")
+			return nil, errors.New(errors.INVALID, string(data))
+		}
 
 		return registerWithEmail, err
 	case RegisterUserWithGoogle:
@@ -63,7 +84,9 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 
 // RequestAccessToken command
 type RequestAccessToken struct {
-	ID uuid.UUID `json:"id"`
+	ID       uuid.UUID `json:"id"`
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
 }
 
 // GetName returns command name
@@ -78,8 +101,26 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
-		u := repository.Get(c.ID)
-		err := u.RequestAccessToken()
+		var id, password string
+
+		row := db.QueryRowContext(ctx, `SELECT id, password FROM users WHERE emailAddress=?`, c.Email)
+		err := row.Scan(&id, &password)
+		if err != nil {
+			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that user exists")
+			return
+		}
+
+		// Compare the stored hashed password, with the hashed version of the password that was received
+		err = bcrypt.CompareHashAndPassword([]byte(password), []byte(c.Password))
+		if err != nil {
+			// If the two passwords don't match, return a 401 status
+			out <- errors.Wrap(err, errors.UNAUTHORIZED, "Invalid credentials, email and password don't match")
+			return
+		}
+
+		u := repository.Get(uuid.MustParse(id))
+		u.password = string(c.Password)
+		err = u.RequestAccessToken()
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when requesting access token")
 			return
@@ -138,7 +179,9 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 
 // RegisterWithEmail command
 type RegisterWithEmail struct {
-	Email string `json:"email"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 // GetName returns command name
@@ -174,7 +217,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 		}
 
 		u := New()
-		err = u.RegisterWithEmail(id, c.Email)
+		err = u.RegisterWithEmail(id, c.Name, c.Email, c.Password)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
 			return
@@ -188,6 +231,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 
 // RegisterWithFacebook command
 type RegisterWithFacebook struct {
+	Name       string `json:"name"`
 	Email      string `json:"email"`
 	FacebookID string `json:"facebookId"`
 }
@@ -234,7 +278,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 			}
 
 			u = New()
-			err = u.RegisterWithFacebook(id, c.Email, c.FacebookID)
+			err = u.RegisterWithFacebook(id, c.Name, c.Email, c.FacebookID)
 			if err != nil {
 				out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
 				return

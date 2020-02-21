@@ -29,7 +29,7 @@ func WhenUserAccessTokenWasRequested(config oauth2.Config, secretKey string) eve
 			return
 		}
 
-		token, err := config.PasswordCredentialsToken(ctx, e.Email, secretKey)
+		token, err := config.PasswordCredentialsToken(ctx, e.Email, e.Password)
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v\n", err)
 			return

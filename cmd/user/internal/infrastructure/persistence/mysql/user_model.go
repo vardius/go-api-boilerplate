@@ -10,7 +10,9 @@ import (
 // User model
 type User struct {
 	ID         string           `json:"id"`
+	Name       string           `json:"name"`
 	Email      string           `json:"emailAddress"`
+	Password   string           `json:"password"`
 	FacebookID mysql.NullString `json:"facebookId"`
 	GoogleID   mysql.NullString `json:"googleId"`
 }
@@ -20,9 +22,19 @@ func (u User) GetID() string {
 	return u.ID
 }
 
+// GetName the full name
+func (u User) GetName() string {
+	return u.Name
+}
+
 // GetEmail the email
 func (u User) GetEmail() string {
 	return u.Email
+}
+
+// GetPassword the password
+func (u User) GetPassword() string {
+	return u.Password
 }
 
 // GetFacebookID facebook id

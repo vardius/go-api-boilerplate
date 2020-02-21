@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/vardius/golog"
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/oauth2.v3"
 	oauth2_errors "gopkg.in/oauth2.v3/errors"
 	oauth2_server "gopkg.in/oauth2.v3/server"
@@ -27,15 +28,16 @@ func InitServer(manager oauth2.Manager, db *sql.DB, logger golog.Logger, secretK
 		gServer.SetClientInfoHandler(oauth2_server.ClientFormHandler)
 
 		gServer.SetPasswordAuthorizationHandler(func(email, password string) (string, error) {
-			// we allow password grant only within our system, due to email passwordless authentication
-			// password value here should contain secretKey
-			if password != secretKey {
-				return "", errors.New(errors.UNAUTHORIZED, "Invalid client, user password does not match secret key")
-			}
 
-			userID, err := getUserIDByEmail(context.Background(), db, email)
+			userID, credentials, err := getUserIDByEmail(context.Background(), db, email)
 			if err != nil {
 				return "", errors.Wrapf(err, errors.UNAUTHORIZED, "Could not find user id for given email (%s)", email)
+			}
+
+			// Compare the stored hashed password, with the hashed version of the password that was received
+			err = bcrypt.CompareHashAndPassword([]byte(credentials), []byte(password))
+			if err != nil {
+				return "", errors.Wrapf(err, errors.UNAUTHORIZED, credentials)
 			}
 
 			return userID, nil
@@ -57,9 +59,9 @@ func InitServer(manager oauth2.Manager, db *sql.DB, logger golog.Logger, secretK
 	return gServer
 }
 
-func getUserIDByEmail(ctx context.Context, db *sql.DB, email string) (id string, err error) {
-	row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE emailAddress=?`, email)
-	e := row.Scan(&id)
+func getUserIDByEmail(ctx context.Context, db *sql.DB, email string) (id, password string, err error) {
+	row := db.QueryRowContext(ctx, `SELECT id, password FROM users WHERE emailAddress=?`, email)
+	e := row.Scan(&id, &password)
 
 	switch {
 	case e == sql.ErrNoRows:

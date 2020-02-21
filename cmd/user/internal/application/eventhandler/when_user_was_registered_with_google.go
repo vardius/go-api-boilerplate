@@ -57,9 +57,19 @@ func (u userWasRegisteredWithGoogleModel) GetID() string {
 	return u.e.ID.String()
 }
 
+// GetName the full name
+func (u userWasRegisteredWithGoogleModel) GetName() string {
+	return u.e.Name
+}
+
 // GetEmail the email
 func (u userWasRegisteredWithGoogleModel) GetEmail() string {
 	return u.e.Email
+}
+
+// GetPassword the password
+func (u userWasRegisteredWithGoogleModel) GetPassword() string {
+	return ""
 }
 
 // GetFacebookID facebook id
