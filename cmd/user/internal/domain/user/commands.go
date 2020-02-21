@@ -3,11 +3,13 @@ package user
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"runtime/debug"
 
 	"github.com/google/uuid"
+	"github.com/thedevsaddam/govalidator"
 
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/domain"
@@ -34,6 +36,22 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	case RegisterUserWithEmail:
 		registerWithEmail := RegisterWithEmail{}
 		err := unmarshalPayload(payload, &registerWithEmail)
+		// validation rules
+		rules := govalidator.MapData{
+			"email": []string{"required", "min:4", "max:20", "email"},
+		}
+
+		opts := govalidator.Options{
+			Data:  &registerWithEmail,
+			Rules: rules,
+		}
+
+		v := govalidator.New(opts)
+		e := v.ValidateStruct()
+		if len(e) > 0 {
+			data, _ := json.MarshalIndent(e, "", "  ")
+			return nil, errors.New(errors.INVALID, string(data))
+		}
 
 		return registerWithEmail, err
 	case RegisterUserWithGoogle:
