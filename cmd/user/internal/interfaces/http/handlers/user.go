@@ -48,7 +48,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			payload = body
 		} else {
 			mp := map[string]interface{}{}
-			for key, _ := range r.Form {
+			for key := range r.Form {
 				mp[key] = r.PostFormValue(key)
 			}
 
