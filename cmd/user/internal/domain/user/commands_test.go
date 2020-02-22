@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/url"
 	"testing"
 
 	"github.com/google/uuid"
@@ -19,6 +20,19 @@ func TestUnmarshalRegisterWithEmail(t *testing.T) {
 	testJSON := []byte(`{"email":"test@test.com"}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithEmail{})
+}
+
+func TestUnmarshalRegisterWithEmailForm(t *testing.T) {
+	form := url.Values{}
+	form.Set("email", "test@test.com")
+	testForm := map[string]interface{}{}
+	for key := range form {
+		testForm[key] = key
+	}
+
+	testFormJSON, _ := json.Marshal(testForm)
+
+	testUnmarshalCommand(t, testFormJSON, &RegisterWithEmail{})
 }
 
 func TestUnmarshalRegisterWithFacebook(t *testing.T) {
