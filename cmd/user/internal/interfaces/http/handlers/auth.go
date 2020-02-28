@@ -15,6 +15,7 @@ import (
 )
 
 type requestBody struct {
+	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
@@ -52,14 +53,14 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			}
 		}
 
-		emailData := requestBody{}
-		e = json.Unmarshal(profileData, &emailData)
+		userData := requestBody{}
+		e = json.Unmarshal(profileData, &userData)
 		if e != nil {
 			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body"))
 			return
 		}
 
-		token, err := config.PasswordCredentialsToken(r.Context(), emailData.Email, secretKey)
+		token, err := config.PasswordCredentialsToken(r.Context(), userData.Email, secretKey)
 		if err != nil {
 			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Generate token failure"))
 			return

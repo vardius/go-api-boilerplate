@@ -22,7 +22,8 @@ type User struct {
 	version int
 	changes []domain.Event
 
-	email string
+	email    string
+	password string
 }
 
 // New creates an User
@@ -121,10 +122,12 @@ func (u User) Changes() []domain.Event {
 }
 
 // RegisterWithEmail alters current user state and append changes to aggregate root
-func (u *User) RegisterWithEmail(id uuid.UUID, email string) error {
+func (u *User) RegisterWithEmail(id uuid.UUID, name string, email string, password string) error {
 	return u.trackChange(WasRegisteredWithEmail{
-		ID:    id,
-		Email: email,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
 	})
 }
 
@@ -146,9 +149,10 @@ func (u *User) ConnectWithGoogle(googleID string) error {
 }
 
 // RegisterWithFacebook alters current user state and append changes to aggregate root
-func (u *User) RegisterWithFacebook(id uuid.UUID, email, facebookID string) error {
+func (u *User) RegisterWithFacebook(id uuid.UUID, name, email, facebookID string) error {
 	return u.trackChange(WasRegisteredWithFacebook{
 		ID:         id,
+		Name:       name,
 		Email:      email,
 		FacebookID: facebookID,
 	})
@@ -173,8 +177,9 @@ func (u *User) ChangeEmailAddress(email string) error {
 // RequestAccessToken dispatches AccessTokenWasRequested event
 func (u *User) RequestAccessToken() error {
 	return u.trackChange(AccessTokenWasRequested{
-		ID:    u.id,
-		Email: u.email,
+		ID:       u.id,
+		Email:    u.email,
+		Password: u.password,
 	})
 }
 

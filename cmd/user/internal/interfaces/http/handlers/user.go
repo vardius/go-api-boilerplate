@@ -34,13 +34,6 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			return
 		}
 
-		e = r.ParseMultipartForm(10 << 20)
-
-		if e != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Could not parse request form"))
-			return
-		}
-
 		defer r.Body.Close()
 
 		if len(r.Form) == 0 {
@@ -52,6 +45,13 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 
 			payload = body
 		} else {
+			e = r.ParseMultipartForm(10 << 20)
+
+			if e != nil {
+				response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Could not parse request form"))
+				return
+			}
+
 			mp := map[string]interface{}{}
 			for key := range r.Form {
 				mp[key] = r.PostFormValue(key)
@@ -188,6 +188,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		paginatedList.Users, e = repository.FindAll(r.Context(), limit, offset)
+
 		if e != nil {
 			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid request"))
 			return

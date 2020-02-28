@@ -70,7 +70,9 @@ func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*pro
 
 	return &proto.User{
 		Id:         u.GetID(),
+		Name:       u.GetName(),
 		Email:      u.GetEmail(),
+		Password:   u.GetPassword(),
 		FacebookId: u.GetFacebookID(),
 		GoogleId:   u.GetGoogleID(),
 	}, nil
@@ -112,7 +114,9 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 	for i := range users {
 		list[i] = &proto.User{
 			Id:         users[i].GetID(),
+			Name:       users[i].GetName(),
 			Email:      users[i].GetEmail(),
+			Password:   users[i].GetPassword(),
 			FacebookId: users[i].GetFacebookID(),
 			GoogleId:   users[i].GetGoogleID(),
 		}

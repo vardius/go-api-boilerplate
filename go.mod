@@ -23,6 +23,7 @@ require (
 	github.com/vardius/pubsub v1.0.7
 	github.com/vardius/shutdown v1.0.0
 	github.com/vardius/trace v1.0.1
+	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect

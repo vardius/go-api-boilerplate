@@ -10,7 +10,9 @@ import (
 // User the user persistence model interface
 type User interface {
 	GetID() string
+	GetName() string
 	GetEmail() string
+	GetPassword() string
 	GetFacebookID() string
 	GetGoogleID() string
 }
