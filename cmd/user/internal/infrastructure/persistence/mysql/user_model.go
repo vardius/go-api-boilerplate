@@ -22,7 +22,7 @@ func (u User) GetID() string {
 	return u.ID
 }
 
-// Get full name
+// GetName the full name
 func (u User) GetName() string {
 	return u.Name
 }
@@ -32,7 +32,7 @@ func (u User) GetEmail() string {
 	return u.Email
 }
 
-// Get password
+// GetPassword the password
 func (u User) GetPassword() string {
 	return u.Password
 }

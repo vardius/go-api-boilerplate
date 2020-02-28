@@ -57,7 +57,7 @@ func (u userWasRegisteredWithEmailModel) GetID() string {
 	return u.e.ID.String()
 }
 
-// Get full name
+// GetName the full name
 func (u userWasRegisteredWithEmailModel) GetName() string {
 	return u.e.Name
 }
@@ -67,7 +67,7 @@ func (u userWasRegisteredWithEmailModel) GetEmail() string {
 	return u.e.Email
 }
 
-// Get password
+// GetPassword the password
 func (u userWasRegisteredWithEmailModel) GetPassword() string {
 	return u.e.Password
 }
