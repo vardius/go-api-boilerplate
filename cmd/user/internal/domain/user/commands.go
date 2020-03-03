@@ -75,7 +75,7 @@ func (c RequestAccessToken) GetName() string {
 func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c RequestAccessToken, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover from panic to prevent crash
+		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		u := repository.Get(c.ID)
@@ -106,7 +106,7 @@ func (c ChangeEmailAddress) GetName() string {
 func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c ChangeEmailAddress, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover from panic to prevent crash
+		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var totalUsers int32
@@ -150,7 +150,7 @@ func (c RegisterWithEmail) GetName() string {
 func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c RegisterWithEmail, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover from panic to prevent crash
+		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var totalUsers int32
@@ -201,7 +201,7 @@ func (c RegisterWithFacebook) GetName() string {
 func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c RegisterWithFacebook, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover from panic to prevent crash
+		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var id, emailAddress, facebookID string
@@ -262,7 +262,7 @@ func (c RegisterWithGoogle) GetName() string {
 func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c RegisterWithGoogle, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover from panic to prevent crash
+		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var id, emailAddress, googleID string

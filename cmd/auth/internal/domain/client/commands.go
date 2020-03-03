@@ -29,7 +29,7 @@ func (c Remove) GetName() string {
 func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c Remove, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover from panic to prevent crash
+		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		client := repository.Get(c.ID)
@@ -59,7 +59,7 @@ func (c Create) GetName() string {
 func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c Create, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover from panic to prevent crash
+		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		client := New()

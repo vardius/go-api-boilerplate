@@ -16,7 +16,7 @@ import (
 func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
-		// there for recover middlewears will not recover from panic to prevent crash
+		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverEventHandler()
 
 		log.Printf("[EventHandler] %s\n", event.Payload)
