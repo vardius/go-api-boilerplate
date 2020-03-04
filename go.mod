@@ -14,6 +14,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/joncalhoun/qson v0.0.0-20200214190643-0e0c0e4268e7
 	github.com/klauspost/compress v1.9.8 // indirect
+	github.com/markbates/goth v1.61.2
 	github.com/rs/cors v1.7.0
 	github.com/thedevsaddam/govalidator v1.9.9
 	github.com/vardius/gollback v1.0.6

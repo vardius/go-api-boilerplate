@@ -2,12 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
-	"net/url"
 
-	"golang.org/x/oauth2"
-
+	"github.com/markbates/goth/gothic"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
@@ -20,16 +17,21 @@ type requestBody struct {
 }
 
 // BuildSocialAuthHandler wraps user gRPC client with http.Handler
-func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName, secretKey string, config oauth2.Config) http.Handler {
+func BuildSocialAuthHandler(cb commandbus.CommandBus, commandName string) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		accessToken := r.FormValue("accessToken")
-		profileData, e := getProfile(accessToken, apiURL)
-		if e != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INVALID, "Invalid access token"))
+		// try to get the user without re-authenticating
+		gothUser, err := gothic.CompleteUserAuth(w, r)
+		if err != nil {
+			gothic.BeginAuthHandler(w, r)
+		}
+
+		userProfile, err := json.Marshal(gothUser)
+		if err != nil {
+			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not json marshal response"))
 			return
 		}
 
-		c, err := user.NewCommandFromPayload(commandName, profileData)
+		c, err := user.NewCommandFromPayload(commandName, userProfile)
 		if err != nil {
 			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Invalid request"))
 			return
@@ -53,36 +55,8 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			}
 		}
 
-		userData := requestBody{}
-		e = json.Unmarshal(profileData, &userData)
-		if e != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body"))
-			return
-		}
-
-		token, err := config.PasswordCredentialsToken(r.Context(), userData.Email, secretKey)
-		if err != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Generate token failure"))
-			return
-		}
-
-		response.RespondJSON(r.Context(), w, token, http.StatusOK)
+		response.RespondJSON(r.Context(), w, gothUser.AccessToken, http.StatusOK)
 	}
 
 	return http.HandlerFunc(fn)
-}
-
-func getProfile(accessToken, apiURL string) ([]byte, error) {
-	resp, e := http.Get(apiURL + "?access_token=" + url.QueryEscape(accessToken))
-	if e != nil {
-		return nil, e
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return body, errors.Wrap(err, errors.INTERNAL, "Read body error")
-	}
-
-	return body, nil
 }

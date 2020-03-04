@@ -6,6 +6,9 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/providers/facebook"
+	"github.com/markbates/goth/providers/google"
 	pubsub_proto "github.com/vardius/pubsub/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
@@ -37,6 +40,12 @@ func main() {
 	logger := log.New(config.Env.App.Environment)
 	eventStore := eventstore.New()
 	oauth2Config := oauth2.NewConfig()
+	oauth2FacebookConfig := oauth2.NewConfigFacebook()
+	oauth2GoogleConfig := oauth2.NewConfigGoogle()
+	goth.UseProviders(
+		facebook.New(oauth2FacebookConfig.ClientID, oauth2FacebookConfig.ClientSecret, oauth2FacebookConfig.RedirectURL),
+		google.New(oauth2GoogleConfig.ClientID, oauth2GoogleConfig.ClientSecret, oauth2GoogleConfig.RedirectURL),
+	)
 	grpcServer := grpc_utils.NewServer(
 		grpc_utils.ServerConfig{
 			ServerMinTime: config.Env.GRPC.ServerMinTime,
@@ -120,8 +129,7 @@ func main() {
 	app := application.New(logger)
 
 	commandBus.Subscribe((user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, mysqlConnection))
-	commandBus.Subscribe((user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, mysqlConnection))
-	commandBus.Subscribe((user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, mysqlConnection))
+	commandBus.Subscribe((user.AuthWithProvider{}).GetName(), user.OnAuthWithProvider(userRepository, mysqlConnection))
 	commandBus.Subscribe((user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, mysqlConnection))
 	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, mysqlConnection))
 
@@ -130,11 +138,10 @@ func main() {
 			grpcPubsubConn,
 			eventBus,
 			map[string]eventbus.EventHandler{
-				(user.WasRegisteredWithEmail{}).GetType():    eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository),
-				(user.WasRegisteredWithGoogle{}).GetType():   eventhandler.WhenUserWasRegisteredWithGoogle(mysqlConnection, userPersistenceRepository),
-				(user.WasRegisteredWithFacebook{}).GetType(): eventhandler.WhenUserWasRegisteredWithFacebook(mysqlConnection, userPersistenceRepository),
-				(user.EmailAddressWasChanged{}).GetType():    eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository),
-				(user.AccessTokenWasRequested{}).GetType():   eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, config.Env.App.Secret),
+				(user.WasRegisteredWithEmail{}).GetType():       eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository),
+				(user.WasAuthenticatedWithProvider{}).GetType(): eventhandler.WhenUserWasAuthenticatedWithProvider(mysqlConnection, userPersistenceRepository),
+				(user.EmailAddressWasChanged{}).GetType():       eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository),
+				(user.AccessTokenWasRequested{}).GetType():      eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, config.Env.App.Secret),
 			},
 			5*time.Minute,
 		)
