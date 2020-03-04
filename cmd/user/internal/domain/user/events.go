@@ -51,7 +51,7 @@ func (e WasRegisteredWithEmail) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
-// WasRegisteredWithEmail event
+// WasAuthenticatedWithProvider event
 type WasAuthenticatedWithProvider struct {
 	ID           uuid.UUID `json:"id"`
 	Provider     string    `json:"provider"`

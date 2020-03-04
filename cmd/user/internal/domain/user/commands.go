@@ -25,7 +25,7 @@ const (
 	ChangeUserEmailAddress = "change-user-email-address"
 	// RegisterUserWithEmail command bus contract
 	RegisterUserWithEmail = "register-user-with-email"
-	// AuthWithProvidder command bus contract
+	// AuthUserWithProvider command bus contract
 	AuthUserWithProvider = "auth-user-with-provider"
 )
 
@@ -222,6 +222,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 	return commandbus.CommandHandler(fn)
 }
 
+// AuthWithProvider creates command handler
 type AuthWithProvider struct {
 	Provider     string `json:"provider"`
 	Name         string `json:"name"`

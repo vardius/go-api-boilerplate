@@ -12,7 +12,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/eventbus"
 )
 
-// WhenUserWasRegisteredWithGoogle handles event
+// WhenUserWasAuthenticatedWithProvider handles event
 func WhenUserWasAuthenticatedWithProvider(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,

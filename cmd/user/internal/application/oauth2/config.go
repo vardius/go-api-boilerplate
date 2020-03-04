@@ -21,7 +21,7 @@ func NewConfig() oauth2.Config {
 	}
 }
 
-// NewConfig provides oauth2 config
+// NewConfigFacebook provides oauth2 config
 func NewConfigFacebook() oauth2.Config {
 	return oauth2.Config{
 		ClientID:     config.Env.Facebook.ClientID,
@@ -31,7 +31,7 @@ func NewConfigFacebook() oauth2.Config {
 	}
 }
 
-// NewConfig provides oauth2 config
+// NewConfigGoogle provides oauth2 config
 func NewConfigGoogle() oauth2.Config {
 	return oauth2.Config{
 		ClientID:     config.Env.Google.ClientID,
