@@ -69,12 +69,19 @@ func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*pro
 	}
 
 	return &proto.User{
-		Id:         u.GetID(),
-		Name:       u.GetName(),
-		Email:      u.GetEmail(),
-		Password:   u.GetPassword(),
-		FacebookId: u.GetFacebookID(),
-		GoogleId:   u.GetGoogleID(),
+		Id:           u.GetID(),
+		Provider:     u.GetProvider(),
+		Name:         u.GetName(),
+		Email:        u.GetEmail(),
+		Password:     u.GetPassword(),
+		Nickname:     u.GetNickName(),
+		Location:     u.GetLocation(),
+		Avatarurl:    u.GetAvatarURL(),
+		Description:  u.GetDescription(),
+		Userid:       u.GetUserID(),
+		Acceesstoken: u.GetAccessToken(),
+		Expiresat:    u.GetExpiresAt(),
+		Refreshtoken: u.GetRefreshToken(),
 	}, nil
 }
 
@@ -113,12 +120,19 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 	list = make([]*proto.User, len(users))
 	for i := range users {
 		list[i] = &proto.User{
-			Id:         users[i].GetID(),
-			Name:       users[i].GetName(),
-			Email:      users[i].GetEmail(),
-			Password:   users[i].GetPassword(),
-			FacebookId: users[i].GetFacebookID(),
-			GoogleId:   users[i].GetGoogleID(),
+			Id:           users[i].GetID(),
+			Provider:     users[i].GetProvider(),
+			Name:         users[i].GetName(),
+			Email:        users[i].GetEmail(),
+			Password:     users[i].GetPassword(),
+			Nickname:     users[i].GetNickName(),
+			Location:     users[i].GetLocation(),
+			Avatarurl:    users[i].GetAvatarURL(),
+			Description:  users[i].GetDescription(),
+			Userid:       users[i].GetUserID(),
+			Acceesstoken: users[i].GetAccessToken(),
+			Expiresat:    users[i].GetExpiresAt(),
+			Refreshtoken: users[i].GetRefreshToken(),
 		}
 	}
 

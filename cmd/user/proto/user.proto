@@ -24,11 +24,18 @@ message DispatchCommandRequest {
 // User object
 message User {
   string id = 1;
-  string name = 2;
-  string email = 3;
-  string password = 4;
-  string facebookId = 5;
-  string googleId = 6;
+  string provider = 2;
+  string name = 3;
+  string email = 4;
+  string password = 5;
+  string nickname = 6;
+  string location = 7;
+  string avatarurl = 8;
+  string description = 9;
+  string userid = 10;
+  string acceesstoken = 11;
+  string expiresat = 12;
+  string refreshtoken = 13;
 }
 
 // GetUserRequest is a request data to read user

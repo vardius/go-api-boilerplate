@@ -12,8 +12,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/eventbus"
 )
 
-// WhenUserWasRegisteredWithEmail handles event
-func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
+// WhenUserWasRegisteredWithGoogle handles event
+func WhenUserWasAuthenticatedWithProvider(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
@@ -21,7 +21,7 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 
 		log.Printf("[EventHandler] %s\n", event.Payload)
 
-		e := user.WasRegisteredWithEmail{}
+		e := user.WasAuthenticatedWithProvider{}
 
 		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
@@ -36,7 +36,7 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 		}
 		defer tx.Rollback()
 
-		err = repository.Add(ctx, userWasRegisteredWithEmailModel{e})
+		err = repository.Add(ctx, userWasAuthenticatedWithProviderModel{e})
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v\n", err)
 			return
@@ -48,71 +48,71 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 	return fn
 }
 
-type userWasRegisteredWithEmailModel struct {
-	e user.WasRegisteredWithEmail
+type userWasAuthenticatedWithProviderModel struct {
+	e user.WasAuthenticatedWithProvider
 }
 
 // GetID the id
-func (u userWasRegisteredWithEmailModel) GetID() string {
+func (u userWasAuthenticatedWithProviderModel) GetID() string {
 	return u.e.ID.String()
 }
 
 // GetProvider the provider
-func (u userWasRegisteredWithEmailModel) GetProvider() string {
+func (u userWasAuthenticatedWithProviderModel) GetProvider() string {
 	return u.e.Provider
 }
 
 // GetName the full name
-func (u userWasRegisteredWithEmailModel) GetName() string {
+func (u userWasAuthenticatedWithProviderModel) GetName() string {
 	return u.e.Name
 }
 
 // GetEmail the email
-func (u userWasRegisteredWithEmailModel) GetEmail() string {
+func (u userWasAuthenticatedWithProviderModel) GetEmail() string {
 	return u.e.Email
 }
 
 // GetPassword the password
-func (u userWasRegisteredWithEmailModel) GetPassword() string {
-	return u.e.Password
+func (u userWasAuthenticatedWithProviderModel) GetPassword() string {
+	return ""
 }
 
 // GetNickName the nickname
-func (u userWasRegisteredWithEmailModel) GetNickName() string {
+func (u userWasAuthenticatedWithProviderModel) GetNickName() string {
 	return u.e.NickName
 }
 
 // GetLocation the location
-func (u userWasRegisteredWithEmailModel) GetLocation() string {
+func (u userWasAuthenticatedWithProviderModel) GetLocation() string {
 	return u.e.Location
 }
 
 // GetAvatarURL the avatarurl
-func (u userWasRegisteredWithEmailModel) GetAvatarURL() string {
+func (u userWasAuthenticatedWithProviderModel) GetAvatarURL() string {
 	return u.e.AvatarURL
 }
 
 // GetDescription the description
-func (u userWasRegisteredWithEmailModel) GetDescription() string {
+func (u userWasAuthenticatedWithProviderModel) GetDescription() string {
 	return u.e.Description
 }
 
 // GetUserID the userid
-func (u userWasRegisteredWithEmailModel) GetUserID() string {
+func (u userWasAuthenticatedWithProviderModel) GetUserID() string {
 	return u.e.UserID
 }
 
 // GetAccessToken the accesstoken
-func (u userWasRegisteredWithEmailModel) GetAccessToken() string {
+func (u userWasAuthenticatedWithProviderModel) GetAccessToken() string {
 	return u.e.AccessToken
 }
 
 // GetExpiresAt the expiresat
-func (u userWasRegisteredWithEmailModel) GetExpiresAt() string {
+func (u userWasAuthenticatedWithProviderModel) GetExpiresAt() string {
 	return u.e.ExpiresAt
 }
 
 // GetRefreshToken the refreshtoken
-func (u userWasRegisteredWithEmailModel) GetRefreshToken() string {
+func (u userWasAuthenticatedWithProviderModel) GetRefreshToken() string {
 	return u.e.RefreshToken
 }

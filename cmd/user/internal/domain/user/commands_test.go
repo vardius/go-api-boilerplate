@@ -17,15 +17,18 @@ func TestUnmarshalChangeEmailAddress(t *testing.T) {
 }
 
 func TestUnmarshalRegisterWithEmail(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com"}`)
+	testJSON := []byte(`{"email":"test@test.com","name":"test","password":"test"}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithEmail{})
 }
 
 func TestUnmarshalRegisterWithEmailForm(t *testing.T) {
 	form := url.Values{}
+	form.Set("name", "test")
 	form.Set("email", "test@test.com")
+	form.Set("password", "test")
 	testForm := map[string]interface{}{}
+
 	for key := range form {
 		testForm[key] = key
 	}
@@ -35,16 +38,10 @@ func TestUnmarshalRegisterWithEmailForm(t *testing.T) {
 	testUnmarshalCommand(t, testFormJSON, &RegisterWithEmail{})
 }
 
-func TestUnmarshalRegisterWithFacebook(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com","facebookId":""}`)
+func TestUnmarshalAuthWithProvider(t *testing.T) {
+	testJSON := []byte(`{"provider":"facebook","name":"test test","email":"test@test.com","nickName":"test","location":"test","avatarURL":"test.png","description":"test description","userId":"test123","accessToken":"testxxx","expiresAt":"testxxx","refreshToken":"testxxx"}`)
 
-	testUnmarshalCommand(t, testJSON, &RegisterWithFacebook{})
-}
-
-func TestUnmarshalRegisterWithGoogle(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com","googleId":""}`)
-
-	testUnmarshalCommand(t, testJSON, &RegisterWithGoogle{})
+	testUnmarshalCommand(t, testJSON, &AuthWithProvider{})
 }
 
 func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
@@ -60,7 +57,7 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 
 	cmp := bytes.Compare(j, testJSON)
 	if cmp != 0 {
-		t.Errorf("Serialize command did not match expected result: %s | %d", string(j), cmp)
+		t.Errorf("Serialize command did not match expected result: %s, %s | %d", string(j), string(testJSON), cmp)
 	}
 }
 
