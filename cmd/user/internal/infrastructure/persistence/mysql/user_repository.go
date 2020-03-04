@@ -22,7 +22,7 @@ type userRepository struct {
 }
 
 func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
+	rows, err := r.db.QueryContext(ctx, `SELECT id, provider, name, emailAddress, password, nickName, location, avatarURL, description, userid, accessToken, expiresAt, refreshToken FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, errors.INTERNAL, "Could not query database")
 	}
@@ -32,7 +32,8 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 
 	for rows.Next() {
 		user := User{}
-		err = rows.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
+		err = rows.Scan(&user.ID, &user.Provider, &user.Name, &user.Email, &user.Password, &user.NickName, &user.Location, &user.AvatarURL, &user.Description, &user.UserID, &user.AccessToken, &user.ExpiresAt, &user.RefreshToken)
+
 		if err != nil {
 			return nil, errors.Wrap(err, errors.INTERNAL, "Error while scanning users table")
 		}
@@ -49,11 +50,11 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 }
 
 func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, provider, name, emailAddress, password, nickName, location, avatarURL, description, userId, accessToken, expiresAt, refreshToken FROM users WHERE id=? LIMIT 1`, id)
 
 	user := User{}
 
-	err := row.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
+	err := row.Scan(&user.ID, &user.Provider, &user.Name, &user.Email, &user.Password, &user.NickName, &user.Location, &user.AvatarURL, &user.Description, &user.UserID, &user.AccessToken, &user.ExpiresAt, &user.RefreshToken)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, errors.Wrap(err, errors.NOTFOUND, "User not found")
@@ -66,25 +67,58 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 
 func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 	user := User{
-		ID:    u.GetID(),
-		Email: u.GetEmail(),
-		FacebookID: mysql.NullString{NullString: sql.NullString{
-			String: u.GetFacebookID(),
-			Valid:  u.GetFacebookID() != "",
+		ID: u.GetID(),
+		Provider: mysql.NullString{NullString: sql.NullString{
+			String: u.GetProvider(),
+			Valid:  u.GetProvider() != "",
 		}},
-		GoogleID: mysql.NullString{NullString: sql.NullString{
-			String: u.GetGoogleID(),
-			Valid:  u.GetGoogleID() != "",
+		Name:  u.GetName(),
+		Email: u.GetEmail(),
+		Password: mysql.NullString{NullString: sql.NullString{
+			String: string(hashedPassword),
+			Valid:  string(hashedPassword) != "",
+		}},
+		NickName: mysql.NullString{NullString: sql.NullString{
+			String: u.GetNickName(),
+			Valid:  u.GetNickName() != "",
+		}},
+		Location: mysql.NullString{NullString: sql.NullString{
+			String: u.GetLocation(),
+			Valid:  u.GetLocation() != "",
+		}},
+		AvatarURL: mysql.NullString{NullString: sql.NullString{
+			String: u.GetAvatarURL(),
+			Valid:  u.GetAvatarURL() != "",
+		}},
+		Description: mysql.NullString{NullString: sql.NullString{
+			String: u.GetDescription(),
+			Valid:  u.GetDescription() != "",
+		}},
+		UserID: mysql.NullString{NullString: sql.NullString{
+			String: u.GetUserID(),
+			Valid:  u.GetUserID() != "",
+		}},
+		AccessToken: mysql.NullString{NullString: sql.NullString{
+			String: u.GetAccessToken(),
+			Valid:  u.GetAccessToken() != "",
+		}},
+		ExpiresAt: mysql.NullString{NullString: sql.NullString{
+			String: u.GetExpiresAt(),
+			Valid:  u.GetExpiresAt() != "",
+		}},
+		RefreshToken: mysql.NullString{NullString: sql.NullString{
+			String: u.GetRefreshToken(),
+			Valid:  u.GetRefreshToken() != "",
 		}},
 	}
 
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO users (id, emailAddress, facebookId, googleId) VALUES (?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO users (id, name, emailAddress, password, nickName, location, avatarURL, description, userID, accessToken, expiresAt, refreshToken) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Invalid user insert query")
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, user.ID, user.Email, user.FacebookID, user.GoogleID)
+	result, err := stmt.ExecContext(ctx, user.ID, user.Name, user.Email, string(hashedPassword), user.NickName, user.Location, user.AvatarURL, user.Description, user.UserID, user.AccessToken, user.ExpiresAt, user.RefreshToken)
 	if err != nil {
 		return errors.Wrap(err, errors.INTERNAL, "Could not add user")
 	}
