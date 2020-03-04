@@ -11,8 +11,6 @@ CREATE TABLE IF NOT EXISTS `users` (
     `avatarURL`    VARCHAR(255) COLLATE utf8_general_ci             DEFAULT NULL,
     `description`  VARCHAR(255) COLLATE utf8_general_ci             DEFAULT NULL,
     `userId`       VARCHAR(255) COLLATE utf8_general_ci             DEFAULT NULL,
-    `accessToken`  VARCHAR(300) COLLATE utf8_general_ci             DEFAULT NULL,
-    `expiresAt`    VARCHAR(255) COLLATE utf8_general_ci             DEFAULT NULL,
     `refreshToken` VARCHAR(300) COLLATE utf8_general_ci             DEFAULT NULL,
     PRIMARY KEY (`distinctId`),
     UNIQUE KEY `id` (`id`),

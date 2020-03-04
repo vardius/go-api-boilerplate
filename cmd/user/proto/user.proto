@@ -33,9 +33,7 @@ message User {
   string avatarurl = 8;
   string description = 9;
   string userid = 10;
-  string acceesstoken = 11;
-  string expiresat = 12;
-  string refreshtoken = 13;
+  string refreshtoken = 11;
 }
 
 // GetUserRequest is a request data to read user

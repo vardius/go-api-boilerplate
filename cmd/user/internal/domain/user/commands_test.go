@@ -39,7 +39,7 @@ func TestUnmarshalRegisterWithEmailForm(t *testing.T) {
 }
 
 func TestUnmarshalAuthWithProvider(t *testing.T) {
-	testJSON := []byte(`{"provider":"facebook","name":"test test","email":"test@test.com","nickName":"test","location":"test","avatarURL":"test.png","description":"test description","userId":"test123","accessToken":"testxxx","expiresAt":"testxxx","refreshToken":"testxxx"}`)
+	testJSON := []byte(`{"provider":"facebook","name":"test test","email":"test@test.com","nickName":"test","location":"test","avatarURL":"test.png","description":"test description","userId":"test123","refreshToken":"testxxx"}`)
 
 	testUnmarshalCommand(t, testJSON, &AuthWithProvider{})
 }

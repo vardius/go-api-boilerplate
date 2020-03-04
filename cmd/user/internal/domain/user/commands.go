@@ -107,7 +107,7 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		err = bcrypt.CompareHashAndPassword([]byte(password), []byte(c.Password))
 		if err != nil {
 			// If the two passwords don't match, return a 401 status
-			out <- errors.Wrap(err, errors.UNAUTHORIZED, "Invalid credentials, email and password don't match: "+c.Password)
+			out <- errors.Wrap(err, errors.UNAUTHORIZED, "Invalid credentials")
 			return
 		}
 

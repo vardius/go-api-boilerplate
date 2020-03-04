@@ -39,7 +39,6 @@ func main() {
 
 	logger := log.New(config.Env.App.Environment)
 	eventStore := eventstore.New()
-	oauth2Config := oauth2.NewConfig()
 	oauth2FacebookConfig := oauth2.NewConfigFacebook()
 	oauth2GoogleConfig := oauth2.NewConfigGoogle()
 	goth.UseProviders(
@@ -123,8 +122,6 @@ func main() {
 			"pubsub": grpcPubsubConn,
 			"user":   grpcUserConn,
 		},
-		oauth2Config,
-		config.Env.App.Secret,
 	)
 	app := application.New(logger)
 
@@ -141,7 +138,7 @@ func main() {
 				(user.WasRegisteredWithEmail{}).GetType():       eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository),
 				(user.WasAuthenticatedWithProvider{}).GetType(): eventhandler.WhenUserWasAuthenticatedWithProvider(mysqlConnection, userPersistenceRepository),
 				(user.EmailAddressWasChanged{}).GetType():       eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository),
-				(user.AccessTokenWasRequested{}).GetType():      eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, config.Env.App.Secret),
+				(user.AccessTokenWasRequested{}).GetType():      eventhandler.WhenUserAccessTokenWasRequested(mysqlConnection, userPersistenceRepository, config.Env.App.Secret),
 			},
 			5*time.Minute,
 		)

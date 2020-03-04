@@ -72,16 +72,6 @@ func (u User) GetUserID() string {
 	return u.UserID.String
 }
 
-// GetAccessToken the accesstoken
-func (u User) GetAccessToken() string {
-	return u.AccessToken.String
-}
-
-// GetExpiresAt the expiresat
-func (u User) GetExpiresAt() string {
-	return u.ExpiresAt.String
-}
-
 // GetRefreshToken the refreshtoken
 func (u User) GetRefreshToken() string {
 	return u.RefreshToken.String

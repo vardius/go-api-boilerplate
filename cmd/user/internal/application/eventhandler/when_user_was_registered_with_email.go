@@ -102,16 +102,6 @@ func (u userWasRegisteredWithEmailModel) GetUserID() string {
 	return u.e.UserID
 }
 
-// GetAccessToken the accesstoken
-func (u userWasRegisteredWithEmailModel) GetAccessToken() string {
-	return u.e.AccessToken
-}
-
-// GetExpiresAt the expiresat
-func (u userWasRegisteredWithEmailModel) GetExpiresAt() string {
-	return u.e.ExpiresAt
-}
-
 // GetRefreshToken the refreshtoken
 func (u userWasRegisteredWithEmailModel) GetRefreshToken() string {
 	return u.e.RefreshToken

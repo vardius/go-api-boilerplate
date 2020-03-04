@@ -8,9 +8,9 @@ import (
 
 // AccessTokenWasRequested event
 type AccessTokenWasRequested struct {
-	ID       uuid.UUID
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	ID          uuid.UUID `json:"id"`
+	Email       string    `json:"email"`
+	AccessToken string    `json:"access"`
 }
 
 // GetType returns event type
@@ -41,8 +41,6 @@ type WasRegisteredWithEmail struct {
 	AvatarURL    string    `json:"avatarURL"`
 	Description  string    `json:"description"`
 	UserID       string    `json:"userId"`
-	AccessToken  string    `json:"accessToken"`
-	ExpiresAt    string    `json:"expiresAt"`
 	RefreshToken string    `json:"refreshToken"`
 }
 
@@ -62,8 +60,6 @@ type WasAuthenticatedWithProvider struct {
 	AvatarURL    string    `json:"avatarURL"`
 	Description  string    `json:"description"`
 	UserID       string    `json:"userId"`
-	AccessToken  string    `json:"accessToken"`
-	ExpiresAt    string    `json:"expiresAt"`
 	RefreshToken string    `json:"refreshToken"`
 }
 

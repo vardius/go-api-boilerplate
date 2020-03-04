@@ -119,8 +119,6 @@ func (u *User) AuthWithProvider(id uuid.UUID, provider, name, email, nickname, l
 		AvatarURL:    avatarurl,
 		Description:  description,
 		UserID:       userid,
-		AccessToken:  accesstoken,
-		ExpiresAt:    expiresat,
 		RefreshToken: refreshtoken,
 	})
 }
@@ -136,9 +134,8 @@ func (u *User) ChangeEmailAddress(email string) error {
 // RequestAccessToken dispatches AccessTokenWasRequested event
 func (u *User) RequestAccessToken() error {
 	return u.trackChange(AccessTokenWasRequested{
-		ID:       u.id,
-		Email:    u.email,
-		Password: u.password,
+		ID:    u.id,
+		Email: u.email,
 	})
 }
 
