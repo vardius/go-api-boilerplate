@@ -92,7 +92,7 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		}
 
 		u := repository.Get(uuid.MustParse(id))
-		u.password = string(c.Password)
+
 		err = u.RequestAccessToken()
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when requesting access token")

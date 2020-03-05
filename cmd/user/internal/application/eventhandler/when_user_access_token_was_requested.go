@@ -17,7 +17,7 @@ import (
 // Claims Create a struct that will be encoded to a JWT.
 // We add jwt.StandardClaims as an embedded type, to provide fields like expiry time
 type Claims struct {
-	Username string `json:"username"`
+	UserId string `json:"userId"`
 	jwt.StandardClaims
 }
 
@@ -43,7 +43,7 @@ func WhenUserAccessTokenWasRequested(db *sql.DB, repository persistence.UserRepo
 		expirationTime := time.Now().Add(5 * time.Minute)
 		// Create the JWT claims, which includes the username and expiry time
 		claims := &Claims{
-			Username: e.Email,
+			UserId: e.ID.String(),
 			StandardClaims: jwt.StandardClaims{
 				// In JWT, the expiry time is expressed as unix milliseconds
 				ExpiresAt: expirationTime.Unix(),
