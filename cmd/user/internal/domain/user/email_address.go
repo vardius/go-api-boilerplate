@@ -10,6 +10,20 @@ import (
 // EmailAddress is an email address value object
 type EmailAddress string
 
+// MarshalJSON implements Marshal interface
+func (e EmailAddress) MarshalJSON() ([]byte, error) {
+	if err := e.IsValid(); err != nil {
+		return []byte("null"), err
+	}
+
+	jsn, err := json.Marshal(e)
+	if err != nil {
+		return jsn, errors.Wrapf(err, errors.INTERNAL, "Could not marshal EmailAddress %s", e)
+	}
+
+	return jsn, nil
+}
+
 // UnmarshalJSON implements Unmarshal interface
 func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 	var value string
