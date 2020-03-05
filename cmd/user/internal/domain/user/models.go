@@ -19,8 +19,7 @@ func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 		return errors.Wrap(err, errors.INTERNAL, "Unmarshal error")
 	}
 
-	//noinspection GoAssignmentToReceiver
-	e = (*EmailAddress)(&value)
+	*e = (EmailAddress)(value)
 
 	return e.IsValid()
 }
