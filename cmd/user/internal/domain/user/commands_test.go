@@ -27,8 +27,8 @@ func TestUnmarshalRegisterWithFacebook(t *testing.T) {
 	testUnmarshalCommand(t, testJSON, &RegisterWithFacebook{})
 }
 
-func TestUnmarshalRegisterWithGoogle(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com","googleId":""}`)
+func TestUnmarshalAuthWithProvider(t *testing.T) {
+	testJSON := []byte(`{"provider":"facebook","name":"test test","email":"test@test.com","nickName":"test","location":"test","avatarURL":"test.png","description":"test description","userId":"test123","refreshToken":"testxxx"}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithGoogle{})
 }

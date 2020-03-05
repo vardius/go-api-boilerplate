@@ -6,7 +6,6 @@ import (
 
 	http_cors "github.com/rs/cors"
 	"github.com/vardius/gorouter/v4"
-	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
@@ -26,7 +25,7 @@ const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
 // NewRouter provides new router
-func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient auth_proto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
+func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient auth_proto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
 	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, repository))
 
 	// Global middleware

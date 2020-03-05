@@ -25,12 +25,37 @@ func (u User) GetEmail() string {
 	return u.Email
 }
 
-// GetFacebookID facebook id
-func (u User) GetFacebookID() string {
-	return u.FacebookID.String
+// GetPassword the password
+func (u User) GetPassword() string {
+	return u.Password.String
 }
 
-// GetGoogleID google id
-func (u User) GetGoogleID() string {
-	return u.GoogleID.String
+// GetNickName the nickname
+func (u User) GetNickName() string {
+	return u.NickName.String
+}
+
+// GetLocation the location
+func (u User) GetLocation() string {
+	return u.Location.String
+}
+
+// GetAvatarURL the avatarurl
+func (u User) GetAvatarURL() string {
+	return u.AvatarURL.String
+}
+
+// GetDescription the description
+func (u User) GetDescription() string {
+	return u.Description.String
+}
+
+// GetUserID the userid
+func (u User) GetUserID() string {
+	return u.UserID.String
+}
+
+// GetRefreshToken the refreshtoken
+func (u User) GetRefreshToken() string {
+	return u.RefreshToken.String
 }

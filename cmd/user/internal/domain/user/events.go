@@ -8,8 +8,9 @@ import (
 
 // AccessTokenWasRequested event
 type AccessTokenWasRequested struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	ID          uuid.UUID `json:"id"`
+	Email       string    `json:"email"`
+	AccessToken string    `json:"access"`
 }
 
 // GetType returns event type
@@ -30,8 +31,17 @@ func (e EmailAddressWasChanged) GetType() string {
 
 // WasRegisteredWithEmail event
 type WasRegisteredWithEmail struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	ID           uuid.UUID `json:"id"`
+	Provider     string    `json:"provider"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	Password     string    `json:"password"`
+	NickName     string    `json:"nickName"`
+	Location     string    `json:"location"`
+	AvatarURL    string    `json:"avatarURL"`
+	Description  string    `json:"description"`
+	UserID       string    `json:"userId"`
+	RefreshToken string    `json:"refreshToken"`
 }
 
 // GetType returns event type
@@ -39,45 +49,18 @@ func (e WasRegisteredWithEmail) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
 
-// WasRegisteredWithFacebook event
-type WasRegisteredWithFacebook struct {
-	ID         uuid.UUID `json:"id"`
-	Email      string    `json:"email"`
-	FacebookID string    `json:"facebookId"`
-}
-
-// GetType returns event type
-func (e WasRegisteredWithFacebook) GetType() string {
-	return fmt.Sprintf("%T", e)
-}
-
-// ConnectedWithFacebook event
-type ConnectedWithFacebook struct {
-	ID         uuid.UUID `json:"id"`
-	FacebookID string    `json:"facebookId"`
-}
-
-// GetType returns event type
-func (e ConnectedWithFacebook) GetType() string {
-	return fmt.Sprintf("%T", e)
-}
-
-// WasRegisteredWithGoogle event
-type WasRegisteredWithGoogle struct {
-	ID       uuid.UUID `json:"id"`
-	Email    string    `json:"email"`
-	GoogleID string    `json:"googleId"`
-}
-
-// GetType returns event type
-func (e WasRegisteredWithGoogle) GetType() string {
-	return fmt.Sprintf("%T", e)
-}
-
-// ConnectedWithGoogle event
-type ConnectedWithGoogle struct {
-	ID       uuid.UUID `json:"id"`
-	GoogleID string    `json:"googleId"`
+// WasAuthenticatedWithProvider event
+type WasAuthenticatedWithProvider struct {
+	ID           uuid.UUID `json:"id"`
+	Provider     string    `json:"provider"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	NickName     string    `json:"nickName"`
+	Location     string    `json:"location"`
+	AvatarURL    string    `json:"avatarURL"`
+	Description  string    `json:"description"`
+	UserID       string    `json:"userId"`
+	RefreshToken string    `json:"refreshToken"`
 }
 
 // GetType returns event type
