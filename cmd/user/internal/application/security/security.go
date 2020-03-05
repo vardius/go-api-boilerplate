@@ -15,7 +15,7 @@ import (
 
 // InternalCustomClaims used for internal registration only
 type InternalCustomClaims struct {
-	UserId string `json:"userId"`
+	UserID string `json:"userId"`
 	jwt.StandardClaims
 }
 
@@ -42,7 +42,7 @@ func TokenAuthHandler(repository user_persistence.UserRepository, secretKey stri
 			return identity.NullIdentity, errors.Wrap(err, errors.UNAUTHORIZED, "Could not verify token")
 		}
 
-		user, err := repository.Get(context.Background(), claims.UserId)
+		user, err := repository.Get(context.Background(), claims.UserID)
 		if err != nil {
 			return identity.NullIdentity, errors.Wrap(err, errors.INTERNAL, "Could not find user for token")
 		}

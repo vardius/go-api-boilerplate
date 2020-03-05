@@ -22,8 +22,7 @@ type User struct {
 	version int
 	changes []domain.Event
 
-	password string
-	email    string
+	email string
 }
 
 // New creates an User
