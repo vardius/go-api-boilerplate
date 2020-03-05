@@ -57,7 +57,9 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 
 // RequestAccessToken command
 type RequestAccessToken struct {
-	ID uuid.UUID `json:"id"`
+	ID       uuid.UUID `json:"id"`
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
 }
 
 // GetName returns command name
@@ -90,7 +92,6 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		}
 
 		u := repository.Get(uuid.MustParse(id))
-		u.password = string(c.Password)
 		err = u.RequestAccessToken()
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when requesting access token")
@@ -188,7 +189,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 		}
 
 		u := New()
-		err = u.RegisterWithEmail(id, c.Email)
+		err = u.RegisterWithEmail(id, c.Name, c.Email, c.Password)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
 			return
@@ -210,8 +211,6 @@ type AuthWithProvider struct {
 	AvatarURL    string `json:"avatarURL"`
 	Description  string `json:"description"`
 	UserID       string `json:"userId"`
-	AccessToken  string `json:"accessToken"`
-	ExpiresAt    string `json:"expiresAt"`
 	RefreshToken string `json:"refreshToken"`
 }
 
@@ -234,7 +233,7 @@ func OnAuthWithProvider(repository Repository, db *sql.DB) commandbus.CommandHan
 		}
 
 		u := New()
-		err = u.AuthWithProvider(id, c.Provider, c.Name, c.Email, c.NickName, c.Location, c.AvatarURL, c.Description, c.UserID, c.AccessToken, c.ExpiresAt, c.RefreshToken)
+		err = u.AuthWithProvider(id, c.Provider, c.Name, c.Email, c.NickName, c.Location, c.AvatarURL, c.Description, c.UserID, c.RefreshToken)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
 			return

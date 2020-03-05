@@ -102,16 +102,6 @@ func (u userWasAuthenticatedWithProviderModel) GetUserID() string {
 	return u.e.UserID
 }
 
-// GetAccessToken the accesstoken
-func (u userWasAuthenticatedWithProviderModel) GetAccessToken() string {
-	return u.e.AccessToken
-}
-
-// GetExpiresAt the expiresat
-func (u userWasAuthenticatedWithProviderModel) GetExpiresAt() string {
-	return u.e.ExpiresAt
-}
-
 // GetRefreshToken the refreshtoken
 func (u userWasAuthenticatedWithProviderModel) GetRefreshToken() string {
 	return u.e.RefreshToken

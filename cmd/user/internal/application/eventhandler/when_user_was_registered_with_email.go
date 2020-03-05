@@ -62,7 +62,7 @@ func (u userWasRegisteredWithEmailModel) GetProvider() string {
 	return u.e.Provider
 }
 
-// GetName the full name
+// GetName the name
 func (u userWasRegisteredWithEmailModel) GetName() string {
 	return u.e.Name
 }
@@ -100,16 +100,6 @@ func (u userWasRegisteredWithEmailModel) GetDescription() string {
 // GetUserID the userid
 func (u userWasRegisteredWithEmailModel) GetUserID() string {
 	return u.e.UserID
-}
-
-// GetAccessToken the accesstoken
-func (u userWasRegisteredWithEmailModel) GetAccessToken() string {
-	return u.e.AccessToken
-}
-
-// GetExpiresAt the expiresat
-func (u userWasRegisteredWithEmailModel) GetExpiresAt() string {
-	return u.e.ExpiresAt
 }
 
 // GetRefreshToken the refreshtoken

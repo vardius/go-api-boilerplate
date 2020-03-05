@@ -79,8 +79,6 @@ func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*pro
 		Avatarurl:    u.GetAvatarURL(),
 		Description:  u.GetDescription(),
 		Userid:       u.GetUserID(),
-		Acceesstoken: u.GetAccessToken(),
-		Expiresat:    u.GetExpiresAt(),
 		Refreshtoken: u.GetRefreshToken(),
 	}, nil
 }
@@ -130,8 +128,6 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 			Avatarurl:    users[i].GetAvatarURL(),
 			Description:  users[i].GetDescription(),
 			Userid:       users[i].GetUserID(),
-			Acceesstoken: users[i].GetAccessToken(),
-			Expiresat:    users[i].GetExpiresAt(),
 			Refreshtoken: users[i].GetRefreshToken(),
 		}
 	}

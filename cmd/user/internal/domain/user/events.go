@@ -40,8 +40,6 @@ type WasRegisteredWithEmail struct {
 	AvatarURL    string    `json:"avatarURL"`
 	Description  string    `json:"description"`
 	UserID       string    `json:"userId"`
-	AccessToken  string    `json:"accessToken"`
-	ExpiresAt    string    `json:"expiresAt"`
 	RefreshToken string    `json:"refreshToken"`
 }
 
@@ -61,8 +59,6 @@ type WasAuthenticatedWithProvider struct {
 	AvatarURL    string    `json:"avatarURL"`
 	Description  string    `json:"description"`
 	UserID       string    `json:"userId"`
-	AccessToken  string    `json:"accessToken"`
-	ExpiresAt    string    `json:"expiresAt"`
 	RefreshToken string    `json:"refreshToken"`
 }
 

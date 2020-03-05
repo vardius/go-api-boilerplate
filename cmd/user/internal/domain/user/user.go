@@ -97,15 +97,17 @@ func (u User) Changes() []domain.Event {
 }
 
 // RegisterWithEmail alters current user state and append changes to aggregate root
-func (u *User) RegisterWithEmail(id uuid.UUID, email string) error {
+func (u *User) RegisterWithEmail(id uuid.UUID, name, email, password string) error {
 	return u.trackChange(WasRegisteredWithEmail{
-		ID:    id,
-		Email: email,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
 	})
 }
 
 // AuthWithProvider alters current user state and append changes to aggregate root
-func (u *User) AuthWithProvider(id uuid.UUID, provider, name, email, nickname, location, avatarurl, description, userid, accesstoken, expiresat, refreshtoken string) error {
+func (u *User) AuthWithProvider(id uuid.UUID, provider, name, email, nickname, location, avatarURL, description, userid, refreshToken string) error {
 	return u.trackChange(WasAuthenticatedWithProvider{
 		ID:           id,
 		Provider:     provider,
@@ -113,12 +115,10 @@ func (u *User) AuthWithProvider(id uuid.UUID, provider, name, email, nickname, l
 		Email:        email,
 		NickName:     nickname,
 		Location:     location,
-		AvatarURL:    avatarurl,
+		AvatarURL:    avatarURL,
 		Description:  description,
 		UserID:       userid,
-		AccessToken:  accesstoken,
-		ExpiresAt:    expiresat,
-		RefreshToken: refreshtoken,
+		RefreshToken: refreshToken,
 	})
 }
 

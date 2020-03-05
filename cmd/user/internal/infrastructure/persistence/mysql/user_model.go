@@ -17,8 +17,6 @@ type User struct {
 	AvatarURL    mysql.NullString `json:"avatarURL"`
 	Description  mysql.NullString `json:"description"`
 	UserID       mysql.NullString `json:"userId"`
-	AccessToken  mysql.NullString `json:"accessToken"`
-	ExpiresAt    mysql.NullString `json:"expiresAt"`
 	RefreshToken mysql.NullString `json:"refreshToken"`
 }
 
@@ -70,16 +68,6 @@ func (u User) GetDescription() string {
 // GetUserID the userid
 func (u User) GetUserID() string {
 	return u.UserID.String
-}
-
-// GetAccessToken the accesstoken
-func (u User) GetAccessToken() string {
-	return u.AccessToken.String
-}
-
-// GetExpiresAt the expiresat
-func (u User) GetExpiresAt() string {
-	return u.ExpiresAt.String
 }
 
 // GetRefreshToken the refreshtoken
