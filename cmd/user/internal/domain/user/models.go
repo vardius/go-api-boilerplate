@@ -10,6 +10,7 @@ import (
 // EmailAddress is an email address value object
 type EmailAddress string
 
+// UnmarshalJSON implements Unmarshal interface
 func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 	var value string
 
@@ -24,6 +25,7 @@ func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 	return e.IsValid()
 }
 
+// IsValid returns error if value object is not valid
 func (e EmailAddress) IsValid() error {
 	if !govalidator.IsEmail(string(e)) {
 		return errors.New(errors.INTERNAL, "Invalid email address")
