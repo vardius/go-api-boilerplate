@@ -13,6 +13,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/identity"
 )
 
+// InternalCustomClaims used for internal registration only
 type InternalCustomClaims struct {
 	UserId string `json:"userId"`
 	jwt.StandardClaims
