@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/asaskevich/govalidator"
+
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 )
 
@@ -30,7 +31,7 @@ func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 
 	err := json.Unmarshal(b, &value)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Unmarshal error")
+		return errors.Wrapf(err, errors.INTERNAL, "Could not unmarshal json %s", b)
 	}
 
 	*e = (EmailAddress)(value)
