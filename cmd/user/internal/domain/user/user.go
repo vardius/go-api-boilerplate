@@ -22,7 +22,8 @@ type User struct {
 	version int
 	changes []domain.Event
 
-	email string
+	password string
+	email    string
 }
 
 // New creates an User
@@ -62,38 +63,14 @@ func FromHistory(events []domain.Event) User {
 			}
 
 			e = wasRegisteredWithEmail
-		case (WasRegisteredWithFacebook{}).GetType():
-			wasRegisteredWithFacebook := WasRegisteredWithFacebook{}
-			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithFacebook)
+		case (WasAuthenticatedWithProvider{}).GetType():
+			wasAuthenticatedWithProvider := WasAuthenticatedWithProvider{}
+			err := unmarshalPayload(domainEvent.Payload, &wasAuthenticatedWithProvider)
 			if err != nil {
 				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
-			e = wasRegisteredWithFacebook
-		case (ConnectedWithFacebook{}).GetType():
-			connectedWithFacebook := ConnectedWithFacebook{}
-			err := unmarshalPayload(domainEvent.Payload, &connectedWithFacebook)
-			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
-			}
-
-			e = connectedWithFacebook
-		case (WasRegisteredWithGoogle{}).GetType():
-			wasRegisteredWithGoogle := WasRegisteredWithGoogle{}
-			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithGoogle)
-			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
-			}
-
-			e = wasRegisteredWithGoogle
-		case (ConnectedWithGoogle{}).GetType():
-			connectedWithGoogle := ConnectedWithGoogle{}
-			err := unmarshalPayload(domainEvent.Payload, &connectedWithGoogle)
-			if err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
-			}
-
-			e = connectedWithGoogle
+			e = wasAuthenticatedWithProvider
 		default:
 			log.Panicf("Unhandled user event %s\n", domainEvent.Metadata.Type)
 		}
@@ -121,24 +98,17 @@ func (u User) Changes() []domain.Event {
 }
 
 // RegisterWithEmail alters current user state and append changes to aggregate root
-func (u *User) RegisterWithEmail(id uuid.UUID, email string) error {
+func (u *User) RegisterWithEmail(id uuid.UUID, name, email, password string) error {
 	return u.trackChange(WasRegisteredWithEmail{
-		ID:    id,
-		Email: email,
-	})
-}
-
-// RegisterWithGoogle alters current user state and append changes to aggregate root
-func (u *User) RegisterWithGoogle(id uuid.UUID, email, googleID string) error {
-	return u.trackChange(WasRegisteredWithGoogle{
 		ID:       id,
+		Name:     name,
 		Email:    email,
-		GoogleID: googleID,
+		Password: password,
 	})
 }
 
 // AuthWithProvider alters current user state and append changes to aggregate root
-func (u *User) AuthWithProvider(id uuid.UUID, provider, name, email, nickname, location, avatarurl, description, userid, accesstoken, expiresat, refreshtoken string) error {
+func (u *User) AuthWithProvider(id uuid.UUID, provider, name, email, nickname, location, avatarURL, description, userid, refreshToken string) error {
 	return u.trackChange(WasAuthenticatedWithProvider{
 		ID:           id,
 		Provider:     provider,
@@ -146,10 +116,10 @@ func (u *User) AuthWithProvider(id uuid.UUID, provider, name, email, nickname, l
 		Email:        email,
 		NickName:     nickname,
 		Location:     location,
-		AvatarURL:    avatarurl,
+		AvatarURL:    avatarURL,
 		Description:  description,
 		UserID:       userid,
-		RefreshToken: refreshtoken,
+		RefreshToken: refreshToken,
 	})
 }
 
@@ -187,10 +157,7 @@ func (u *User) transition(e domain.RawEvent) {
 	case WasRegisteredWithEmail:
 		u.id = e.ID
 		u.email = e.Email
-	case WasRegisteredWithGoogle:
-		u.id = e.ID
-		u.email = e.Email
-	case WasRegisteredWithFacebook:
+	case WasAuthenticatedWithProvider:
 		u.id = e.ID
 		u.email = e.Email
 	case EmailAddressWasChanged:

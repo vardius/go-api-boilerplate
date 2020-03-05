@@ -48,8 +48,10 @@ func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, c
 	router.GET("/v1/readiness", handlers.BuildReadinessHandler(mysqlConnection, grpcConnectionMap))
 
 	// Auth routes
-	router.POST("/v1/google/callback", handlers.BuildSocialAuthHandler(googleAPIURL, commandBus, user.RegisterUserWithGoogle, secretKey, oauth2Config))
-	router.POST("/v1/facebook/callback", handlers.BuildSocialAuthHandler(facebookAPIURL, commandBus, user.RegisterUserWithFacebook, secretKey, oauth2Config))
+	router.POST("/v1/auth/google", handlers.BuildSocialAuthHandler(commandBus, user.AuthUserWithProvider))
+	router.POST("/v1/auth/facebook", handlers.BuildSocialAuthHandler(commandBus, user.AuthUserWithProvider))
+	router.POST("/v1/google/callback", handlers.BuildSocialAuthHandler(commandBus, user.AuthUserWithProvider))
+	router.POST("/v1/facebook/callback", handlers.BuildSocialAuthHandler(commandBus, user.AuthUserWithProvider))
 
 	commandDispatchHandler := handlers.BuildCommandDispatchHandler(commandBus)
 

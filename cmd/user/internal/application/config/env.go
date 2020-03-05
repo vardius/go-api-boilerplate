@@ -20,6 +20,14 @@ type environment struct {
 		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientId"`
 		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientSecret"`
 	}
+	Facebook struct {
+		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientFacebookId"`
+		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientFacebookSecret"`
+	}
+	Google struct {
+		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientGoogleId"`
+		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientGoogleSecret"`
+	}
 	Debug struct {
 		Host string `env:"DEBUG_HOST" envDefault:"0.0.0.0"`
 		Port int    `env:"DEBUG_PORT" envDefault:"4000"`
@@ -53,6 +61,11 @@ type environment struct {
 		ConnMaxLifetime time.Duration `env:"MYSQL_CONN_MAX_LIFETIME" envDefault:"5m"` //  sets the maximum amount of time a connection may be reused
 		MaxIdleConns    int           `env:"MYSQL_MAX_IDLE_CONNS" envDefault:"0"`     // sets the maximum number of connections in the idle
 		MaxOpenConns    int           `env:"MYSQL_MAX_OPEN_CONNS" envDefault:"5"`     // sets the maximum number of connections in the idle
+	}
+	User struct {
+		Host         string `env:"USER_HOST"          envDefault:"0.0.0.0"`
+		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientId"`
+		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientSecret"`
 	}
 	Auth struct {
 		Host string `env:"AUTH_HOST" envDefault:"0.0.0.0"` // Auth service host

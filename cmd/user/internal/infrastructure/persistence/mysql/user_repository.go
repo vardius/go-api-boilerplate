@@ -10,6 +10,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // NewUserRepository returns mysql view model repository for user
@@ -66,8 +67,21 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 }
 
 func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
+	// Salt and hash the password using the bcrypt algorithm
+	// The second argument is the cost of hashing, which we arbitrarily set as 8 (this value can be more or less, depending on the computing power you wish to utilize)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.GetPassword()), 8)
+
+	if err != nil {
+		return errors.Wrap(err, errors.INTERNAL, "Password could not be encrypted")
+	}
+
 	user := User{
-		ID:    u.GetID(),
+		ID: u.GetID(),
+		Provider: mysql.NullString{NullString: sql.NullString{
+			String: u.GetProvider(),
+			Valid:  u.GetProvider() != "",
+		}},
+		Name:  u.GetName(),
 		Email: u.GetEmail(),
 		Password: mysql.NullString{NullString: sql.NullString{
 			String: string(hashedPassword),

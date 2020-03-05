@@ -3,21 +3,36 @@ Package mysql holds view model repositories
 */
 package mysql
 
-import (
-	"github.com/vardius/go-api-boilerplate/internal/mysql"
-)
+import "github.com/vardius/go-api-boilerplate/internal/mysql"
 
 // User model
 type User struct {
-	ID         string           `json:"id"`
-	Email      string           `json:"emailAddress"`
-	FacebookID mysql.NullString `json:"facebookId"`
-	GoogleID   mysql.NullString `json:"googleId"`
+	ID           string           `json:"id"`
+	Provider     mysql.NullString `json:"provider"`
+	Name         string           `json:"name"`
+	Email        string           `json:"email"`
+	Password     mysql.NullString `json:"password"`
+	NickName     mysql.NullString `json:"nickName"`
+	Location     mysql.NullString `json:"location"`
+	AvatarURL    mysql.NullString `json:"avatarURL"`
+	Description  mysql.NullString `json:"description"`
+	UserID       mysql.NullString `json:"userId"`
+	RefreshToken mysql.NullString `json:"refreshToken"`
 }
 
 // GetID the id
 func (u User) GetID() string {
 	return u.ID
+}
+
+// GetProvider the provider
+func (u User) GetProvider() string {
+	return u.Provider.String
+}
+
+// GetName the full name
+func (u User) GetName() string {
+	return u.Name
 }
 
 // GetEmail the email

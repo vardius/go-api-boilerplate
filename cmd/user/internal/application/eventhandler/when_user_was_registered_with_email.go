@@ -57,6 +57,16 @@ func (u userWasRegisteredWithEmailModel) GetID() string {
 	return u.e.ID.String()
 }
 
+// GetProvider the name
+func (u userWasRegisteredWithEmailModel) GetProvider() string {
+	return u.e.Provider
+}
+
+// GetName the name
+func (u userWasRegisteredWithEmailModel) GetName() string {
+	return u.e.Name
+}
+
 // GetEmail the email
 func (u userWasRegisteredWithEmailModel) GetEmail() string {
 	return u.e.Email

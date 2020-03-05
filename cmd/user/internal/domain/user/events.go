@@ -8,9 +8,8 @@ import (
 
 // AccessTokenWasRequested event
 type AccessTokenWasRequested struct {
-	ID          uuid.UUID `json:"id"`
-	Email       string    `json:"email"`
-	AccessToken string    `json:"access"`
+	ID    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
 }
 
 // GetType returns event type
@@ -64,6 +63,6 @@ type WasAuthenticatedWithProvider struct {
 }
 
 // GetType returns event type
-func (e ConnectedWithGoogle) GetType() string {
+func (e WasAuthenticatedWithProvider) GetType() string {
 	return fmt.Sprintf("%T", e)
 }
