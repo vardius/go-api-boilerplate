@@ -59,7 +59,7 @@ func (u userWasRegisteredWithFacebookModel) GetID() string {
 
 // GetEmail the email
 func (u userWasRegisteredWithFacebookModel) GetEmail() string {
-	return u.e.Email
+	return string(u.e.Email)
 }
 
 // GetFacebookID facebook id

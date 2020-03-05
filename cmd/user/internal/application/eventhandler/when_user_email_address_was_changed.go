@@ -36,7 +36,7 @@ func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepos
 		}
 		defer tx.Rollback()
 
-		err = repository.UpdateEmail(ctx, e.ID.String(), e.Email)
+		err = repository.UpdateEmail(ctx, e.ID.String(), string(e.Email))
 		if err != nil {
 			log.Printf("[EventHandler] Error: %v\n", err)
 			return
