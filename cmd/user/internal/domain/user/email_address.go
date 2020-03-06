@@ -17,7 +17,7 @@ func (e EmailAddress) MarshalJSON() ([]byte, error) {
 		return []byte("null"), err
 	}
 
-	jsn, err := json.Marshal(e)
+	jsn, err := json.Marshal(string(e))
 	if err != nil {
 		return jsn, errors.Wrapf(err, errors.INTERNAL, "Could not marshal EmailAddress %s", e)
 	}
