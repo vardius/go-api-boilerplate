@@ -24,7 +24,7 @@ const (
 	ChangeUserEmailAddress = "change-user-email-address"
 	// RegisterUserWithEmail command bus contract
 	RegisterUserWithEmail = "register-user-with-email"
-	// AuthUserWithProvider command bus contract
+	// RegisterUserWithProvider command bus contract
 	RegisterUserWithProvider = "register-user-with-provider"
 )
 

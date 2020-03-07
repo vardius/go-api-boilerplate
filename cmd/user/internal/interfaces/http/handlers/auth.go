@@ -58,7 +58,7 @@ func BuildSocialAuthHandler(cb commandbus.CommandBus, commandName, secretKey str
 
 		c, err := user.NewCommandFromPayload(commandName, userProfile)
 		if err != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Invalid request commandAuthUserWithProvider"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Invalid command request"))
 			return
 		}
 
