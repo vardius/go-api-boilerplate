@@ -106,8 +106,8 @@ func (u *User) RegisterWithEmail(id uuid.UUID, name, email, password string) err
 	})
 }
 
-// AuthWithProvider alters current user state and append changes to aggregate root
-func (u *User) AuthWithProvider(id uuid.UUID, provider, name, email, nickname, location, avatarURL, description, userid, refreshToken string) error {
+// RegisterWithProvider alters current user state and append changes to aggregate root
+func (u *User) RegisterWithProvider(id uuid.UUID, provider, name, email, nickname, location, avatarURL, description, userid, refreshToken string) error {
 	return u.trackChange(WasAuthenticatedWithProvider{
 		ID:           id,
 		Provider:     provider,

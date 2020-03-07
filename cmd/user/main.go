@@ -6,17 +6,17 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/facebook"
 	"github.com/markbates/goth/providers/google"
 	pubsub_proto "github.com/vardius/pubsub/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
 
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/eventhandler"
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/oauth2"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/repository"
@@ -39,11 +39,10 @@ func main() {
 
 	logger := log.New(config.Env.App.Environment)
 	eventStore := eventstore.New()
-	oauth2FacebookConfig := oauth2.NewConfigFacebook()
-	oauth2GoogleConfig := oauth2.NewConfigGoogle()
+	gothic.Store = sessions.NewCookieStore([]byte(config.Env.App.Secret))
 	goth.UseProviders(
-		facebook.New(oauth2FacebookConfig.ClientID, oauth2FacebookConfig.ClientSecret, oauth2FacebookConfig.RedirectURL),
-		google.New(oauth2GoogleConfig.ClientID, oauth2GoogleConfig.ClientSecret, oauth2GoogleConfig.RedirectURL),
+		facebook.New(config.Env.Facebook.ClientID, config.Env.Facebook.ClientSecret, config.Env.Facebook.RedirectURL),
+		google.New(config.Env.Google.ClientID, config.Env.Google.ClientSecret, config.Env.Google.RedirectURL),
 	)
 	grpcServer := grpc_utils.NewServer(
 		grpc_utils.ServerConfig{
@@ -108,7 +107,6 @@ func main() {
 	eventBus := eventbus.New(grpcPubsubClient, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
-	grpcAuthClient := auth_proto.NewAuthenticationServiceClient(grpcAuthConn)
 	grpcHealthServer := grpc_health.NewServer()
 	grpcUserServer := user_grpc.NewServer(commandBus, userPersistenceRepository, logger)
 	router := user_http.NewRouter(
@@ -116,17 +114,17 @@ func main() {
 		userPersistenceRepository,
 		commandBus,
 		mysqlConnection,
-		grpcAuthClient,
 		map[string]*grpc.ClientConn{
 			"auth":   grpcAuthConn,
 			"pubsub": grpcPubsubConn,
 			"user":   grpcUserConn,
 		},
+		config.Env.App.Secret,
 	)
 	app := application.New(logger)
 
 	commandBus.Subscribe((user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, mysqlConnection))
-	commandBus.Subscribe((user.AuthWithProvider{}).GetName(), user.OnAuthWithProvider(userRepository, mysqlConnection))
+	commandBus.Subscribe((user.RegisterWithProvider{}).GetName(), user.OnRegisterWithProvider(userRepository, mysqlConnection))
 	commandBus.Subscribe((user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, mysqlConnection))
 	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, mysqlConnection))
 

@@ -8,7 +8,6 @@ import (
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	user_security "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
@@ -22,11 +21,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/log"
 )
 
-const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
-const facebookAPIURL = "https://graph.facebook.com/me"
-
 // NewRouter provides new router
-func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient auth_proto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
+func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn, secretKey string) gorouter.Router {
 	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(repository, config.Env.App.Secret))
 
 	// Global middleware
@@ -49,10 +45,9 @@ func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, c
 	router.GET("/v1/readiness", handlers.BuildReadinessHandler(mysqlConnection, grpcConnectionMap))
 
 	// Auth routes
-	router.POST("/v1/auth/google", handlers.BuildSocialAuthHandler(commandBus, user.AuthUserWithProvider))
-	router.POST("/v1/auth/facebook", handlers.BuildSocialAuthHandler(commandBus, user.AuthUserWithProvider))
-	router.POST("/v1/google/callback", handlers.BuildSocialAuthHandler(commandBus, user.AuthUserWithProvider))
-	router.POST("/v1/facebook/callback", handlers.BuildSocialAuthHandler(commandBus, user.AuthUserWithProvider))
+	router.GET("/v1/auth", handlers.BuildSocialAuthHandler(commandBus, user.RegisterUserWithProvider, secretKey))
+	//It can’t contain URL fragments or relative paths, and can’t be a public IP address.
+	router.GET("/v1/auth/callback", handlers.BuildSocialAuthHandler(commandBus, user.RegisterUserWithProvider, secretKey))
 
 	commandDispatchHandler := handlers.BuildCommandDispatchHandler(commandBus)
 

@@ -14,6 +14,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/domain"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/executioncontext"
+	"github.com/vardius/go-api-boilerplate/internal/mysql"
 )
 
 const (
@@ -24,7 +25,7 @@ const (
 	// RegisterUserWithEmail command bus contract
 	RegisterUserWithEmail = "register-user-with-email"
 	// AuthUserWithProvider command bus contract
-	AuthUserWithProvider = "auth-user-with-provider"
+	RegisterUserWithProvider = "register-user-with-provider"
 )
 
 // NewCommandFromPayload builds command by contract from json payload
@@ -35,11 +36,11 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 		err := unmarshalPayload(payload, &registerWithEmail)
 
 		return registerWithEmail, err
-	case AuthUserWithProvider:
-		authWithProvider := AuthWithProvider{}
-		err := unmarshalPayload(payload, &authWithProvider)
+	case RegisterUserWithProvider:
+		registerWithProvider := RegisterWithProvider{}
+		err := unmarshalPayload(payload, &registerWithProvider)
 
-		return authWithProvider, err
+		return registerWithProvider, err
 	case ChangeUserEmailAddress:
 		changeEmailAddress := ChangeEmailAddress{}
 		err := unmarshalPayload(payload, &changeEmailAddress)
@@ -57,9 +58,8 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 
 // RequestAccessToken command
 type RequestAccessToken struct {
-	ID       uuid.UUID `json:"id"`
-	Email    string    `json:"email"`
-	Password string    `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 // GetName returns command name
@@ -74,21 +74,26 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
-		var id, password string
+		var id string
+		var provider, password mysql.NullString
 
-		row := db.QueryRowContext(ctx, `SELECT id, password FROM users WHERE emailAddress=?`, c.Email)
-		err := row.Scan(&id, &password)
+		row := db.QueryRowContext(ctx, `SELECT id, provider, password FROM users WHERE emailAddress=?`, c.Email)
+		err := row.Scan(&id, &provider, &password)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that user exists")
 			return
 		}
-
-		// Compare the stored hashed password, with the hashed version of the password that was received
-		err = bcrypt.CompareHashAndPassword([]byte(password), []byte(c.Password))
-		if err != nil {
-			// If the two passwords don't match, return a 401 status
-			out <- errors.Wrap(err, errors.UNAUTHORIZED, "Invalid credentials, email and password don't match: "+c.Password)
-			return
+		// if the request comes from social auth we should have provider not null, password is null and c.Password empty
+		if !provider.Valid && password.Valid && c.Password != "" {
+			// coming from our internal login
+			password := password.String
+			// Compare the stored hashed password, with the hashed version of the password that was received
+			err = bcrypt.CompareHashAndPassword([]byte(password), []byte(c.Password))
+			if err != nil {
+				// If the two passwords don't match, return a 401 status
+				out <- errors.Wrap(err, errors.UNAUTHORIZED, "Invalid credentials")
+				return
+			}
 		}
 
 		u := repository.Get(uuid.MustParse(id))
@@ -201,39 +206,48 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 	return commandbus.CommandHandler(fn)
 }
 
-// AuthWithProvider creates command handler
-type AuthWithProvider struct {
-	Provider     string `json:"provider"`
-	Name         string `json:"name"`
-	Email        string `json:"email"`
-	NickName     string `json:"nickName"`
-	Location     string `json:"location"`
-	AvatarURL    string `json:"avatarURL"`
-	Description  string `json:"description"`
-	UserID       string `json:"userId"`
-	RefreshToken string `json:"refreshToken"`
+// RegisterWithProvider creates command handler
+type RegisterWithProvider struct {
+	ID           uuid.UUID `json"id"`
+	Provider     string    `json:"provider"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	NickName     string    `json:"nickName"`
+	Location     string    `json:"location"`
+	AvatarURL    string    `json:"avatarURL"`
+	Description  string    `json:"description"`
+	UserID       string    `json:"userId"`
+	RefreshToken string    `json:"refreshToken"`
 }
 
 // GetName returns command name
-func (c AuthWithProvider) GetName() string {
+func (c RegisterWithProvider) GetName() string {
 	return fmt.Sprintf("%T", c)
 }
 
-// OnAuthWithProvider creates command handler
-func OnAuthWithProvider(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c AuthWithProvider, out chan<- error) {
+// OnRegisterWithProvider creates command handler
+func OnRegisterWithProvider(repository Repository, db *sql.DB) commandbus.CommandHandler {
+	fn := func(ctx context.Context, c RegisterWithProvider, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
 		// there for recover middlewears will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
-		id, err := uuid.NewRandom()
+		var totalUsers int32
+
+		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress = ?`, c.Email)
+		err := row.Scan(&totalUsers)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Could not generate new id")
+			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that user is not already registered")
+			return
+		}
+
+		if totalUsers != 0 {
+			out <- errors.Wrap(err, errors.INVALID, "User with given email already registered")
 			return
 		}
 
 		u := New()
-		err = u.AuthWithProvider(id, c.Provider, c.Name, c.Email, c.NickName, c.Location, c.AvatarURL, c.Description, c.UserID, c.RefreshToken)
+		err = u.RegisterWithProvider(c.ID, c.Provider, c.Name, c.Email, c.NickName, c.Location, c.AvatarURL, c.Description, c.UserID, c.RefreshToken)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
 			return

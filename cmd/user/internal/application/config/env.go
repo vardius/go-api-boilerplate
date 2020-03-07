@@ -21,12 +21,14 @@ type environment struct {
 		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientSecret"`
 	}
 	Facebook struct {
-		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientFacebookId"`
-		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientFacebookSecret"`
+		ClientID     string `env:"FACEBOOK_CLIENT_ID"     envDefault:"facebookClientId"`
+		ClientSecret string `env:"FACEBOOK_CLIENT_SECRET" envDefault:"facebookClientSecret"`
+		RedirectURL  string `env:"FACEBOOK_REDIRECT_URI"  envDefault:"https://localhost/users/v1/auth?provider=facebook"`
 	}
 	Google struct {
-		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientGoogleId"`
-		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientGoogleSecret"`
+		ClientID     string `env:"GOOGLE_CLIENT_ID"     envDefault:"googleClientId"`
+		ClientSecret string `env:"GOOGLE_CLIENT_SECRET" envDefault:"googleClientSecret"`
+		RedirectURL  string `env:"GOOGLE_REDIRECT_URI"  envDefault:"https://go-api-boilerplate.me/users/v1/auth/callback?provider=google"`
 	}
 	Debug struct {
 		Host string `env:"DEBUG_HOST" envDefault:"0.0.0.0"`
@@ -83,6 +85,12 @@ func init() {
 	Env = &environment{}
 
 	if err := env.Parse(&Env.App); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.Facebook); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.Google); err != nil {
 		panic(err)
 	}
 	if err := env.Parse(&Env.Debug); err != nil {

@@ -11,6 +11,7 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
+	github.com/gorilla/sessions v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/joncalhoun/qson v0.0.0-20200214190643-0e0c0e4268e7
 	github.com/klauspost/compress v1.9.8 // indirect

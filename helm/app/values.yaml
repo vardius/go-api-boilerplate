@@ -27,7 +27,7 @@ ingress:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       rewrite ^(/dashboard)$ $1/ permanent;
   hosts:
-    - host: go-api-boilerplate.local
+    - host: go-api-boilerplate.me
       paths:
         - path: /dashboard(/|$)(.*)
           backend:
@@ -52,7 +52,7 @@ ingress:
   tls:
     - secretName: go-api-boilerplate-tls
       hosts:
-        - go-api-boilerplate.local
+        - go-api-boilerplate.me
 
 dashboard:
   enableInsecureLogin: true
@@ -308,7 +308,7 @@ configMaps:
   - name: http-config
     data:
       HTTP_PORT: '3000'
-      HTTP_ORIGINS: go-api-boilerplate.local|localhost|0.0.0.0|127.0.0.1
+      HTTP_ORIGINS: go-api-boilerplate.me|localhost|0.0.0.0|127.0.0.1
   - name: grpc-config
     data:
       GRPC_PORT: '3001'

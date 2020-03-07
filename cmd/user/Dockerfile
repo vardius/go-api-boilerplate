@@ -1,6 +1,12 @@
-FROM golang:1.13 AS buildenv
+# First stage: build the executable.
+FROM golang:1.14-alpine AS buildenv
 
 LABEL maintainer="Rafał Lorenz <vardius@gmail.com>"
+
+# Install git + SSL ca certificates.
+# Git is required for fetching the dependencies.
+# Ca-certificates is required to call HTTPS endpoints.
+RUN apk update && apk add --no-cache git ca-certificates tzdata && update-ca-certificates
 
 ARG BIN
 ARG VERSION
@@ -15,6 +21,20 @@ ENV CGO_ENABLED=0
 
 # Create a location in the container for the source code.
 RUN mkdir -p /app
+
+# Create appuser
+ENV USER=appuser
+ENV UID=10001
+
+# See https://stackoverflow.com/a/55757473/12429735
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    "${USER}"
 
 # Copy the module files first and then download the dependencies. If this
 # doesn't change, we won't need to do this again in future builds.
@@ -36,5 +56,16 @@ RUN go build \
     -a -o /go/bin/app ./cmd/"$BIN"
 
 FROM scratch
+
+# Import from builder.
+COPY --from=buildenv /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=buildenv /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=buildenv /etc/passwd /etc/passwd
+COPY --from=buildenv /etc/group /etc/group
+
 COPY --from=buildenv /go/bin/app /go/bin/app
+
+# Use an unprivileged user.
+USER appuser:appuser
+
 ENTRYPOINT ["/go/bin/app"]
