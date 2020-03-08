@@ -29,7 +29,7 @@ func (u User) GetProvider() string {
 	return u.Provider.String
 }
 
-// GetProvider the provider
+// GetName the provider
 func (u User) GetName() string {
 	return u.Name.String
 }
