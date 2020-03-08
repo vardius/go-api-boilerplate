@@ -97,12 +97,10 @@ func (u User) Changes() []domain.Event {
 }
 
 // RegisterWithEmail alters current user state and append changes to aggregate root
-func (u *User) RegisterWithEmail(id uuid.UUID, name, email, password string) error {
+func (u *User) RegisterWithEmail(id uuid.UUID, email string) error {
 	return u.trackChange(WasRegisteredWithEmail{
-		ID:       id,
-		Name:     name,
-		Email:    email,
-		Password: password,
+		ID:    id,
+		Email: email,
 	})
 }
 

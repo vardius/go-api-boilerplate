@@ -72,11 +72,6 @@ func (u userWasRegisteredWithEmailModel) GetEmail() string {
 	return u.e.Email
 }
 
-// GetPassword the password
-func (u userWasRegisteredWithEmailModel) GetPassword() string {
-	return u.e.Password
-}
-
 // GetNickName the nickname
 func (u userWasRegisteredWithEmailModel) GetNickName() string {
 	return u.e.NickName

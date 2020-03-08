@@ -9,9 +9,8 @@ import "github.com/vardius/go-api-boilerplate/internal/mysql"
 type User struct {
 	ID           string           `json:"id"`
 	Provider     mysql.NullString `json:"provider"`
-	Name         string           `json:"name"`
+	Name         mysql.NullString `json:"name"`
 	Email        string           `json:"email"`
-	Password     mysql.NullString `json:"password"`
 	NickName     mysql.NullString `json:"nickName"`
 	Location     mysql.NullString `json:"location"`
 	AvatarURL    mysql.NullString `json:"avatarURL"`
@@ -30,19 +29,14 @@ func (u User) GetProvider() string {
 	return u.Provider.String
 }
 
-// GetName the full name
+// GetProvider the provider
 func (u User) GetName() string {
-	return u.Name
+	return u.Name.String
 }
 
 // GetEmail the email
 func (u User) GetEmail() string {
 	return u.Email
-}
-
-// GetPassword the password
-func (u User) GetPassword() string {
-	return u.Password.String
 }
 
 // GetNickName the nickname

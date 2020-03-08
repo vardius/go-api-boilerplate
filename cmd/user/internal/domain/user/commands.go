@@ -8,13 +8,11 @@ import (
 	"runtime/debug"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/domain"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
 	"github.com/vardius/go-api-boilerplate/internal/executioncontext"
-	"github.com/vardius/go-api-boilerplate/internal/mysql"
 )
 
 const (
@@ -58,8 +56,8 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 
 // RequestAccessToken command
 type RequestAccessToken struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	ID    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
 }
 
 // GetName returns command name
@@ -75,25 +73,12 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		defer recoverCommandHandler(out)
 
 		var id string
-		var provider, password mysql.NullString
 
-		row := db.QueryRowContext(ctx, `SELECT id, provider, password FROM users WHERE emailAddress=?`, c.Email)
-		err := row.Scan(&id, &provider, &password)
+		row := db.QueryRowContext(ctx, `SELECT id, provider FROM users WHERE emailAddress=?`, c.Email)
+		err := row.Scan(&id)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that user exists")
 			return
-		}
-		// if the request comes from social auth we should have provider not null, password is null and c.Password empty
-		if !provider.Valid && password.Valid && c.Password != "" {
-			// coming from our internal login
-			password := password.String
-			// Compare the stored hashed password, with the hashed version of the password that was received
-			err = bcrypt.CompareHashAndPassword([]byte(password), []byte(c.Password))
-			if err != nil {
-				// If the two passwords don't match, return a 401 status
-				out <- errors.Wrap(err, errors.UNAUTHORIZED, "Invalid credentials")
-				return
-			}
 		}
 
 		u := repository.Get(uuid.MustParse(id))
@@ -156,9 +141,8 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 
 // RegisterWithEmail command
 type RegisterWithEmail struct {
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 // GetName returns command name
@@ -194,7 +178,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 		}
 
 		u := New()
-		err = u.RegisterWithEmail(id, c.Name, c.Email, c.Password)
+		err = u.RegisterWithEmail(id, c.Email)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
 			return

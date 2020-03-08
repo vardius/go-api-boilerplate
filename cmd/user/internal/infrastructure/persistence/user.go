@@ -13,7 +13,6 @@ type User interface {
 	GetProvider() string
 	GetName() string
 	GetEmail() string
-	GetPassword() string
 	GetNickName() string
 	GetLocation() string
 	GetAvatarURL() string

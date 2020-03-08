@@ -17,16 +17,14 @@ func TestUnmarshalChangeEmailAddress(t *testing.T) {
 }
 
 func TestUnmarshalRegisterWithEmail(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com","name":"test","password":"test"}`)
+	testJSON := []byte(`{"email":"test@test.com","name":"test"}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithEmail{})
 }
 
 func TestUnmarshalRegisterWithEmailForm(t *testing.T) {
 	form := url.Values{}
-	form.Set("name", "test")
 	form.Set("email", "test@test.com")
-	form.Set("password", "test")
 	testForm := map[string]interface{}{}
 
 	for key := range form {

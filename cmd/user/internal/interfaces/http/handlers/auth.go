@@ -103,8 +103,9 @@ func BuildSocialAuthHandler(cb commandbus.CommandBus, commandName, secretKey str
 			log.Printf("[EventHandler] Error: %v\n", err)
 			return
 		}
-
-		response.RespondJSON(r.Context(), w, tokenString, http.StatusOK)
+		magicLink := "https://go-api-boilerplate.me/users/v1/me?authToken=" + tokenString
+		// @TODO: send token with an email as magic link
+		response.RespondJSON(r.Context(), w, magicLink, http.StatusOK)
 	}
 
 	return http.HandlerFunc(fn)

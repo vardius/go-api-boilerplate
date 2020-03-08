@@ -72,11 +72,6 @@ func (u userWasAuthenticatedWithProviderModel) GetEmail() string {
 	return u.e.Email
 }
 
-// GetPassword the password
-func (u userWasAuthenticatedWithProviderModel) GetPassword() string {
-	return ""
-}
-
 // GetNickName the nickname
 func (u userWasAuthenticatedWithProviderModel) GetNickName() string {
 	return u.e.NickName

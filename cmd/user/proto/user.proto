@@ -27,13 +27,12 @@ message User {
   string provider = 2;
   string name = 3;
   string email = 4;
-  string password = 5;
-  string nickname = 6;
-  string location = 7;
-  string avatarurl = 8;
-  string description = 9;
-  string userid = 10;
-  string refreshtoken = 11;
+  string nickname = 5;
+  string location = 6;
+  string avatarurl = 7;
+  string description = 8;
+  string userid = 9;
+  string refreshtoken = 10;
 }
 
 // GetUserRequest is a request data to read user

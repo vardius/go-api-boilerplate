@@ -62,14 +62,10 @@ func WhenUserAccessTokenWasRequested(db *sql.DB, repository persistence.UserRepo
 			return
 		}
 
-		b, err := json.Marshal(tokenString)
-		if err != nil {
-			log.Printf("[EventHandler] Error: %v\n", err)
-			return
-		}
+		magicLink := "https://go-api-boilerplate.me/users/v1/me?authToken=" + tokenString
 
 		// @TODO: send token with an email as magic link
-		log.Printf("[EventHandler] Access Token: %s\n", string(b))
+		log.Printf("[EventHandler] Magic link: %s\n", magicLink)
 	}
 
 	return fn

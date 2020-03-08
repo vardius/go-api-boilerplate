@@ -34,7 +34,6 @@ type WasRegisteredWithEmail struct {
 	Provider     string    `json:"provider"`
 	Name         string    `json:"name"`
 	Email        string    `json:"email"`
-	Password     string    `json:"password"`
 	NickName     string    `json:"nickName"`
 	Location     string    `json:"location"`
 	AvatarURL    string    `json:"avatarURL"`
