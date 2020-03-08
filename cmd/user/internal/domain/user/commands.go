@@ -208,7 +208,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 
 // RegisterWithProvider creates command handler
 type RegisterWithProvider struct {
-	ID           uuid.UUID `json"id"`
+	ID           uuid.UUID `json:"id"`
 	Provider     string    `json:"provider"`
 	Name         string    `json:"name"`
 	Email        string    `json:"email"`
