@@ -16,6 +16,7 @@ type environment struct {
 		Environment     string        `env:"APP_ENV"              envDefault:"development"`
 		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT" envDefault:"5s"`
 		Secret          string        `env:"APP_SECRET"           envDefault:"secret"`
+		AuthRedirectURL string        `env:"APP_AUTH_REDIRECTURL" envDefault:"https://go-api-boilerplate.me/users/v1/me?authToken="`
 
 		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientId"`
 		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientSecret"`

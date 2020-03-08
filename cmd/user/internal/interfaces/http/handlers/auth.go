@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/errors"
@@ -103,7 +104,7 @@ func BuildSocialAuthHandler(cb commandbus.CommandBus, commandName, secretKey str
 			log.Printf("[EventHandler] Error: %v\n", err)
 			return
 		}
-		magicLink := "https://go-api-boilerplate.me/users/v1/me?authToken=" + tokenString
+		magicLink := config.Env.App.AuthRedirectURL + tokenString
 		// @TODO: send token with an email as magic link
 		response.RespondJSON(r.Context(), w, magicLink, http.StatusOK)
 	}

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/internal/domain"
@@ -62,7 +63,7 @@ func WhenUserAccessTokenWasRequested(db *sql.DB, repository persistence.UserRepo
 			return
 		}
 
-		magicLink := "https://go-api-boilerplate.me/users/v1/me?authToken=" + tokenString
+		magicLink := config.Env.App.AuthRedirectURL + tokenString
 
 		// @TODO: send token with an email as magic link
 		log.Printf("[EventHandler] Magic link: %s\n", magicLink)
