@@ -74,7 +74,7 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 
 		var id string
 
-		row := db.QueryRowContext(ctx, `SELECT id, provider FROM users WHERE emailAddress=?`, c.Email)
+		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE emailAddress=?`, c.Email)
 		err := row.Scan(&id)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that user exists")

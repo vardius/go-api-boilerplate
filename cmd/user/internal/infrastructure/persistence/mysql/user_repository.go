@@ -66,7 +66,8 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 
 func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 	user := User{
-		ID: u.GetID(),
+		ID:    u.GetID(),
+		Email: u.GetEmail(),
 		Provider: mysql.NullString{NullString: sql.NullString{
 			String: u.GetProvider(),
 			Valid:  u.GetProvider() != "",
