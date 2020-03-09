@@ -3,11 +3,13 @@ package user
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"runtime/debug"
 
 	"github.com/google/uuid"
+	"github.com/thedevsaddam/govalidator"
 
 	"github.com/vardius/go-api-boilerplate/internal/commandbus"
 	"github.com/vardius/go-api-boilerplate/internal/domain"
@@ -32,6 +34,23 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	case RegisterUserWithEmail:
 		registerWithEmail := RegisterWithEmail{}
 		err := unmarshalPayload(payload, &registerWithEmail)
+		// validation rules
+		rules := govalidator.MapData{
+			"name":  []string{"required", "min:8", "max:32", "alpha_space"},
+			"email": []string{"required", "min:8", "max:32", "email"},
+		}
+
+		opts := govalidator.Options{
+			Data:  &registerWithEmail,
+			Rules: rules,
+		}
+
+		v := govalidator.New(opts)
+		e := v.ValidateStruct()
+		if len(e) > 0 {
+			data, _ := json.MarshalIndent(e, "", "  ")
+			return nil, errors.New(errors.INVALID, string(data))
+		}
 
 		return registerWithEmail, err
 	case RegisterUserWithProvider:
@@ -178,7 +197,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 		}
 
 		u := New()
-		err = u.RegisterWithEmail(id, c.Email)
+		err = u.RegisterWithEmail(id, c.Name, c.Email)
 		if err != nil {
 			out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
 			return
