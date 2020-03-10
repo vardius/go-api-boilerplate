@@ -93,8 +93,8 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 
 // ChangeEmailAddress command
 type ChangeEmailAddress struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	ID    uuid.UUID    `json:"id"`
+	Email EmailAddress `json:"email"`
 }
 
 // GetName returns command name
@@ -106,7 +106,7 @@ func (c ChangeEmailAddress) GetName() string {
 func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c ChangeEmailAddress, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// therefor recover middlewears will not recover from panic to prevent crash
+		// therefor recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var totalUsers int32
@@ -138,7 +138,7 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 
 // RegisterWithEmail command
 type RegisterWithEmail struct {
-	Email string `json:"email"`
+	Email EmailAddress `json:"email"`
 }
 
 // GetName returns command name
@@ -188,8 +188,8 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 
 // RegisterWithFacebook command
 type RegisterWithFacebook struct {
-	Email      string `json:"email"`
-	FacebookID string `json:"facebookId"`
+	Email      EmailAddress `json:"email"`
+	FacebookID string       `json:"facebookId"`
 }
 
 // GetName returns command name
@@ -219,7 +219,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 		}
 
 		var u User
-		if emailAddress == c.Email {
+		if emailAddress == string(c.Email) {
 			u = repository.Get(uuid.MustParse(id))
 			err = u.ConnectWithFacebook(c.FacebookID)
 			if err != nil {
@@ -249,8 +249,8 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 
 // RegisterWithGoogle command
 type RegisterWithGoogle struct {
-	Email    string `json:"email"`
-	GoogleID string `json:"googleId"`
+	Email    EmailAddress `json:"email"`
+	GoogleID string       `json:"googleId"`
 }
 
 // GetName returns command name
@@ -280,7 +280,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 		}
 
 		var u User
-		if emailAddress == c.Email {
+		if emailAddress == string(c.Email) {
 			u = repository.Get(uuid.MustParse(id))
 			err = u.ConnectWithGoogle(c.GoogleID)
 			if err != nil {
