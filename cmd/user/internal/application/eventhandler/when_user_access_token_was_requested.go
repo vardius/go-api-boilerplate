@@ -8,14 +8,8 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-<<<<<<< HEAD
-	"github.com/vardius/go-api-boilerplate/internal/domain"
-	"github.com/vardius/go-api-boilerplate/internal/eventbus"
-=======
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
->>>>>>> 7a0c2bb... move from internal packages to exported ones
 )
 
 // WhenUserAccessTokenWasRequested handles event
