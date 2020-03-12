@@ -41,7 +41,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 
 		c, e := user.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Invalid command payload"))
+			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, errors.ErrorMessage(e)))
 			return
 		}
 
