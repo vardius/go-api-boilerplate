@@ -10,3 +10,5 @@ debug
 vendor
 
 go-api-boilerplate.code-workspace
+
+.history/

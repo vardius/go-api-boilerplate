@@ -12,8 +12,10 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/klauspost/compress v1.9.8 // indirect
+	github.com/klauspost/compress v1.10.3 // indirect
+	github.com/mar1n3r0/gorouter-middleware-formjson v1.1.0
 	github.com/rs/cors v1.7.0
+	github.com/valyala/fasthttp v1.9.0 // indirect
 	github.com/vardius/gollback v1.0.6
 	github.com/vardius/golog v1.1.1
 	github.com/vardius/gorouter/v4 v4.4.3
