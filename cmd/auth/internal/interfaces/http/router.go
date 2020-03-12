@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"gopkg.in/oauth2.v3/server"
 
+	http_form_middleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http/handlers"
 	http_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware"
 	http_metadata_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
@@ -25,6 +26,7 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 		http_middleware.XSS(),
 		http_middleware.HSTS(),
 		http_middleware.Metrics(),
+		http_form_middleware.FormJson(),
 		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 	)
 
