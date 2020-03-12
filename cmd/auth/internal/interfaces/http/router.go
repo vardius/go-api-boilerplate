@@ -26,8 +26,8 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 		http_middleware.XSS(),
 		http_middleware.HSTS(),
 		http_middleware.Metrics(),
-		http_form_middleware.FormJson(),
 		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
+		http_form_middleware.FormJson(),
 	)
 
 	// Liveness probes are to indicate that your application is running
