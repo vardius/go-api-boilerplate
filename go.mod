@@ -3,7 +3,6 @@ module github.com/vardius/go-api-boilerplate
 go 1.13
 
 require (
-	github.com/ajg/form v1.5.1
 	github.com/aws/aws-sdk-go v1.28.9
 	github.com/caarlos0/env/v6 v6.1.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -12,10 +11,16 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
+<<<<<<< HEAD
 	github.com/klauspost/compress v1.9.8 // indirect
+=======
+	github.com/klauspost/compress v1.10.3 // indirect
+	github.com/mar1n3r0/gorouter-middleware-formjson v1.1.0
+>>>>>>> a52b476... add form-urlencoded to json middleware
 	github.com/markbates/goth v1.61.3
 	github.com/rs/cors v1.7.0
 	github.com/thedevsaddam/govalidator v1.9.9
+	github.com/valyala/fasthttp v1.9.0 // indirect
 	github.com/vardius/gollback v1.0.6
 	github.com/vardius/golog v1.1.1
 	github.com/vardius/gorouter/v4 v4.4.3
@@ -23,7 +28,6 @@ require (
 	github.com/vardius/pubsub v1.0.7
 	github.com/vardius/shutdown v1.0.0
 	github.com/vardius/trace v1.0.1
-	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect

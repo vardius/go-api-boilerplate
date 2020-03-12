@@ -9,7 +9,12 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 
+<<<<<<< HEAD
 	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
+=======
+	http_form_middleware "github.com/mar1n3r0/gorouter-middleware-formjson"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
+>>>>>>> a52b476... add form-urlencoded to json middleware
 	user_security "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
@@ -39,6 +44,7 @@ func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, c
 		http_middleware.HSTS(),
 		http_middleware.Metrics(),
 		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
+		http_form_middleware.FormJson(),
 		auth.FromHeader("USER"),
 		auth.FromQuery("authToken"),
 	)
