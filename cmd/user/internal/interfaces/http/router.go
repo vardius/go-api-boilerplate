@@ -9,12 +9,8 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 
-<<<<<<< HEAD
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
-=======
 	http_form_middleware "github.com/mar1n3r0/gorouter-middleware-formjson"
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
->>>>>>> a52b476... add form-urlencoded to json middleware
+	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	user_security "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
