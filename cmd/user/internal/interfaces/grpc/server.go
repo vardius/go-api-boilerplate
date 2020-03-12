@@ -13,9 +13,9 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/proto"
-	"github.com/vardius/go-api-boilerplate/internal/commandbus"
-	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"github.com/vardius/go-api-boilerplate/internal/log"
+	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 type userServer struct {

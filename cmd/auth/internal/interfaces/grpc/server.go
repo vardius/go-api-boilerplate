@@ -14,8 +14,8 @@ import (
 	"gopkg.in/oauth2.v3/server"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
-	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"github.com/vardius/go-api-boilerplate/internal/log"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 type authenticationServer struct {

@@ -14,12 +14,12 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
-	"github.com/vardius/go-api-boilerplate/internal/commandbus"
-	http_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware"
-	http_authenticator "github.com/vardius/go-api-boilerplate/internal/http/middleware/authenticator"
-	"github.com/vardius/go-api-boilerplate/internal/http/middleware/firewall"
-	http_metadata_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
-	"github.com/vardius/go-api-boilerplate/internal/log"
+	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	http_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
+	http_authenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
+	"github.com/vardius/go-api-boilerplate/pkg/http/middleware/firewall"
+	http_metadata_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware/metadata"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"

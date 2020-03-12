@@ -9,7 +9,7 @@ import (
 	oauth2_models "gopkg.in/oauth2.v3/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // NewClientStore create client store

@@ -25,12 +25,12 @@ RUN go mod download
 RUN go mod verify
 
 # Copy the source code into the container.
-COPY internal internal
+COPY pkg pkg
 COPY cmd/"$BIN" cmd/"$BIN"
 
 RUN go build \
     -mod=readonly \
-    -ldflags "-X github.com/vardius/go-api-boilerplate/internal/buildinfo.Version=$VERSION -X github.com/vardius/go-api-boilerplate/internal/buildinfo.GitCommit=$GIT_COMMIT -X 'github.com/vardius/go-api-boilerplate/internal/buildinfo.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'" \
+    -ldflags "-X github.com/vardius/go-api-boilerplate/pkg/buildinfo.Version=$VERSION -X github.com/vardius/go-api-boilerplate/pkg/buildinfo.GitCommit=$GIT_COMMIT -X 'github.com/vardius/go-api-boilerplate/pkg/buildinfo.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'" \
     -a -o /go/bin/app ./cmd/"$BIN"
 
 FROM scratch

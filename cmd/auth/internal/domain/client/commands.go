@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	"gopkg.in/oauth2.v3"
 
-	"github.com/vardius/go-api-boilerplate/internal/commandbus"
-	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"github.com/vardius/go-api-boilerplate/internal/executioncontext"
+	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
 
 // Remove command

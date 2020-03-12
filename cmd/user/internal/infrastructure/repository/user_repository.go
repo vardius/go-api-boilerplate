@@ -9,9 +9,9 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"github.com/vardius/go-api-boilerplate/internal/eventbus"
-	"github.com/vardius/go-api-boilerplate/internal/eventstore"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
 
 type userRepository struct {
