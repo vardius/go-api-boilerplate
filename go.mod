@@ -13,9 +13,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/klauspost/compress v1.10.3 // indirect
 	github.com/mar1n3r0/gorouter-middleware-formjson v1.1.0
-	github.com/markbates/goth v1.61.3
 	github.com/rs/cors v1.7.0
-	github.com/thedevsaddam/govalidator v1.9.9
 	github.com/valyala/fasthttp v1.9.0 // indirect
 	github.com/vardius/gollback v1.0.6
 	github.com/vardius/golog v1.1.1
