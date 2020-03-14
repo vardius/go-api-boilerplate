@@ -25,7 +25,7 @@ RUN go mod download
 RUN go mod verify
 
 # Copy the source code into the container.
-COPY internal internal
+COPY pkg pkg
 COPY cmd/"$BIN" cmd/"$BIN"
 # Copy required proto files
 COPY cmd/auth/proto cmd/auth/proto
