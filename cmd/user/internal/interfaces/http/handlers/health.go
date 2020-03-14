@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/internal/errors"
-	"github.com/vardius/go-api-boilerplate/internal/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 
 	"google.golang.org/grpc"
 
-	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
+	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 )
 
 // BuildLivenessHandler provides liveness handler

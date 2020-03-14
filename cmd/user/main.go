@@ -19,14 +19,14 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/repository"
 	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/grpc"
 	user_http "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http"
-	"github.com/vardius/go-api-boilerplate/internal/application"
-	"github.com/vardius/go-api-boilerplate/internal/buildinfo"
-	"github.com/vardius/go-api-boilerplate/internal/commandbus"
-	"github.com/vardius/go-api-boilerplate/internal/eventbus"
-	eventstore "github.com/vardius/go-api-boilerplate/internal/eventstore/memory"
-	grpc_utils "github.com/vardius/go-api-boilerplate/internal/grpc"
-	"github.com/vardius/go-api-boilerplate/internal/log"
-	"github.com/vardius/go-api-boilerplate/internal/mysql"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
+	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
+	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
 func main() {

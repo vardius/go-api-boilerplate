@@ -9,7 +9,7 @@ import (
 	oauth2_models "gopkg.in/oauth2.v3/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // NewClientStore create client store
@@ -42,7 +42,7 @@ func (cs *ClientStore) GetByID(id string) (oauth2.ClientInfo, error) {
 	return cs.toClientInfo(c.GetData())
 }
 
-// Internal according to the ID for the internal client information
+// Internal according to the ID for the pkg client information
 func (cs *ClientStore) Internal(id string) (cli oauth2.ClientInfo, err error) {
 	cs.RLock()
 	defer cs.RUnlock()
@@ -54,7 +54,7 @@ func (cs *ClientStore) Internal(id string) (cli oauth2.ClientInfo, err error) {
 	return
 }
 
-// SetInternal set internal system client information
+// SetInternal set pkg system client information
 func (cs *ClientStore) SetInternal(id string, cli oauth2.ClientInfo) (err error) {
 	cs.Lock()
 	defer cs.Unlock()

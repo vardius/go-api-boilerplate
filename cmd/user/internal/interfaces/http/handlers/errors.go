@@ -1,6 +1,6 @@
 package handlers
 
-import "github.com/vardius/go-api-boilerplate/internal/errors"
+import "github.com/vardius/go-api-boilerplate/pkg/errors"
 
 // ErrEmptyRequestBody is when an request has empty body.
 var ErrEmptyRequestBody = errors.New(errors.INTERNAL, "Empty request body")

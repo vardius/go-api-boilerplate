@@ -5,7 +5,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 
-	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // EmailAddress is an email address value object

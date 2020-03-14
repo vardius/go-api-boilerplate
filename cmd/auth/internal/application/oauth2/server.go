@@ -10,7 +10,7 @@ import (
 	oauth2_errors "gopkg.in/oauth2.v3/errors"
 	oauth2_server "gopkg.in/oauth2.v3/server"
 
-	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 var (
@@ -42,7 +42,7 @@ func InitServer(manager oauth2.Manager, db *sql.DB, logger golog.Logger, secretK
 		})
 
 		gServer.SetInternalErrorHandler(func(err error) (re *oauth2_errors.Response) {
-			logger.Error(context.Background(), "oAuth2 Server internal error: %s\n", err.Error())
+			logger.Error(context.Background(), "oAuth2 Server pkg error: %s\n", err.Error())
 
 			return &oauth2_errors.Response{
 				Error: errors.Wrap(err, errors.INTERNAL, "Internal error"),

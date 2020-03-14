@@ -10,9 +10,9 @@ import (
 
 	http_form_middleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http/handlers"
-	http_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware"
-	http_metadata_middleware "github.com/vardius/go-api-boilerplate/internal/http/middleware/metadata"
-	"github.com/vardius/go-api-boilerplate/internal/log"
+	http_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
+	http_metadata_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware/metadata"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // NewRouter provides new router

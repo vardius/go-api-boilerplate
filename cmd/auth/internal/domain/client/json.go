@@ -6,7 +6,7 @@ package client
 import (
 	"encoding/json"
 
-	"github.com/vardius/go-api-boilerplate/internal/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 func unmarshalPayload(payload []byte, model interface{}) error {
