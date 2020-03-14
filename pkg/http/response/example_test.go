@@ -42,5 +42,5 @@ func ExampleRespondJSONError() {
 	fmt.Printf("%s\n", w.Body)
 
 	// Output:
-	// {"code":"pkg","message":"response error"}
+	// {"code":"internal","message":"response error"}
 }

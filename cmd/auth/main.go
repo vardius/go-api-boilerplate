@@ -108,7 +108,7 @@ func main() {
 	)
 	app := application.New(logger)
 
-	// store our pkg user service client
+	// store our internal user service client
 	if err := clientStore.SetInternal(config.Env.User.ClientID, &oauth2_models.Client{
 		ID:     config.Env.User.ClientID,
 		Secret: config.Env.User.ClientSecret,
