@@ -19,15 +19,15 @@ dependencies:
   version: 1.0.2
 - name: cert-manager
   repository: https://charts.jetstack.io
-  version: v0.13.0
+  version: v0.14.0
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.30.0
+  version: 1.33.5
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 1.6.2
 - name: phpmyadmin
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 4.2.11
-digest: sha256:ad2537a7a29b90b8ef2a89b328a97978b1798cdc8d27a6d06dd1a70c88cee75d
-generated: "2020-02-09T18:33:28.833636+11:00"
+  version: 4.3.4
+digest: sha256:61be3759019783364e42f7ba81ee8d1a4d0ac7a947505f8d2bddd31fac882203
+generated: "2020-03-17T21:44:43.254107+11:00"
