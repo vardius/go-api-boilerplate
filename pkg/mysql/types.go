@@ -107,12 +107,12 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 
-	json, err := json.Marshal(ns.String)
+	jsn, err := json.Marshal(ns.String)
 	if err != nil {
-		return json, errors.Wrap(err, errors.INTERNAL, "MySQL could not marshal NullString")
+		return jsn, errors.Wrap(err, errors.INTERNAL, "MySQL could not marshal NullString")
 	}
 
-	return json, nil
+	return jsn, nil
 }
 
 // UnmarshalJSON for NullString
