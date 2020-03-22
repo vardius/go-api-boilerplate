@@ -6,50 +6,30 @@ package response
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
-
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/middleware/metadata"
 )
 
-// RespondJSON returns data as json response
-func RespondJSON(ctx context.Context, w http.ResponseWriter, payload interface{}, statusCode int) {
+// JSON returns data as json response
+func JSON(ctx context.Context, w http.ResponseWriter, payload interface{}) error {
+	w.Header().Set("Content-Type", "application/json")
 
 	// If there is nothing to marshal then set status code and return.
-	if payload == nil || statusCode == http.StatusNoContent {
-		w.WriteHeader(statusCode)
-		if mtd, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
-			mtd.StatusCode = statusCode
-		}
-		return
+	if payload == nil {
+		WriteHeader(ctx, w, http.StatusNoContent)
+
+		_, err := w.Write([]byte("{}"))
+		return err
 	}
 
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(true)
 	encoder.SetIndent("", "")
 
-	w.WriteHeader(statusCode)
-	w.Header().Set("Content-Type", "application/json")
-
 	if err := encoder.Encode(payload); err != nil {
-		panic(err)
+		return err
 	}
 
-	if mtd, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
-		mtd.StatusCode = statusCode
-	}
+	Flush(w)
 
-	// Check if it is stream response
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
-	}
-}
-
-// RespondJSONError returns error response
-// uses WithPayloadAsJSON internally
-func RespondJSONError(ctx context.Context, w http.ResponseWriter, err error) {
-	log.Printf("RespondJSONError: %v\n", err)
-
-	RespondJSON(ctx, w, err, errors.HTTPStatusCode(err))
+	return nil
 }

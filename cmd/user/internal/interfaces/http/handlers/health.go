@@ -15,8 +15,10 @@ import (
 // BuildLivenessHandler provides liveness handler
 func BuildLivenessHandler() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Write([]byte("ok"))
+		w.WriteHeader(http.StatusOK)
+		if err := response.JSON(r.Context(), w, nil); err != nil {
+			panic(err)
+		}
 	}
 
 	return http.HandlerFunc(fn)
@@ -26,19 +28,31 @@ func BuildLivenessHandler() http.Handler {
 func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := db.PingContext(r.Context()); err != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Database is not responding"))
+			appErr := errors.Wrap(err, errors.INTERNAL, "Database is not responding")
+			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+			if err := response.JSON(r.Context(), w, appErr); err != nil {
+				panic(err)
+			}
 			return
 		}
 
 		for name, conn := range connMap {
 			if !grpc_utils.IsConnectionServing(name, conn) {
-				response.RespondJSONError(r.Context(), w, errors.Newf(errors.INTERNAL, "gRPC connection %s is not serving", name))
+				appErr := errors.Newf(errors.INTERNAL, "gRPC connection %s is not serving", name)
+				response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+				if err := response.JSON(r.Context(), w, appErr); err != nil {
+					panic(err)
+				}
 				return
 			}
 		}
 
-		w.WriteHeader(200)
-		w.Write([]byte("ok"))
+		w.WriteHeader(http.StatusOK)
+		if err := response.JSON(r.Context(), w, nil); err != nil {
+			panic(err)
+		}
 	}
 
 	return http.HandlerFunc(fn)

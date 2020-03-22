@@ -24,13 +24,23 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		accessToken := r.FormValue("accessToken")
 		profileData, e := getProfile(accessToken, apiURL)
 		if e != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INVALID, "Invalid access token"))
+			appErr := errors.Wrap(e, errors.INVALID, "Invalid access token")
+			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+			if err := response.JSON(r.Context(), w, appErr); err != nil {
+				panic(err)
+			}
 			return
 		}
 
 		c, err := user.NewCommandFromPayload(commandName, profileData)
 		if err != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Invalid request"))
+			appErr := errors.Wrap(err, errors.INTERNAL, "Invalid request")
+			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+			if err := response.JSON(r.Context(), w, appErr); err != nil {
+				panic(err)
+			}
 			return
 		}
 
@@ -43,11 +53,21 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 
 		select {
 		case <-r.Context().Done():
-			response.RespondJSONError(r.Context(), w, errors.Wrap(r.Context().Err(), errors.INTERNAL, "Invalid request"))
+			appErr := errors.Wrap(r.Context().Err(), errors.INTERNAL, "Invalid request")
+			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+			if err := response.JSON(r.Context(), w, appErr); err != nil {
+				panic(err)
+			}
 			return
 		case err = <-out:
 			if err != nil {
-				response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Invalid request"))
+				appErr := errors.Wrap(err, errors.INTERNAL, "Invalid request")
+				response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+				if err := response.JSON(r.Context(), w, appErr); err != nil {
+					panic(err)
+				}
 				return
 			}
 		}
@@ -55,17 +75,31 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		emailData := requestBody{}
 		e = json.Unmarshal(profileData, &emailData)
 		if e != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body"))
+			appErr := errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body")
+			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+			if err := response.JSON(r.Context(), w, appErr); err != nil {
+				panic(err)
+			}
 			return
 		}
 
 		token, err := config.PasswordCredentialsToken(r.Context(), emailData.Email, secretKey)
 		if err != nil {
-			response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Generate token failure"))
+			appErr := errors.Wrap(err, errors.INTERNAL, "Generate token failure")
+			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+			if err := response.JSON(r.Context(), w, appErr); err != nil {
+				panic(err)
+			}
 			return
 		}
 
-		response.RespondJSON(r.Context(), w, token, http.StatusOK)
+		response.WriteHeader(r.Context(), w, http.StatusOK)
+
+		if err := response.JSON(r.Context(), w, token); err != nil {
+			panic(err)
+		}
 	}
 
 	return http.HandlerFunc(fn)

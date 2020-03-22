@@ -31,7 +31,12 @@ func (a *credentialsAuth) FromBasicAuth(next http.Handler) http.Handler {
 			if err != nil {
 				w.Header().Set("WWW-Authenticate", `Basic`)
 
-				response.RespondJSONError(r.Context(), w, errors.Wrap(err, errors.UNAUTHORIZED, "Unauthorized"))
+				appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
+				response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+				if err := response.JSON(r.Context(), w, appErr); err != nil {
+					panic(err)
+				}
 				return
 			}
 

@@ -15,7 +15,11 @@ func ExampleRespondJSON() {
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response.RespondJSON(r.Context(), w, example{"John"}, http.StatusOK)
+		response.WriteHeader(r.Context(), w, http.StatusOK)
+
+		if err := response.JSON(r.Context(), w, example{"John"}); err != nil {
+			panic(err)
+		}
 	})
 
 	w := httptest.NewRecorder()
@@ -29,9 +33,34 @@ func ExampleRespondJSON() {
 	// {"name":"John"}
 }
 
+func ExampleRespondJSON_second() {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response.WriteHeader(r.Context(), w, http.StatusOK)
+
+		if err := response.JSON(r.Context(), w, nil); err != nil {
+			panic(err)
+		}
+	})
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/", nil)
+
+	h.ServeHTTP(w, req)
+
+	fmt.Printf("%s\n", w.Body)
+
+	// Output:
+	// {}
+}
+
 func ExampleRespondJSONError() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response.RespondJSONError(r.Context(), w, errors.New(errors.INTERNAL, "response error"))
+		appErr := errors.New(errors.INTERNAL, "response error")
+		response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+
+		if err := response.JSON(r.Context(), w, appErr); err != nil {
+			panic(err)
+		}
 	})
 
 	w := httptest.NewRecorder()
