@@ -9,7 +9,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 )
 
-func ExampleRespondJSON() {
+func ExampleJSON() {
 	type example struct {
 		Name string `json:"name"`
 	}
@@ -33,7 +33,7 @@ func ExampleRespondJSON() {
 	// {"name":"John"}
 }
 
-func ExampleRespondJSON_second() {
+func ExampleJSON_second() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response.WriteHeader(r.Context(), w, http.StatusOK)
 
@@ -53,7 +53,7 @@ func ExampleRespondJSON_second() {
 	// {}
 }
 
-func ExampleRespondJSONError() {
+func ExampleJSON_third() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appErr := errors.New(errors.INTERNAL, "response error")
 		response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
