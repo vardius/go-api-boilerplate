@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vardius/golog"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 func TestHSTS(t *testing.T) {
@@ -80,7 +80,7 @@ func TestRecover(t *testing.T) {
 		}
 	}()
 
-	m := Recover(golog.New())
+	m := Recover(log.New("development"))
 	handler := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
@@ -120,7 +120,7 @@ func captureOutput(f func()) string {
 
 func TestLogger(t *testing.T) {
 	output := captureOutput(func() {
-		m := Logger(golog.New())
+		m := Logger(log.New("development"))
 		h := m(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
 		w := httptest.NewRecorder()

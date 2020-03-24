@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/http/middleware/metadata"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // WriteHeader sends an HTTP response header with the provided status code,
@@ -15,7 +15,7 @@ import (
 func WriteHeader(ctx context.Context, w http.ResponseWriter, statusCode int) {
 	w.WriteHeader(statusCode)
 
-	if mtd, ok := ctx.Value(metadata.KeyMetadataValues).(*metadata.Metadata); ok {
+	if mtd, ok := metadata.FromContext(ctx); ok {
 		mtd.StatusCode = statusCode
 	}
 }

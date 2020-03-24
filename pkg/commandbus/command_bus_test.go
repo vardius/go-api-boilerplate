@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vardius/golog"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 type commandMock struct{}
@@ -16,7 +16,7 @@ func (c *commandMock) GetName() string {
 }
 
 func TestNew(t *testing.T) {
-	logger := golog.New()
+	logger := log.New("dev")
 	bus := New(runtime.NumCPU(), logger)
 
 	if bus == nil {
@@ -25,7 +25,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestSubscribePublish(t *testing.T) {
-	bus := New(runtime.NumCPU(), golog.New())
+	bus := New(runtime.NumCPU(), log.New("development"))
 	ctx := context.Background()
 	c := make(chan error, 1)
 
@@ -51,7 +51,7 @@ func TestSubscribePublish(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	bus := New(runtime.NumCPU(), golog.New())
+	bus := New(runtime.NumCPU(), log.New("development"))
 	c := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

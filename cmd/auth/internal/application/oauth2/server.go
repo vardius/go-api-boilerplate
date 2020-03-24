@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"sync"
 
-	"github.com/vardius/golog"
 	"gopkg.in/oauth2.v3"
 	oauth2_errors "gopkg.in/oauth2.v3/errors"
 	oauth2_server "gopkg.in/oauth2.v3/server"
 
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 )
 
 // InitServer initialize the oauth2 server instance
-func InitServer(manager oauth2.Manager, db *sql.DB, logger golog.Logger, secretKey string) *oauth2_server.Server {
+func InitServer(manager oauth2.Manager, db *sql.DB, logger *log.Logger, secretKey string) *oauth2_server.Server {
 	onceServer.Do(func() {
 		gServer = oauth2_server.NewDefaultServer(manager)
 
@@ -42,7 +42,7 @@ func InitServer(manager oauth2.Manager, db *sql.DB, logger golog.Logger, secretK
 		})
 
 		gServer.SetInternalErrorHandler(func(err error) (re *oauth2_errors.Response) {
-			logger.Error(context.Background(), "oAuth2 Server internal error: %s\n", err.Error())
+			logger.Error(context.Background(), "[oAuth2|Server] internal error: %s\n", err.Error())
 
 			return &oauth2_errors.Response{
 				Error: errors.Wrap(err, errors.INTERNAL, "Internal error"),
@@ -50,7 +50,7 @@ func InitServer(manager oauth2.Manager, db *sql.DB, logger golog.Logger, secretK
 		})
 
 		gServer.SetResponseErrorHandler(func(re *oauth2_errors.Response) {
-			logger.Error(context.Background(), "oAuth2 Server response error: %s\n%v\n", re.Error.Error(), re)
+			logger.Error(context.Background(), "[oAuth2|Server] response error: %s\n%v\n", re.Error.Error(), re)
 		})
 	})
 

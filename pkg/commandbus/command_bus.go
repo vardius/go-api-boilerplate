@@ -3,10 +3,10 @@ package commandbus
 import (
 	"context"
 
-	"github.com/vardius/golog"
 	messagebus "github.com/vardius/message-bus"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // CommandHandler function
@@ -20,26 +20,26 @@ type CommandBus interface {
 }
 
 // New creates in memory command bus
-func New(maxConcurrentCalls int, logger golog.Logger) CommandBus {
+func New(maxConcurrentCalls int, logger *log.Logger) CommandBus {
 	return &commandBus{messagebus.New(maxConcurrentCalls), logger}
 }
 
 type commandBus struct {
 	messageBus messagebus.MessageBus
-	logger     golog.Logger
+	logger     *log.Logger
 }
 
 func (bus *commandBus) Publish(ctx context.Context, command domain.Command, out chan<- error) {
-	bus.logger.Debug(ctx, "[CommandBus|Publish]: %s %+v\n", command.GetName(), command)
+	bus.logger.Debug(ctx, "[CommandBus] Publish: %s %+v\n", command.GetName(), command)
 	bus.messageBus.Publish(command.GetName(), ctx, command, out)
 }
 
 func (bus *commandBus) Subscribe(commandName string, fn CommandHandler) error {
-	bus.logger.Info(nil, "[CommandBus|Subscribe]: %s\n", commandName)
+	bus.logger.Info(nil, "[CommandBus] Subscribe: %s\n", commandName)
 	return bus.messageBus.Subscribe(commandName, fn)
 }
 
 func (bus *commandBus) Unsubscribe(commandName string, fn CommandHandler) error {
-	bus.logger.Info(nil, "[CommandBus|Unsubscribe]: %s\n", commandName)
+	bus.logger.Info(nil, "[CommandBus] Unsubscribe: %s\n", commandName)
 	return bus.messageBus.Unsubscribe(commandName, fn)
 }
