@@ -36,37 +36,52 @@ func New(env string) *Logger {
 
 func (l *Logger) Debug(ctx context.Context, format string, args ...interface{}) {
 	traceId := getTraceIdFromContext(ctx)
-	newArgs := append([]interface{}{traceId}, args...)
+	if traceId != "" {
+		args = append([]interface{}{traceId}, args...)
+		format = TraceIDPrefix + format
+	}
 
-	l.Debug(ctx, TraceIDPrefix+format, newArgs...)
+	l.Debug(ctx, format, args...)
 }
 
 func (l *Logger) Info(ctx context.Context, format string, args ...interface{}) {
 	traceId := getTraceIdFromContext(ctx)
-	newArgs := append([]interface{}{traceId}, args...)
+	if traceId != "" {
+		args = append([]interface{}{traceId}, args...)
+		format = TraceIDPrefix + format
+	}
 
-	l.Logger.Info(ctx, TraceIDPrefix+format, newArgs...)
+	l.Logger.Info(ctx, format, args...)
 }
 
 func (l *Logger) Warning(ctx context.Context, format string, args ...interface{}) {
 	traceId := getTraceIdFromContext(ctx)
-	newArgs := append([]interface{}{traceId}, args...)
+	if traceId != "" {
+		args = append([]interface{}{traceId}, args...)
+		format = TraceIDPrefix + format
+	}
 
-	l.Logger.Warning(ctx, TraceIDPrefix+format, newArgs...)
+	l.Logger.Warning(ctx, format, args...)
 }
 
 func (l *Logger) Error(ctx context.Context, format string, args ...interface{}) {
 	traceId := getTraceIdFromContext(ctx)
-	newArgs := append([]interface{}{traceId}, args...)
+	if traceId != "" {
+		args = append([]interface{}{traceId}, args...)
+		format = TraceIDPrefix + format
+	}
 
-	l.Logger.Error(ctx, TraceIDPrefix+format, newArgs...)
+	l.Logger.Error(ctx, format, args...)
 }
 
 func (l *Logger) Critical(ctx context.Context, format string, args ...interface{}) {
 	traceId := getTraceIdFromContext(ctx)
-	newArgs := append([]interface{}{traceId}, args...)
+	if traceId != "" {
+		args = append([]interface{}{traceId}, args...)
+		format = TraceIDPrefix + format
+	}
 
-	l.Logger.Critical(ctx, TraceIDPrefix+format, newArgs...)
+	l.Logger.Critical(ctx, format, args...)
 }
 
 func getTraceIdFromContext(ctx context.Context) string {
