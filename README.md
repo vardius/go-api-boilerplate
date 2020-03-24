@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/vardius/go-api-boilerplate.svg?branch=master)](https://travis-ci.com/vardius/go-api-boilerplate)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vardius/go-api-boilerplate)](https://goreportcard.com/report/github.com/vardius/go-api-boilerplate)
 [![codecov](https://codecov.io/gh/vardius/go-api-boilerplate/branch/master/graph/badge.svg)](https://codecov.io/gh/vardius/go-api-boilerplate)
-[![](https://godoc.org/github.com/vardius/go-api-boilerplate?status.svg)](http://godoc.org/github.com/vardius/go-api-boilerplate)
+[![](https://godoc.org/github.com/vardius/go-api-boilerplate?status.svg)](https://pkg.go.dev/github.com/vardius/go-api-boilerplate)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvardius%2Fgo-api-boilerplate?ref=badge_shield)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/vardius/go-api-boilerplate/blob/master/LICENSE.md)
 [![baker](https://opencollective.com/go-api-boilerplate/tiers/backer/badge.svg?label=backer&color=brightgreen)](https://opencollective.com/go-api-boilerplate/contribute/backer-10349/checkout)
