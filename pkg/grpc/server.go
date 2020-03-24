@@ -4,14 +4,15 @@ import (
 	"context"
 	"time"
 
-	"google.golang.org/grpc/status"
-
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	"github.com/vardius/golog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/status"
+
+	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // ServerConfig provides values for gRPC server configuration
@@ -22,12 +23,12 @@ type ServerConfig struct {
 }
 
 // NewServer provides new grpc server
-func NewServer(cfg ServerConfig, logger golog.Logger) *grpc.Server {
+func NewServer(cfg ServerConfig, logger *log.Logger) *grpc.Server {
 	opts := []grpc_recovery.Option{
 		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
-			logger.Critical(ctx, "[gRPC Server] Recovered in %v\n", rec)
+			logger.Critical(ctx, "[gRPC|Server] Recovered in %v\n", rec)
 
-			return status.Errorf(codes.Internal, "[gRPC Server] Recovered in %v\n", rec)
+			return status.Errorf(codes.Internal, "Recovered in %v\n", rec)
 		}),
 	}
 
@@ -42,9 +43,15 @@ func NewServer(cfg ServerConfig, logger golog.Logger) *grpc.Server {
 		}),
 		grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(opts...),
+			middleware.SetMetadataFromUnaryRequest(),
+			middleware.LogUnaryRequest(logger),
+			// firewall.GrantAccessForUnaryRequest("admin"), // TODO: do it per service request
 		),
 		grpc_middleware.WithStreamServerChain(
 			grpc_recovery.StreamServerInterceptor(opts...),
+			middleware.SetMetadataFromStreamRequest(),
+			middleware.LogStreamRequest(logger),
+			// firewall.GrantAccessForStreamRequest("admin"), // TODO: do it per service request
 		),
 	)
 
