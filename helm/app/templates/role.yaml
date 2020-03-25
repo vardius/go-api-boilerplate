@@ -10,5 +10,5 @@ metadata:
     app.kubernetes.io/instance: {{ $.Release.Name }}
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
 rules:
-{{ toYaml .Values.dashboard.role.rules }}
+{{ toYaml .Values.role.rules }}
 {{- end }}

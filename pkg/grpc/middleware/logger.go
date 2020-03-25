@@ -19,23 +19,21 @@ import (
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(LogOutgoingUnaryRequest()))
 func LogOutgoingUnaryRequest(logger *log.Logger) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		var traceID string
 		now := time.Now()
 
 		m, ok := mtd.FromContext(ctx)
 		if ok {
-			traceID = m.TraceID
 			now = m.Now
 		}
 
-		logger.Info(ctx, "[gRPC|Client] Start: %s\n", traceID)
+		logger.Info(ctx, "[gRPC|Client] Start\n")
 
 		err := invoker(ctx, method, req, reply, cc, opts...)
 
 		if err != nil {
-			logger.Warning(ctx, "[gRPC|Client] End: %s (%s). Err: %v\n", traceID, time.Since(now), err)
+			logger.Warning(ctx, "[gRPC|Client] End: (%s) Err: %v\n", time.Since(now), err)
 		} else {
-			logger.Info(ctx, "[gRPC|Client] End: %s (%s)\n", traceID, time.Since(now))
+			logger.Info(ctx, "[gRPC|Client] End: (%s)\n", time.Since(now))
 		}
 
 		return err
@@ -49,23 +47,21 @@ func LogOutgoingUnaryRequest(logger *log.Logger) grpc.UnaryClientInterceptor {
 // conn, err := grpc.Dial("localhost:5000", grpc.WithStreamInterceptor(LogOutgoingStreamRequest()))
 func LogOutgoingStreamRequest(logger *log.Logger) grpc.StreamClientInterceptor {
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-		var traceID string
 		now := time.Now()
 
 		m, ok := mtd.FromContext(ctx)
 		if ok {
-			traceID = m.TraceID
 			now = m.Now
 		}
 
-		logger.Info(ctx, "[gRPC|Client] Start: %s\n", traceID)
+		logger.Info(ctx, "[gRPC|Client] Start\n")
 
 		stream, err := streamer(ctx, desc, cc, method, opts...)
 
 		if err != nil {
-			logger.Warning(ctx, "[gRPC|Client] End: %s (%s). Err: %v\n", traceID, time.Since(now), err)
+			logger.Warning(ctx, "[gRPC|Client] End: (%s) Err: %v\n", time.Since(now), err)
 		} else {
-			logger.Info(ctx, "[gRPC|Client] End: %s (%s)\n", traceID, time.Since(now))
+			logger.Info(ctx, "[gRPC|Client] End: (%s)\n", time.Since(now))
 		}
 
 		return stream, err
@@ -83,7 +79,6 @@ func LogOutgoingStreamRequest(logger *log.Logger) grpc.StreamClientInterceptor {
 // pb.LogStreamRequest(s, &server{})
 func LogStreamRequest(logger *log.Logger) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		var traceID string
 		now := time.Now()
 
 		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
@@ -93,19 +88,18 @@ func LogStreamRequest(logger *log.Logger) grpc.StreamServerInterceptor {
 					return err
 				}
 
-				traceID = m.TraceID
 				now = m.Now
 			}
 		}
 
-		logger.Info(ss.Context(), "[gRPC|Server] Start: %s\n", traceID)
+		logger.Info(ss.Context(), "[gRPC|Server] Start\n")
 
 		err := handler(srv, ss)
 
 		if err != nil {
-			logger.Warning(ss.Context(), "[gRPC|Server] End: %s (%s). Err: %v\n", traceID, time.Since(now), err)
+			logger.Warning(ss.Context(), "[gRPC|Server] End: (%s) Err: %v\n", time.Since(now), err)
 		} else {
-			logger.Info(ss.Context(), "[gRPC|Server] End: %s (%s)\n", traceID, time.Since(now))
+			logger.Info(ss.Context(), "[gRPC|Server] End: (%s)\n", time.Since(now))
 		}
 
 		return err
@@ -133,7 +127,6 @@ func LogUnaryRequest(logger *log.Logger) grpc.UnaryServerInterceptor {
 				ctx = mtd.ContextWithMetadata(ctx, &m)
 			}
 		}
-		var traceID string
 		now := time.Now()
 
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
@@ -143,19 +136,18 @@ func LogUnaryRequest(logger *log.Logger) grpc.UnaryServerInterceptor {
 					return nil, err
 				}
 
-				traceID = m.TraceID
 				now = m.Now
 			}
 		}
 
-		logger.Info(ctx, "[gRPC|Server] Start: %s\n", traceID)
+		logger.Info(ctx, "[gRPC|Server] Start\n")
 
 		resp, err := handler(ctx, req)
 
 		if err != nil {
-			logger.Warning(ctx, "[gRPC|Server] End: %s (%s). Err: %v\n", traceID, time.Since(now), err)
+			logger.Warning(ctx, "[gRPC|Server] End: (%s) Err: %v\n", time.Since(now), err)
 		} else {
-			logger.Info(ctx, "[gRPC|Server] End: %s (%s)\n", traceID, time.Since(now))
+			logger.Info(ctx, "[gRPC|Server] End: (%s)\n", time.Since(now))
 		}
 
 		return resp, err

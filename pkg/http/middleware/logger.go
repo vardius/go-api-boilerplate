@@ -14,29 +14,26 @@ import (
 func Logger(logger *log.Logger) gorouter.MiddlewareFunc {
 	m := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			var traceID string
 			var statusCode int
 			now := time.Now()
 
 			mtd, ok := metadata.FromContext(r.Context())
 			if ok {
-				traceID = mtd.TraceID
 				statusCode = mtd.StatusCode
 				now = mtd.Now
 			}
 
-			logger.Info(r.Context(), "[HTTP] Start: %s : (%d) : %s %s -> %s\n",
-				traceID, statusCode,
+			logger.Info(r.Context(), "[HTTP] Start: %s %s -> %s\n",
 				r.Method, r.URL.Path,
 				r.RemoteAddr,
 			)
 
 			next.ServeHTTP(w, r)
 
-			logger.Info(r.Context(), "[HTTP] End: %s : (%d) : %s %s -> %s (%s)\n",
-				traceID, statusCode,
+			logger.Info(r.Context(), "[HTTP] End: %s %s -> %s (Code: %d) (%s)\n",
 				r.Method, r.URL.Path,
-				r.RemoteAddr, time.Since(now),
+				r.RemoteAddr,
+				statusCode, time.Since(now),
 			)
 		}
 

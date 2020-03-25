@@ -15,6 +15,24 @@ serviceAccount:
   # empty defaults to: include "app.fullname" $)
   name:
 
+role:
+  ## Rules to create. It follows the role specification
+  rules:
+    - apiGroups:
+        - "*"
+      resources:
+        - "*"
+      verbs:
+        - get
+        - list
+        - watch
+        - describe
+        - exec
+        - update
+        - delete
+      resourceNames:
+        - role-secret
+
 ingress:
   issuerName: selfsigned #letsencrypt
   issuerKind: Issuer
@@ -24,15 +42,9 @@ ingress:
     kubernetes.io/secure-backends: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      rewrite ^(/dashboard)$ $1/ permanent;
   hosts:
     - host: go-api-boilerplate.local
       paths:
-        - path: /dashboard(/|$)(.*)
-          backend:
-            serviceName: dashboard
-            servicePort: 443
         # - path: /localstack(/|$)(.*)
         #   backend:
         #     serviceName: go-api-boilerplate-localstack
@@ -53,33 +65,6 @@ ingress:
     - secretName: go-api-boilerplate-tls
       hosts:
         - go-api-boilerplate.local
-
-dashboard:
-  enableInsecureLogin: true
-  fullnameOverride: 'dashboard'
-  extraArgs:
-    - '--namespace go-api-boilerplate'
-    - '--heapster-host=http://heapster.default:8082'
-  role:
-    ## Rules to create. It follows the role specification
-    rules:
-      - apiGroups:
-          - "*"
-        resources:
-          - "*"
-        verbs:
-          - get
-          - list
-          - watch
-          - describe
-          - exec
-          - update
-          - delete
-        resourceNames:
-          - dashboard-secret
-
-heapster:
-  fullnameOverride: 'heapster'
 
 cert-manager:
   ingressShim:
@@ -295,7 +280,7 @@ secrets:
     data:
       USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
       USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
-  - name: dashboard-secret
+  - name: role-secret
     type: Opaque
     data:
       csrf: ""

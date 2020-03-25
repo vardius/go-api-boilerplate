@@ -1,4 +1,4 @@
-{{ if or (not (hasKey .Values.dashboard "enabled")) (.Values.dashboard.enabled | default true) }}
+{{ if and (.Values.serviceAccount.create) (.Values.rbac.create) }}
 apiVersion: rbac.authorization.k8s.io/{{ required "A valid .Values.rbac.apiVersion entry required!" .Values.rbac.apiVersion }}
 kind: RoleBinding
 metadata:

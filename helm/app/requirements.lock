@@ -11,12 +11,6 @@ dependencies:
 - name: microservice
   repository: file://../microservice
   version: 0.1.0
-- name: kubernetes-dashboard
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.10.1
-- name: heapster
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.0.2
 - name: cert-manager
   repository: https://charts.jetstack.io
   version: v0.14.0
@@ -29,5 +23,5 @@ dependencies:
 - name: phpmyadmin
   repository: https://kubernetes-charts.storage.googleapis.com/
   version: 4.3.4
-digest: sha256:61be3759019783364e42f7ba81ee8d1a4d0ac7a947505f8d2bddd31fac882203
-generated: "2020-03-17T21:44:43.254107+11:00"
+digest: sha256:ed38abc357d813c050980ac3d01f4170170048585b65e0e13969b7b71f35d712
+generated: "2020-03-25T21:29:33.341064+11:00"

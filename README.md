@@ -44,9 +44,6 @@ This is mono-repository of many services such as authentication or user domain. 
 
 This project setup should reduce the time spent on environment configuration for the whole kubernetes cluster and/or each of microservice. Extracting each of services to own repository or keeping it as mono-repo should be a matter of preference.
 
-![Dashboard](../master/.github/kubernetes-dashboard-overview.png)
-![Dashboard](../master/.github/kubernetes-dashboard-pods.png)
-
 Key concepts:
 1. Rest API
 2. [Docker](https://www.docker.com/what-docker)
@@ -101,8 +98,7 @@ make helm-dependencies
 make helm-install
 ```
 
-## Dashboard
-https://go-api-boilerplate.local/dashboard/#!/overview?namespace=go-api-boilerplate
+## [Dashboard](https://github.com/vardius/go-api-boilerplate/wiki/2.1.-Dashboard)
 
 ## Domain
 ### Dispatching command
