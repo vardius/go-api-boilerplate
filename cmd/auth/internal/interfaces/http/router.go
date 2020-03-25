@@ -12,7 +12,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http/handlers"
 	http_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
-	http_metadata_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware/metadata"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
@@ -21,7 +20,7 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 	// Global middleware
 	router := gorouter.New(
 		http_middleware.Recover(logger),
-		http_metadata_middleware.WithMetadata(),
+		http_middleware.WithMetadata(),
 		http_middleware.Logger(logger),
 		http_cors.Default().Handler,
 		http_middleware.XSS(),

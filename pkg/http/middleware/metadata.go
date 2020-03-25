@@ -1,4 +1,4 @@
-package metadata
+package middleware
 
 import (
 	"net/http"
@@ -16,14 +16,15 @@ func WithMetadata() gorouter.MiddlewareFunc {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			// Set the context with the required values to
 			// process the request.
-			m := md.Metadata{
+			mtd := md.Metadata{
 				TraceID: uuid.New().String(),
 				Now:     time.Now(),
 			}
 
-			ctx := md.ContextWithMetadata(r.Context(), &m)
+			ctx := md.ContextWithMetadata(r.Context(), &mtd)
+			r = r.WithContext(ctx)
 
-			next.ServeHTTP(w, r.WithContext(ctx))
+			next.ServeHTTP(w, r)
 		}
 
 		return http.HandlerFunc(fn)

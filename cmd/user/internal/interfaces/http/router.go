@@ -20,7 +20,6 @@ import (
 	http_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
 	http_authenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/http/middleware/firewall"
-	http_metadata_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware/metadata"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
@@ -34,7 +33,7 @@ func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, c
 	// Global middleware
 	router := gorouter.New(
 		http_middleware.Recover(logger),
-		http_metadata_middleware.WithMetadata(),
+		http_middleware.WithMetadata(),
 		http_middleware.Logger(logger),
 		http_cors.Default().Handler,
 		http_middleware.XSS(),
