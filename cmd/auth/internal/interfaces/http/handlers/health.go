@@ -15,6 +15,7 @@ import (
 // BuildLivenessHandler provides liveness handler
 func BuildLivenessHandler() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 	}
 
@@ -46,6 +47,7 @@ func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http
 			}
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 	}
 
