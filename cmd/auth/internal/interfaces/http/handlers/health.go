@@ -35,7 +35,7 @@ func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http
 		}
 
 		for name, conn := range connMap {
-			if !grpc_utils.IsConnectionServing(name, conn) {
+			if !grpc_utils.IsConnectionServing(r.Context(), name, conn) {
 				appErr := errors.Newf(errors.INTERNAL, "gRPC connection %s is not serving", name)
 				response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
 
