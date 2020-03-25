@@ -39,25 +39,25 @@ func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn EventHa
 		return errors.Wrap(err, errors.INTERNAL, "EventBus client subscribe error")
 	}
 
-	bus.logger.Info(ctx, "[EventBus] Subscribe: %s\n", eventType)
+	bus.logger.Info(stream.Context(), "[EventBus] Subscribe: %s\n", eventType)
 
 	for {
 		resp, err := stream.Recv()
 		if err != nil {
-			bus.logger.Error(ctx, "[EventBus] Subscribe: stream.Recv error: %v\n", err)
+			bus.logger.Error(stream.Context(), "[EventBus] Subscribe: stream.Recv error: %v\n", err)
 			return errors.Wrap(err, errors.INTERNAL, "EventBus stream recv error")
 		}
 
 		var event domain.Event
 		err = json.Unmarshal(resp.GetPayload(), &event)
 		if err != nil {
-			bus.logger.Error(ctx, "[EventBus] Subscribe: Unmarshal error: %v\n", err)
+			bus.logger.Error(stream.Context(), "[EventBus] Subscribe: Unmarshal error: %v\n", err)
 			return errors.Wrap(err, errors.INTERNAL, "EventBus unmarshal error")
 		}
 
-		bus.logger.Debug(ctx, "[EventBus] Subscribe: %s %s\n", event.Metadata.Type, event.Payload)
+		bus.logger.Debug(stream.Context(), "[EventBus] Subscribe: %s %s\n", event.Metadata.Type, event.Payload)
 
-		fn(ctx, event)
+		fn(stream.Context(), event)
 	}
 }
 
