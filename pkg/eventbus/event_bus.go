@@ -14,7 +14,7 @@ import (
 // EventHandler function
 type EventHandler func(ctx context.Context, event domain.Event)
 
-// EventBus allow to publis/subscribe to events
+// EventBus allow to publish/subscribe to events
 type EventBus interface {
 	Publish(ctx context.Context, event domain.Event)
 	Subscribe(ctx context.Context, eventType string, fn EventHandler) error
