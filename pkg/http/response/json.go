@@ -15,8 +15,6 @@ func JSON(ctx context.Context, w http.ResponseWriter, payload interface{}) error
 
 	// If there is nothing to marshal then set status code and return.
 	if payload == nil {
-		WriteHeader(ctx, w, http.StatusNoContent)
-
 		_, err := w.Write([]byte("{}"))
 		return err
 	}
