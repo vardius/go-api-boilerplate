@@ -43,7 +43,7 @@ func TestJSON(t *testing.T) {
 
 func TestJSONNil(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		WriteHeader(r.Context(), w, http.StatusNoContent)
+		WriteHeader(r.Context(), w, http.StatusOK)
 
 		if err := JSON(r.Context(), w, nil); err != nil {
 			t.Fatal(err)
@@ -63,7 +63,7 @@ func TestJSONNil(t *testing.T) {
 		t.Error("JSON did not set proper headers")
 	}
 
-	if w.Code != http.StatusNoContent {
+	if w.Code != http.StatusOK {
 		t.Errorf("JSON error code does not match %d", w.Code)
 	}
 }

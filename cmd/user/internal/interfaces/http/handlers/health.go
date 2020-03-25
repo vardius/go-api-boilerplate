@@ -16,9 +16,6 @@ import (
 func BuildLivenessHandler() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
-		if err := response.JSON(r.Context(), w, nil); err != nil {
-			panic(err)
-		}
 	}
 
 	return http.HandlerFunc(fn)
@@ -50,9 +47,6 @@ func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http
 		}
 
 		w.WriteHeader(http.StatusNoContent)
-		if err := response.JSON(r.Context(), w, nil); err != nil {
-			panic(err)
-		}
 	}
 
 	return http.HandlerFunc(fn)
