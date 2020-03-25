@@ -13,11 +13,11 @@ func TestContext(t *testing.T) {
 		TraceID: uuid.New().String(),
 		Now:     time.Now(),
 	}
-	ctx := ContextWithMetadata(context.Background(), &m)
-	identityFromContext, ok := FromContext(ctx)
-	if ok && m.TraceID == identityFromContext.TraceID {
-		return
-	}
 
-	t.Error("Metadata from context did not match the one passed to it")
+	ctx := ContextWithMetadata(context.Background(), &m)
+
+	metadataFromContext, ok := FromContext(ctx)
+	if !ok || m.TraceID != metadataFromContext.TraceID {
+		t.Error("Metadata from context did not match the one passed to it")
+	}
 }

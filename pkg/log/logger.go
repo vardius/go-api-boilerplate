@@ -41,7 +41,7 @@ func (l *Logger) Debug(ctx context.Context, format string, args ...interface{}) 
 		format = TraceIDPrefix + format
 	}
 
-	l.Debug(ctx, format, args...)
+	l.Logger.Debug(ctx, format, args...)
 }
 
 func (l *Logger) Info(ctx context.Context, format string, args ...interface{}) {

@@ -17,7 +17,7 @@ before_script:
   - go vet ./...
 
 script:
-  - go test ./... -v -cover -race -coverprofile=profile.out -covermode=atomic
+  - go test ./... -v -race -cover -coverprofile=profile.out -covermode=atomic
 after_script:
   - cat profile.out >> coverage.txt
   - bash <(curl -s https://codecov.io/bash)
