@@ -49,7 +49,6 @@ func NewServer(cfg ServerConfig, logger *log.Logger) *grpc.Server {
 		),
 		grpc_middleware.WithStreamServerChain(
 			grpc_recovery.StreamServerInterceptor(opts...),
-			middleware.SetMetadataFromStreamRequest(),
 			middleware.LogStreamRequest(logger),
 			// firewall.GrantAccessForStreamRequest("admin"), // TODO: do it per service request
 		),

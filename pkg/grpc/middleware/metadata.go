@@ -32,54 +32,6 @@ func AppendMetadataToOutgoingUnaryContext() grpc.UnaryClientInterceptor {
 	}
 }
 
-// AppendMetadataToOutgoingStreamContext appends metadata to outgoing context
-//
-// https://godoc.org/google.golang.org/grpc#WithStreamInterceptor
-//
-// conn, err := grpc.Dial("localhost:5000", grpc.WithStreamInterceptor(AppendMetadataToOutgoingStreamContext()))
-func AppendMetadataToOutgoingStreamContext() grpc.StreamClientInterceptor {
-	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-		i, ok := mtd.FromContext(ctx)
-		if ok {
-			jsn, err := json.Marshal(i)
-			if err != nil {
-				return nil, err
-			}
-
-			ctx = metadata.AppendToOutgoingContext(ctx, mdMetadataKey, string(jsn))
-		}
-
-		return streamer(ctx, desc, cc, method, opts...)
-	}
-}
-
-// SetMetadataFromStreamRequest updates context with metadata
-//
-// 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
-//
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(SetMetadataFromStreamRequest()),
-// }
-// s := grpc.NewServer(opts...)
-// pb.RegisterGreeterServer(s, &server{})
-func SetMetadataFromStreamRequest() grpc.StreamServerInterceptor {
-	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
-			var m mtd.Metadata
-			if values := md.Get(mdMetadataKey); len(values) > 0 {
-				if err := json.Unmarshal([]byte(values[0]), &m); err != nil {
-					return err
-				}
-
-				// TODO: update server stream context
-				// ctx := mtd.ContextWithMetadata(ss.Context(), &m)
-			}
-		}
-
-		return handler(srv, ss)
-	}
-}
-
 // SetMetadataFromUnaryRequest updates context with metadata
 //
 // 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor

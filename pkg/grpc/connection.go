@@ -35,7 +35,6 @@ func NewConnection(ctx context.Context, host string, port int, cfg ConnectionCon
 			firewall.AppendIdentityToOutgoingUnaryContext(),
 		),
 		grpc.WithChainStreamInterceptor(
-			middleware.AppendMetadataToOutgoingStreamContext(),
 			middleware.LogOutgoingStreamRequest(logger),
 			firewall.AppendIdentityToOutgoingStreamContext(),
 		),
