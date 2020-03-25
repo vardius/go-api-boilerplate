@@ -39,7 +39,7 @@ func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
 			return
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(context.Background(), executioncontext.LIVE), client)
+		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), client)
 	}
 
 	return commandbus.CommandHandler(fn)
@@ -69,7 +69,7 @@ func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 			return
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(context.Background(), executioncontext.LIVE), client)
+		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), client)
 	}
 
 	return commandbus.CommandHandler(fn)

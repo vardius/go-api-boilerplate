@@ -85,7 +85,7 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 			return
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(context.Background(), executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)
@@ -130,7 +130,7 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 			return
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(context.Background(), executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)
@@ -180,7 +180,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 			return
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(context.Background(), executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)
@@ -241,7 +241,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 			}
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(context.Background(), executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)
@@ -302,7 +302,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 			}
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(context.Background(), executioncontext.LIVE), u)
+		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
 	}
 
 	return commandbus.CommandHandler(fn)
