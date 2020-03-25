@@ -19,8 +19,7 @@ const mdMetadataKey = "metadata"
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(AppendMetadataToOutgoingUnaryContext()))
 func AppendMetadataToOutgoingUnaryContext() grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		m, ok := mtd.FromContext(ctx)
-		if ok {
+		if m, ok := mtd.FromContext(ctx); ok {
 			jsn, err := json.Marshal(m)
 			if err != nil {
 				return err

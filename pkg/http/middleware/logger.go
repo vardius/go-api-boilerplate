@@ -20,7 +20,6 @@ func Logger(logger *log.Logger) gorouter.MiddlewareFunc {
 			mtd, ok := metadata.FromContext(r.Context())
 			if ok {
 				statusCode = mtd.StatusCode
-				now = mtd.Now
 			}
 
 			logger.Info(r.Context(), "[HTTP] Start: %s %s -> %s\n",
