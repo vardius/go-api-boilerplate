@@ -7,7 +7,7 @@ Use the protocol buffer compiler protoc with a special gRPC Go plugin. For more 
 
 From this directory run:
 ```bash
-$ protoc --go_out=plugins=grpc:. auth.proto
+$ make build
 ```
 Running this command generates the following files in this directory:
 
