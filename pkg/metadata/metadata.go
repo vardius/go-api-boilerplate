@@ -3,6 +3,8 @@ package metadata
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // key represents the type of value for the context key.
@@ -13,9 +15,16 @@ const metadataKey key = 1
 
 // Metadata represent state for each request.
 type Metadata struct {
+	Now        time.Time `json:"-"`
 	TraceID    string    `json:"traceId"`
-	Now        time.Time `json:"now"`
 	StatusCode int       `json:"statusCode"`
+}
+
+func New() *Metadata {
+	return &Metadata{
+		TraceID: uuid.New().String(),
+		Now:     time.Now(),
+	}
 }
 
 // ContextWithMetadata returns a new Context that carries metadata ptr.

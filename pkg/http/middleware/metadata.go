@@ -2,9 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/vardius/gorouter/v4"
 
 	md "github.com/vardius/go-api-boilerplate/pkg/metadata"
@@ -16,12 +14,9 @@ func WithMetadata() gorouter.MiddlewareFunc {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			// Set the context with the required values to
 			// process the request.
-			mtd := md.Metadata{
-				TraceID: uuid.New().String(),
-				Now:     time.Now(),
-			}
+			mtd := md.New()
 
-			ctx := md.ContextWithMetadata(r.Context(), &mtd)
+			ctx := md.ContextWithMetadata(r.Context(), mtd)
 			r = r.WithContext(ctx)
 
 			next.ServeHTTP(w, r)

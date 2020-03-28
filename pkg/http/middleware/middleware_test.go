@@ -122,7 +122,7 @@ func captureOutput(f func()) string {
 func TestLogger(t *testing.T) {
 	output := captureOutput(func() {
 		m := Logger(log.New("development"))
-		h := m(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+		h := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})
 
 		w := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/", nil)
@@ -130,8 +130,10 @@ func TestLogger(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		h.ServeHTTP(w, req)
+		m(h).ServeHTTP(w, req)
 	})
+
+	t.Logf("\n %s", output)
 
 	if output == "" {
 		t.Fail()

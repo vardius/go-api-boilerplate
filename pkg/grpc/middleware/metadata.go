@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -71,6 +72,8 @@ func SetMetadataFromStreamRequest() grpc.StreamServerInterceptor {
 					return err
 				}
 
+				m.Now = time.Now()
+
 				// TODO: update server stream context
 				// ctx := mtd.ContextWithMetadata(ss.Context(), &m)
 			}
@@ -97,6 +100,8 @@ func SetMetadataFromUnaryRequest() grpc.UnaryServerInterceptor {
 				if err := json.Unmarshal([]byte(values[0]), &m); err != nil {
 					return nil, err
 				}
+
+				m.Now = time.Now()
 
 				ctx = mtd.ContextWithMetadata(ctx, &m)
 			}
