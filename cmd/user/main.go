@@ -6,7 +6,8 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	pubsub_proto "github.com/vardius/pubsub/proto"
+	pubsub_proto "github.com/vardius/pubsub/v2/proto"
+	pushpull_proto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
 
@@ -62,7 +63,7 @@ func main() {
 		logger,
 	)
 	defer mysqlConnection.Close()
-	grpcPubsubConn := grpc_utils.NewConnection(
+	grpcPubSubConn := grpc_utils.NewConnection(
 		ctx,
 		config.Env.PubSub.Host,
 		config.Env.GRPC.Port,
@@ -72,7 +73,18 @@ func main() {
 		},
 		logger,
 	)
-	defer grpcPubsubConn.Close()
+	defer grpcPubSubConn.Close()
+	grpcPushPullConn := grpc_utils.NewConnection(
+		ctx,
+		config.Env.PushPull.Host,
+		config.Env.GRPC.Port,
+		grpc_utils.ConnectionConfig{
+			ConnTime:    config.Env.GRPC.ConnTime,
+			ConnTimeout: config.Env.GRPC.ConnTimeout,
+		},
+		logger,
+	)
+	defer grpcPushPullConn.Close()
 	grpcAuthConn := grpc_utils.NewConnection(
 		ctx,
 		config.Env.Auth.Host,
@@ -96,8 +108,9 @@ func main() {
 	)
 	defer grpcUserConn.Close()
 
-	grpcPubsubClient := pubsub_proto.NewMessageBusClient(grpcPubsubConn)
-	eventBus := eventbus.New(grpcPubsubClient, logger)
+	grpcPubsubClient := pubsub_proto.NewPubSubClient(grpcPubSubConn)
+	grpPushPullClient := pushpull_proto.NewPushPullClient(grpcPushPullConn)
+	eventBus := eventbus.New(grpcPubsubClient, grpPushPullClient, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
 	grpcAuthClient := auth_proto.NewAuthenticationServiceClient(grpcAuthConn)
@@ -110,9 +123,10 @@ func main() {
 		mysqlConnection,
 		grpcAuthClient,
 		map[string]*grpc.ClientConn{
-			"auth":   grpcAuthConn,
-			"pubsub": grpcPubsubConn,
-			"user":   grpcUserConn,
+			"auth":     grpcAuthConn,
+			"pushpull": grpcPushPullConn,
+			"pubsub":   grpcPubSubConn,
+			"user":     grpcUserConn,
 		},
 		oauth2Config,
 		config.Env.App.Secret,
@@ -126,8 +140,9 @@ func main() {
 	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, mysqlConnection))
 
 	go func() {
-		eventhandler.Register(
-			grpcPubsubConn,
+		eventbus.RegisterHandlers(
+			grpcPubSubConn,
+			grpcPushPullConn,
 			eventBus,
 			map[string]eventbus.EventHandler{
 				(user.WasRegisteredWithEmail{}).GetType():    eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository),

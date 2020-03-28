@@ -27,7 +27,9 @@ func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 	}
 
 	for _, event := range u.Changes() {
+		// we want to notify both groups of clients
 		r.eventBus.Publish(ctx, event)
+		r.eventBus.Push(ctx, event)
 	}
 
 	return nil

@@ -60,6 +60,10 @@ type environment struct {
 		Host string `env:"PUBSUB_HOST" envDefault:"0.0.0.0"`
 		Port int    `env:"PUBSUB_HTTP" envDefault:"3001"`
 	}
+	PushPull struct {
+		Host string `env:"PUSHPULL_HOST" envDefault:"0.0.0.0"`
+		Port int    `env:"PUSHPULL_HTTP" envDefault:"3001"`
+	}
 	CommandBus struct {
 		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
 	}
@@ -87,6 +91,9 @@ func init() {
 		panic(err)
 	}
 	if err := env.Parse(&Env.PubSub); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.PushPull); err != nil {
 		panic(err)
 	}
 	if err := env.Parse(&Env.CommandBus); err != nil {

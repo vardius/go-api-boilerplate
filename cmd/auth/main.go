@@ -6,7 +6,8 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	pubsub_proto "github.com/vardius/pubsub/proto"
+	pubsub_proto "github.com/vardius/pubsub/v2/proto"
+	pushpull_proto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
 	grpc_health "google.golang.org/grpc/health"
 	oauth2_models "gopkg.in/oauth2.v3/models"
@@ -62,7 +63,7 @@ func main() {
 		logger,
 	)
 	defer mysqlConnection.Close()
-	grpcPubsubConn := grpc_utils.NewConnection(
+	grpcPubSubConn := grpc_utils.NewConnection(
 		ctx,
 		config.Env.PubSub.Host,
 		config.Env.GRPC.Port,
@@ -72,7 +73,18 @@ func main() {
 		},
 		logger,
 	)
-	defer grpcPubsubConn.Close()
+	defer grpcPubSubConn.Close()
+	grpcPushPullConn := grpc_utils.NewConnection(
+		ctx,
+		config.Env.PushPull.Host,
+		config.Env.GRPC.Port,
+		grpc_utils.ConnectionConfig{
+			ConnTime:    config.Env.GRPC.ConnTime,
+			ConnTimeout: config.Env.GRPC.ConnTimeout,
+		},
+		logger,
+	)
+	defer grpcPushPullConn.Close()
 	grpcAuthConn := grpc_utils.NewConnection(
 		ctx,
 		config.Env.GRPC.Host,
@@ -85,8 +97,9 @@ func main() {
 	)
 	defer grpcAuthConn.Close()
 
-	grpPubsubClient := pubsub_proto.NewMessageBusClient(grpcPubsubConn)
-	eventBus := eventbus.New(grpPubsubClient, logger)
+	grpPubsubClient := pubsub_proto.NewPubSubClient(grpcPubSubConn)
+	grpPushPullClient := pushpull_proto.NewPushPullClient(grpcPushPullConn)
+	eventBus := eventbus.New(grpPubsubClient, grpPushPullClient, logger)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
 	tokenPersistenceRepository := persistence.NewTokenRepository(mysqlConnection)
@@ -102,8 +115,9 @@ func main() {
 		oauth2Server,
 		mysqlConnection,
 		map[string]*grpc.ClientConn{
-			"pubsub": grpcPubsubConn,
-			"auth":   grpcAuthConn,
+			"pushpull": grpcPushPullConn,
+			"pubsub":   grpcPubSubConn,
+			"auth":     grpcAuthConn,
 		},
 	)
 	app := application.New(logger)
@@ -124,8 +138,9 @@ func main() {
 
 	go func() {
 		go func() {
-			eventhandler.Register(
-				grpcPubsubConn,
+			eventbus.RegisterHandlers(
+				grpcPubSubConn,
+				grpcPushPullConn,
 				eventBus,
 				map[string]eventbus.EventHandler{
 					(token.WasCreated{}).GetType():  eventhandler.WhenTokenWasCreated(mysqlConnection, tokenPersistenceRepository),

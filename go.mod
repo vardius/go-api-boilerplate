@@ -5,10 +5,10 @@ go 1.13
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
 	github.com/aws/aws-sdk-go v1.28.9
-	github.com/caarlos0/env/v6 v6.1.0
+	github.com/caarlos0/env/v6 v6.2.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.3.5
 	github.com/google/uuid v1.1.1
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
@@ -20,14 +20,12 @@ require (
 	github.com/vardius/golog v1.1.1
 	github.com/vardius/gorouter/v4 v4.4.3
 	github.com/vardius/message-bus v1.1.4
-	github.com/vardius/pubsub v1.0.7
+	github.com/vardius/pubsub/v2 v2.0.0
+	github.com/vardius/pushpull v1.0.0
 	github.com/vardius/shutdown v1.0.0
 	github.com/vardius/trace v1.0.1
-	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
-	google.golang.org/genproto v0.0.0-20200128133413-58ce757ed39b // indirect
-	google.golang.org/grpc v1.27.0
+	google.golang.org/grpc v1.28.0
 	gopkg.in/oauth2.v3 v3.12.0
 )
