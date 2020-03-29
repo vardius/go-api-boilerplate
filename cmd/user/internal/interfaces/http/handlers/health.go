@@ -26,7 +26,7 @@ func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := db.PingContext(r.Context()); err != nil {
 			appErr := errors.Wrap(err, errors.INTERNAL, "Database is not responding")
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -37,7 +37,7 @@ func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http
 		for name, conn := range connMap {
 			if !grpc_utils.IsConnectionServing(r.Context(), name, conn) {
 				appErr := errors.Newf(errors.INTERNAL, "gRPC connection %s is not serving", name)
-				response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+				w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 				if err := response.JSON(r.Context(), w, appErr); err != nil {
 					panic(err)

@@ -8,6 +8,34 @@ import (
 	md "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
+// responseWriter is a minimal wrapper for http.ResponseWriter that allows the
+// written HTTP statusCode to be captured for metadata.
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode  int
+	wroteHeader bool
+}
+
+func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
+	return &responseWriter{ResponseWriter: w}
+}
+
+func (rw *responseWriter) Status() int {
+	return rw.statusCode
+}
+
+func (rw *responseWriter) WriteHeader(statusCode int) {
+	if rw.wroteHeader {
+		return
+	}
+
+	rw.statusCode = statusCode
+	rw.ResponseWriter.WriteHeader(statusCode)
+	rw.wroteHeader = true
+
+	return
+}
+
 // WithMetadata adds Metadata to requests context
 func WithMetadata() gorouter.MiddlewareFunc {
 	m := func(next http.Handler) http.Handler {
@@ -19,7 +47,11 @@ func WithMetadata() gorouter.MiddlewareFunc {
 			ctx := md.ContextWithMetadata(r.Context(), mtd)
 			r = r.WithContext(ctx)
 
-			next.ServeHTTP(w, r)
+			wrapped := wrapResponseWriter(w)
+
+			next.ServeHTTP(wrapped, r)
+
+			mtd.StatusCode = wrapped.Status()
 		}
 
 		return http.HandlerFunc(fn)

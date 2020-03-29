@@ -14,7 +14,7 @@ func BuildAuthorizeHandler(srv *server.Server) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := srv.HandleAuthorizeRequest(w, r); err != nil {
 			appErr := errors.New(errors.INVALID, "Authorize request failure")
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -30,7 +30,7 @@ func BuildTokenHandler(srv *server.Server) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := srv.HandleTokenRequest(w, r); err != nil {
 			appErr := errors.New(errors.INTERNAL, "Token request failure")
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)

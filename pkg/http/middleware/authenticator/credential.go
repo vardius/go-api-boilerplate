@@ -32,7 +32,7 @@ func (a *credentialsAuth) FromBasicAuth(next http.Handler) http.Handler {
 				w.Header().Set("WWW-Authenticate", `Basic`)
 
 				appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-				response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+				w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 				if err := response.JSON(r.Context(), w, appErr); err != nil {
 					panic(err)

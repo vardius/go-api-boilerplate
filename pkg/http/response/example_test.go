@@ -15,7 +15,7 @@ func ExampleJSON() {
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response.WriteHeader(r.Context(), w, http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 
 		if err := response.JSON(r.Context(), w, example{"John"}); err != nil {
 			panic(err)
@@ -35,7 +35,7 @@ func ExampleJSON() {
 
 func ExampleJSON_second() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response.WriteHeader(r.Context(), w, http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 
 		if err := response.JSON(r.Context(), w, nil); err != nil {
 			panic(err)
@@ -56,7 +56,7 @@ func ExampleJSON_second() {
 func ExampleJSON_third() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appErr := errors.New(errors.INTERNAL, "response error")
-		response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+		w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 		if err := response.JSON(r.Context(), w, appErr); err != nil {
 			panic(err)

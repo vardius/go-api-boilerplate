@@ -28,7 +28,7 @@ func GrantAccessFor(role string) func(next http.Handler) http.Handler {
 			}
 
 			appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)

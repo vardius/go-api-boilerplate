@@ -22,7 +22,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(ErrEmptyRequestBody))
+			w.WriteHeader(errors.HTTPStatusCode(ErrEmptyRequestBody))
 
 			if err := response.JSON(r.Context(), w, ErrEmptyRequestBody); err != nil {
 				panic(err)
@@ -32,7 +32,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(ErrInvalidURLParams))
+			w.WriteHeader(errors.HTTPStatusCode(ErrInvalidURLParams))
 
 			if err := response.JSON(r.Context(), w, ErrInvalidURLParams); err != nil {
 				panic(err)
@@ -44,7 +44,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
 			appErr := errors.Wrap(e, errors.INTERNAL, "Invalid request body")
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -55,7 +55,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		c, e := user.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
 			appErr := errors.Wrap(e, errors.INTERNAL, errors.ErrorMessage(e))
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -73,7 +73,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		select {
 		case <-r.Context().Done():
 			appErr := errors.Wrap(r.Context().Err(), errors.TIMEOUT, "Request timeout")
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -82,7 +82,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		case e = <-out:
 			if e != nil {
 				appErr := errors.Wrap(e, errors.INTERNAL, "Command handler error")
-				response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+				w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 				if err := response.JSON(r.Context(), w, appErr); err != nil {
 					panic(err)
@@ -91,7 +91,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			}
 		}
 
-		response.WriteHeader(r.Context(), w, http.StatusCreated)
+		w.WriteHeader(http.StatusCreated)
 
 		if err := response.JSON(r.Context(), w, nil); err != nil {
 			panic(err)
@@ -107,7 +107,7 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(ErrEmptyRequestBody))
+			w.WriteHeader(errors.HTTPStatusCode(ErrEmptyRequestBody))
 
 			if err := response.JSON(r.Context(), w, ErrEmptyRequestBody); err != nil {
 				panic(err)
@@ -120,7 +120,7 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 		u, e := repository.Get(r.Context(), i.ID.String())
 		if e != nil {
 			appErr := errors.Wrap(e, errors.NOTFOUND, "User not found")
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -128,7 +128,7 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 			return
 		}
 
-		response.WriteHeader(r.Context(), w, http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 
 		if err := response.JSON(r.Context(), w, u); err != nil {
 			panic(err)
@@ -146,7 +146,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 
 		if r.Body == nil {
 			appErr := ErrEmptyRequestBody
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -157,7 +157,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 		params, ok := context.Parameters(r.Context())
 		if !ok {
 			appErr := ErrInvalidURLParams
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -168,7 +168,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 		u, e := repository.Get(r.Context(), params.Value("id"))
 		if e != nil {
 			appErr := errors.Wrap(e, errors.NOTFOUND, "User not found")
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -176,7 +176,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 			return
 		}
 
-		response.WriteHeader(r.Context(), w, http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 
 		if err := response.JSON(r.Context(), w, u); err != nil {
 			panic(err)
@@ -193,7 +193,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(ErrEmptyRequestBody))
+			w.WriteHeader(errors.HTTPStatusCode(ErrEmptyRequestBody))
 
 			if err := response.JSON(r.Context(), w, ErrEmptyRequestBody); err != nil {
 				panic(err)
@@ -209,7 +209,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		totalUsers, e := repository.Count(r.Context())
 		if e != nil {
 			appErr := errors.New(errors.INTERNAL, http.StatusText(http.StatusInternalServerError))
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -231,7 +231,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
-			response.WriteHeader(r.Context(), w, http.StatusOK)
+			w.WriteHeader(http.StatusOK)
 
 			if err := response.JSON(r.Context(), w, paginatedList); err != nil {
 				panic(err)
@@ -242,7 +242,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		paginatedList.Users, e = repository.FindAll(r.Context(), limit, offset)
 		if e != nil {
 			appErr := errors.New(errors.INTERNAL, http.StatusText(http.StatusInternalServerError))
-			response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 			if err := response.JSON(r.Context(), w, appErr); err != nil {
 				panic(err)
@@ -250,7 +250,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 			return
 		}
 
-		response.WriteHeader(r.Context(), w, http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 
 		if err := response.JSON(r.Context(), w, paginatedList); err != nil {
 			panic(err)

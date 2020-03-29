@@ -15,7 +15,7 @@ func TestJSON(t *testing.T) {
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		WriteHeader(r.Context(), w, http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 
 		if err := JSON(r.Context(), w, jsonResponse{"John"}); err != nil {
 			t.Fatal(err)
@@ -43,7 +43,7 @@ func TestJSON(t *testing.T) {
 
 func TestJSONNil(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		WriteHeader(r.Context(), w, http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 
 		if err := JSON(r.Context(), w, nil); err != nil {
 			t.Fatal(err)
@@ -72,7 +72,7 @@ func TestJSONError(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appErr := errors.New(errors.INVALID, "Invalid request")
 
-		WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+		w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 		if err := JSON(r.Context(), w, appErr); err != nil {
 			t.Fatal(err)
@@ -100,7 +100,7 @@ func TestJSONError(t *testing.T) {
 func TestInvalidPayloadAsJSON(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := JSON(r.Context(), w, make(chan int)); err != nil {
-			WriteHeader(r.Context(), w, http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 	})
 

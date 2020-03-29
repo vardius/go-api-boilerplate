@@ -20,7 +20,7 @@ func Recover(logger *log.Logger) gorouter.MiddlewareFunc {
 					logger.Critical(r.Context(), "[HTTP] Recovered in %v\n%s\n", rec, debug.Stack())
 
 					appErr := errors.New(errors.INTERNAL, http.StatusText(http.StatusInternalServerError))
-					response.WriteHeader(r.Context(), w, errors.HTTPStatusCode(appErr))
+					w.WriteHeader(errors.HTTPStatusCode(appErr))
 
 					if err := response.JSON(r.Context(), w, appErr); err != nil {
 						logger.Critical(r.Context(), "[HTTP] Errors while sending response after panic %v\n", err)
