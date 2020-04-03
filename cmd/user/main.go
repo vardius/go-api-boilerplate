@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -32,6 +33,8 @@ import (
 
 func main() {
 	buildinfo.PrintVersionOrContinue()
+
+	rand.Seed(time.Now().UnixNano())
 
 	ctx := context.Background()
 
