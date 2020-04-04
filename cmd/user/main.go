@@ -31,10 +31,12 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func main() {
 	buildinfo.PrintVersionOrContinue()
-
-	rand.Seed(time.Now().UnixNano())
 
 	ctx := context.Background()
 
