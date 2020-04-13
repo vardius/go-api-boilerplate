@@ -62,7 +62,8 @@ Worth getting to know packages used in this boilerplate:
 4. [shutdown](https://github.com/vardius/shutdown)
 5. [pubsub](https://github.com/vardius/pubsub)
 6. [pushpull](https://github.com/vardius/pushpull)
-7. [ardanlabs/service](https://github.com/ardanlabs/service)
+7. [gocontainer](https://github.com/vardius/gocontainer)
+8. [ardanlabs/service](https://github.com/ardanlabs/service)
 
 📚 DOCUMENTATION
 ==================================================

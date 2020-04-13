@@ -6,6 +6,7 @@ import (
 
 	"github.com/vardius/gorouter/v4"
 
+	"github.com/vardius/go-api-boilerplate/pkg/container"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
@@ -20,7 +21,9 @@ func Logger(logger *log.Logger) gorouter.MiddlewareFunc {
 				r.RemoteAddr,
 			)
 
-			r.WithContext(log.ContextWithLogger(r.Context(), logger))
+			if requestContainer, ok := container.FromContext(r.Context()); ok {
+				requestContainer.Register("logger", logger)
+			}
 
 			next.ServeHTTP(w, r)
 

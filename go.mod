@@ -16,6 +16,7 @@ require (
 	github.com/mar1n3r0/gorouter-middleware-formjson v1.1.0
 	github.com/rs/cors v1.7.0
 	github.com/valyala/fasthttp v1.9.0 // indirect
+	github.com/vardius/gocontainer v1.0.3
 	github.com/vardius/gollback v1.0.6
 	github.com/vardius/golog v1.1.1
 	github.com/vardius/gorouter/v4 v4.4.3
@@ -25,7 +26,6 @@ require (
 	github.com/vardius/shutdown v1.0.0
 	github.com/vardius/trace v1.0.1
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.28.0
 	gopkg.in/oauth2.v3 v3.12.0
 )

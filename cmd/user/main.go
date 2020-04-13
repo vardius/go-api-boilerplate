@@ -7,6 +7,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/vardius/gocontainer"
 	pubsub_proto "github.com/vardius/pubsub/v2/proto"
 	pushpull_proto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
@@ -33,6 +34,8 @@ import (
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+
+	gocontainer.GlobalContainer = nil // disable global container instance
 }
 
 func main() {

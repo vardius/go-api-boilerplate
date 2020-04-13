@@ -157,3 +157,21 @@ func TestWithMetadata(t *testing.T) {
 
 	h.ServeHTTP(w, req)
 }
+
+func TestWithContainer(t *testing.T) {
+	m := WithContainer()
+	h := m(http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
+		v, ok := md.FromContext(req.Context())
+		if !ok {
+			t.Errorf("WithContainer did not add request container to context %v", v)
+		}
+	}))
+
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/x", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h.ServeHTTP(w, req)
+}

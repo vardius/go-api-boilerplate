@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/vardius/go-api-boilerplate/pkg/container"
 	appErrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	httpErrors "github.com/vardius/go-api-boilerplate/pkg/http/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
@@ -27,8 +28,12 @@ func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
 		httpError.RequestID = m.TraceID
 	}
 
-	if logger, ok := log.FromContext(ctx); ok {
-		logger.Debug(ctx, "[HTTP] Error: %s", err)
+	if requestContainer, ok := container.FromContext(ctx); ok {
+		if v, ok := requestContainer.Get("logger"); ok {
+			if logger, ok := v.(*log.Logger); ok {
+				logger.Debug(ctx, "[HTTP] Error: %s", err)
+			}
+		}
 	}
 
 	if err := JSON(ctx, w, httpError); err != nil {

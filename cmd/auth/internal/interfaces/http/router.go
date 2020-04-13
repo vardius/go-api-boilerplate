@@ -22,6 +22,7 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 		http_middleware.Recover(logger),
 		http_middleware.WithMetadata(),
 		http_middleware.Logger(logger),
+		http_middleware.WithContainer(),
 		http_cors.Default().Handler,
 		http_middleware.XSS(),
 		http_middleware.HSTS(),
