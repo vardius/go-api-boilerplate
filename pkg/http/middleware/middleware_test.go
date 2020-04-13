@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/vardius/go-api-boilerplate/pkg/container"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	md "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
@@ -161,7 +162,7 @@ func TestWithMetadata(t *testing.T) {
 func TestWithContainer(t *testing.T) {
 	m := WithContainer()
 	h := m(http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
-		v, ok := md.FromContext(req.Context())
+		v, ok := container.FromContext(req.Context())
 		if !ok {
 			t.Errorf("WithContainer did not add request container to context %v", v)
 		}

@@ -45,11 +45,10 @@ func WithMetadata() gorouter.MiddlewareFunc {
 			mtd := md.New()
 
 			ctx := md.ContextWithMetadata(r.Context(), mtd)
-			r = r.WithContext(ctx)
 
 			wrapped := wrapResponseWriter(w)
 
-			next.ServeHTTP(wrapped, r)
+			next.ServeHTTP(wrapped, r.WithContext(ctx))
 
 			mtd.StatusCode = wrapped.Status()
 		}
