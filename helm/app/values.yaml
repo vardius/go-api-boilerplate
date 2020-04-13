@@ -313,6 +313,7 @@ configMaps:
     data:
       APP_ENV: development
       APP_SHUTDOWN_TIMEOUT: '5s'
+      APP_EVENT_HANDLER_TIMEOUT: '120s'
   - name: http-config
     data:
       HTTP_PORT: '3000'
