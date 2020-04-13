@@ -16,6 +16,8 @@ func WithContainer() gorouter.MiddlewareFunc {
 			requestContainer := gocontainer.New()
 
 			r.WithContext(container.ContextWithContainer(r.Context(), requestContainer))
+
+			next.ServeHTTP(w, r)
 		}
 
 		return http.HandlerFunc(fn)
