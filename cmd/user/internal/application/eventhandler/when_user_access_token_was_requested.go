@@ -19,25 +19,26 @@ func WhenUserAccessTokenWasRequested(config oauth2.Config, secretKey string) eve
 		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverEventHandler()
 
-		log.Printf("[EventHandler] %s\n", event.Payload)
+		logger := GetLogger(ctx)
+		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 
 		e := user.WasRegisteredWithEmail{}
 
 		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v\n", err)
+			logger.Error(ctx, "[EventHandler] Error: %v\n", err)
 			return
 		}
 
 		token, err := config.PasswordCredentialsToken(ctx, string(e.Email), secretKey)
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v\n", err)
+			logger.Error(ctx, "[EventHandler] Error: %v\n", err)
 			return
 		}
 
 		b, err := json.Marshal(token)
 		if err != nil {
-			log.Printf("[EventHandler] Error: %v\n", err)
+			logger.Error(ctx, "[EventHandler] Error: %v\n", err)
 			return
 		}
 
