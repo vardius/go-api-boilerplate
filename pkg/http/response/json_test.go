@@ -72,9 +72,7 @@ func TestJSONError(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appErr := errors.New(errors.INVALID, "Invalid request")
 
-		w.WriteHeader(errors.HTTPStatusCode(appErr))
-
-		if err := JSON(r.Context(), w, appErr); err != nil {
+		if err := JSONError(r.Context(), w, appErr); err != nil {
 			t.Fatal(err)
 		}
 	})

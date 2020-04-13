@@ -43,11 +43,8 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 					if err != nil {
 						w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
 						appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-						w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-						if err := response.JSON(r.Context(), w, appErr); err != nil {
-							panic(err)
-						}
+						response.MustJSONError(r.Context(), w, appErr)
 						return
 					}
 
@@ -58,11 +55,8 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 
 			w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
 			appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, appErr)
 		}
 
 		return http.HandlerFunc(fn)
@@ -81,11 +75,8 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 			i, err := a.afn(token)
 			if err != nil {
 				appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-				w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-				if err := response.JSON(r.Context(), w, appErr); err != nil {
-					panic(err)
-				}
+				response.MustJSONError(r.Context(), w, appErr)
 				return
 			}
 
@@ -108,11 +99,8 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 			i, err := a.afn(cookie.Value)
 			if err != nil {
 				appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-				w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-				if err := response.JSON(r.Context(), w, appErr); err != nil {
-					panic(err)
-				}
+				response.MustJSONError(r.Context(), w, appErr)
 				return
 			}
 

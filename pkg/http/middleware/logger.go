@@ -20,6 +20,8 @@ func Logger(logger *log.Logger) gorouter.MiddlewareFunc {
 				r.RemoteAddr,
 			)
 
+			r.WithContext(log.ContextWithLogger(r.Context(), logger))
+
 			next.ServeHTTP(w, r)
 
 			logger.Info(r.Context(), "[HTTP] End: %s %s -> %s (%s)\n",

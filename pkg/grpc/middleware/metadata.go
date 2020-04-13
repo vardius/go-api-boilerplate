@@ -40,9 +40,9 @@ func AppendMetadataToOutgoingUnaryContext() grpc.UnaryClientInterceptor {
 // conn, err := grpc.Dial("localhost:5000", grpc.WithStreamInterceptor(AppendMetadataToOutgoingStreamContext()))
 func AppendMetadataToOutgoingStreamContext() grpc.StreamClientInterceptor {
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-		i, ok := mtd.FromContext(ctx)
+		m, ok := mtd.FromContext(ctx)
 		if ok {
-			jsn, err := json.Marshal(i)
+			jsn, err := json.Marshal(m)
 			if err != nil {
 				return nil, err
 			}

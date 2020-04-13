@@ -22,21 +22,13 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			w.WriteHeader(errors.HTTPStatusCode(ErrEmptyRequestBody))
-
-			if err := response.JSON(r.Context(), w, ErrEmptyRequestBody); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, ErrEmptyRequestBody)
 			return
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			w.WriteHeader(errors.HTTPStatusCode(ErrInvalidURLParams))
-
-			if err := response.JSON(r.Context(), w, ErrInvalidURLParams); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, ErrInvalidURLParams)
 			return
 		}
 
@@ -44,22 +36,16 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
 			appErr := errors.Wrap(e, errors.INTERNAL, "Invalid request body")
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, appErr)
 			return
 		}
 
 		c, e := user.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
 			appErr := errors.Wrap(e, errors.INTERNAL, errors.ErrorMessage(e))
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, appErr)
 			return
 		}
 
@@ -73,29 +59,20 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		select {
 		case <-r.Context().Done():
 			appErr := errors.Wrap(r.Context().Err(), errors.TIMEOUT, "Request timeout")
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, appErr)
 			return
 		case e = <-out:
 			if e != nil {
 				appErr := errors.Wrap(e, errors.INTERNAL, "Command handler error")
-				w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-				if err := response.JSON(r.Context(), w, appErr); err != nil {
-					panic(err)
-				}
+				response.MustJSONError(r.Context(), w, appErr)
 				return
 			}
 		}
 
 		w.WriteHeader(http.StatusCreated)
-
-		if err := response.JSON(r.Context(), w, nil); err != nil {
-			panic(err)
-		}
+		response.MustJSON(r.Context(), w, nil)
 	}
 
 	return http.HandlerFunc(fn)
@@ -107,11 +84,7 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			w.WriteHeader(errors.HTTPStatusCode(ErrEmptyRequestBody))
-
-			if err := response.JSON(r.Context(), w, ErrEmptyRequestBody); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, ErrEmptyRequestBody)
 			return
 		}
 
@@ -120,20 +93,13 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 		u, e := repository.Get(r.Context(), i.ID.String())
 		if e != nil {
 			appErr := errors.Wrap(e, errors.NOTFOUND, "User not found")
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, appErr)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-
-		if err := response.JSON(r.Context(), w, u); err != nil {
-			panic(err)
-		}
-		return
+		response.MustJSON(r.Context(), w, u)
 	}
 
 	return http.HandlerFunc(fn)
@@ -145,43 +111,26 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			appErr := ErrEmptyRequestBody
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
-
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, ErrEmptyRequestBody)
 			return
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			appErr := ErrInvalidURLParams
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
-
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, ErrInvalidURLParams)
 			return
 		}
 
 		u, e := repository.Get(r.Context(), params.Value("id"))
 		if e != nil {
 			appErr := errors.Wrap(e, errors.NOTFOUND, "User not found")
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, appErr)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-
-		if err := response.JSON(r.Context(), w, u); err != nil {
-			panic(err)
-		}
-		return
+		response.MustJSON(r.Context(), w, u)
 	}
 
 	return http.HandlerFunc(fn)
@@ -193,11 +142,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			w.WriteHeader(errors.HTTPStatusCode(ErrEmptyRequestBody))
-
-			if err := response.JSON(r.Context(), w, ErrEmptyRequestBody); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, ErrEmptyRequestBody)
 			return
 		}
 
@@ -209,11 +154,8 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		totalUsers, e := repository.Count(r.Context())
 		if e != nil {
 			appErr := errors.New(errors.INTERNAL, http.StatusText(http.StatusInternalServerError))
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, appErr)
 			return
 		}
 
@@ -232,30 +174,20 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
 			w.WriteHeader(http.StatusOK)
-
-			if err := response.JSON(r.Context(), w, paginatedList); err != nil {
-				panic(err)
-			}
+			response.MustJSON(r.Context(), w, paginatedList)
 			return
 		}
 
 		paginatedList.Users, e = repository.FindAll(r.Context(), limit, offset)
 		if e != nil {
 			appErr := errors.New(errors.INTERNAL, http.StatusText(http.StatusInternalServerError))
-			w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-			if err := response.JSON(r.Context(), w, appErr); err != nil {
-				panic(err)
-			}
+			response.MustJSONError(r.Context(), w, appErr)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-
-		if err := response.JSON(r.Context(), w, paginatedList); err != nil {
-			panic(err)
-		}
-		return
+		response.MustJSON(r.Context(), w, paginatedList)
 	}
 
 	return http.HandlerFunc(fn)

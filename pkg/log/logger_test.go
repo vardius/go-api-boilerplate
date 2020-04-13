@@ -28,9 +28,9 @@ func captureOutput(f func()) string {
 }
 
 func TestNew(t *testing.T) {
-	bus := New("development")
+	logger := New("development")
 
-	if bus == nil {
+	if logger == nil {
 		t.Fail()
 	}
 }

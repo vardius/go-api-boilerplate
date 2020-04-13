@@ -53,14 +53,69 @@ func ExampleJSON_second() {
 	// {}
 }
 
-func ExampleJSON_third() {
+func ExampleMustJSON() {
+	type example struct {
+		Name string `json:"name"`
+	}
+
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		response.MustJSON(r.Context(), w, example{"John"})
+	})
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/", nil)
+
+	h.ServeHTTP(w, req)
+
+	fmt.Printf("%s\n", w.Body)
+
+	// Output:
+	// {"name":"John"}
+}
+
+func ExampleMustJSON_second() {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		response.MustJSON(r.Context(), w, nil)
+	})
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/", nil)
+
+	h.ServeHTTP(w, req)
+
+	fmt.Printf("%s\n", w.Body)
+
+	// Output:
+	// {}
+}
+
+func ExampleJSONError() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appErr := errors.New(errors.INTERNAL, "response error")
-		w.WriteHeader(errors.HTTPStatusCode(appErr))
 
-		if err := response.JSON(r.Context(), w, appErr); err != nil {
+		if err := response.JSONError(r.Context(), w, appErr); err != nil {
 			panic(err)
 		}
+	})
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/", nil)
+
+	h.ServeHTTP(w, req)
+
+	fmt.Printf("%s\n", w.Body)
+
+	// Output:
+	// {"code":"internal","message":"response error"}
+}
+
+func ExampleMustJSONError() {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		appErr := errors.New(errors.INTERNAL, "response error")
+
+		response.MustJSONError(r.Context(), w, appErr)
 	})
 
 	w := httptest.NewRecorder()

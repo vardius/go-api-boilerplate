@@ -31,3 +31,12 @@ func JSON(ctx context.Context, w http.ResponseWriter, payload interface{}) error
 
 	return nil
 }
+
+// MustJSON returns data as json response
+// will panic if unable to marshal payload into JSON object
+// uses JSON internally
+func MustJSON(ctx context.Context, w http.ResponseWriter, payload interface{}) {
+	if err := JSON(ctx, w, payload); err != nil {
+		panic(err)
+	}
+}
