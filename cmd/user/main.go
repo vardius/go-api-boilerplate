@@ -118,7 +118,7 @@ func main() {
 
 	grpcPubsubClient := pubsub_proto.NewPubSubClient(grpcPubSubConn)
 	grpPushPullClient := pushpull_proto.NewPushPullClient(grpcPushPullConn)
-	eventBus := eventbus.New(grpcPubsubClient, grpPushPullClient, logger)
+	eventBus := eventbus.New(config.Env.App.EventHandlerTimeout, grpcPubsubClient, grpPushPullClient, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
 	grpcAuthClient := auth_proto.NewAuthenticationServiceClient(grpcAuthConn)

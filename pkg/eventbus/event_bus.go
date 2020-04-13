@@ -3,13 +3,17 @@ package eventbus
 import (
 	"context"
 	"encoding/json"
+	"time"
 
+	"github.com/vardius/gocontainer"
 	pubsub_proto "github.com/vardius/pubsub/v2/proto"
 	pushpull_proto "github.com/vardius/pushpull/proto"
 
+	"github.com/vardius/go-api-boilerplate/pkg/container"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // EventHandler function
@@ -29,14 +33,20 @@ type EventBus interface {
 }
 
 // New creates pubsub event bus
-func New(pubsub pubsub_proto.PubSubClient, pushpull pushpull_proto.PushPullClient, log *log.Logger) EventBus {
-	return &eventBus{pubsub, pushpull, log}
+func New(handlerTimeout time.Duration, pubsub pubsub_proto.PubSubClient, pushpull pushpull_proto.PushPullClient, log *log.Logger) EventBus {
+	return &eventBus{handlerTimeout, pubsub, pushpull, log}
+}
+
+type dto struct {
+	Event           domain.Event       `json:"event"`
+	RequestMetadata *metadata.Metadata `json:"request_metadata,omitempty"`
 }
 
 type eventBus struct {
-	pubsub   pubsub_proto.PubSubClient
-	pushpull pushpull_proto.PushPullClient
-	logger   *log.Logger
+	handlerTimeout time.Duration
+	pubsub         pubsub_proto.PubSubClient
+	pushpull       pushpull_proto.PushPullClient
+	logger         *log.Logger
 }
 
 // Pull adds worker to pull events from queue,
@@ -59,23 +69,22 @@ func (bus *eventBus) Pull(ctx context.Context, eventType string, fn EventHandler
 			return errors.Wrap(err, errors.INTERNAL, "EventBus stream recv error")
 		}
 
-		var event domain.Event
-		err = json.Unmarshal(resp.GetPayload(), &event)
-		if err != nil {
-			bus.logger.Error(stream.Context(), "[EventBus] Pull: Unmarshal error: %v\n", err)
-			return errors.Wrap(err, errors.INTERNAL, "EventBus unmarshal error")
-		}
-
-		bus.logger.Debug(stream.Context(), "[EventBus] Pull: %s %s\n", event.Metadata.Type, event.Payload)
-
-		fn(stream.Context(), event)
+		return bus.dispatchEvent(resp.GetPayload(), fn)
 	}
 }
 
 // Push pushes event to the queue,
 // will be handled by first handler to Pull it from that queue
 func (bus *eventBus) Push(ctx context.Context, event domain.Event) {
-	payload, err := json.Marshal(event)
+	o := dto{
+		Event: event,
+	}
+
+	if m, ok := metadata.FromContext(ctx); ok {
+		o.RequestMetadata = m
+	}
+
+	payload, err := json.Marshal(o)
 	if err != nil {
 		bus.logger.Error(ctx, "[EventBus] Push: Marshal error: %v\n", err)
 		return
@@ -111,22 +120,21 @@ func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn EventHa
 			return errors.Wrap(err, errors.INTERNAL, "EventBus stream recv error")
 		}
 
-		var event domain.Event
-		err = json.Unmarshal(resp.GetPayload(), &event)
-		if err != nil {
-			bus.logger.Error(stream.Context(), "[EventBus] Subscribe: Unmarshal error: %v\n", err)
-			return errors.Wrap(err, errors.INTERNAL, "EventBus unmarshal error")
-		}
-
-		bus.logger.Debug(stream.Context(), "[EventBus] Subscribe: %s %s\n", event.Metadata.Type, event.Payload)
-
-		fn(stream.Context(), event)
+		return bus.dispatchEvent(resp.GetPayload(), fn)
 	}
 }
 
 // Publish sends event to every client subscribed
 func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
-	payload, err := json.Marshal(event)
+	o := dto{
+		Event: event,
+	}
+
+	if m, ok := metadata.FromContext(ctx); ok {
+		o.RequestMetadata = m
+	}
+
+	payload, err := json.Marshal(o)
 	if err != nil {
 		bus.logger.Error(ctx, "[EventBus] Publish: Marshal error: %v\n", err)
 		return
@@ -141,4 +149,31 @@ func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
 		bus.logger.Error(ctx, "[EventBus] Publish: error: %v\n", err)
 		return
 	}
+}
+
+func (bus *eventBus) dispatchEvent(payload []byte, fn EventHandler) error {
+	ctx, cancel := context.WithTimeout(context.Background(), bus.handlerTimeout)
+	defer cancel()
+
+	var o dto
+	err := json.Unmarshal(payload, &o)
+	if err != nil {
+		bus.logger.Error(ctx, "[EventBus] Unmarshal error: %v\n", err)
+		return errors.Wrap(err, errors.INTERNAL, "EventBus unmarshal error")
+	}
+
+	if o.RequestMetadata != nil {
+		ctx = metadata.ContextWithMetadata(ctx, o.RequestMetadata)
+	}
+
+	requestContainer := gocontainer.New()
+	requestContainer.Register("logger", bus.logger)
+
+	ctx = container.ContextWithContainer(ctx, requestContainer)
+
+	bus.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s\n", o.Event.Metadata.Type, o.Event.Payload)
+
+	fn(ctx, o.Event)
+
+	return nil
 }

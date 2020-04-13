@@ -13,9 +13,10 @@ var Env *environment
 
 type environment struct {
 	App struct {
-		Environment     string        `env:"APP_ENV"              envDefault:"development"`
-		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT" envDefault:"5s"`
-		Secret          string        `env:"APP_SECRET"           envDefault:"secret"`
+		Environment         string        `env:"APP_ENV"                   envDefault:"development"`
+		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
+		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
+		Secret              string        `env:"APP_SECRET"                envDefault:"secret"`
 
 		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientId"`
 		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientSecret"`

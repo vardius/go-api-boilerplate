@@ -107,7 +107,7 @@ func main() {
 
 	grpPubsubClient := pubsub_proto.NewPubSubClient(grpcPubSubConn)
 	grpPushPullClient := pushpull_proto.NewPushPullClient(grpcPushPullConn)
-	eventBus := eventbus.New(grpPubsubClient, grpPushPullClient, logger)
+	eventBus := eventbus.New(config.Env.App.EventHandlerTimeout, grpPubsubClient, grpPushPullClient, logger)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
 	tokenPersistenceRepository := persistence.NewTokenRepository(mysqlConnection)
