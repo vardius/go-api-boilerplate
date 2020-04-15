@@ -9,8 +9,7 @@ import (
 
 // DebugAdapter ./...
 type DebugAdapter struct {
-	address string
-	*http.ServeMux
+	*http.Server
 }
 
 // NewDebugAdapter provides new debug adapter
@@ -18,18 +17,19 @@ type DebugAdapter struct {
 // /debug/vars - Added to the default mux by importing the expvar package.
 func NewDebugAdapter(address string) *DebugAdapter {
 	return &DebugAdapter{
-		address:  address,
-		ServeMux: http.DefaultServeMux,
+		&http.Server{
+			Addr:    address,
+			Handler: http.DefaultServeMux,
+		},
 	}
 }
 
-// Start starts http server
+// Start start http application adapter
 func (adapter *DebugAdapter) Start(ctx context.Context) error {
-	return http.ListenAndServe(adapter.address, adapter)
+	return adapter.ListenAndServe()
 }
 
-// Stop stops debug server
-// does nothing always returns nil
+// Stop stops http application adapter
 func (adapter *DebugAdapter) Stop(ctx context.Context) error {
-	return nil
+	return adapter.Shutdown(ctx)
 }
