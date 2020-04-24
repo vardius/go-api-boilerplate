@@ -1,7 +1,7 @@
 package executioncontext
 
 // Flag type
-type Flag int
+type Flag uint8
 
 // Set flag
 func (f Flag) Set(flag Flag) Flag { return f | flag }
