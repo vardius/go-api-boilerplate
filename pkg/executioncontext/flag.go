@@ -1,16 +1,22 @@
 package executioncontext
 
+// Execution context flags
+const (
+	LIVE   Flag = 1 << iota // live events handling
+	REPLAY                  // replay events handling
+)
+
 // Flag type
 type Flag uint8
 
-// Set flag
-func (f Flag) Set(flag Flag) Flag { return f | flag }
+// set flag
+func (f Flag) set(flag Flag) Flag { return f | flag }
 
-// Clear flag
-func (f Flag) Clear(flag Flag) Flag { return f &^ flag }
+// clear flag
+func (f Flag) clear(flag Flag) Flag { return f &^ flag }
 
-// Toggle flag
-func (f Flag) Toggle(flag Flag) Flag { return f ^ flag }
+// toggle flag
+func (f Flag) toggle(flag Flag) Flag { return f ^ flag }
 
-// Has flag
-func (f Flag) Has(flag Flag) bool { return f&flag != 0 }
+// has flag
+func (f Flag) has(flag Flag) bool { return f&flag != 0 }

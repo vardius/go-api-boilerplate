@@ -40,7 +40,7 @@ func (rw *responseWriter) WriteHeader(statusCode int) {
 func WithMetadata() gorouter.MiddlewareFunc {
 	m := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			// Set the context with the required values to
+			// set the context with the required values to
 			// process the request.
 			mtd := md.New()
 

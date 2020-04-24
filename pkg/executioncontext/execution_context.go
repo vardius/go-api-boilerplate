@@ -4,12 +4,6 @@ import "context"
 
 type key struct{}
 
-// Execution context flags
-const (
-	LIVE   Flag = 1 << iota // live events handling
-	REPLAY                  // replay events handling
-)
-
 // WithFlag returns a new Context that carries flag.
 func WithFlag(ctx context.Context, flag Flag) context.Context {
 	if ctx == nil {
@@ -21,7 +15,7 @@ func WithFlag(ctx context.Context, flag Flag) context.Context {
 		flags = 0
 	}
 
-	return context.WithValue(ctx, key{}, flags.Set(flag))
+	return context.WithValue(ctx, key{}, flags.set(flag))
 }
 
 // ClearFlag returns a new Context that no longer carries flag.
@@ -35,7 +29,7 @@ func ClearFlag(ctx context.Context, flag Flag) context.Context {
 		flags = 0
 	}
 
-	return context.WithValue(ctx, key{}, flags.Clear(flag))
+	return context.WithValue(ctx, key{}, flags.clear(flag))
 }
 
 // ToggleFlag returns a new Context with toggled flag.
@@ -49,7 +43,7 @@ func ToggleFlag(ctx context.Context, flag Flag) context.Context {
 		flags = 0
 	}
 
-	return context.WithValue(ctx, key{}, flags.Toggle(flag))
+	return context.WithValue(ctx, key{}, flags.toggle(flag))
 }
 
 // FromContext returns the slice of flags stored in ctx
@@ -66,12 +60,12 @@ func FromContext(ctx context.Context) Flag {
 	return flags
 }
 
-// Has returns the bool value based on flag occurrence in context.
+// has returns the bool value based on flag occurrence in context.
 func Has(ctx context.Context, flag Flag) bool {
 	flags, ok := ctx.Value(key{}).(Flag)
 	if !ok {
 		return false
 	}
 
-	return flags.Has(flag)
+	return flags.has(flag)
 }
