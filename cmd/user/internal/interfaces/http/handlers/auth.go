@@ -78,7 +78,9 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		}
 
 		w.WriteHeader(http.StatusOK)
-		response.MustJSON(r.Context(), w, token)
+		if err := response.JSON(r.Context(), w, token); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+		}
 	}
 
 	return http.HandlerFunc(fn)

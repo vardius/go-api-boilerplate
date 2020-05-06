@@ -72,7 +72,9 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		response.MustJSON(r.Context(), w, nil)
+		if err := response.JSON(r.Context(), w, nil); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+		}
 	}
 
 	return http.HandlerFunc(fn)
@@ -99,7 +101,9 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		response.MustJSON(r.Context(), w, u)
+		if err := response.JSON(r.Context(), w, u); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+		}
 	}
 
 	return http.HandlerFunc(fn)
@@ -130,7 +134,9 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		response.MustJSON(r.Context(), w, u)
+		if err := response.JSON(r.Context(), w, u); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+		}
 	}
 
 	return http.HandlerFunc(fn)
@@ -174,7 +180,9 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
 			w.WriteHeader(http.StatusOK)
-			response.MustJSON(r.Context(), w, paginatedList)
+			if err := response.JSON(r.Context(), w, paginatedList); err != nil {
+				response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+			}
 			return
 		}
 
@@ -187,7 +195,9 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		response.MustJSON(r.Context(), w, paginatedList)
+		if err := response.JSON(r.Context(), w, paginatedList); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+		}
 	}
 
 	return http.HandlerFunc(fn)
