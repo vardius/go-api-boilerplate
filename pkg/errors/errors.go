@@ -3,139 +3,113 @@ package errors
 
 import (
 	"bytes"
+	goerrors "errors"
 	"fmt"
 
 	"github.com/vardius/trace"
 )
 
-// Application error codes.
-const (
-	INVALID           = "invalid"            // validation failed
-	UNAUTHORIZED      = "unauthorized"       // access denied
-	FORBIDDEN         = "forbidden"          // forbidden
-	NOTFOUND          = "not_found"          // entity does not exist
-	INTERNAL          = "internal"           // internal error
-	TEMPORARYDISABLED = "temporary_disabled" // temporary disabled
-	TIMEOUT           = "timeout"            // timeout
+// Application error.
+var (
+	Invalid           = goerrors.New("validation failed")
+	Unauthorized      = goerrors.New("access denied")
+	Forbidden         = goerrors.New("forbidden")
+	NotFound          = goerrors.New("not found")
+	Internal          = goerrors.New("internal system error")
+	TemporaryDisabled = goerrors.New("temporary disabled")
+	Timeout           = goerrors.New("timeout")
 )
 
-// ErrorErr returns the code of the root error, if available. Otherwise returns INTERNAL.
-func ErrorErr(err error) error {
-	if err == nil {
-		return nil
-	} else if e, ok := err.(*appError); ok && e.err != nil {
-		return e.err
-	}
-	return err
-}
-
-// ErrorCode returns the code of the root error, if available. Otherwise returns INTERNAL.
-func ErrorCode(err error) string {
-	if err == nil {
-		return ""
-	} else if e, ok := err.(*appError); ok && e.code != "" {
-		return e.code
-	} else if ok && e.err != nil {
-		return ErrorCode(e.err)
-	}
-	return INTERNAL
-}
-
-// ErrorMessage returns the human-readable message of the error, if available.
-// Otherwise returns a generic error message.
-func ErrorMessage(err error) string {
-	if err == nil {
-		return ""
-	} else if e, ok := err.(*appError); ok && e.message != "" {
-		return e.message
-	} else if ok && e.err != nil {
-		return ErrorMessage(e.err)
-	}
-	return "An internal error has occurred. Please contact technical support."
-}
-
 // New returns an app error that formats as the given text.
-func New(code string, message string) error {
-	return &appError{
-		code:    code,
-		message: message,
-		trace:   trace.FromParent(1, trace.Lfile|trace.Lline),
-	}
+func New(message string) error {
+	return newAppError(goerrors.New(message))
 }
 
-// Newf returns an app error that formats as the given text.
-func Newf(code string, message string, args ...interface{}) error {
-	return &appError{
-		code:    code,
-		message: fmt.Sprintf(message, args...),
-		trace:   trace.FromParent(1, trace.Lfile|trace.Lline),
-	}
+// Wrap returns an app error.
+// If passed value is nil will fallback to internal
+func Wrap(err error) error {
+	return newAppError(err)
 }
 
-// Wrap adds error to the stack
-func Wrap(err error, code string, message string) error {
-	return &appError{
-		code:    code,
-		message: message,
-		trace:   trace.FromParent(1, trace.Lfile|trace.Lline),
-		err:     err,
-	}
+// AsInvalid wraps error as Internal error
+func AsInvalid(err error) error {
+	return newAppError(fmt.Errorf("%w: %s", Invalid, err))
 }
 
-// Wrapf adds error to the stack
-func Wrapf(err error, code string, message string, args ...interface{}) error {
+// AsUnauthorized wraps error as Unauthorized error
+func AsUnauthorized(err error) error {
+	return newAppError(fmt.Errorf("%w: %s", Unauthorized, err))
+}
+
+// AsForbidden wraps error as Forbidden error
+func AsForbidden(err error) error {
+	return newAppError(fmt.Errorf("%w: %s", Forbidden, err))
+}
+
+// AsNotfound wraps error as NotFound error
+func AsNotfound(err error) error {
+	return newAppError(fmt.Errorf("%w: %s", NotFound, err))
+}
+
+// AsInternal wraps error as Internal error
+func AsInternal(err error) error {
+	return newAppError(fmt.Errorf("%w: %s", Internal, err))
+}
+
+// AsTemporaryDisabled wraps error as TemporaryDisabled error
+func AsTemporaryDisabled(err error) error {
+	return newAppError(fmt.Errorf("%w: %s", TemporaryDisabled, err))
+}
+
+// AsTimeout wraps error as Timeout error
+func AsTimeout(err error) error {
+	return newAppError(fmt.Errorf("%w: %s", Timeout, err))
+}
+
+func newAppError(err error) error {
+	if err == nil {
+		err = Internal
+	}
+
 	return &appError{
-		code:    code,
-		message: fmt.Sprintf(message, args...),
-		err:     err,
-		trace:   trace.FromParent(1, trace.Lfile|trace.Lline),
+		err:   err,
+		trace: trace.FromParent(2, trace.Lfile|trace.Lline),
 	}
 }
 
 type appError struct {
-	code    string
-	message string
-	trace   string
-	err     error
+	trace string
+	err   error
 }
 
 // Error returns the string representation of the error message.
-// Calls StackTrace internally.
 func (e *appError) Error() string {
-	s, err := e.stackTrace(true)
-	if err != nil {
-		// @TODO: handle error
-		return s
-	}
+	return e.err.Error()
+}
 
-	return s
+// Is reports whether any error in err's chain matches target.
+func (e *appError) Is(target error) bool {
+	return goerrors.Is(e.err, target)
 }
 
 // StackTrace returns the string representation of the error stack trace,
 // includeTrace appends caller pcs frames to each error message if possible.
-func (e *appError) stackTrace(includeTrace bool) (string, error) {
+func (e *appError) StackTrace() (string, error) {
 	var buf bytes.Buffer
 
-	// Print the current error in our stack, if any.
-	if e.code != "" {
-		if _, err := fmt.Fprintf(&buf, "<%s> ", e.code); err != nil {
-			return "", err
-		}
-	}
-
-	if _, err := fmt.Fprintf(&buf, "%s\n", e.message); err != nil {
-		return "", err
-	}
-
-	if includeTrace && e.trace != "" {
+	if e.trace != "" {
 		if _, err := fmt.Fprintf(&buf, "\t%s\n", e.trace); err != nil {
 			return "", err
 		}
 	}
 
-	// If wrapping an error, print its Error() message.
-	if e.err != nil {
-		buf.WriteString(e.err.Error())
+	if next, ok := e.err.(*appError); ok && next != nil {
+		stackTrace, err := next.StackTrace()
+		if err != nil {
+			return "", err
+		}
+
+		buf.WriteString(stackTrace)
 	}
 
 	return buf.String(), nil

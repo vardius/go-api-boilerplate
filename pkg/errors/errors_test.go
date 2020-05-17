@@ -1,99 +1,61 @@
 package errors
 
 import (
+	goerrors "errors"
 	"fmt"
-	"strings"
 	"testing"
 )
 
 func TestNew(t *testing.T) {
-	msg := "internal error"
-	err := New(INTERNAL, msg)
+	err := New("test error")
 
 	if err == nil {
 		t.Error("Error should not be nil")
 	}
 
-	if ErrorCode(err) != INTERNAL {
-		t.Error("Error code does not match")
-	}
-
-	if ErrorMessage(err) != msg {
-		t.Error("Error message does not match")
+	if !goerrors.Is(err, Internal) {
+		t.Error("Error is not Internal")
 	}
 }
 
 func TestWrap(t *testing.T) {
-	subMsg := "invalid error"
-	subErr := New(INVALID, subMsg)
-
-	msg := "internal error"
-	err := Wrap(subErr, INTERNAL, msg)
+	err := Wrap(fmt.Errorf("test error: %w", Internal))
 
 	if err == nil {
 		t.Error("Error should not be nil")
 	}
 
-	if ErrorCode(err) != INTERNAL {
-		t.Error("Error code does not match")
-	}
-
-	if ErrorMessage(err) != msg {
-		t.Error("Error message does not match")
+	if !goerrors.Is(err, Internal) {
+		t.Error("Error is not Internal")
 	}
 }
 
-func TestErrorMessage(t *testing.T) {
-	msg := "internal error"
-	err := New(INTERNAL, msg)
-
-	if ErrorMessage(nil) != "" {
-		t.Error("Error message does not match")
+func TestAs(t *testing.T) {
+	if !goerrors.Is(AsInvalid(New("test")), Invalid) {
+		t.Error("Error is not Invalid")
 	}
 
-	if ErrorMessage(err) != msg {
-		t.Error("Error message does not match")
-	}
-}
-
-func TestErrorCode(t *testing.T) {
-	msg := "internal error"
-	err := New(INTERNAL, msg)
-
-	if ErrorCode(nil) != "" {
-		t.Error("Error message does not match")
+	if !goerrors.Is(AsUnauthorized(New("test")), Unauthorized) {
+		t.Error("Error is not Unauthorized")
 	}
 
-	if ErrorCode(err) != INTERNAL {
-		t.Error("Error message does not match")
-	}
-}
-
-func TestError(t *testing.T) {
-	var e error
-
-	e = New("", "")
-	if !strings.Contains(e.Error(), fmt.Sprint("\n")) {
-		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
+	if !goerrors.Is(AsForbidden(New("test")), Forbidden) {
+		t.Error("Error is not Forbidden")
 	}
 
-	e = New(INTERNAL, "")
-	if !strings.Contains(e.Error(), fmt.Sprintf("<%s> %s\n", INTERNAL, "")) {
-		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
+	if !goerrors.Is(AsNotfound(New("test")), NotFound) {
+		t.Error("Error is not NotFound")
 	}
 
-	e = New("", "internal error")
-	if !strings.Contains(e.Error(), fmt.Sprintf("%s\n", "internal error")) {
-		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
+	if !goerrors.Is(AsInternal(New("test")), Internal) {
+		t.Error("Error is not Internal")
 	}
 
-	e = New(INTERNAL, "internal error")
-	if !strings.Contains(e.Error(), fmt.Sprintf("<%s> %s\n", INTERNAL, "internal error")) {
-		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
+	if !goerrors.Is(AsTemporaryDisabled(New("test")), TemporaryDisabled) {
+		t.Error("Error is not TemporaryDisabled")
 	}
 
-	e = Wrap(New(INTERNAL, "internal error"), "", "")
-	if !strings.Contains(e.Error(), fmt.Sprintf("<%s> %s\n", INTERNAL, "internal error")) {
-		t.Errorf("Error string representation of the error message is invalid: %s", e.Error())
+	if !goerrors.Is(AsTimeout(New("test")), Timeout) {
+		t.Error("Error is not Timeout")
 	}
 }
