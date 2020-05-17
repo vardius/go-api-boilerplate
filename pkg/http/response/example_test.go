@@ -93,7 +93,7 @@ func ExampleMustJSON_second() {
 
 func ExampleJSONError() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		appErr := errors.New(errors.INTERNAL, "response error")
+		appErr := errors.AsInternal(errors.New("response error"))
 
 		if err := response.JSONError(r.Context(), w, appErr); err != nil {
 			panic(err)
@@ -113,7 +113,7 @@ func ExampleJSONError() {
 
 func ExampleMustJSONError() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		appErr := errors.New(errors.INTERNAL, "response error")
+		appErr := errors.AsInternal(errors.New("response error"))
 
 		response.MustJSONError(r.Context(), w, appErr)
 	})

@@ -70,7 +70,7 @@ func TestJSONNil(t *testing.T) {
 
 func TestJSONError(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		appErr := errors.New(errors.INVALID, "Invalid request")
+		appErr := errors.AsInvalid(errors.New("Invalid request"))
 
 		if err := JSONError(r.Context(), w, appErr); err != nil {
 			t.Fatal(err)

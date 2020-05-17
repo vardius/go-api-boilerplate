@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/pkg/container"
-	appErrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	httpErrors "github.com/vardius/go-api-boilerplate/pkg/http/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	mtd "github.com/vardius/go-api-boilerplate/pkg/metadata"
@@ -17,13 +16,9 @@ import (
 // JSONError returns data as json response
 // uses JSON internally
 func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
-	w.WriteHeader(httpErrors.HTTPStatusCode(err))
+	httpError := httpErrors.NewHttpError(err)
 
-	httpError := &httpErrors.HttpError{
-		Code:    appErrors.ErrorCode(err),
-		Message: appErrors.ErrorMessage(err),
-	}
-
+	w.WriteHeader(httpError.Code)
 	if m, ok := mtd.FromContext(ctx); ok {
 		httpError.RequestID = m.TraceID
 	}
@@ -32,6 +27,11 @@ func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
 		if v, ok := requestContainer.Get("logger"); ok {
 			if logger, ok := v.(*log.Logger); ok {
 				logger.Debug(ctx, "[HTTP] Error: %s", err)
+				if httpError.Code == http.StatusInternalServerError {
+					logger.Error(ctx, "[HTTP] Error: %s", err)
+				} else {
+					logger.Debug(ctx, "[HTTP] Error: %s", err)
+				}
 			}
 		}
 	}
