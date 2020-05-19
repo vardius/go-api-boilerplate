@@ -1,9 +1,10 @@
 package authenticator
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -31,9 +32,7 @@ func (a *credentialsAuth) FromBasicAuth(next http.Handler) http.Handler {
 			if err != nil {
 				w.Header().Set("WWW-Authenticate", `Basic`)
 
-				appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-
-				response.MustJSONError(r.Context(), w, appErr)
+				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
 				return
 			}
 

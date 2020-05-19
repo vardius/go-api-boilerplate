@@ -2,10 +2,11 @@ package authenticator
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -42,9 +43,8 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 					i, err := a.afn(string(bearer))
 					if err != nil {
 						w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-						appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
 
-						response.MustJSONError(r.Context(), w, appErr)
+						response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
 						return
 					}
 
@@ -54,9 +54,8 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 			}
 
 			w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
-			appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
 
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, application.ErrUnauthorized)
 		}
 
 		return http.HandlerFunc(fn)
@@ -74,9 +73,7 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 
 			i, err := a.afn(token)
 			if err != nil {
-				appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-
-				response.MustJSONError(r.Context(), w, appErr)
+				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
 				return
 			}
 
@@ -98,9 +95,7 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 
 			i, err := a.afn(cookie.Value)
 			if err != nil {
-				appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-
-				response.MustJSONError(r.Context(), w, appErr)
+				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
 				return
 			}
 

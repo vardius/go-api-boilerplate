@@ -3,26 +3,17 @@ package errors
 
 import (
 	"bytes"
-	goerrors "errors"
+	"errors"
 	"fmt"
 
 	"github.com/vardius/trace"
-)
 
-// Application error.
-var (
-	Invalid           = goerrors.New("validation failed")
-	Unauthorized      = goerrors.New("access denied")
-	Forbidden         = goerrors.New("forbidden")
-	NotFound          = goerrors.New("not found")
-	Internal          = goerrors.New("internal system error")
-	TemporaryDisabled = goerrors.New("temporary disabled")
-	Timeout           = goerrors.New("timeout")
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 )
 
 // New returns an app error that formats as the given text.
 func New(message string) error {
-	return newAppError(goerrors.New(message))
+	return newAppError(errors.New(message))
 }
 
 // Wrap returns an app error.
@@ -31,44 +22,9 @@ func Wrap(err error) error {
 	return newAppError(err)
 }
 
-// AsInvalid wraps error as Internal error
-func AsInvalid(err error) error {
-	return newAppError(fmt.Errorf("%w: %s", Invalid, err))
-}
-
-// AsUnauthorized wraps error as Unauthorized error
-func AsUnauthorized(err error) error {
-	return newAppError(fmt.Errorf("%w: %s", Unauthorized, err))
-}
-
-// AsForbidden wraps error as Forbidden error
-func AsForbidden(err error) error {
-	return newAppError(fmt.Errorf("%w: %s", Forbidden, err))
-}
-
-// AsNotfound wraps error as NotFound error
-func AsNotfound(err error) error {
-	return newAppError(fmt.Errorf("%w: %s", NotFound, err))
-}
-
-// AsInternal wraps error as Internal error
-func AsInternal(err error) error {
-	return newAppError(fmt.Errorf("%w: %s", Internal, err))
-}
-
-// AsTemporaryDisabled wraps error as TemporaryDisabled error
-func AsTemporaryDisabled(err error) error {
-	return newAppError(fmt.Errorf("%w: %s", TemporaryDisabled, err))
-}
-
-// AsTimeout wraps error as Timeout error
-func AsTimeout(err error) error {
-	return newAppError(fmt.Errorf("%w: %s", Timeout, err))
-}
-
 func newAppError(err error) error {
 	if err == nil {
-		err = Internal
+		err = application.ErrInternal
 	}
 
 	return &appError{
@@ -89,7 +45,15 @@ func (e *appError) Error() string {
 
 // Is reports whether any error in err's chain matches target.
 func (e *appError) Is(target error) bool {
-	return goerrors.Is(e.err, target)
+	if errors.Is(e.err, target) {
+		return true
+	}
+
+	if next, ok := e.err.(*appError); ok && next != nil {
+		return next.Is(target)
+	}
+
+	return false
 }
 
 // StackTrace returns the string representation of the error stack trace,

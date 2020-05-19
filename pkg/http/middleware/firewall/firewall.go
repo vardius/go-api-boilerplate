@@ -4,9 +4,10 @@ Package firewall allow to guard handlers
 package firewall
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -27,9 +28,7 @@ func GrantAccessFor(role string) func(next http.Handler) http.Handler {
 				}
 			}
 
-			appErr := errors.New(errors.UNAUTHORIZED, http.StatusText(http.StatusUnauthorized))
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, fmt.Errorf("%w: could not read role from context", application.ErrUnauthorized))
 		}
 
 		return http.HandlerFunc(fn)

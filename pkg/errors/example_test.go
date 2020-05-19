@@ -24,13 +24,3 @@ func ExampleWrap() {
 	// Output:
 	// example
 }
-
-func ExampleAsInternal() {
-	subErr := errors.New("example")
-	err := errors.AsInternal(subErr)
-
-	fmt.Printf("%s\n", err)
-
-	// Output:
-	// internal system error: example
-}
