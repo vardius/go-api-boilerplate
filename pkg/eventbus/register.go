@@ -2,12 +2,12 @@ package eventbus
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/vardius/gollback"
 	"google.golang.org/grpc"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 )
 
@@ -20,10 +20,10 @@ func RegisterHandlers(grpcPubSubConn *grpc.ClientConn, grpcPushPullConn *grpc.Cl
 	// Will retry infinitely until timeouts by context (after 5 seconds)
 	_, err := gollback.New(ctx).Retry(0, func(ctx context.Context) (interface{}, error) {
 		if !grpc_utils.IsConnectionServing(ctx, "pubsub", grpcPubSubConn) {
-			return nil, errors.Newf(" %s gRPC connection is not serving", "pubsub")
+			return nil, fmt.Errorf(" %s gRPC connection is not serving", "pubsub")
 		}
 		if !grpc_utils.IsConnectionServing(ctx, "pushpull", grpcPushPullConn) {
-			return nil, errors.Newf(" %s gRPC connection is not serving", "pushpull")
+			return nil, fmt.Errorf(" %s gRPC connection is not serving", "pushpull")
 		}
 
 		for topic, handler := range topicToHandlerMap {
@@ -34,7 +34,7 @@ func RegisterHandlers(grpcPubSubConn *grpc.ClientConn, grpcPushPullConn *grpc.Cl
 					// while having multiple pods running
 					err := eventBus.Pull(ctx, topic, handler)
 
-					return nil, errors.Newf(errors.INTERNAL, "EventHandler %s unsubscribed (%v)", topic, err)
+					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
 				})
 			}(topic, handler)
 		}

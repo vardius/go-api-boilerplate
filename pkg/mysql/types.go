@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
-
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // NullInt64 is an alias for sql.NullInt64 data type
@@ -22,7 +20,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 
 	jsn, err := json.Marshal(ni.Int64)
 	if err != nil {
-		return jsn, errors.Wrap(err, errors.INTERNAL, "MySQL could not marshal NullInt64")
+		return jsn, fmt.Errorf("MySQL could not marshal NullInt64: %w", err)
 	}
 
 	return jsn, nil
@@ -32,7 +30,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 func (ni NullInt64) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &ni.Int64)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "MySQL NullInt64 unmarshal error")
+		return fmt.Errorf("MySQL NullInt64 unmarshal error: %w", err)
 	}
 
 	ni.Valid = true
@@ -51,7 +49,7 @@ func (nb NullBool) MarshalJSON() ([]byte, error) {
 
 	jsn, err := json.Marshal(nb.Bool)
 	if err != nil {
-		return jsn, errors.Wrap(err, errors.INTERNAL, "MySQL could not marshal NullBool")
+		return jsn, fmt.Errorf("MySQL could not marshal NullBool: %w", err)
 	}
 
 	return jsn, nil
@@ -61,7 +59,7 @@ func (nb NullBool) MarshalJSON() ([]byte, error) {
 func (nb NullBool) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nb.Bool)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "MySQL NullBool unmarshal error")
+		return fmt.Errorf("MySQL NullBool unmarshal error: %w", err)
 	}
 
 	nb.Valid = true
@@ -80,7 +78,7 @@ func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 
 	jsn, err := json.Marshal(nf.Float64)
 	if err != nil {
-		return jsn, errors.Wrap(err, errors.INTERNAL, "MySQL could not marshal NullFloat64")
+		return jsn, fmt.Errorf("MySQL could not marshal NullFloat64: %w", err)
 	}
 
 	return jsn, nil
@@ -90,7 +88,7 @@ func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 func (nf NullFloat64) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nf.Float64)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "MySQL NullFloat64 unmarshal error")
+		return fmt.Errorf("MySQL NullFloat64 unmarshal error: %w", err)
 	}
 
 	nf.Valid = true
@@ -109,7 +107,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 
 	jsn, err := json.Marshal(ns.String)
 	if err != nil {
-		return jsn, errors.Wrap(err, errors.INTERNAL, "MySQL could not marshal NullString")
+		return jsn, fmt.Errorf("MySQL could not marshal NullString: %w", err)
 	}
 
 	return jsn, nil
@@ -119,7 +117,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 func (ns NullString) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &ns.String)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "MySQL NullString unmarshal error")
+		return fmt.Errorf("MySQL NullString unmarshal error: %w", err)
 	}
 
 	ns.Valid = true
@@ -143,7 +141,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 func (nt NullTime) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &nt.Time)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "MySQL NullTime unmarshal error")
+		return fmt.Errorf("MySQL NullTime unmarshal error: %w", err)
 	}
 
 	nt.Valid = true

@@ -3,6 +3,7 @@ package eventbus
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/vardius/gocontainer"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/container"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
@@ -57,7 +57,7 @@ func (bus *eventBus) Pull(ctx context.Context, eventType string, fn EventHandler
 	})
 	if err != nil {
 		bus.logger.Error(ctx, "[EventBus] Subscribe: %v\n", err)
-		return errors.Wrap(err, errors.INTERNAL, "EventBus pushpull client subscribe error")
+		return fmt.Errorf("EventBus pushpull client subscribe error: %w", err)
 	}
 
 	bus.logger.Info(stream.Context(), "[EventBus] Pull: %s\n", eventType)
@@ -66,7 +66,7 @@ func (bus *eventBus) Pull(ctx context.Context, eventType string, fn EventHandler
 		resp, err := stream.Recv()
 		if err != nil {
 			bus.logger.Error(stream.Context(), "[EventBus] Pull: stream.Recv error: %v\n", err)
-			return errors.Wrap(err, errors.INTERNAL, "EventBus stream recv error")
+			return fmt.Errorf("EventBus stream recv error: %w", err)
 		}
 
 		return bus.dispatchEvent(resp.GetPayload(), fn)
@@ -108,7 +108,7 @@ func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn EventHa
 	})
 	if err != nil {
 		bus.logger.Error(ctx, "[EventBus] Subscribe: %v\n", err)
-		return errors.Wrap(err, errors.INTERNAL, "EventBus pubsub client subscribe error")
+		return fmt.Errorf("EventBus pubsub client subscribe error: %w", err)
 	}
 
 	bus.logger.Info(stream.Context(), "[EventBus] Subscribe: %s\n", eventType)
@@ -117,7 +117,7 @@ func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn EventHa
 		resp, err := stream.Recv()
 		if err != nil {
 			bus.logger.Error(stream.Context(), "[EventBus] Subscribe: stream.Recv error: %v\n", err)
-			return errors.Wrap(err, errors.INTERNAL, "EventBus stream recv error")
+			return fmt.Errorf("EventBus stream recv error: %w", err)
 		}
 
 		return bus.dispatchEvent(resp.GetPayload(), fn)
@@ -159,7 +159,7 @@ func (bus *eventBus) dispatchEvent(payload []byte, fn EventHandler) error {
 	err := json.Unmarshal(payload, &o)
 	if err != nil {
 		bus.logger.Error(ctx, "[EventBus] Unmarshal error: %v\n", err)
-		return errors.Wrap(err, errors.INTERNAL, "EventBus unmarshal error")
+		return fmt.Errorf("EventBus unmarshal error: %w", err)
 	}
 
 	if o.RequestMetadata != nil {

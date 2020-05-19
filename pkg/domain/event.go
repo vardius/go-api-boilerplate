@@ -2,11 +2,10 @@ package domain
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // NullEvent represents empty event
@@ -45,12 +44,12 @@ func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent
 
 	payload, err := json.Marshal(rawEvent)
 	if err != nil {
-		return NullEvent, errors.Wrap(err, errors.INTERNAL, "Marshal rawEvent failed")
+		return NullEvent, fmt.Errorf("could not parse event to json: %w", err)
 	}
 
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return NullEvent, errors.Wrap(err, errors.INTERNAL, "Generate event id failed")
+		return NullEvent, fmt.Errorf("could not generate event id: %w", err)
 	}
 
 	return Event{id, meta, payload}, nil
@@ -60,7 +59,7 @@ func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent
 func MakeEvent(meta EventMetaData, payload json.RawMessage) (Event, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return NullEvent, errors.Wrap(err, errors.INTERNAL, "Generate event id failed")
+		return NullEvent, fmt.Errorf("could not generate event id: %w", err)
 	}
 
 	return Event{id, meta, payload}, nil
