@@ -27,29 +27,29 @@ func newAppError(err error) error {
 		err = application.ErrInternal
 	}
 
-	return &appError{
+	return &AppError{
 		err:   err,
 		trace: trace.FromParent(2, trace.Lfile|trace.Lline),
 	}
 }
 
-type appError struct {
+type AppError struct {
 	trace string
 	err   error
 }
 
 // Error returns the string representation of the error message.
-func (e *appError) Error() string {
+func (e *AppError) Error() string {
 	return e.err.Error()
 }
 
-func (e *appError) Unwrap() error {
+func (e *AppError) Unwrap() error {
 	return e.err
 }
 
 // StackTrace returns the string representation of the error stack trace,
 // includeTrace appends caller pcs frames to each error message if possible.
-func (e *appError) StackTrace() (string, error) {
+func (e *AppError) StackTrace() (string, error) {
 	var buf bytes.Buffer
 
 	if e.trace != "" {
@@ -58,7 +58,7 @@ func (e *appError) StackTrace() (string, error) {
 		}
 	}
 
-	var next *appError
+	var next *AppError
 	if errors.As(e.err, &next) {
 		stackTrace, err := next.StackTrace()
 		if err != nil {
