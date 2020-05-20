@@ -11,12 +11,12 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 )
 
-// New returns an app error that formats as the given text.
+// New returns new app error that formats as the given text.
 func New(message string) error {
 	return newAppError(errors.New(message))
 }
 
-// Wrap returns an app error.
+// Wrap returns new app error wrapping target error.
 // If passed value is nil will fallback to internal
 func Wrap(err error) error {
 	return newAppError(err)
@@ -43,17 +43,8 @@ func (e *appError) Error() string {
 	return e.err.Error()
 }
 
-// Is reports whether any error in err's chain matches target.
-func (e *appError) Is(target error) bool {
-	if errors.Is(e.err, target) {
-		return true
-	}
-
-	if next, ok := e.err.(*appError); ok && next != nil {
-		return next.Is(target)
-	}
-
-	return false
+func (e *appError) Unwrap() error {
+	return e.err
 }
 
 // StackTrace returns the string representation of the error stack trace,
@@ -67,7 +58,8 @@ func (e *appError) StackTrace() (string, error) {
 		}
 	}
 
-	if next, ok := e.err.(*appError); ok && next != nil {
+	var next *appError
+	if errors.As(e.err, &next) {
 		stackTrace, err := next.StackTrace()
 		if err != nil {
 			return "", err
