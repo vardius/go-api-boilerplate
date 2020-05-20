@@ -26,7 +26,6 @@ func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
 	if requestContainer, ok := container.FromContext(ctx); ok {
 		if v, ok := requestContainer.Get("logger"); ok {
 			if logger, ok := v.(*log.Logger); ok {
-				logger.Debug(ctx, "[HTTP] Error: %s", err)
 				if httpError.Code == http.StatusInternalServerError {
 					logger.Error(ctx, "[HTTP] Error: %s", err)
 				} else {
