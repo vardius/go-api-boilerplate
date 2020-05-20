@@ -23,7 +23,7 @@ type tokenRepository struct {
 func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 	err := r.eventStore.Store(u.Changes())
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Token save error")
+		return errors.Wrap(err)
 	}
 
 	for _, event := range u.Changes() {

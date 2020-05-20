@@ -8,26 +8,26 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/gocontainer"
-	pubsub_proto "github.com/vardius/pubsub/v2/proto"
-	pushpull_proto "github.com/vardius/pushpull/proto"
+	pubsubproto "github.com/vardius/pubsub/v2/proto"
+	pushpullproto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
-	grpc_health "google.golang.org/grpc/health"
+	grpchealth "google.golang.org/grpc/health"
 
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
+	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/eventhandler"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/oauth2"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/repository"
-	user_grpc "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/grpc"
-	user_http "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http"
+	usergrpc "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/grpc"
+	userhttp "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
-	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
+	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
@@ -46,8 +46,8 @@ func main() {
 	logger := log.New(config.Env.App.Environment)
 	eventStore := eventstore.New()
 	oauth2Config := oauth2.NewConfig()
-	grpcServer := grpc_utils.NewServer(
-		grpc_utils.ServerConfig{
+	grpcServer := grpcutils.NewServer(
+		grpcutils.ServerConfig{
 			ServerMinTime: config.Env.GRPC.ServerMinTime,
 			ServerTime:    config.Env.GRPC.ServerTime,
 			ServerTimeout: config.Env.GRPC.ServerTimeout,
@@ -71,44 +71,44 @@ func main() {
 		logger,
 	)
 	defer mysqlConnection.Close()
-	grpcPubSubConn := grpc_utils.NewConnection(
+	grpcPubSubConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.PubSub.Host,
 		config.Env.GRPC.Port,
-		grpc_utils.ConnectionConfig{
+		grpcutils.ConnectionConfig{
 			ConnTime:    config.Env.GRPC.ConnTime,
 			ConnTimeout: config.Env.GRPC.ConnTimeout,
 		},
 		logger,
 	)
 	defer grpcPubSubConn.Close()
-	grpcPushPullConn := grpc_utils.NewConnection(
+	grpcPushPullConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.PushPull.Host,
 		config.Env.GRPC.Port,
-		grpc_utils.ConnectionConfig{
+		grpcutils.ConnectionConfig{
 			ConnTime:    config.Env.GRPC.ConnTime,
 			ConnTimeout: config.Env.GRPC.ConnTimeout,
 		},
 		logger,
 	)
 	defer grpcPushPullConn.Close()
-	grpcAuthConn := grpc_utils.NewConnection(
+	grpcAuthConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.Auth.Host,
 		config.Env.GRPC.Port,
-		grpc_utils.ConnectionConfig{
+		grpcutils.ConnectionConfig{
 			ConnTime:    config.Env.GRPC.ConnTime,
 			ConnTimeout: config.Env.GRPC.ConnTimeout,
 		},
 		logger,
 	)
 	defer grpcAuthConn.Close()
-	grpcUserConn := grpc_utils.NewConnection(
+	grpcUserConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.GRPC.Host,
 		config.Env.GRPC.Port,
-		grpc_utils.ConnectionConfig{
+		grpcutils.ConnectionConfig{
 			ConnTime:    config.Env.GRPC.ConnTime,
 			ConnTimeout: config.Env.GRPC.ConnTimeout,
 		},
@@ -116,15 +116,15 @@ func main() {
 	)
 	defer grpcUserConn.Close()
 
-	grpcPubsubClient := pubsub_proto.NewPubSubClient(grpcPubSubConn)
-	grpPushPullClient := pushpull_proto.NewPushPullClient(grpcPushPullConn)
+	grpcPubsubClient := pubsubproto.NewPubSubClient(grpcPubSubConn)
+	grpPushPullClient := pushpullproto.NewPushPullClient(grpcPushPullConn)
 	eventBus := eventbus.New(config.Env.App.EventHandlerTimeout, grpcPubsubClient, grpPushPullClient, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
-	grpcAuthClient := auth_proto.NewAuthenticationServiceClient(grpcAuthConn)
-	grpcHealthServer := grpc_health.NewServer()
-	grpcUserServer := user_grpc.NewServer(commandBus, userPersistenceRepository, logger)
-	router := user_http.NewRouter(
+	grpcAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
+	grpcHealthServer := grpchealth.NewServer()
+	grpcUserServer := usergrpc.NewServer(commandBus, userPersistenceRepository, logger)
+	router := userhttp.NewRouter(
 		logger,
 		userPersistenceRepository,
 		commandBus,
@@ -164,11 +164,11 @@ func main() {
 	}()
 
 	app.AddAdapters(
-		user_http.NewAdapter(
+		userhttp.NewAdapter(
 			fmt.Sprintf("%s:%d", config.Env.HTTP.Host, config.Env.HTTP.Port),
 			router,
 		),
-		user_grpc.NewAdapter(
+		usergrpc.NewAdapter(
 			fmt.Sprintf("%s:%d", config.Env.GRPC.Host, config.Env.GRPC.Port),
 			grpcServer,
 			grpcHealthServer,

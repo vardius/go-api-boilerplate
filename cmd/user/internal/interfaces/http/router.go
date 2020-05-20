@@ -4,21 +4,21 @@ import (
 	"database/sql"
 	"net/http"
 
-	http_cors "github.com/rs/cors"
+	httpcors "github.com/rs/cors"
 	"github.com/vardius/gorouter/v4"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 
-	http_form_middleware "github.com/mar1n3r0/gorouter-middleware-formjson"
+	httpformmiddleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 
-	auth_proto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
-	user_security "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
+	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
+	usersecurity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	user_persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
+	userpersistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	http_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
-	http_authenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
+	httpmiddleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
+	httpauthenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/http/middleware/firewall"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
@@ -27,21 +27,21 @@ const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
 // NewRouter provides new router
-func NewRouter(logger *log.Logger, repository user_persistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient auth_proto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
-	auth := http_authenticator.NewToken(user_security.TokenAuthHandler(grpAuthClient, repository))
+func NewRouter(logger *log.Logger, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient authproto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
+	auth := httpauthenticator.NewToken(usersecurity.TokenAuthHandler(grpAuthClient, repository))
 
 	// Global middleware
 	router := gorouter.New(
-		http_middleware.Recover(logger),
-		http_middleware.WithMetadata(),
-		http_middleware.Logger(logger),
-		http_middleware.WithContainer(),
-		http_cors.Default().Handler,
-		http_middleware.XSS(),
-		http_middleware.HSTS(),
-		http_middleware.Metrics(),
-		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
-		http_form_middleware.FormJson(),
+		httpmiddleware.Recover(logger),
+		httpmiddleware.WithMetadata(),
+		httpmiddleware.Logger(logger),
+		httpmiddleware.WithContainer(),
+		httpcors.Default().Handler,
+		httpmiddleware.XSS(),
+		httpmiddleware.HSTS(),
+		httpmiddleware.Metrics(),
+		httpmiddleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
+		httpformmiddleware.FormJson(),
 		auth.FromHeader("USER"),
 		auth.FromQuery("authToken"),
 	)

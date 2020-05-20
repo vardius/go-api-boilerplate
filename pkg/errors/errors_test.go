@@ -14,10 +14,6 @@ func TestNew(t *testing.T) {
 	if err == nil {
 		t.Error("Error should not be nil")
 	}
-
-	if !errors.Is(err, application.ErrInternal) {
-		t.Error("Error is not Internal")
-	}
 }
 
 func TestWrap(t *testing.T) {

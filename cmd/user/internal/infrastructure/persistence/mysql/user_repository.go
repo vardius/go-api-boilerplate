@@ -6,8 +6,10 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
@@ -24,7 +26,7 @@ type userRepository struct {
 func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
-		return nil, errors.Wrap(err, errors.INTERNAL, "Could not query database")
+		return nil, errors.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -34,7 +36,7 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 		user := User{}
 		err = rows.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
 		if err != nil {
-			return nil, errors.Wrap(err, errors.INTERNAL, "Error while scanning users table")
+			return nil, errors.Wrap(err)
 		}
 
 		users = append(users, user)
@@ -42,7 +44,7 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.New(errors.INTERNAL, "Error while getting rows")
+		return nil, errors.Wrap(err)
 	}
 
 	return users, nil
@@ -56,9 +58,9 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 	err := row.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
 	switch {
 	case err == sql.ErrNoRows:
-		return nil, errors.Wrap(err, errors.NOTFOUND, "User not found")
+		return nil, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
 	case err != nil:
-		return nil, errors.Wrap(err, errors.INTERNAL, "Error while scanning users table")
+		return nil, errors.Wrap(err)
 	default:
 		return user, nil
 	}
@@ -80,22 +82,22 @@ func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO users (id, emailAddress, facebookId, googleId) VALUES (?,?,?,?)`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid user insert query")
+		return errors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, user.ID, user.Email, user.FacebookID, user.GoogleID)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not add user")
+		return errors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not add user")
+		return errors.New("Did not add user")
 	}
 
 	return nil
@@ -104,22 +106,22 @@ func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) error {
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET emailAddress=? WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid user update query")
+		return errors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, email, id)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not update user")
+		return errors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not update user")
+		return errors.New("Did not update user")
 	}
 
 	return nil
@@ -128,22 +130,22 @@ func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) erro
 func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID string) error {
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET facebookID=? WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid user update query")
+		return errors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, facebookID, id)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not update user")
+		return errors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not update user")
+		return errors.New("Did not update user")
 	}
 
 	return nil
@@ -152,22 +154,22 @@ func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID st
 func (r *userRepository) UpdateGoogleID(ctx context.Context, id, googleID string) error {
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET googleID=? WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid user update query")
+		return errors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, googleID, id)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not update user")
+		return errors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not update user")
+		return errors.New("Did not update user")
 	}
 
 	return nil
@@ -176,22 +178,22 @@ func (r *userRepository) UpdateGoogleID(ctx context.Context, id, googleID string
 func (r *userRepository) Delete(ctx context.Context, id string) error {
 	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM users WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid user delete query")
+		return errors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, id)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not delete user")
+		return errors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not delete user")
+		return errors.New("Did not delete user")
 	}
 
 	return nil
@@ -203,7 +205,7 @@ func (r *userRepository) Count(ctx context.Context) (int32, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users`)
 	err := row.Scan(&totalUsers)
 	if err != nil {
-		return 0, errors.Wrap(err, errors.INTERNAL, "Could not count users")
+		return 0, errors.Wrap(err)
 	}
 
 	return totalUsers, nil

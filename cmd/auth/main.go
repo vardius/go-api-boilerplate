@@ -8,11 +8,11 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/gocontainer"
-	pubsub_proto "github.com/vardius/pubsub/v2/proto"
-	pushpull_proto "github.com/vardius/pushpull/proto"
+	pubsubproto "github.com/vardius/pubsub/v2/proto"
+	pushpullproto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
-	grpc_health "google.golang.org/grpc/health"
-	oauth2_models "gopkg.in/oauth2.v3/models"
+	grpchealth "google.golang.org/grpc/health"
+	oauth2models "gopkg.in/oauth2.v3/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
@@ -21,14 +21,14 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/repository"
-	auth_grpc "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/grpc"
-	auth_http "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http"
+	authgrpc "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/grpc"
+	authhttp "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
-	grpc_utils "github.com/vardius/go-api-boilerplate/pkg/grpc"
+	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
@@ -46,8 +46,8 @@ func main() {
 
 	logger := log.New(config.Env.App.Environment)
 	eventStore := eventstore.New()
-	grpcServer := grpc_utils.NewServer(
-		grpc_utils.ServerConfig{
+	grpcServer := grpcutils.NewServer(
+		grpcutils.ServerConfig{
 			ServerMinTime: config.Env.GRPC.ServerMinTime,
 			ServerTime:    config.Env.GRPC.ServerTime,
 			ServerTimeout: config.Env.GRPC.ServerTimeout,
@@ -71,33 +71,33 @@ func main() {
 		logger,
 	)
 	defer mysqlConnection.Close()
-	grpcPubSubConn := grpc_utils.NewConnection(
+	grpcPubSubConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.PubSub.Host,
 		config.Env.GRPC.Port,
-		grpc_utils.ConnectionConfig{
+		grpcutils.ConnectionConfig{
 			ConnTime:    config.Env.GRPC.ConnTime,
 			ConnTimeout: config.Env.GRPC.ConnTimeout,
 		},
 		logger,
 	)
 	defer grpcPubSubConn.Close()
-	grpcPushPullConn := grpc_utils.NewConnection(
+	grpcPushPullConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.PushPull.Host,
 		config.Env.GRPC.Port,
-		grpc_utils.ConnectionConfig{
+		grpcutils.ConnectionConfig{
 			ConnTime:    config.Env.GRPC.ConnTime,
 			ConnTimeout: config.Env.GRPC.ConnTimeout,
 		},
 		logger,
 	)
 	defer grpcPushPullConn.Close()
-	grpcAuthConn := grpc_utils.NewConnection(
+	grpcAuthConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.GRPC.Host,
 		config.Env.GRPC.Port,
-		grpc_utils.ConnectionConfig{
+		grpcutils.ConnectionConfig{
 			ConnTime:    config.Env.GRPC.ConnTime,
 			ConnTimeout: config.Env.GRPC.ConnTimeout,
 		},
@@ -105,8 +105,8 @@ func main() {
 	)
 	defer grpcAuthConn.Close()
 
-	grpPubsubClient := pubsub_proto.NewPubSubClient(grpcPubSubConn)
-	grpPushPullClient := pushpull_proto.NewPushPullClient(grpcPushPullConn)
+	grpPubsubClient := pubsubproto.NewPubSubClient(grpcPubSubConn)
+	grpPushPullClient := pushpullproto.NewPushPullClient(grpcPushPullConn)
 	eventBus := eventbus.New(config.Env.App.EventHandlerTimeout, grpPubsubClient, grpPushPullClient, logger)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
@@ -116,9 +116,9 @@ func main() {
 	clientStore := oauth2.NewClientStore(clientPersistenceRepository)
 	manager := oauth2.NewManager(tokenStore, clientStore, []byte(config.Env.App.Secret))
 	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.App.Secret)
-	grpcHealthServer := grpc_health.NewServer()
-	grpcAuthServer := auth_grpc.NewServer(oauth2Server, logger, config.Env.App.Secret)
-	router := auth_http.NewRouter(
+	grpcHealthServer := grpchealth.NewServer()
+	grpcAuthServer := authgrpc.NewServer(oauth2Server, logger, config.Env.App.Secret)
+	router := authhttp.NewRouter(
 		logger,
 		oauth2Server,
 		mysqlConnection,
@@ -131,7 +131,7 @@ func main() {
 	app := application.New(logger)
 
 	// store our internal user service client
-	if err := clientStore.SetInternal(config.Env.User.ClientID, &oauth2_models.Client{
+	if err := clientStore.SetInternal(config.Env.User.ClientID, &oauth2models.Client{
 		ID:     config.Env.User.ClientID,
 		Secret: config.Env.User.ClientSecret,
 		Domain: fmt.Sprintf("http://%s:%d", config.Env.User.Host, config.Env.HTTP.Port),
@@ -162,11 +162,11 @@ func main() {
 	}()
 
 	app.AddAdapters(
-		auth_http.NewAdapter(
+		authhttp.NewAdapter(
 			fmt.Sprintf("%s:%d", config.Env.HTTP.Host, config.Env.HTTP.Port),
 			router,
 		),
-		auth_grpc.NewAdapter(
+		authgrpc.NewAdapter(
 			fmt.Sprintf("%s:%d", config.Env.GRPC.Host, config.Env.GRPC.Port),
 			grpcServer,
 			grpcHealthServer,

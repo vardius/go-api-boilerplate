@@ -3,12 +3,14 @@ package oauth2
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 
 	"gopkg.in/oauth2.v3"
-	oauth2_models "gopkg.in/oauth2.v3/models"
+	oauth2models "gopkg.in/oauth2.v3/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
@@ -36,7 +38,7 @@ func (cs *ClientStore) GetByID(id string) (oauth2.ClientInfo, error) {
 
 	c, err := cs.repository.Get(context.Background(), id)
 	if err != nil {
-		return nil, errors.Wrapf(err, errors.NOTFOUND, "Not Found: client with ID (%s)", id)
+		return nil, errors.Wrap(err)
 	}
 
 	return cs.toClientInfo(c.GetData())
@@ -50,7 +52,7 @@ func (cs *ClientStore) Internal(id string) (cli oauth2.ClientInfo, err error) {
 		cli = c
 		return
 	}
-	err = errors.Newf(errors.NOTFOUND, "Not Found: client with ID (%s)", id)
+	err = errors.Wrap(fmt.Errorf("%w: client with ID (%s)", application.ErrNotFound, id))
 	return
 }
 
@@ -63,10 +65,10 @@ func (cs *ClientStore) SetInternal(id string, cli oauth2.ClientInfo) (err error)
 }
 
 func (cs *ClientStore) toClientInfo(data []byte) (oauth2.ClientInfo, error) {
-	info := oauth2_models.Client{}
+	info := oauth2models.Client{}
 	err := json.Unmarshal(data, &info)
 	if err != nil {
-		return nil, errors.Wrap(err, errors.INTERNAL, "Unmarshal client failed")
+		return nil, errors.Wrap(err)
 	}
 
 	return &info, nil

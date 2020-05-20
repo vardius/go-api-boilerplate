@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"gopkg.in/oauth2.v3"
 
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
@@ -35,7 +36,7 @@ func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
 		token := repository.Get(c.ID)
 		err := token.Remove()
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Error when removing token")
+			out <- errors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
 			return
 		}
 
@@ -64,14 +65,14 @@ func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Could not generate new id")
+			out <- errors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
 			return
 		}
 
 		token := New()
 		err = token.Create(id, c.TokenInfo)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Error when creating new token")
+			out <- errors.Wrap(fmt.Errorf("%w: Error when creating new token: %s", application.ErrInternal, err))
 			return
 		}
 
@@ -83,7 +84,7 @@ func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 
 func recoverCommandHandler(out chan<- error) {
 	if r := recover(); r != nil {
-		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+		out <- errors.Wrap(fmt.Errorf("[CommandHandler] Recovered in %v", r))
 
 		// Log the Go stack trace for this panic'd goroutine.
 		log.Printf("%s\n", debug.Stack())

@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -57,7 +58,7 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 
 		return requestAccessToken, err
 	default:
-		return nil, errors.New(errors.INTERNAL, "Invalid command contract")
+		return nil, errors.New("Invalid command contract")
 	}
 }
 
@@ -81,7 +82,7 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		u := repository.Get(c.ID)
 		err := u.RequestAccessToken()
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Error when requesting access token")
+			out <- errors.Wrap(err)
 			return
 		}
 
@@ -114,19 +115,19 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress = ?`, c.Email)
 		err := row.Scan(&totalUsers)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that email is not taken")
+			out <- errors.Wrap(err)
 			return
 		}
 
 		if totalUsers != 0 {
-			out <- errors.Wrap(err, errors.INVALID, "User with given email already registered")
+			out <- errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, err))
 			return
 		}
 
 		u := repository.Get(c.ID)
 		err = u.ChangeEmailAddress(c.Email)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Error when changing email address")
+			out <- errors.Wrap(err)
 			return
 		}
 
@@ -158,25 +159,25 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress = ?`, c.Email)
 		err := row.Scan(&totalUsers)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that email is not taken")
+			out <- errors.Wrap(err)
 			return
 		}
 
 		if totalUsers != 0 {
-			out <- errors.Wrap(err, errors.INVALID, "User with given email already registered")
+			out <- errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, err))
 			return
 		}
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Could not generate new id")
+			out <- errors.Wrap(err)
 			return
 		}
 
 		u := New()
 		err = u.RegisterWithEmail(id, c.Email)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
+			out <- errors.Wrap(err)
 			return
 		}
 
@@ -209,12 +210,12 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId FROM users WHERE emailAddress = ? OR facebookId = ?`, c.Email, c.FacebookID)
 		err := row.Scan(&id, &emailAddress, &facebookID)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that user is not already registered")
+			out <- errors.Wrap(err)
 			return
 		}
 
 		if facebookID == c.FacebookID {
-			out <- errors.Wrap(err, errors.INVALID, "User facebook account already connected")
+			out <- errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, err))
 			return
 		}
 
@@ -223,20 +224,20 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 			u = repository.Get(uuid.MustParse(id))
 			err = u.ConnectWithFacebook(c.FacebookID)
 			if err != nil {
-				out <- errors.Wrap(err, errors.INTERNAL, "Error when trying to connect facebook account")
+				out <- errors.Wrap(err)
 				return
 			}
 		} else {
 			id, err := uuid.NewRandom()
 			if err != nil {
-				out <- errors.Wrap(err, errors.INTERNAL, "Could not generate new id")
+				out <- errors.Wrap(err)
 				return
 			}
 
 			u = New()
 			err = u.RegisterWithFacebook(id, c.Email, c.FacebookID)
 			if err != nil {
-				out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
+				out <- errors.Wrap(err)
 				return
 			}
 		}
@@ -270,12 +271,12 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, googleId FROM users WHERE emailAddress = ? OR googleId = ?`, c.Email, c.GoogleID)
 		err := row.Scan(&id, &emailAddress, &googleID)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Could not ensure that user is not already registered")
+			out <- errors.Wrap(err)
 			return
 		}
 
 		if googleID == c.GoogleID {
-			out <- errors.Wrap(err, errors.INVALID, "User google account already connected")
+			out <- errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, err))
 			return
 		}
 
@@ -284,20 +285,20 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 			u = repository.Get(uuid.MustParse(id))
 			err = u.ConnectWithGoogle(c.GoogleID)
 			if err != nil {
-				out <- errors.Wrap(err, errors.INTERNAL, "Error when trying to connect google account")
+				out <- errors.Wrap(err)
 				return
 			}
 		} else {
 			id, err := uuid.NewRandom()
 			if err != nil {
-				out <- errors.Wrap(err, errors.INTERNAL, "Could not generate new id")
+				out <- errors.Wrap(err)
 				return
 			}
 
 			u = New()
 			err = u.RegisterWithGoogle(id, c.Email, c.GoogleID)
 			if err != nil {
-				out <- errors.Wrap(err, errors.INTERNAL, "Error when registering new user")
+				out <- errors.Wrap(err)
 				return
 			}
 		}
@@ -310,7 +311,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 
 func recoverCommandHandler(out chan<- error) {
 	if r := recover(); r != nil {
-		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+		out <- errors.New(fmt.Sprintf("[CommandHandler] Recovered in %v", r))
 
 		// Log the Go stack trace for this panic'd goroutine.
 		log.Printf("%s\n", debug.Stack())

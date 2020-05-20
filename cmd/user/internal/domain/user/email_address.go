@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/asaskevich/govalidator"
 
@@ -19,7 +20,7 @@ func (e EmailAddress) MarshalJSON() ([]byte, error) {
 
 	jsn, err := json.Marshal(string(e))
 	if err != nil {
-		return jsn, errors.Wrapf(err, errors.INTERNAL, "Could not marshal EmailAddress %s", e)
+		return jsn, errors.Wrap(fmt.Errorf("could not marshal EmailAddress %s", e))
 	}
 
 	return jsn, nil
@@ -31,7 +32,7 @@ func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 
 	err := json.Unmarshal(b, &value)
 	if err != nil {
-		return errors.Wrapf(err, errors.INTERNAL, "Could not unmarshal json %s", b)
+		return errors.Wrap(fmt.Errorf("could not unmarshal json %s", b))
 	}
 
 	*e = (EmailAddress)(value)
@@ -42,7 +43,7 @@ func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 // IsValid returns error if value object is not valid
 func (e EmailAddress) IsValid() error {
 	if !govalidator.IsEmail(string(e)) {
-		return errors.New(errors.INTERNAL, "Invalid email address")
+		return errors.New("Invalid email address")
 	}
 
 	return nil

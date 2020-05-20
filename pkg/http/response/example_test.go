@@ -108,7 +108,7 @@ func ExampleJSONError() {
 	fmt.Printf("%s\n", w.Body)
 
 	// Output:
-	// {"code":"internal","message":"response error"}
+	// {"code":500,"message":"Internal Server Error"}
 }
 
 func ExampleMustJSONError() {
@@ -126,5 +126,5 @@ func ExampleMustJSONError() {
 	fmt.Printf("%s\n", w.Body)
 
 	// Output:
-	// {"code":"internal","message":"response error"}
+	// {"code":500,"message":"Internal Server Error"}
 }

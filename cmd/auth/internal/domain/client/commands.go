@@ -35,7 +35,7 @@ func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
 		client := repository.Get(c.ID)
 		err := client.Remove()
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Error when removing client")
+			out <- errors.Wrap(err)
 			return
 		}
 
@@ -65,7 +65,7 @@ func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 		client := New()
 		err := client.Create(c.ClientInfo)
 		if err != nil {
-			out <- errors.Wrap(err, errors.INTERNAL, "Error when creating new client")
+			out <- errors.Wrap(err)
 			return
 		}
 
@@ -77,7 +77,7 @@ func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 
 func recoverCommandHandler(out chan<- error) {
 	if r := recover(); r != nil {
-		out <- errors.Newf(errors.INTERNAL, "[CommandHandler] Recovered in %v", r)
+		out <- errors.Wrap(fmt.Errorf("[CommandHandler] Recovered in %v", r))
 
 		// Log the Go stack trace for this panic'd goroutine.
 		log.Printf("%s\n", debug.Stack())

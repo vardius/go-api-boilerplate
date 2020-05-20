@@ -23,7 +23,7 @@ type clientRepository struct {
 func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 	err := r.eventStore.Store(u.Changes())
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Client save error")
+		return errors.Wrap(err)
 	}
 
 	for _, event := range u.Changes() {

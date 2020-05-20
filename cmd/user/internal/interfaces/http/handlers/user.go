@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -35,17 +37,13 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		defer r.Body.Close()
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
-			appErr := errors.Wrap(e, errors.INTERNAL, "Invalid request body")
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(e))
 			return
 		}
 
 		c, e := user.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
-			appErr := errors.Wrap(e, errors.INTERNAL, errors.ErrorMessage(e))
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(e))
 			return
 		}
 
@@ -58,22 +56,18 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 
 		select {
 		case <-r.Context().Done():
-			appErr := errors.Wrap(r.Context().Err(), errors.TIMEOUT, "Request timeout")
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, r.Context().Err())))
 			return
 		case e = <-out:
 			if e != nil {
-				appErr := errors.Wrap(e, errors.INTERNAL, "Command handler error")
-
-				response.MustJSONError(r.Context(), w, appErr)
+				response.MustJSONError(r.Context(), w, errors.Wrap(e))
 				return
 			}
 		}
 
 		w.WriteHeader(http.StatusCreated)
 		if err := response.JSON(r.Context(), w, nil); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
 
@@ -94,15 +88,13 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 
 		u, e := repository.Get(r.Context(), i.ID.String())
 		if e != nil {
-			appErr := errors.Wrap(e, errors.NOTFOUND, "User not found")
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, e)))
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 		if err := response.JSON(r.Context(), w, u); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
 
@@ -127,15 +119,13 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 
 		u, e := repository.Get(r.Context(), params.Value("id"))
 		if e != nil {
-			appErr := errors.Wrap(e, errors.NOTFOUND, "User not found")
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, e)))
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 		if err := response.JSON(r.Context(), w, u); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
 
@@ -159,9 +149,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 
 		totalUsers, e := repository.Count(r.Context())
 		if e != nil {
-			appErr := errors.New(errors.INTERNAL, http.StatusText(http.StatusInternalServerError))
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(e))
 			return
 		}
 
@@ -181,22 +169,20 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		if totalUsers < 1 || offset > (totalUsers-1) {
 			w.WriteHeader(http.StatusOK)
 			if err := response.JSON(r.Context(), w, paginatedList); err != nil {
-				response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+				response.MustJSONError(r.Context(), w, errors.Wrap(err))
 			}
 			return
 		}
 
 		paginatedList.Users, e = repository.FindAll(r.Context(), limit, offset)
 		if e != nil {
-			appErr := errors.New(errors.INTERNAL, http.StatusText(http.StatusInternalServerError))
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(e))
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 		if err := response.JSON(r.Context(), w, paginatedList); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
 

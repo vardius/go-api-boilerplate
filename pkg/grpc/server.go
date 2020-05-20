@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
@@ -24,8 +24,8 @@ type ServerConfig struct {
 
 // NewServer provides new grpc server
 func NewServer(cfg ServerConfig, logger *log.Logger) *grpc.Server {
-	opts := []grpc_recovery.Option{
-		grpc_recovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
+	opts := []grpcrecovery.Option{
+		grpcrecovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
 			logger.Critical(ctx, "[gRPC|Server] Recovered in %v\n", rec)
 
 			return status.Errorf(codes.Internal, "Recovered in %v\n", rec)
@@ -41,14 +41,14 @@ func NewServer(cfg ServerConfig, logger *log.Logger) *grpc.Server {
 			Time:    cfg.ServerTime,    // Ping the client if it is idle for 2 hours to ensure the connection is still active
 			Timeout: cfg.ServerTimeout, // Wait 20 second for the ping ack before assuming the connection is dead
 		}),
-		grpc_middleware.WithUnaryServerChain(
-			grpc_recovery.UnaryServerInterceptor(opts...),
+		grpcmiddleware.WithUnaryServerChain(
+			grpcrecovery.UnaryServerInterceptor(opts...),
 			middleware.SetMetadataFromUnaryRequest(),
 			middleware.LogUnaryRequest(logger),
 			// firewall.GrantAccessForUnaryRequest("admin"), // TODO: do it per service request
 		),
-		grpc_middleware.WithStreamServerChain(
-			grpc_recovery.StreamServerInterceptor(opts...),
+		grpcmiddleware.WithStreamServerChain(
+			grpcrecovery.StreamServerInterceptor(opts...),
 			middleware.SetMetadataFromStreamRequest(),
 			middleware.LogStreamRequest(logger),
 			// firewall.GrantAccessForStreamRequest("admin"), // TODO: do it per service request

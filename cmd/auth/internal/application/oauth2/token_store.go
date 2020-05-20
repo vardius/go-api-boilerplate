@@ -3,13 +3,15 @@ package oauth2
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
 	"gopkg.in/oauth2.v3"
-	oauth2_models "gopkg.in/oauth2.v3/models"
+	oauth2models "gopkg.in/oauth2.v3/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
@@ -42,10 +44,10 @@ func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 	ctxDoneCh := ctx.Done()
 	select {
 	case <-ctxDoneCh:
-		return errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context done")
+		return errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, ctx.Err()))
 	case err := <-out:
 		if err != nil {
-			return errors.Wrap(err, errors.INTERNAL, "Create token failed")
+			return errors.Wrap(fmt.Errorf("create token failed: %w", err))
 		}
 		return nil
 	}
@@ -56,7 +58,7 @@ func (ts *TokenStore) RemoveByCode(code string) error {
 	ctx := context.Background()
 	t, err := ts.repository.GetByCode(ctx, code)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Token RemoveByCode error")
+		return errors.Wrap(err)
 	}
 
 	return ts.remove(ctx, t)
@@ -67,7 +69,7 @@ func (ts *TokenStore) RemoveByAccess(access string) error {
 	ctx := context.Background()
 	t, err := ts.repository.GetByAccess(ctx, access)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Token RemoveByAccess error")
+		return errors.Wrap(err)
 	}
 
 	return ts.remove(ctx, t)
@@ -78,7 +80,7 @@ func (ts *TokenStore) RemoveByRefresh(refresh string) error {
 	ctx := context.Background()
 	t, err := ts.repository.GetByRefresh(ctx, refresh)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Token RemoveByRefresh error")
+		return errors.Wrap(err)
 	}
 
 	return ts.remove(ctx, t)
@@ -88,7 +90,7 @@ func (ts *TokenStore) RemoveByRefresh(refresh string) error {
 func (ts *TokenStore) GetByCode(code string) (oauth2.TokenInfo, error) {
 	t, err := ts.repository.GetByCode(context.Background(), code)
 	if err != nil {
-		return nil, errors.Wrap(err, errors.INTERNAL, "Token not found")
+		return nil, errors.Wrap(err)
 	}
 
 	return ts.toTokenInfo(t.GetData())
@@ -98,7 +100,7 @@ func (ts *TokenStore) GetByCode(code string) (oauth2.TokenInfo, error) {
 func (ts *TokenStore) GetByAccess(access string) (oauth2.TokenInfo, error) {
 	t, err := ts.repository.GetByAccess(context.Background(), access)
 	if err != nil {
-		return nil, errors.Wrap(err, errors.INTERNAL, "Token not found")
+		return nil, errors.Wrap(err)
 	}
 
 	return ts.toTokenInfo(t.GetData())
@@ -108,17 +110,17 @@ func (ts *TokenStore) GetByAccess(access string) (oauth2.TokenInfo, error) {
 func (ts *TokenStore) GetByRefresh(refresh string) (oauth2.TokenInfo, error) {
 	t, err := ts.repository.GetByRefresh(context.Background(), refresh)
 	if err != nil {
-		return nil, errors.Wrap(err, errors.INTERNAL, "Token not found")
+		return nil, errors.Wrap(err)
 	}
 
 	return ts.toTokenInfo(t.GetData())
 }
 
 func (ts *TokenStore) toTokenInfo(data []byte) (oauth2.TokenInfo, error) {
-	info := oauth2_models.Token{}
+	info := oauth2models.Token{}
 	err := json.Unmarshal(data, &info)
 	if err != nil {
-		return nil, errors.Wrap(err, errors.INTERNAL, "Unmarshal token failed")
+		return nil, errors.Wrap(fmt.Errorf("unmarshal token failed: %w", err))
 	}
 
 	return &info, nil
@@ -139,10 +141,10 @@ func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 	ctxDoneCh := ctx.Done()
 	select {
 	case <-ctxDoneCh:
-		return errors.Wrap(ctx.Err(), errors.TIMEOUT, "Context done")
+		return errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, ctx.Err()))
 	case err := <-out:
 		if err != nil {
-			return errors.Wrap(err, errors.INTERNAL, "Token remove failed")
+			return errors.Wrap(fmt.Errorf("token remove failed: %w", err))
 		}
 		return nil
 	}

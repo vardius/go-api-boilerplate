@@ -3,15 +3,15 @@ package http
 import (
 	"database/sql"
 
-	http_cors "github.com/rs/cors"
+	httpcors "github.com/rs/cors"
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 	"gopkg.in/oauth2.v3/server"
 
-	http_form_middleware "github.com/mar1n3r0/gorouter-middleware-formjson"
+	httpformmiddleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http/handlers"
-	http_middleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
+	httpmiddleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
@@ -19,16 +19,16 @@ import (
 func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
 	// Global middleware
 	router := gorouter.New(
-		http_middleware.Recover(logger),
-		http_middleware.WithMetadata(),
-		http_middleware.Logger(logger),
-		http_middleware.WithContainer(),
-		http_cors.Default().Handler,
-		http_middleware.XSS(),
-		http_middleware.HSTS(),
-		http_middleware.Metrics(),
-		http_middleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
-		http_form_middleware.FormJson(),
+		httpmiddleware.Recover(logger),
+		httpmiddleware.WithMetadata(),
+		httpmiddleware.Logger(logger),
+		httpmiddleware.WithContainer(),
+		httpcors.Default().Handler,
+		httpmiddleware.XSS(),
+		httpmiddleware.HSTS(),
+		httpmiddleware.Metrics(),
+		httpmiddleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
+		httpformmiddleware.FormJson(),
 	)
 
 	// Liveness probes are to indicate that your application is running

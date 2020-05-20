@@ -6,8 +6,10 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
@@ -62,22 +64,22 @@ func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, clientId, userId, code, access, refresh, data) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid token insert query")
+		return errors.Wrap(fmt.Errorf("%w: Invalid token insert query: %s", application.ErrInternal, err))
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, token.ID, token.ClientID, token.UserID, token.Code, token.Access, token.Refresh, token.Data)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not add token")
+		return errors.Wrap(fmt.Errorf("%w: Could not add token: %s", application.ErrInternal, err))
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(fmt.Errorf("%w: Could not get affected rows: %s", application.ErrInternal, err))
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not add token")
+		return errors.Wrap(fmt.Errorf("%w: Did not add token", application.ErrInternal))
 	}
 
 	return nil
@@ -86,22 +88,22 @@ func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
 func (r *tokenRepository) Delete(ctx context.Context, id string) error {
 	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM auth_tokens WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid token delete query")
+		return errors.Wrap(fmt.Errorf("%w: Invalid token delete query: %s", application.ErrInternal, err))
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, id)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not delete token")
+		return errors.Wrap(fmt.Errorf("%w: Could not delete token: %s", application.ErrInternal, err))
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(fmt.Errorf("%w: Could not get affected rows: %s", application.ErrInternal, err))
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not delete token")
+		return errors.Wrap(fmt.Errorf("%w: Did not delete token", application.ErrInternal))
 	}
 
 	return nil
@@ -113,9 +115,9 @@ func (r *tokenRepository) getTokenFromRow(row *sql.Row) (persistence.Token, erro
 
 	switch {
 	case err == sql.ErrNoRows:
-		return nil, errors.Wrap(err, errors.NOTFOUND, "Token not found")
+		return nil, errors.Wrap(fmt.Errorf("%w: Token not found: %s", application.ErrInternal, err))
 	case err != nil:
-		return nil, errors.Wrap(err, errors.INTERNAL, "Error while scanning auth_tokens table")
+		return nil, errors.Wrap(fmt.Errorf("%w: Error while scanning auth_tokens table: %s", application.ErrInternal, err))
 	default:
 		return token, nil
 	}

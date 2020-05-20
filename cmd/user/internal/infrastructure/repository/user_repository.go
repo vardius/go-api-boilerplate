@@ -28,7 +28,7 @@ func NewUserRepository(store eventstore.EventStore, bus eventbus.EventBus) user.
 func (r *userRepository) Save(ctx context.Context, u user.User) error {
 	err := r.eventStore.Store(u.Changes())
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "User save error")
+		return errors.Wrap(err)
 	}
 
 	for _, event := range u.Changes() {

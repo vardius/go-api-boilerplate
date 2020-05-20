@@ -84,7 +84,7 @@ func (t Token) Changes() []domain.Event {
 func (t *Token) Create(id uuid.UUID, info oauth2.TokenInfo) error {
 	data, err := json.Marshal(info)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Token create error when parsing info to JSON")
+		return errors.Wrap(err)
 	}
 
 	return t.trackChange(WasCreated{
@@ -111,7 +111,7 @@ func (t *Token) trackChange(e domain.RawEvent) error {
 
 	event, err := domain.NewEvent(t.id, StreamName, t.version, e)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Token trackChange error")
+		return errors.Wrap(err)
 	}
 
 	t.changes = append(t.changes, event)

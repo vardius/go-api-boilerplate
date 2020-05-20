@@ -183,7 +183,7 @@ func (u *User) trackChange(e domain.RawEvent) error {
 
 	event, err := domain.NewEvent(u.id, StreamName, u.version, e)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "User trackChange error")
+		return errors.Wrap(err)
 	}
 
 	u.changes = append(u.changes, event)

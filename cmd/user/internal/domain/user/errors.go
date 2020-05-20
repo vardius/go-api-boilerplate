@@ -1,6 +1,8 @@
 package user
 
-import "github.com/vardius/go-api-boilerplate/pkg/errors"
+import (
+	"fmt"
+)
 
 // ErrAlreadyRegistered is when user with given email already exist.
-var ErrAlreadyRegistered = errors.New(errors.INTERNAL, "User is already registered")
+var ErrAlreadyRegistered = fmt.Errorf("user is already registered")

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/vardius/gocontainer"
-	pubsub_proto "github.com/vardius/pubsub/v2/proto"
-	pushpull_proto "github.com/vardius/pushpull/proto"
+	pubsubproto "github.com/vardius/pubsub/v2/proto"
+	pushpullproto "github.com/vardius/pushpull/proto"
 
 	"github.com/vardius/go-api-boilerplate/pkg/container"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
@@ -33,7 +33,7 @@ type EventBus interface {
 }
 
 // New creates pubsub event bus
-func New(handlerTimeout time.Duration, pubsub pubsub_proto.PubSubClient, pushpull pushpull_proto.PushPullClient, log *log.Logger) EventBus {
+func New(handlerTimeout time.Duration, pubsub pubsubproto.PubSubClient, pushpull pushpullproto.PushPullClient, log *log.Logger) EventBus {
 	return &eventBus{handlerTimeout, pubsub, pushpull, log}
 }
 
@@ -44,15 +44,15 @@ type dto struct {
 
 type eventBus struct {
 	handlerTimeout time.Duration
-	pubsub         pubsub_proto.PubSubClient
-	pushpull       pushpull_proto.PushPullClient
+	pubsub         pubsubproto.PubSubClient
+	pushpull       pushpullproto.PushPullClient
 	logger         *log.Logger
 }
 
 // Pull adds worker to pull events from queue,
 // pulled even will not be handled by other handlers
 func (bus *eventBus) Pull(ctx context.Context, eventType string, fn EventHandler) error {
-	stream, err := bus.pushpull.Pull(ctx, &pushpull_proto.PullRequest{
+	stream, err := bus.pushpull.Pull(ctx, &pushpullproto.PullRequest{
 		Topic: eventType,
 	})
 	if err != nil {
@@ -92,7 +92,7 @@ func (bus *eventBus) Push(ctx context.Context, event domain.Event) {
 
 	bus.logger.Debug(ctx, "[EventBus] Push: %s %s\n", event.Metadata.Type, payload)
 
-	if _, err := bus.pushpull.Push(ctx, &pushpull_proto.PushRequest{
+	if _, err := bus.pushpull.Push(ctx, &pushpullproto.PushRequest{
 		Topic:   event.Metadata.Type,
 		Payload: payload,
 	}); err != nil {
@@ -103,7 +103,7 @@ func (bus *eventBus) Push(ctx context.Context, event domain.Event) {
 
 // Subscribe registers handler to be notified of every event published
 func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn EventHandler) error {
-	stream, err := bus.pubsub.Subscribe(ctx, &pubsub_proto.SubscribeRequest{
+	stream, err := bus.pubsub.Subscribe(ctx, &pubsubproto.SubscribeRequest{
 		Topic: eventType,
 	})
 	if err != nil {
@@ -142,7 +142,7 @@ func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
 
 	bus.logger.Debug(ctx, "[EventBus] Publish: %s %s\n", event.Metadata.Type, payload)
 
-	if _, err := bus.pubsub.Publish(ctx, &pubsub_proto.PublishRequest{
+	if _, err := bus.pubsub.Publish(ctx, &pubsubproto.PublishRequest{
 		Topic:   event.Metadata.Type,
 		Payload: payload,
 	}); err != nil {

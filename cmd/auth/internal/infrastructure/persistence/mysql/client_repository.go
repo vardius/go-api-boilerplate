@@ -6,8 +6,10 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
@@ -23,9 +25,9 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 	err := row.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.Data)
 	switch {
 	case err == sql.ErrNoRows:
-		return nil, errors.Wrap(err, errors.NOTFOUND, "Client not found")
+		return nil, errors.Wrap(fmt.Errorf("%w: Client not found: %s", application.ErrNotFound, err))
 	case err != nil:
-		return nil, errors.Wrap(err, errors.INTERNAL, "Error while scanning clients table")
+		return nil, errors.Wrap(err)
 	default:
 		return client, nil
 	}
@@ -42,22 +44,22 @@ func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error 
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, secret, domain, data) VALUES (?,?,?,?)`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid client insert query")
+		return errors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, client.ID, client.UserID, client.Secret, client.Domain, client.Data)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not add client")
+		return errors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not add client")
+		return errors.New("Did not add client")
 	}
 
 	return nil
@@ -66,22 +68,22 @@ func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error 
 func (r *clientRepository) Delete(ctx context.Context, id string) error {
 	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM clients WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Invalid client delete query")
+		return errors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, id)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not delete client")
+		return errors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Could not get affected rows")
+		return errors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New(errors.INTERNAL, "Did not delete client")
+		return errors.New("Did not delete client")
 	}
 
 	return nil

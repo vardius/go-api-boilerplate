@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -9,6 +10,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -24,7 +26,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		accessToken := r.FormValue("accessToken")
 		profileData, e := getProfile(accessToken, apiURL)
 		if e != nil {
-			appErr := errors.Wrap(e, errors.INVALID, "Invalid access token")
+			appErr := errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, e))
 
 			response.MustJSONError(r.Context(), w, appErr)
 			return
@@ -32,9 +34,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 
 		c, err := user.NewCommandFromPayload(commandName, profileData)
 		if err != nil {
-			appErr := errors.Wrap(err, errors.INTERNAL, "Invalid request")
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 			return
 		}
 
@@ -47,15 +47,13 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 
 		select {
 		case <-r.Context().Done():
-			appErr := errors.Wrap(r.Context().Err(), errors.INTERNAL, "Invalid request")
+			appErr := errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, r.Context().Err()))
 
 			response.MustJSONError(r.Context(), w, appErr)
 			return
 		case err = <-out:
 			if err != nil {
-				appErr := errors.Wrap(err, errors.INTERNAL, "Invalid request")
-
-				response.MustJSONError(r.Context(), w, appErr)
+				response.MustJSONError(r.Context(), w, errors.Wrap(err))
 				return
 			}
 		}
@@ -63,23 +61,19 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		emailData := requestBody{}
 		e = json.Unmarshal(profileData, &emailData)
 		if e != nil {
-			appErr := errors.Wrap(e, errors.INTERNAL, "Generate token failure, could not parse body")
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(e))
 			return
 		}
 
 		token, err := config.PasswordCredentialsToken(r.Context(), emailData.Email, secretKey)
 		if err != nil {
-			appErr := errors.Wrap(err, errors.INTERNAL, "Generate token failure")
-
-			response.MustJSONError(r.Context(), w, appErr)
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 		if err := response.JSON(r.Context(), w, token); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err, errors.INTERNAL, "Could not parse response"))
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
 
@@ -95,7 +89,7 @@ func getProfile(accessToken, apiURL string) ([]byte, error) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return body, errors.Wrap(err, errors.INTERNAL, "Read body error")
+		return body, errors.Wrap(err)
 	}
 
 	return body, nil

@@ -84,7 +84,7 @@ func (c Client) Changes() []domain.Event {
 func (c *Client) Create(info oauth2.ClientInfo) error {
 	data, err := json.Marshal(info)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Client create error when parsing info to JSON")
+		return errors.Wrap(err)
 	}
 
 	return c.trackChange(WasCreated{
@@ -108,7 +108,7 @@ func (c *Client) trackChange(e domain.RawEvent) error {
 
 	event, err := domain.NewEvent(c.id, StreamName, c.version, e)
 	if err != nil {
-		return errors.Wrap(err, errors.INTERNAL, "Client trackChange error")
+		return errors.Wrap(err)
 	}
 
 	c.changes = append(c.changes, event)
