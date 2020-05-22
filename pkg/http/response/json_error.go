@@ -5,9 +5,11 @@ package response
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/pkg/container"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	httperrors "github.com/vardius/go-api-boilerplate/pkg/http/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	mtd "github.com/vardius/go-api-boilerplate/pkg/metadata"
@@ -25,11 +27,17 @@ func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
 
 	if requestContainer, ok := container.FromContext(ctx); ok {
 		if v, ok := requestContainer.Get("logger"); ok {
+			var stackTrace string
+			var appErr *apperrors.AppError
+			if errors.As(err, &appErr) {
+				stackTrace, _ = appErr.StackTrace()
+			}
+
 			if logger, ok := v.(*log.Logger); ok {
 				if httpError.Code == http.StatusInternalServerError {
-					logger.Error(ctx, "[HTTP] Error: %s\n%s\n", err, httpError.StackTrace)
+					logger.Error(ctx, "[HTTP] Error: %s\n%s\n", err, stackTrace)
 				} else {
-					logger.Debug(ctx, "[HTTP] Error: %s\n%s\n", err, httpError.StackTrace)
+					logger.Debug(ctx, "[HTTP] Error: %s\n%s\n", err, stackTrace)
 				}
 			}
 		}
