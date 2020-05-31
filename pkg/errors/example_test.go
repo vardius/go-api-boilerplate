@@ -10,9 +10,6 @@ func ExampleNew() {
 	err := errors.New("example")
 
 	fmt.Printf("%s\n", err)
-
-	// Output:
-	// example
 }
 
 func ExampleWrap() {
@@ -20,7 +17,4 @@ func ExampleWrap() {
 	err := errors.Wrap(subErr)
 
 	fmt.Printf("%s\n", err)
-
-	// Output:
-	// example
 }
