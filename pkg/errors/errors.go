@@ -40,7 +40,8 @@ type AppError struct {
 
 // Error returns the string representation of the error message.
 func (e *AppError) Error() string {
-	return e.err.Error()
+	stack, _ := e.StackTrace()
+	return stack
 }
 
 func (e *AppError) Unwrap() error {
@@ -58,6 +59,10 @@ func (e *AppError) StackTrace() (string, error) {
 		}
 	}
 
+	if e.err == nil {
+		return buf.String(), nil
+	}
+
 	var next *AppError
 	if errors.As(e.err, &next) {
 		stackTrace, err := next.StackTrace()
@@ -66,6 +71,8 @@ func (e *AppError) StackTrace() (string, error) {
 		}
 
 		buf.WriteString(stackTrace)
+	} else {
+		return fmt.Sprintf("%s:\n%s", e.err, buf.String()), nil
 	}
 
 	return buf.String(), nil
