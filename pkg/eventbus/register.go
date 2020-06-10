@@ -18,7 +18,7 @@ func RegisterHandlers(grpcPubSubConn *grpc.ClientConn, grpcPushPullConn *grpc.Cl
 	defer cancel()
 
 	// Will retry infinitely until timeouts by context (after 5 seconds)
-	_, err := gollback.New(ctx).Retry(0, func(ctx context.Context) (interface{}, error) {
+	_, err := gollback.Retry(ctx, 0, func(ctx context.Context) (interface{}, error) {
 		if !grpcutils.IsConnectionServing(ctx, "pubsub", grpcPubSubConn) {
 			return nil, fmt.Errorf(" %s gRPC connection is not serving", "pubsub")
 		}
@@ -29,7 +29,7 @@ func RegisterHandlers(grpcPubSubConn *grpc.ClientConn, grpcPushPullConn *grpc.Cl
 		for topic, handler := range topicToHandlerMap {
 			// Will resubscribe to handler on error infinitely
 			go func(topic string, handler EventHandler) {
-				gollback.New(context.Background()).Retry(0, func(ctx context.Context) (interface{}, error) {
+				_, _ = gollback.Retry(context.Background(), 0, func(ctx context.Context) (interface{}, error) {
 					// we call Pull instead of Subscribe because we want only one handler to handle event
 					// while having multiple pods running
 					err := eventBus.Pull(ctx, topic, handler)

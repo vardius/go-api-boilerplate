@@ -17,7 +17,7 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/valyala/fasthttp v1.9.0 // indirect
 	github.com/vardius/gocontainer v1.0.3
-	github.com/vardius/gollback v1.0.6
+	github.com/vardius/gollback v1.1.0
 	github.com/vardius/golog v1.1.1
 	github.com/vardius/gorouter/v4 v4.4.3
 	github.com/vardius/message-bus v1.1.4
