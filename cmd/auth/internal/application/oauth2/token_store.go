@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"gopkg.in/oauth2.v3"
-	oauth2models "gopkg.in/oauth2.v3/models"
+	"gopkg.in/oauth2.v4"
+	oauth2models "gopkg.in/oauth2.v4/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
@@ -28,8 +28,7 @@ type TokenStore struct {
 }
 
 // Create create and store the new token information
-func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
-	ctx := context.Background()
+func (ts *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 	out := make(chan error, 1)
 	defer close(out)
 
@@ -54,8 +53,7 @@ func (ts *TokenStore) Create(info oauth2.TokenInfo) error {
 }
 
 // RemoveByCode use the authorization code to delete the token information
-func (ts *TokenStore) RemoveByCode(code string) error {
-	ctx := context.Background()
+func (ts *TokenStore) RemoveByCode(ctx context.Context, code string) error {
 	t, err := ts.repository.GetByCode(ctx, code)
 	if err != nil {
 		return errors.Wrap(err)
@@ -65,8 +63,7 @@ func (ts *TokenStore) RemoveByCode(code string) error {
 }
 
 // RemoveByAccess use the access token to delete the token information
-func (ts *TokenStore) RemoveByAccess(access string) error {
-	ctx := context.Background()
+func (ts *TokenStore) RemoveByAccess(ctx context.Context, access string) error {
 	t, err := ts.repository.GetByAccess(ctx, access)
 	if err != nil {
 		return errors.Wrap(err)
@@ -76,8 +73,7 @@ func (ts *TokenStore) RemoveByAccess(access string) error {
 }
 
 // RemoveByRefresh use the refresh token to delete the token information
-func (ts *TokenStore) RemoveByRefresh(refresh string) error {
-	ctx := context.Background()
+func (ts *TokenStore) RemoveByRefresh(ctx context.Context, refresh string) error {
 	t, err := ts.repository.GetByRefresh(ctx, refresh)
 	if err != nil {
 		return errors.Wrap(err)
@@ -87,36 +83,36 @@ func (ts *TokenStore) RemoveByRefresh(refresh string) error {
 }
 
 // GetByCode use the authorization code for token information data
-func (ts *TokenStore) GetByCode(code string) (oauth2.TokenInfo, error) {
-	t, err := ts.repository.GetByCode(context.Background(), code)
+func (ts *TokenStore) GetByCode(ctx context.Context, code string) (oauth2.TokenInfo, error) {
+	t, err := ts.repository.GetByCode(ctx, code)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
 
-	return ts.toTokenInfo(t.GetData())
+	return ts.toTokenInfo(ctx, t.GetData())
 }
 
 // GetByAccess use the access token for token information data
-func (ts *TokenStore) GetByAccess(access string) (oauth2.TokenInfo, error) {
-	t, err := ts.repository.GetByAccess(context.Background(), access)
+func (ts *TokenStore) GetByAccess(ctx context.Context, access string) (oauth2.TokenInfo, error) {
+	t, err := ts.repository.GetByAccess(ctx, access)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
 
-	return ts.toTokenInfo(t.GetData())
+	return ts.toTokenInfo(ctx, t.GetData())
 }
 
 // GetByRefresh use the refresh token for token information data
-func (ts *TokenStore) GetByRefresh(refresh string) (oauth2.TokenInfo, error) {
-	t, err := ts.repository.GetByRefresh(context.Background(), refresh)
+func (ts *TokenStore) GetByRefresh(ctx context.Context, refresh string) (oauth2.TokenInfo, error) {
+	t, err := ts.repository.GetByRefresh(ctx, refresh)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
 
-	return ts.toTokenInfo(t.GetData())
+	return ts.toTokenInfo(ctx, t.GetData())
 }
 
-func (ts *TokenStore) toTokenInfo(data []byte) (oauth2.TokenInfo, error) {
+func (ts *TokenStore) toTokenInfo(ctx context.Context, data []byte) (oauth2.TokenInfo, error) {
 	info := oauth2models.Token{}
 	err := json.Unmarshal(data, &info)
 	if err != nil {
@@ -130,8 +126,13 @@ func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 	out := make(chan error, 1)
 	defer close(out)
 
+	id, err := uuid.Parse(t.GetID())
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	c := token.Remove{
-		ID: uuid.MustParse(t.GetID()),
+		ID: id,
 	}
 
 	go func() {

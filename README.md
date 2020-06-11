@@ -43,6 +43,8 @@ This is mono-repository of many services such as authentication or user domain. 
 
 This project setup should reduce the time spent on environment configuration for the whole kubernetes cluster and/or each of microservice. Extracting each of services to own repository or keeping it as mono-repo should be a matter of preference.
 
+*Please look for comments like `@TODO` and `@FIXME` to better understand thing than need attention.*
+
 Key concepts:
 1. Rest API
 2. [Docker](https://www.docker.com/what-docker)

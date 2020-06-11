@@ -38,11 +38,17 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 				return
 			}
 
+			// Already authenticated
+			if _, ok := identity.FromContext(r.Context()); ok {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			if strings.HasPrefix(token, "Bearer ") {
 				if bearer, err := base64.StdEncoding.DecodeString(token[7:]); err == nil {
 					i, err := a.afn(string(bearer))
 					if err != nil {
-						w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
+						w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
 
 						response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
 						return
@@ -53,7 +59,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 				}
 			}
 
-			w.Header().Set("WWW-Authenticate", `Bearer realm="`+realm+`"`)
+			w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
 
 			response.MustJSONError(r.Context(), w, application.ErrUnauthorized)
 		}

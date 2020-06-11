@@ -9,7 +9,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"gopkg.in/oauth2.v3"
+	"gopkg.in/oauth2.v4"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -87,9 +87,19 @@ func (c *Client) Create(info oauth2.ClientInfo) error {
 		return errors.Wrap(err)
 	}
 
+	id, err := uuid.Parse(info.GetID())
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	userID, err := uuid.Parse(info.GetUserID())
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	return c.trackChange(WasCreated{
-		ID:     uuid.MustParse(info.GetID()),
-		UserID: uuid.MustParse(info.GetUserID()),
+		ID:     id,
+		UserID: userID,
 		Secret: info.GetSecret(),
 		Domain: info.GetDomain(),
 		Data:   data,

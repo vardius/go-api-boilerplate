@@ -8,7 +8,7 @@ import (
 	"runtime/debug"
 
 	"github.com/google/uuid"
-	"gopkg.in/oauth2.v3"
+	"gopkg.in/oauth2.v4"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"

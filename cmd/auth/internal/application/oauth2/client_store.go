@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sync"
 
-	"gopkg.in/oauth2.v3"
-	oauth2models "gopkg.in/oauth2.v3/models"
+	"gopkg.in/oauth2.v4"
+	oauth2models "gopkg.in/oauth2.v4/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
@@ -30,13 +30,13 @@ type ClientStore struct {
 }
 
 // GetByID according to the ID for the client information
-func (cs *ClientStore) GetByID(id string) (oauth2.ClientInfo, error) {
+func (cs *ClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
 	i, err := cs.Internal(id)
 	if err == nil {
 		return i, nil
 	}
 
-	c, err := cs.repository.Get(context.Background(), id)
+	c, err := cs.repository.Get(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}

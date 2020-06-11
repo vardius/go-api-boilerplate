@@ -69,7 +69,7 @@ func AppendIdentityToOutgoingStreamContext() grpc.StreamClientInterceptor {
 // }
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
-func GrantAccessForStreamRequest(role string) grpc.StreamServerInterceptor {
+func GrantAccessForStreamRequest(role identity.Role) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
 			var i identity.Identity
@@ -82,10 +82,8 @@ func GrantAccessForStreamRequest(role string) grpc.StreamServerInterceptor {
 				// TODO: update server stream context
 				// ctx := identity.ContextWithIdentity(ss.Context(), i)
 
-				for _, userRole := range i.Roles {
-					if userRole == role {
-						return handler(srv, ss)
-					}
+				if i.HasRole(role) {
+					return handler(srv, ss)
 				}
 			}
 		}
@@ -103,7 +101,7 @@ func GrantAccessForStreamRequest(role string) grpc.StreamServerInterceptor {
 // }
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
-func GrantAccessForUnaryRequest(role string) grpc.UnaryServerInterceptor {
+func GrantAccessForUnaryRequest(role identity.Role) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			var i identity.Identity
@@ -115,10 +113,8 @@ func GrantAccessForUnaryRequest(role string) grpc.UnaryServerInterceptor {
 
 				ctx = identity.ContextWithIdentity(ctx, i)
 
-				for _, userRole := range i.Roles {
-					if userRole == role {
-						return handler(ctx, req)
-					}
+				if i.HasRole(role) {
+					return handler(ctx, req)
 				}
 			}
 		}

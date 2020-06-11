@@ -11,15 +11,15 @@ import (
 
 	httpformmiddleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 
-	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	usersecurity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	userpersistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
+	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	httpmiddleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
 	httpauthenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
-	"github.com/vardius/go-api-boilerplate/pkg/http/middleware/firewall"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
@@ -27,8 +27,8 @@ const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
 // NewRouter provides new router
-func NewRouter(logger *log.Logger, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpAuthClient authproto.AuthenticationServiceClient, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
-	auth := httpauthenticator.NewToken(usersecurity.TokenAuthHandler(grpAuthClient, repository))
+func NewRouter(logger *log.Logger, claims auth.ClaimsProvider, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
+	authenticator := httpauthenticator.NewToken(usersecurity.TokenAuthSecretHandler(claims))
 
 	// Global middleware
 	router := gorouter.New(
@@ -42,8 +42,9 @@ func NewRouter(logger *log.Logger, repository userpersistence.UserRepository, co
 		httpmiddleware.Metrics(),
 		httpmiddleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 		httpformmiddleware.FormJson(),
-		auth.FromHeader("USER"),
-		auth.FromQuery("authToken"),
+		authenticator.FromHeader("Restricted"),
+		authenticator.FromQuery("authToken"),
+		authenticator.FromCookie("at"),
 	)
 
 	// Liveness probes are to indicate that your application is running
@@ -60,10 +61,10 @@ func NewRouter(logger *log.Logger, repository userpersistence.UserRepository, co
 	// Public User routes
 	router.POST("/v1/dispatch/{command}", commandDispatchHandler)
 	// Protected User routes
-	router.USE(http.MethodPost, "/v1/dispatch/"+user.ChangeUserEmailAddress, firewall.GrantAccessFor("USER"))
+	router.USE(http.MethodPost, "/v1/dispatch/"+user.ChangeUserEmailAddress, httpmiddleware.GrantAccessFor(identity.RoleUser))
 
 	router.GET("/v1/me", handlers.BuildMeHandler(repository))
-	router.USE(http.MethodGet, "/v1/me", firewall.GrantAccessFor("USER"))
+	router.USE(http.MethodGet, "/v1/me", httpmiddleware.GrantAccessFor(identity.RoleUser))
 
 	router.GET("/v1/", handlers.BuildListUserHandler(repository))
 	router.GET("/v1/{id}", handlers.BuildGetUserHandler(repository))

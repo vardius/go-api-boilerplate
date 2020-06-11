@@ -10,9 +10,8 @@ func TestNew(t *testing.T) {
 	id := uuid.New()
 	token := "token"
 	email := "test@emai.com"
-	roles := []string{"user"}
 
-	identity := New(id.String(), token, email, roles)
+	identity := New(id, token, email)
 
 	if identity.ID != id {
 		t.Errorf("Identity ID does not match, given: %s | expected %s", identity.ID, id)
@@ -23,8 +22,8 @@ func TestNew(t *testing.T) {
 	if identity.Token != token {
 		t.Errorf("Identity Token does not match, given: %s | expected %s", identity.Token, token)
 	}
-	if len(identity.Roles) != len(roles) && identity.Roles[0] != roles[0] {
-		t.Errorf("Identity Roles does not match, given: %s | expected %s", identity.Roles, roles)
+	if !identity.HasRole(RoleUser) {
+		t.Errorf("Identity Roles does not match, given: %s | expected %s", identity.Roles, RoleUser)
 	}
 }
 

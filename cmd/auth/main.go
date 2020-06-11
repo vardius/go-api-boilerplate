@@ -12,7 +12,7 @@ import (
 	pushpullproto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
 	grpchealth "google.golang.org/grpc/health"
-	oauth2models "gopkg.in/oauth2.v3/models"
+	oauth2models "gopkg.in/oauth2.v4/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
@@ -24,6 +24,7 @@ import (
 	authgrpc "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/grpc"
 	authhttp "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
@@ -53,6 +54,8 @@ func main() {
 			ServerTimeout: config.Env.GRPC.ServerTimeout,
 		},
 		logger,
+		nil,
+		nil,
 	)
 	commandBus := commandbus.New(config.Env.CommandBus.QueueSize, logger)
 
@@ -112,12 +115,14 @@ func main() {
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
 	tokenPersistenceRepository := persistence.NewTokenRepository(mysqlConnection)
 	clientPersistenceRepository := persistence.NewClientRepository(mysqlConnection)
+	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	tokenStore := oauth2.NewTokenStore(tokenPersistenceRepository, commandBus)
 	clientStore := oauth2.NewClientStore(clientPersistenceRepository)
-	manager := oauth2.NewManager(tokenStore, clientStore, []byte(config.Env.App.Secret))
-	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.App.Secret)
+	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.App.Secret))
+	manager := oauth2.NewManager(tokenStore, clientStore, authenticator, userPersistenceRepository)
+	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.App.Secret, config.Env.OAuth.InitTimeout)
 	grpcHealthServer := grpchealth.NewServer()
-	grpcAuthServer := authgrpc.NewServer(oauth2Server, logger, config.Env.App.Secret)
+	grpcAuthServer := authgrpc.NewServer(oauth2Server, authenticator, logger)
 	router := authhttp.NewRouter(
 		logger,
 		oauth2Server,

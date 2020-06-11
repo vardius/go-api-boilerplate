@@ -7,55 +7,41 @@ import (
 	"context"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"gopkg.in/oauth2.v3/generates"
-	"gopkg.in/oauth2.v3/server"
+	"gopkg.in/oauth2.v4/server"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 type authenticationServer struct {
-	server    *server.Server
-	logger    *log.Logger
-	secretKey string
+	server        *server.Server
+	authenticator auth.Authenticator
+	logger        *log.Logger
 }
 
 // NewServer returns new user server object
-func NewServer(server *server.Server, logger *log.Logger, secretKey string) proto.AuthenticationServiceServer {
+func NewServer(server *server.Server, authenticator auth.Authenticator, logger *log.Logger) proto.AuthenticationServiceServer {
 	return &authenticationServer{
 		server,
+		authenticator,
 		logger,
-		secretKey,
 	}
 }
 
 // VerifyToken verifies token
 func (s *authenticationServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (*proto.VerifyTokenResponse, error) {
-	accessToken, err := jwt.ParseWithClaims(req.GetToken(), &generates.JWTAccessClaims{}, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("Failed to decode token, invalid signing method")
-		}
-		return []byte(s.secretKey), nil
-	})
-	if err != nil {
+	if err := s.authenticator.Verify(req.GetToken(), &auth.Claims{}); err != nil {
 		s.logger.Error(ctx, "%v\n", err)
-		return nil, status.Error(codes.Internal, "Failed to parse token with claims")
+		return nil, status.Error(codes.Internal, "Invalid token, could not verify")
 	}
 
-	_, ok := accessToken.Claims.(*generates.JWTAccessClaims)
-	if !ok || !accessToken.Valid {
-		s.logger.Error(ctx, "%v\n", errors.New("Token is not valid, could not parse claims"))
-		return nil, status.Error(codes.Internal, "Token is not valid, could not parse claims")
-	}
-
-	tokenInfo, err := s.server.Manager.LoadAccessToken(req.GetToken())
+	tokenInfo, err := s.server.Manager.LoadAccessToken(ctx, req.GetToken())
 	if err != nil {
 		s.logger.Error(ctx, "%v\n", err)
-		return nil, status.Error(codes.NotFound, "Could not load token")
+		return nil, status.Error(codes.NotFound, "Could not load token info")
 	}
 
 	res := &proto.VerifyTokenResponse{

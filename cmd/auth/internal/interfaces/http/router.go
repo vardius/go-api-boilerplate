@@ -6,7 +6,7 @@ import (
 	httpcors "github.com/rs/cors"
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
-	"gopkg.in/oauth2.v3/server"
+	"gopkg.in/oauth2.v4/server"
 
 	httpformmiddleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 

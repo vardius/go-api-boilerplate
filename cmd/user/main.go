@@ -13,7 +13,6 @@ import (
 	"google.golang.org/grpc"
 	grpchealth "google.golang.org/grpc/health"
 
-	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/eventhandler"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/oauth2"
@@ -23,6 +22,7 @@ import (
 	usergrpc "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/grpc"
 	userhttp "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
@@ -53,6 +53,13 @@ func main() {
 			ServerTimeout: config.Env.GRPC.ServerTimeout,
 		},
 		logger,
+		// @TODO: Secure grpc server with firewall
+		nil, // []grpc.UnaryServerInterceptor{
+		// 	firewall.GrantAccessForUnaryRequest(identity.RoleUser),
+		// },
+		nil, // []grpc.StreamServerInterceptor{
+		// 	firewall.GrantAccessForStreamRequest(identity.RoleUser),
+		// },
 	)
 	commandBus := commandbus.New(config.Env.CommandBus.QueueSize, logger)
 
@@ -93,17 +100,6 @@ func main() {
 		logger,
 	)
 	defer grpcPushPullConn.Close()
-	grpcAuthConn := grpcutils.NewConnection(
-		ctx,
-		config.Env.Auth.Host,
-		config.Env.GRPC.Port,
-		grpcutils.ConnectionConfig{
-			ConnTime:    config.Env.GRPC.ConnTime,
-			ConnTimeout: config.Env.GRPC.ConnTimeout,
-		},
-		logger,
-	)
-	defer grpcAuthConn.Close()
 	grpcUserConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.GRPC.Host,
@@ -121,17 +117,17 @@ func main() {
 	eventBus := eventbus.New(config.Env.App.EventHandlerTimeout, grpcPubsubClient, grpPushPullClient, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
-	grpcAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
 	grpcHealthServer := grpchealth.NewServer()
 	grpcUserServer := usergrpc.NewServer(commandBus, userPersistenceRepository, logger)
+	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.App.Secret))
+	claimsProvider := auth.NewClaimsProvider(authenticator)
 	router := userhttp.NewRouter(
 		logger,
+		claimsProvider,
 		userPersistenceRepository,
 		commandBus,
 		mysqlConnection,
-		grpcAuthClient,
 		map[string]*grpc.ClientConn{
-			"auth":     grpcAuthConn,
 			"pushpull": grpcPushPullConn,
 			"pubsub":   grpcPubSubConn,
 			"user":     grpcUserConn,

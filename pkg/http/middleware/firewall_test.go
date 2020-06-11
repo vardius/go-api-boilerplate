@@ -1,4 +1,4 @@
-package firewall
+package middleware
 
 import (
 	"net/http"
@@ -14,7 +14,7 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Error("Should not get access here")
 	})
-	h := GrantAccessFor("user")(handler)
+	h := GrantAccessFor(identity.RoleUser)(handler)
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -25,7 +25,7 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 	i := identity.Identity{
 		ID:    uuid.New(),
 		Email: "test@emai.com",
-		Roles: []string{"not-user"},
+		Roles: identity.RoleAdmin,
 	}
 	ctx := identity.ContextWithIdentity(req.Context(), i)
 
@@ -37,7 +37,7 @@ func TestGrantAccessFor(t *testing.T) {
 	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		served = true
 	})
-	h := GrantAccessFor("user")(handler)
+	h := GrantAccessFor(identity.RoleUser)(handler)
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -48,7 +48,7 @@ func TestGrantAccessFor(t *testing.T) {
 	i := identity.Identity{
 		ID:    uuid.New(),
 		Email: "test@emai.com",
-		Roles: []string{"user"},
+		Roles: identity.RoleUser,
 	}
 	ctx := identity.ContextWithIdentity(req.Context(), i)
 

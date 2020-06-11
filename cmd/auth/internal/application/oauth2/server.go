@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"sync"
+	"time"
 
-	"gopkg.in/oauth2.v3"
-	oauth2errors "gopkg.in/oauth2.v3/errors"
-	oauth2server "gopkg.in/oauth2.v3/server"
+	"gopkg.in/oauth2.v4"
+	oauth2errors "gopkg.in/oauth2.v4/errors"
+	oauth2server "gopkg.in/oauth2.v4/server"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -21,7 +22,7 @@ var (
 )
 
 // InitServer initialize the oauth2 server instance
-func InitServer(manager oauth2.Manager, db *sql.DB, logger *log.Logger, secretKey string) *oauth2server.Server {
+func InitServer(manager oauth2.Manager, db *sql.DB, logger *log.Logger, secretKey string, timeout time.Duration) *oauth2server.Server {
 	onceServer.Do(func() {
 		gServer = oauth2server.NewDefaultServer(manager)
 
@@ -29,13 +30,16 @@ func InitServer(manager oauth2.Manager, db *sql.DB, logger *log.Logger, secretKe
 		gServer.SetClientInfoHandler(oauth2server.ClientFormHandler)
 
 		gServer.SetPasswordAuthorizationHandler(func(email, password string) (string, error) {
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+
 			// we allow password grant only within our system, due to email passwordless authentication
 			// password value here should contain secretKey
 			if password != secretKey {
 				return "", errors.Wrap(fmt.Errorf("%w: Invalid client, user password does not match secret key", application.ErrUnauthorized))
 			}
 
-			userID, err := getUserIDByEmail(context.Background(), db, email)
+			userID, err := getUserIDByEmail(ctx, db, email)
 			if err != nil {
 				return "", errors.Wrap(fmt.Errorf("%w: Could not find user id for given email (%s): %s", application.ErrUnauthorized, email, err))
 			}

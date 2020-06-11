@@ -18,6 +18,9 @@ type environment struct {
 		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
 		Secret              string        `env:"APP_SECRET"                envDefault:"secret"`
 	}
+	OAuth struct {
+		InitTimeout time.Duration `env:"OAUTH_INIT_TIMEOUT" envDefault:"15s"`
+	}
 	Debug struct {
 		Host string `env:"DEBUG_HOST" envDefault:"0.0.0.0"`
 		Port int    `env:"DEBUG_PORT" envDefault:"4000"`
@@ -74,6 +77,9 @@ func init() {
 	Env = &environment{}
 
 	if err := env.Parse(&Env.App); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.OAuth); err != nil {
 		panic(err)
 	}
 	if err := env.Parse(&Env.Debug); err != nil {

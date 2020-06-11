@@ -23,7 +23,7 @@ type ServerConfig struct {
 }
 
 // NewServer provides new grpc server
-func NewServer(cfg ServerConfig, logger *log.Logger) *grpc.Server {
+func NewServer(cfg ServerConfig, logger *log.Logger, unaryInterceptors []grpc.UnaryServerInterceptor, streamInterceptors []grpc.StreamServerInterceptor) *grpc.Server {
 	opts := []grpcrecovery.Option{
 		grpcrecovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
 			logger.Critical(ctx, "[gRPC|Server] Recovered in %v\n", rec)
@@ -42,16 +42,18 @@ func NewServer(cfg ServerConfig, logger *log.Logger) *grpc.Server {
 			Timeout: cfg.ServerTimeout, // Wait 20 second for the ping ack before assuming the connection is dead
 		}),
 		grpcmiddleware.WithUnaryServerChain(
-			grpcrecovery.UnaryServerInterceptor(opts...),
-			middleware.SetMetadataFromUnaryRequest(),
-			middleware.LogUnaryRequest(logger),
-			// firewall.GrantAccessForUnaryRequest("admin"), // TODO: do it per service request
+			append([]grpc.UnaryServerInterceptor{
+				grpcrecovery.UnaryServerInterceptor(opts...),
+				middleware.SetMetadataFromUnaryRequest(),
+				middleware.LogUnaryRequest(logger),
+			}, unaryInterceptors...)...,
 		),
 		grpcmiddleware.WithStreamServerChain(
-			grpcrecovery.StreamServerInterceptor(opts...),
-			middleware.SetMetadataFromStreamRequest(),
-			middleware.LogStreamRequest(logger),
-			// firewall.GrantAccessForStreamRequest("admin"), // TODO: do it per service request
+			append([]grpc.StreamServerInterceptor{
+				grpcrecovery.StreamServerInterceptor(opts...),
+				middleware.SetMetadataFromStreamRequest(),
+				middleware.LogStreamRequest(logger),
+			}, streamInterceptors...)...,
 		),
 	)
 
