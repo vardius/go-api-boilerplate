@@ -8,16 +8,16 @@ package proto;
 
 // AuthenticationService handles auth token verification
 service AuthenticationService {
-  rpc VerifyToken (VerifyTokenRequest) returns (VerifyTokenResponse);
+  rpc GetTokenInfo (GetTokenInfoRequest) returns (GetTokenInfoResponse);
 }
 
-// VerifyTokenRequest is passed when dispatching
-message VerifyTokenRequest {
+// GetTokenInfoRequest is passed when dispatching
+message GetTokenInfoRequest {
   string token = 1;
 }
 
-// VerifyTokenResponse return auth token information after successfull verification
-message VerifyTokenResponse {
+// GetTokenInfoResponse return auth token information after successful verification
+message GetTokenInfoResponse {
   int64 expiresIn = 1;
   string clientId = 2;
   string userId = 3;

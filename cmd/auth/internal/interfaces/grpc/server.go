@@ -31,8 +31,8 @@ func NewServer(server *server.Server, authenticator auth.Authenticator, logger *
 	}
 }
 
-// VerifyToken verifies token
-func (s *authenticationServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (*proto.VerifyTokenResponse, error) {
+// GetTokenInfo verifies token
+func (s *authenticationServer) GetTokenInfo(ctx context.Context, req *proto.GetTokenInfoRequest) (*proto.GetTokenInfoResponse, error) {
 	if err := s.authenticator.Verify(req.GetToken(), &auth.Claims{}); err != nil {
 		s.logger.Error(ctx, "%v\n", err)
 		return nil, status.Error(codes.Internal, "Invalid token, could not verify")
@@ -44,7 +44,7 @@ func (s *authenticationServer) VerifyToken(ctx context.Context, req *proto.Verif
 		return nil, status.Error(codes.NotFound, "Could not load token info")
 	}
 
-	res := &proto.VerifyTokenResponse{
+	res := &proto.GetTokenInfoResponse{
 		ExpiresIn: int64(tokenInfo.GetAccessCreateAt().Add(tokenInfo.GetAccessExpiresIn()).Sub(time.Now()).Seconds()),
 		ClientId:  tokenInfo.GetClientID(),
 		UserId:    tokenInfo.GetUserID(),

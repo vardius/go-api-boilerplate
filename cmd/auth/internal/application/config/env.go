@@ -16,7 +16,7 @@ type environment struct {
 		Environment         string        `env:"APP_ENV"                   envDefault:"development"`
 		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
 		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
-		Secret              string        `env:"APP_SECRET"                envDefault:"secret"`
+		Secret              string        `env:"AUTH_SECRET"               envDefault:"secret"`
 	}
 	OAuth struct {
 		InitTimeout time.Duration `env:"OAUTH_INIT_TIMEOUT" envDefault:"15s"`
@@ -45,11 +45,11 @@ type environment struct {
 		ConnTimeout   time.Duration `env:"GRPC_CONN_TIMEOUT"    envDefault:"20s"` // wait 20 second for ping ack before considering the connection dead
 	}
 	MYSQL struct {
-		Host     string `env:"MYSQL_HOST" envDefault:"0.0.0.0"`
-		Port     int    `env:"MYSQL_PORT" envDefault:"3306"`
-		User     string `env:"MYSQL_USER" envDefault:"root"`
-		Pass     string `env:"MYSQL_PASS" envDefault:"password"`
-		Database string `env:"MYSQL_NAME" envDefault:"goapiboilerplate"`
+		Host     string `env:"MYSQL_HOST"     envDefault:"0.0.0.0"`
+		Port     int    `env:"MYSQL_PORT"     envDefault:"3306"`
+		User     string `env:"MYSQL_USER"     envDefault:"root"`
+		Pass     string `env:"MYSQL_PASS"     envDefault:"password"`
+		Database string `env:"MYSQL_DATABASE" envDefault:"goapiboilerplate"`
 
 		ConnMaxLifetime time.Duration `env:"MYSQL_CONN_MAX_LIFETIME" envDefault:"5m"` //  sets the maximum amount of time a connection may be reused
 		MaxIdleConns    int           `env:"MYSQL_MAX_IDLE_CONNS"    envDefault:"0"`  // sets the maximum number of connections in the idle

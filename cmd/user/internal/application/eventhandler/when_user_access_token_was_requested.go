@@ -5,18 +5,17 @@ import (
 	"encoding/json"
 	"log"
 
-	"golang.org/x/oauth2"
-
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
 // WhenUserAccessTokenWasRequested handles event
-func WhenUserAccessTokenWasRequested(config oauth2.Config, secretKey string) eventbus.EventHandler {
+func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
 		// this goroutine runs independently to request's goroutine,
-		// therefor recover middlewears will not recover from panic to prevent crash
+		// therefor recover middleware will not recover from panic to prevent crash
 		defer recoverEventHandler()
 
 		logger := GetLogger(ctx)
@@ -30,7 +29,7 @@ func WhenUserAccessTokenWasRequested(config oauth2.Config, secretKey string) eve
 			return
 		}
 
-		token, err := config.PasswordCredentialsToken(ctx, string(e.Email), secretKey)
+		token, err := tokenProvider.RetrieveToken(ctx, string(e.Email))
 		if err != nil {
 			logger.Error(ctx, "[EventHandler] Error: %v\n", err)
 			return

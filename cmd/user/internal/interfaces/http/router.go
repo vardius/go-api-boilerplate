@@ -6,16 +6,15 @@ import (
 
 	httpcors "github.com/rs/cors"
 	"github.com/vardius/gorouter/v4"
-	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 
 	httpformmiddleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 
-	usersecurity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/security"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	userpersistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	httpmiddleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
 	httpauthenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
@@ -27,8 +26,8 @@ const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
 // NewRouter provides new router
-func NewRouter(logger *log.Logger, claims auth.ClaimsProvider, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn, oauth2Config oauth2.Config, secretKey string) gorouter.Router {
-	authenticator := httpauthenticator.NewToken(usersecurity.TokenAuthSecretHandler(claims))
+func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, tokenProvider oauth2.TokenProvider, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
+	authenticator := httpauthenticator.NewToken(tokenAuthorizer.Auth)
 
 	// Global middleware
 	router := gorouter.New(
@@ -53,8 +52,8 @@ func NewRouter(logger *log.Logger, claims auth.ClaimsProvider, repository userpe
 	router.GET("/v1/readiness", handlers.BuildReadinessHandler(mysqlConnection, grpcConnectionMap))
 
 	// Auth routes
-	router.POST("/v1/google/callback", handlers.BuildSocialAuthHandler(googleAPIURL, commandBus, user.RegisterUserWithGoogle, secretKey, oauth2Config))
-	router.POST("/v1/facebook/callback", handlers.BuildSocialAuthHandler(facebookAPIURL, commandBus, user.RegisterUserWithFacebook, secretKey, oauth2Config))
+	router.POST("/v1/google/callback", handlers.BuildSocialAuthHandler(googleAPIURL, commandBus, user.RegisterUserWithGoogle, tokenProvider))
+	router.POST("/v1/facebook/callback", handlers.BuildSocialAuthHandler(facebookAPIURL, commandBus, user.RegisterUserWithFacebook, tokenProvider))
 
 	commandDispatchHandler := handlers.BuildCommandDispatchHandler(commandBus)
 

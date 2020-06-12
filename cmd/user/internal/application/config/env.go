@@ -16,7 +16,7 @@ type environment struct {
 		Environment         string        `env:"APP_ENV"                   envDefault:"development"`
 		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
 		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
-		Secret              string        `env:"APP_SECRET"                envDefault:"secret"`
+		Secret              string        `env:"USER_SECRET"               envDefault:"secret"`
 
 		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientId"`
 		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientSecret"`
@@ -45,18 +45,19 @@ type environment struct {
 		ConnTimeout   time.Duration `env:"GRPC_CONN_TIMEOUT" envDefault:"20s"`   // wait 20 second for ping ack before considering the connection dead
 	}
 	MYSQL struct {
-		Host     string `env:"MYSQL_HOST" envDefault:"0.0.0.0"`
-		Port     int    `env:"MYSQL_PORT" envDefault:"3306"`
-		User     string `env:"MYSQL_USER" envDefault:"root"`
-		Pass     string `env:"MYSQL_PASS" envDefault:"password"`
-		Database string `env:"MYSQL_NAME" envDefault:"goapiboilerplate"`
+		Host     string `env:"MYSQL_HOST"     envDefault:"0.0.0.0"`
+		Port     int    `env:"MYSQL_PORT"     envDefault:"3306"`
+		User     string `env:"MYSQL_USER"     envDefault:"root"`
+		Pass     string `env:"MYSQL_PASS"     envDefault:"password"`
+		Database string `env:"MYSQL_DATABASE" envDefault:"goapiboilerplate"`
 
 		ConnMaxLifetime time.Duration `env:"MYSQL_CONN_MAX_LIFETIME" envDefault:"5m"` //  sets the maximum amount of time a connection may be reused
 		MaxIdleConns    int           `env:"MYSQL_MAX_IDLE_CONNS" envDefault:"0"`     // sets the maximum number of connections in the idle
 		MaxOpenConns    int           `env:"MYSQL_MAX_OPEN_CONNS" envDefault:"5"`     // sets the maximum number of connections in the idle
 	}
 	Auth struct {
-		Host string `env:"AUTH_HOST" envDefault:"0.0.0.0"` // Auth service host
+		Host   string `env:"AUTH_HOST" envDefault:"0.0.0.0"` // Auth service host
+		Secret string `env:"AUTH_SECRET"                envDefault:"secret"`
 	}
 	PubSub struct {
 		Host string `env:"PUBSUB_HOST" envDefault:"0.0.0.0"`

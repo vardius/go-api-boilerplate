@@ -27,18 +27,18 @@ dependencies:
     condition: localstack.enabled
   # External charts: https://github.com/helm/charts/blob/master/stable
   - name: cert-manager
-    version: v0.14.0
+    version: v0.15.1
     repository: https://charts.jetstack.io # `helm repo add jetstack https://charts.jetstack.io`
     condition: cert-manager.enabled
   - name: nginx-ingress
-    version: 1.33.5
+    version: 1.39.1
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: nginx-ingress.enabled
   - name: mysql
-    version: 1.6.2
+    version: 1.6.4
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: mysql.enabled
   - name: phpmyadmin
-    version: 4.3.4
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    version: 6.2.0
+    repository: https://charts.bitnami.com/bitnami # `helm repo add bitnami https://charts.bitnami.com/bitnami`
     condition: phpmyadmin.enabled

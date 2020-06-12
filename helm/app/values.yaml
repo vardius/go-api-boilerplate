@@ -67,6 +67,8 @@ ingress:
         - go-api-boilerplate.local
 
 cert-manager:
+  # https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/#new-installcrds-addition
+  installCRDs: true
   ingressShim:
     defaultIssuerName: selfsigned #letsencrypt
     defaultIssuerKind: Issuer
@@ -103,7 +105,7 @@ mysql:
   initializationFiles:
     privileges.sql: |-
       GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-      GRANT ALL PRIVILEGES ON *.* TO 'user'@'%' WITH GRANT OPTION;
+      GRANT ALL PRIVILEGES ON *.* TO 'goapiboilerplate'@'%' WITH GRANT OPTION;
       FLUSH PRIVILEGES;
     base_schema.sql: |-
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
@@ -205,7 +207,7 @@ auth:
         - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
         - 'up'
   envFromSecretRefs:
-    - app-secret
+    - auth-secret
     - user-secret
   envFromConfigMapRefs:
     - app-config
@@ -215,10 +217,10 @@ auth:
     - auth-config
     # - aws-config
   env:
-    - name: DB_PASS
+    - name: MYSQL_PASS
       valueFrom:
         secretKeyRef:
-          key: mysql-root-password
+          key: mysql-password
           name: mysql-secret
   readiness:
     initialDelaySeconds: 20
@@ -261,7 +263,7 @@ user:
         - 'mysql://root:password@tcp(go-api-boilerplate-mysql:3306)/goapiboilerplate?multiStatements=true' # @TODO: think of a better way of passing user:password data
         - 'up'
   envFromSecretRefs:
-    - app-secret
+    - auth-secret
     - user-secret
   envFromConfigMapRefs:
     - app-config
@@ -271,10 +273,10 @@ user:
     - user-config
     # - aws-config
   env:
-    - name: DB_PASS
+    - name: MYSQL_PASS
       valueFrom:
         secretKeyRef:
-          key: mysql-root-password
+          key: mysql-password
           name: mysql-secret
   readiness:
     initialDelaySeconds: 20
@@ -289,20 +291,21 @@ user:
       port: 3000
 
 secrets:
-  - name: app-secret
-    type: Opaque
-    data:
-      APP_SECRET: Y2hhbmdlbWU= # changeme
   - name: mysql-secret
     type: Opaque
     data:
-      mysql-password: cGFzc3dvcmQ= # password
-      mysql-root-password: cGFzc3dvcmQ= # password
+      mysql-root-password: cGFzc3dvcmQ= # @FIXME: change password (remember its base64 encoded here)
+      mysql-password: MDdxVmFpNGRsMVFtR2VXcjNDUUlBcGhxZUFSOVRLNWo= # @FIXME: change password (remember its base64 encoded here)
+  - name: auth-secret
+    type: Opaque
+    data:
+      AUTH_SECRET: ekxrd0tHc1BWQ3VJUWpiZGRsV2ZMeVVvMEt4Mm5lS3Y= # @FIXME: change secret value (remember its base64 encoded here)
   - name: user-secret
     type: Opaque
     data:
-      USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
-      USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # 0798173e-614c-4f78-996b-e9e63e01ed20
+      USER_SECRET: a1lpYm51WlA0b1FFNUVMRDYyN21EaVFyaFB6VmxGT1M= # @FIXME: change secret value (remember its base64 encoded here)
+      USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # @FIXME: change 0798173e-614c-4f78-996b-e9e63e01ed20 (its base64 encoded here)
+      USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # @FIXME: change 0798173e-614c-4f78-996b-e9e63e01ed20 (its base64 encoded here)
   - name: role-secret
     type: Opaque
     data:
@@ -325,8 +328,8 @@ configMaps:
     data:
       MYSQL_HOST: 'go-api-boilerplate-mysql'
       MYSQL_PORT: '3306'
-      MYSQL_NAME: 'goapiboilerplate'
-      MYSQL_USER: 'root'
+      MYSQL_DATABASE: 'goapiboilerplate'
+      MYSQL_USER: 'goapiboilerplate'
   - name: pubsub-config
     data:
       HOST: '0.0.0.0'

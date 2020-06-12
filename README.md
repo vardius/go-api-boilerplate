@@ -89,8 +89,6 @@ make docker-build BIN=user
 ```
 ### Install [Cert Manager](https://github.com/vardius/go-api-boilerplate/wiki/3.3.-Cert-manager)
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.13/deploy/manifests/00-crds.yaml
-
 helm repo add jetstack https://charts.jetstack.io
 helm repo update
 

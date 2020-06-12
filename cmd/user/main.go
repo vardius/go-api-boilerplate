@@ -23,6 +23,7 @@ import (
 	userhttp "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
+	oauth2util "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
@@ -119,21 +120,22 @@ func main() {
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
 	grpcHealthServer := grpchealth.NewServer()
 	grpcUserServer := usergrpc.NewServer(commandBus, userPersistenceRepository, logger)
-	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.App.Secret))
+	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.Auth.Secret))
+	tokenProvider := oauth2util.NewCredentialsAuthenticator(config.Env.App.Secret, oauth2Config)
 	claimsProvider := auth.NewClaimsProvider(authenticator)
+	tokenAuthorizer := auth.NewJWTTokenAuthorizer(claimsProvider)
 	router := userhttp.NewRouter(
 		logger,
-		claimsProvider,
+		tokenAuthorizer,
 		userPersistenceRepository,
 		commandBus,
+		tokenProvider,
 		mysqlConnection,
 		map[string]*grpc.ClientConn{
 			"pushpull": grpcPushPullConn,
 			"pubsub":   grpcPubSubConn,
 			"user":     grpcUserConn,
 		},
-		oauth2Config,
-		config.Env.App.Secret,
 	)
 	app := application.New(logger)
 
@@ -153,7 +155,7 @@ func main() {
 				(user.WasRegisteredWithGoogle{}).GetType():   eventhandler.WhenUserWasRegisteredWithGoogle(mysqlConnection, userPersistenceRepository),
 				(user.WasRegisteredWithFacebook{}).GetType(): eventhandler.WhenUserWasRegisteredWithFacebook(mysqlConnection, userPersistenceRepository),
 				(user.EmailAddressWasChanged{}).GetType():    eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository),
-				(user.AccessTokenWasRequested{}).GetType():   eventhandler.WhenUserAccessTokenWasRequested(oauth2Config, config.Env.App.Secret),
+				(user.AccessTokenWasRequested{}).GetType():   eventhandler.WhenUserAccessTokenWasRequested(tokenProvider),
 			},
 			5*time.Minute,
 		)

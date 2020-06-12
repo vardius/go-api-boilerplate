@@ -11,17 +11,20 @@ dependencies:
 - name: microservice
   repository: file://../microservice
   version: 0.1.0
+- name: microservice
+  repository: file://../microservice
+  version: 0.1.0
 - name: cert-manager
   repository: https://charts.jetstack.io
-  version: v0.14.0
+  version: v0.15.1
 - name: nginx-ingress
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.33.5
+  version: 1.39.1
 - name: mysql
   repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.6.2
+  version: 1.6.4
 - name: phpmyadmin
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 4.3.4
-digest: sha256:ed38abc357d813c050980ac3d01f4170170048585b65e0e13969b7b71f35d712
-generated: "2020-03-25T21:29:33.341064+11:00"
+  repository: https://charts.bitnami.com/bitnami
+  version: 6.2.0
+digest: sha256:054fa07dbb3498546335bcba2e070ac9a5a3a30d9aa19b3a80cd8c3f015bac5a
+generated: "2020-06-12T13:42:52.122387+10:00"

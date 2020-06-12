@@ -7,10 +7,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"golang.org/x/oauth2"
-
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -21,7 +20,7 @@ type requestBody struct {
 }
 
 // BuildSocialAuthHandler wraps user gRPC client with http.Handler
-func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName, secretKey string, config oauth2.Config) http.Handler {
+func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName string, tokenProvider oauth2.TokenProvider) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		accessToken := r.FormValue("accessToken")
 		profileData, e := getProfile(accessToken, apiURL)
@@ -65,7 +64,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			return
 		}
 
-		token, err := config.PasswordCredentialsToken(r.Context(), emailData.Email, secretKey)
+		token, err := tokenProvider.RetrieveToken(r.Context(), emailData.Email)
 		if err != nil {
 			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 			return

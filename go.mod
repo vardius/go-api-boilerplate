@@ -21,7 +21,7 @@ require (
 	github.com/vardius/message-bus v1.1.4
 	github.com/vardius/pubsub/v2 v2.0.0
 	github.com/vardius/pushpull v1.0.0
-	github.com/vardius/shutdown v1.0.0
+	github.com/vardius/shutdown v1.0.1
 	github.com/vardius/trace v1.0.1
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/grpc v1.28.0

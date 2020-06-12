@@ -21,6 +21,7 @@ func TestHas(t *testing.T) {
 	}
 
 	ctx = WithFlag(ctx, LIVE)
+	ctx = WithFlag(ctx, REPLAY)
 
 	if !Has(ctx, LIVE) {
 		t.Fail()
