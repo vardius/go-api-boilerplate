@@ -42,7 +42,8 @@ func init() {
 func main() {
 	buildinfo.PrintVersionOrContinue()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	logger := log.New(config.Env.App.Environment)
 	eventStore := eventstore.New()

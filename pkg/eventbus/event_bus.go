@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/vardius/gocontainer"
 	pubsubproto "github.com/vardius/pubsub/v2/proto"
 	pushpullproto "github.com/vardius/pushpull/proto"
 
-	"github.com/vardius/go-api-boilerplate/pkg/container"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
@@ -165,11 +163,6 @@ func (bus *eventBus) dispatchEvent(payload []byte, fn EventHandler) error {
 	if o.RequestMetadata != nil {
 		ctx = metadata.ContextWithMetadata(ctx, o.RequestMetadata)
 	}
-
-	requestContainer := gocontainer.New()
-	requestContainer.Register("logger", bus.logger)
-
-	ctx = container.ContextWithContainer(ctx, requestContainer)
 
 	bus.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s\n", o.Event.Metadata.Type, o.Event.Payload)
 

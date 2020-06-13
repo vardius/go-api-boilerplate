@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	httpcors "github.com/rs/cors"
+	"github.com/vardius/gocontainer"
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 
@@ -34,7 +35,7 @@ func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, reposit
 		httpmiddleware.Recover(logger),
 		httpmiddleware.WithMetadata(),
 		httpmiddleware.Logger(logger),
-		httpmiddleware.WithContainer(),
+		httpmiddleware.WithContainer(gocontainer.New()), // used to pass logger between middleware
 		httpcors.Default().Handler,
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),

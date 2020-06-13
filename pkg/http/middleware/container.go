@@ -10,10 +10,9 @@ import (
 )
 
 // WithContainer wraps http.Handler with a container middleware
-func WithContainer() gorouter.MiddlewareFunc {
+func WithContainer(requestContainer gocontainer.Container) gorouter.MiddlewareFunc {
 	m := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			requestContainer := gocontainer.New()
 			ctx := container.ContextWithContainer(r.Context(), requestContainer)
 
 			next.ServeHTTP(w, r.WithContext(ctx))

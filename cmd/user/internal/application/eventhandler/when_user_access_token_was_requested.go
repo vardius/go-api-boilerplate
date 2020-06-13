@@ -3,12 +3,13 @@ package eventhandler
 import (
 	"context"
 	"encoding/json"
-	"log"
 
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // WhenUserAccessTokenWasRequested handles event
@@ -18,7 +19,7 @@ func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider) eventbu
 		// therefor recover middleware will not recover from panic to prevent crash
 		defer recoverEventHandler()
 
-		logger := GetLogger(ctx)
+		logger := log.New(config.Env.App.Environment)
 		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 
 		e := user.WasRegisteredWithEmail{}
@@ -42,7 +43,7 @@ func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider) eventbu
 		}
 
 		// @TODO: send token with an email as magic link
-		log.Printf("[EventHandler] Access Token: %s\n", string(b))
+		logger.Debug(ctx, "[EventHandler] Access Token: %s\n", string(b))
 	}
 
 	return fn

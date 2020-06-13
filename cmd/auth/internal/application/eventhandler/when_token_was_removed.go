@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // WhenTokenWasRemoved handles event
@@ -18,7 +20,7 @@ func WhenTokenWasRemoved(db *sql.DB, repository persistence.TokenRepository) eve
 		// therefor recover middlewears will not recover from panic to prevent crash
 		defer recoverEventHandler()
 
-		logger := GetLogger(ctx)
+		logger := log.New(config.Env.App.Environment)
 		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 
 		e := token.WasRemoved{}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	httpcors "github.com/rs/cors"
+	"github.com/vardius/gocontainer"
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 	"gopkg.in/oauth2.v4/server"
@@ -22,7 +23,7 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 		httpmiddleware.Recover(logger),
 		httpmiddleware.WithMetadata(),
 		httpmiddleware.Logger(logger),
-		httpmiddleware.WithContainer(),
+		httpmiddleware.WithContainer(gocontainer.New()), // used to pass logger between middleware
 		httpcors.Default().Handler,
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),
