@@ -12,9 +12,11 @@ import (
 var m = struct {
 	gr  *expvar.Int
 	req *expvar.Int
+	rl  *expvar.Map
 }{
 	gr:  expvar.NewInt("goroutines"),
 	req: expvar.NewInt("requests"),
+	rl:  expvar.NewMap("rateLimits"),
 }
 
 // Metrics updates program counters.

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/vardius/gocontainer"
 
@@ -73,6 +75,38 @@ func TestLimitRequestBody(t *testing.T) {
 
 	if w.Code != http.StatusInternalServerError {
 		t.Error("Request body limit")
+	}
+}
+
+func TestRateLimit(t *testing.T) {
+	m := RateLimit(log.New("development"), 1, 1, time.Minute)
+	h := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/x", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h.ServeHTTP(w, req)
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("Request rate limit: %d, expected %d", w.Code, http.StatusInternalServerError)
+	}
+
+	req.RemoteAddr = fmt.Sprintf("%s:%d", httptest.DefaultRemoteAddr, 8080)
+
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("Request rate limit: %d, expected %d", w.Code, http.StatusOK)
+	}
+
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != http.StatusTooManyRequests {
+		t.Errorf("Request rate limit: %d, expected %d", w.Code, http.StatusTooManyRequests)
 	}
 }
 

@@ -2,6 +2,7 @@ package http
 
 import (
 	"database/sql"
+	"time"
 
 	httpcors "github.com/rs/cors"
 	"github.com/vardius/gocontainer"
@@ -28,7 +29,8 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),
 		httpmiddleware.Metrics(),
-		httpmiddleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
+		httpmiddleware.LimitRequestBody(int64(10<<20)),          // 10 MB is a lot of text.
+		httpmiddleware.RateLimit(logger, 10, 10, 3*time.Minute), // 5 of requests per second with bursts of at most 10 requests
 		httpformmiddleware.FormJson(),
 	)
 
