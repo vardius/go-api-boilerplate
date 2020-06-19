@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"net"
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
@@ -26,7 +27,12 @@ func NewAdapter(address string, router http.Handler) *Adapter {
 }
 
 // Start start http application adapter
-func (adapter *Adapter) Start(ctx context.Context) error {
+func (adapter *Adapter) Start(parentCtx context.Context) error {
+	ctx, cancel := context.WithCancel(parentCtx)
+
+	adapter.BaseContext = func(_ net.Listener) context.Context { return ctx }
+	adapter.RegisterOnShutdown(cancel)
+
 	return adapter.ListenAndServe()
 }
 
