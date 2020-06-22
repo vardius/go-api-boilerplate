@@ -27,11 +27,8 @@ func NewAdapter(address string, router http.Handler) *Adapter {
 }
 
 // Start start http application adapter
-func (adapter *Adapter) Start(parentCtx context.Context) error {
-	ctx, cancel := context.WithCancel(parentCtx)
-
+func (adapter *Adapter) Start(ctx context.Context) error {
 	adapter.BaseContext = func(_ net.Listener) context.Context { return ctx }
-	adapter.RegisterOnShutdown(cancel)
 
 	return adapter.ListenAndServe()
 }
