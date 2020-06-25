@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	// Version is baked by go build -ldflags "-X version.Version=$VERSION"
+	// Version is baked by go build -ldflags "-X github.com/vardius/go-api-boilerplate/pkg/buildinfo.Version=$VERSION"
 	Version string
-	// GitCommit is baked by go build -ldflags "-X version.GitCommit=$GIT_COMMIT"
+	// GitCommit is baked by go build -ldflags "-X github.com/vardius/go-api-boilerplate/pkg/buildinfo.GitCommit=$GIT_COMMIT"
 	GitCommit string
-	// BuildTime is baked by go build -ldflags "-X 'version.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'"
+	// BuildTime is baked by go build -ldflags "-X 'github.com/vardius/go-api-boilerplate/pkg/buildinfo.BuildTime=$(date -u '+%Y-%m-%d %H:%M:%S')'"
 	BuildTime string
 )
 
