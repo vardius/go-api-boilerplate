@@ -3,6 +3,8 @@ package eventbus
 import (
 	"context"
 	"fmt"
+	"log"
+	"runtime/debug"
 	"time"
 
 	"github.com/vardius/gollback"
@@ -29,6 +31,14 @@ func RegisterHandlers(grpcPubSubConn *grpc.ClientConn, grpcPushPullConn *grpc.Cl
 		for topic, handler := range topicToHandlerMap {
 			// Will resubscribe to handler on error infinitely
 			go func(topic string, handler EventHandler) {
+				// this goroutine runs independently to request's goroutine,
+				// therefor recover middleware will not recover from panic to prevent crash
+				defer func() {
+					if r := recover(); r != nil {
+						log.Fatalf("[EventHandler] Recovered in %v\n%s\n", r, debug.Stack())
+					}
+				}()
+
 				_, _ = gollback.Retry(context.Background(), 0, func(ctx context.Context) (interface{}, error) {
 					// we call Pull instead of Subscribe because we want only one handler to handle event
 					// while having multiple pods running

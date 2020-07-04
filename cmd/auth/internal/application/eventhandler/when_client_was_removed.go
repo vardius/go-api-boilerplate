@@ -16,10 +16,6 @@ import (
 // WhenClientWasRemoved handles event
 func WhenClientWasRemoved(db *sql.DB, repository persistence.ClientRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
-		// this goroutine runs independently to request's goroutine,
-		// therefor recover middlewears will not recover from panic to prevent crash
-		defer recoverEventHandler()
-
 		logger := log.New(config.Env.App.Environment)
 		logger.Error(ctx, "[EventHandler] %s\n", event.Payload)
 

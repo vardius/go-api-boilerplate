@@ -25,6 +25,12 @@ type environment struct {
 		Host string `env:"DEBUG_HOST" envDefault:"0.0.0.0"`
 		Port int    `env:"DEBUG_PORT" envDefault:"4000"`
 	}
+	Mailer struct {
+		Host     string `env:"MAILER_HOST"     envDefault:"0.0.0.0"`
+		Port     int    `env:"MAILER_PORT"     envDefault:"1025"`
+		User     string `env:"MAILER_USER"     envDefault:"example@email.test"`
+		Password string `env:"MAILER_PASSWORD" envDefault:"password"`
+	}
 	HTTP struct {
 		Host    string   `env:"HOST"         envDefault:"0.0.0.0"`
 		Port    int      `env:"HTTP_PORT"    envDefault:"3000"`
@@ -79,6 +85,9 @@ func init() {
 		panic(err)
 	}
 	if err := env.Parse(&Env.Debug); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.Mailer); err != nil {
 		panic(err)
 	}
 	if err := env.Parse(&Env.HTTP); err != nil {

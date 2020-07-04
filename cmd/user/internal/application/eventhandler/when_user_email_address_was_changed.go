@@ -16,10 +16,6 @@ import (
 // WhenUserEmailAddressWasChanged handles event
 func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
 	fn := func(ctx context.Context, event domain.Event) {
-		// this goroutine runs independently to request's goroutine,
-		// therefor recover middlewears will not recover from panic to prevent crash
-		defer recoverEventHandler()
-
 		logger := log.New(config.Env.App.Environment)
 		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 

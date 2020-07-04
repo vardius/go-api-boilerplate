@@ -54,7 +54,7 @@ func (bus *eventBus) Pull(ctx context.Context, eventType string, fn EventHandler
 		Topic: eventType,
 	})
 	if err != nil {
-		bus.logger.Error(ctx, "[EventBus] Subscribe: %v\n", err)
+		bus.logger.Error(ctx, "[EventBus] Pull: %v\n", err)
 		return fmt.Errorf("EventBus pushpull client subscribe error: %w", err)
 	}
 
@@ -63,11 +63,14 @@ func (bus *eventBus) Pull(ctx context.Context, eventType string, fn EventHandler
 	for {
 		resp, err := stream.Recv()
 		if err != nil {
-			bus.logger.Error(stream.Context(), "[EventBus] Pull: stream.Recv error: %v\n", err)
-			return fmt.Errorf("EventBus stream recv error: %w", err)
+			bus.logger.Error(stream.Context(), "[EventBus] Pull: stream.Recv: %v\n", err)
+			return fmt.Errorf("EventBus Pull stream recv: %w", err)
 		}
 
-		return bus.dispatchEvent(resp.GetPayload(), fn)
+		if err := bus.dispatchEvent(resp.GetPayload(), fn); err != nil {
+			bus.logger.Error(stream.Context(), "[EventBus] Pull: dispatchEvent: %v\n", err)
+			return fmt.Errorf("EventBus Pull stream dispatchEvent: %w", err)
+		}
 	}
 }
 
@@ -118,7 +121,10 @@ func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn EventHa
 			return fmt.Errorf("EventBus stream recv error: %w", err)
 		}
 
-		return bus.dispatchEvent(resp.GetPayload(), fn)
+		if err := bus.dispatchEvent(resp.GetPayload(), fn); err != nil {
+			bus.logger.Error(stream.Context(), "[EventBus] Subscribe: dispatchEvent: %v\n", err)
+			return fmt.Errorf("EventBus Subscribe stream dispatchEvent: %w", err)
+		}
 	}
 }
 
