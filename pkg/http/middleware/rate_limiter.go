@@ -89,12 +89,12 @@ func RateLimit(logger *log.Logger, r rate.Limit, b int, frequency time.Duration)
 				return
 			}
 
-			if rl.allow(string(ip)) {
-				next.ServeHTTP(w, r)
+			if !rl.allow(string(ip)) {
+				http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
+				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
-			return
+			next.ServeHTTP(w, r)
 		}
 
 		return http.HandlerFunc(fn)
