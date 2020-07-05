@@ -25,7 +25,7 @@ cert: ## [HTTP] Generate self signed certificate
 
 # DOCKER TASKS
 docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`
-	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) --build-arg VERSION=$(VERSION) --build-arg GIT_COMMIT=$(GIT_COMMIT) -t $(BIN):local .
+	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) --build-arg VERSION=$(VERSION) --build-arg GIT_COMMIT=$(GIT_COMMIT) -t $(BIN):local -t $(BIN):latest .
 
 docker-run: ## [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
 	docker run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN)
