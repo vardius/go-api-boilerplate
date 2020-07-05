@@ -21,7 +21,7 @@ func SendLoginEmail(ctx context.Context, to string, authToken string) error {
 		LoginURL string
 	}{
 		Title:    "Login to go-api-boilerplate",
-		LoginURL: "https://go-api-boilerplate.local?authToken=" + authToken,
+		LoginURL: "https://api.go-api-boilerplate.local/users/v1/me?authToken=" + authToken,
 	}); err != nil {
 		return err
 	}

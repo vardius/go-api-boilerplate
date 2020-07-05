@@ -107,30 +107,30 @@ make helm-install
 ### Dispatching command
 Send example JSON via POST request
 ```sh
-curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/v1/dispatch/register-user-with-email --insecure
+curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/register-user-with-email --insecure
 ```
 ## View
 ### Public routes
-Get user details [https://go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812](https://go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812)
+Get user details [https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812](https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812)
 ```json
 {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
 ```
-Get list of users [https://go-api-boilerplate.local/users/v1?page=1&limit=10](https://go-api-boilerplate.local/users/v1?page=1&limit=10)
+Get list of users [https://api.go-api-boilerplate.local/users/v1?page=1&limit=10](https://api.go-api-boilerplate.local/users/v1?page=1&limit=10)
 ```json
 {"page":1,"limit":20,"total":1,"users":[{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}]}
 ```
 ### Protected routes
-Access protected route using auth token [https://go-api-boilerplate.local/users/v1/me](https://go-api-boilerplate.local/users/v1/me).
+Access protected route using auth token [https://api.go-api-boilerplate.local/users/v1/me](https://api.go-api-boilerplate.local/users/v1/me).
 ```json
 {"code": "401","message": "Unauthorized"}
 ```
 Request access token for user
 ```sh
-curl -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://go-api-boilerplate.local/users/v1/dispatch/request-user-access-token --insecure
+curl -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/request-user-access-token --insecure
 ```
 Get your access token from mail catcher [https://maildev.go-api-boilerplate.local](https://maildev.go-api-boilerplate.local).
 
-Access protected route using auth token [https://go-api-boilerplate.local/users/v1/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ](https://go-api-boilerplate.local/users/v1/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ)
+Access protected route using auth token [https://api.go-api-boilerplate.local/users/v1/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ](https://api.go-api-boilerplate.local/users/v1/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ)
 ```json
 {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
 ```
@@ -209,6 +209,5 @@ Support us with a monthly donation and help us continue our activities.
 Proudly sponsored by [Open Collective sponsors](https://opencollective.com/go-api-boilerplate#sponsor).
 
 - 👥 [Contribute on Open Collective](https://opencollective.com/go-api-boilerplate#sponsor)
-
 
 ## 📜 [License](LICENSE.md)

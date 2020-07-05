@@ -43,7 +43,7 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
   hosts:
-    - host: go-api-boilerplate.local
+    - host: api.go-api-boilerplate.local
       paths:
         - path: /auth(/|$)(.*)
           backend:
@@ -55,23 +55,29 @@ ingress:
             servicePort: 3000
     - host: maildev.go-api-boilerplate.local
       paths:
-        - backend:
+        - path: /(|$)(.*)
+          backend:
             serviceName: go-api-boilerplate-maildev
             servicePort: 1080
     - host: phpmyadmin.go-api-boilerplate.local
       paths:
-        - backend:
+        - path: /(|$)(.*)
+          backend:
             serviceName: go-api-boilerplate-phpmyadmin
             servicePort: 443
 #    - host: localstack.go-api-boilerplate.local
 #      paths:
-#        - backend:
+#        - path: /(|$)(.*)
+#          backend:
 #            serviceName: go-api-boilerplate-localstack
 #            servicePort: 4567
   tls:
     - secretName: go-api-boilerplate-tls
       hosts:
         - go-api-boilerplate.local
+        - api.go-api-boilerplate.local
+        - phpmyadmin.go-api-boilerplate.local
+        - maildev.go-api-boilerplate.local
 
 cert-manager:
   # https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/#new-installcrds-addition
@@ -121,7 +127,7 @@ maildev:
    nameOverride: maildev
    image:
      repository: maildev/maildev
-     tag: v1.0.0
+     tag: 2.0.0-beta3
      pullPolicy: IfNotPresent
    service:
      ports:
@@ -344,7 +350,7 @@ configMaps:
   - name: http-config
     data:
       HTTP_PORT: '3000'
-      HTTP_ORIGINS: go-api-boilerplate.local|localhost|0.0.0.0|127.0.0.1
+      HTTP_ORIGINS: go-api-boilerplate.local|api.go-api-boilerplate.local|localhost|0.0.0.0|127.0.0.1
   - name: grpc-config
     data:
       GRPC_PORT: '3001'
