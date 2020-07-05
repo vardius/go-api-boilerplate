@@ -14,6 +14,9 @@ dependencies:
 - name: microservice
   repository: file://../microservice
   version: 0.1.0
+- name: microservice
+  repository: file://../microservice
+  version: 0.1.0
 - name: cert-manager
   repository: https://charts.jetstack.io
   version: v0.15.1
@@ -26,5 +29,5 @@ dependencies:
 - name: phpmyadmin
   repository: https://charts.bitnami.com/bitnami
   version: 6.2.0
-digest: sha256:054fa07dbb3498546335bcba2e070ac9a5a3a30d9aa19b3a80cd8c3f015bac5a
-generated: "2020-06-12T13:42:52.122387+10:00"
+digest: sha256:b09df142b2c424d70234dbf66767ed003ba4ec52c39bfb0f1414049a60b89d99
+generated: "2020-07-05T10:53:55.077947+10:00"
