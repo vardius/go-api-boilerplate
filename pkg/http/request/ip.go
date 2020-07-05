@@ -18,7 +18,7 @@ func IpAddress(r *http.Request) (net.IP, error) {
 		addr = xForwarded
 	}
 
-	var ip string
+	ip := addr
 	if strings.Contains(addr, ":") {
 		var err error
 		ip, _, err = net.SplitHostPort(addr)
