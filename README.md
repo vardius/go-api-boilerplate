@@ -81,6 +81,8 @@ Worth getting to know packages used in this boilerplate:
 ==================================================
 ## Quick start
 
+### [localhost alias](https://github.com/vardius/go-api-boilerplate/wiki/3.-Configuration#localhost-alias)
+
 ### Build release
 ```sh
 make docker-build BIN=auth
