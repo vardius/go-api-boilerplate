@@ -45,18 +45,6 @@ ingress:
   hosts:
     - host: go-api-boilerplate.local
       paths:
-        # - path: /localstack(/|$)(.*)
-        #   backend:
-        #     serviceName: go-api-boilerplate-localstack
-        #     servicePort: 4567
-        - path: /mailhog(/|$)(.*)
-          backend:
-            serviceName: go-api-boilerplate-mailhog
-            servicePort: 8025
-        - path: /phpmyadmin(/|$)(.*)
-          backend:
-            serviceName: go-api-boilerplate-phpmyadmin
-            servicePort: 443
         - path: /auth(/|$)(.*)
           backend:
             serviceName: go-api-boilerplate-auth
@@ -65,6 +53,21 @@ ingress:
           backend:
             serviceName: go-api-boilerplate-user
             servicePort: 3000
+    - host: mailhog.go-api-boilerplate.local
+      paths:
+        - backend:
+            serviceName: go-api-boilerplate-mailhog
+            servicePort: 8025
+    - host: phpmyadmin.go-api-boilerplate.local
+      paths:
+        - backend:
+            serviceName: go-api-boilerplate-phpmyadmin
+            servicePort: 443
+#    - host: localstack.go-api-boilerplate.local
+#      paths:
+#        - backend:
+#            serviceName: go-api-boilerplate-localstack
+#            servicePort: 4567
   tls:
     - secretName: go-api-boilerplate-tls
       hosts:
@@ -72,7 +75,7 @@ ingress:
 
 cert-manager:
   # https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/#new-installcrds-addition
-  installCRDs: true
+  installCRDs: true #@ FIXME change to false if `Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists.`
   ingressShim:
     defaultIssuerName: selfsigned #letsencrypt
     defaultIssuerKind: Issuer
@@ -118,7 +121,7 @@ mailhog:
    nameOverride: mailhog
    image:
      repository: mailhog/mailhog
-     tag: 1.0.0
+     tag: v1.0.0
      pullPolicy: IfNotPresent
    service:
      ports:
