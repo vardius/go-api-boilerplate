@@ -53,11 +53,11 @@ ingress:
           backend:
             serviceName: go-api-boilerplate-user
             servicePort: 3000
-    - host: mailhog.go-api-boilerplate.local
+    - host: maildev.go-api-boilerplate.local
       paths:
         - backend:
-            serviceName: go-api-boilerplate-mailhog
-            servicePort: 8025
+            serviceName: go-api-boilerplate-maildev
+            servicePort: 1080
     - host: phpmyadmin.go-api-boilerplate.local
       paths:
         - backend:
@@ -117,20 +117,20 @@ mysql:
     base_schema.sql: |-
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
 
-mailhog:
-   nameOverride: mailhog
+maildev:
+   nameOverride: maildev
    image:
-     repository: mailhog/mailhog
+     repository: maildev/maildev
      tag: v1.0.0
      pullPolicy: IfNotPresent
    service:
      ports:
-       - name: mailhog
+       - name: maildev
          internalPort: 1025
          externalPort: 1025
        - name: ui
-         internalPort: 8025
-         externalPort: 8025
+         internalPort: 1080
+         externalPort: 1080
 
 # AWS localstack https://github.com/localstack/localstack
 localstack:
@@ -399,7 +399,7 @@ configMaps:
       PUSHPULL_HOST: 'go-api-boilerplate-pushpull'
       PUSHPULL_PORT: '3001'
       AUTH_HOST: 'go-api-boilerplate-auth'
-      MAILER_HOST: 'go-api-boilerplate-mailhog' # @FIXME use real smtp service
+      MAILER_HOST: 'maildev.go-api-boilerplate' # @FIXME use real smtp service
       MAILER_PORT: '1025'
       GRPC_SERVER_MIN_TIME: '5m'    # if a client pings more than once every 5 minutes (default), terminate the connection
       GRPC_SERVER_TIME: '2h'        # ping the client if it is idle for 2 hours (default) to ensure the connection is still active

@@ -29,5 +29,5 @@ dependencies:
 - name: phpmyadmin
   repository: https://charts.bitnami.com/bitnami
   version: 6.2.0
-digest: sha256:b09df142b2c424d70234dbf66767ed003ba4ec52c39bfb0f1414049a60b89d99
-generated: "2020-07-05T10:53:55.077947+10:00"
+digest: sha256:cd042a13da4a74bc9fb6d97b7e017098b2c2101a835669564d51e09827a66356
+generated: "2020-07-05T11:28:41.781928+10:00"

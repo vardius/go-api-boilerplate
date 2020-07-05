@@ -28,8 +28,8 @@ dependencies:
   - name: microservice
     version: 0.1.0
     repository: "file://../microservice"
-    alias: mailhog
-    condition: mailhog.enabled
+    alias: maildev
+    condition: maildev.enabled
   # External charts: https://github.com/helm/charts/blob/master/stable
   - name: cert-manager
     version: v0.15.1
