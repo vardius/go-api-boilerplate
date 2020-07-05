@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 )
 
 // IpAddress returns client ip address from request
@@ -17,9 +18,13 @@ func IpAddress(r *http.Request) (net.IP, error) {
 		addr = xForwarded
 	}
 
-	ip, _, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, fmt.Errorf("addr: %q is not IP:port", addr)
+	var ip string
+	if strings.Contains(addr, ":") {
+		var err error
+		ip, _, err = net.SplitHostPort(addr)
+		if err != nil {
+			return nil, fmt.Errorf("addr: %q is not ip:port %w", addr, err)
+		}
 	}
 
 	userIP := net.ParseIP(ip)
