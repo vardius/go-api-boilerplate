@@ -35,8 +35,8 @@ func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, reposit
 	router := gorouter.New(
 		httpmiddleware.Recover(logger),
 		httpmiddleware.WithMetadata(),
-		httpmiddleware.Logger(logger),
 		httpmiddleware.WithContainer(gocontainer.New()), // used to pass logger to JSONError method
+		httpmiddleware.Logger(logger),
 		httpcors.Default().Handler,
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),

@@ -23,8 +23,8 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 	router := gorouter.New(
 		httpmiddleware.Recover(logger),
 		httpmiddleware.WithMetadata(),
-		httpmiddleware.Logger(logger),
 		httpmiddleware.WithContainer(gocontainer.New()), // used to pass logger between middleware
+		httpmiddleware.Logger(logger),
 		httpcors.Default().Handler,
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),

@@ -12,16 +12,12 @@ import (
 // written HTTP statusCode to be captured for metadata.
 type responseWriter struct {
 	http.ResponseWriter
-	statusCode  int
+	mtd         *md.Metadata
 	wroteHeader bool
 }
 
-func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{ResponseWriter: w}
-}
-
-func (rw *responseWriter) Status() int {
-	return rw.statusCode
+func wrapResponseWriter(w http.ResponseWriter, mtd *md.Metadata) *responseWriter {
+	return &responseWriter{ResponseWriter: w, mtd: mtd}
 }
 
 func (rw *responseWriter) WriteHeader(statusCode int) {
@@ -29,7 +25,7 @@ func (rw *responseWriter) WriteHeader(statusCode int) {
 		return
 	}
 
-	rw.statusCode = statusCode
+	rw.mtd.StatusCode = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)
 	rw.wroteHeader = true
 
@@ -46,11 +42,7 @@ func WithMetadata() gorouter.MiddlewareFunc {
 
 			ctx := md.ContextWithMetadata(r.Context(), mtd)
 
-			wrapped := wrapResponseWriter(w)
-
-			next.ServeHTTP(wrapped, r.WithContext(ctx))
-
-			mtd.StatusCode = wrapped.Status()
+			next.ServeHTTP(wrapResponseWriter(w, mtd), r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)
