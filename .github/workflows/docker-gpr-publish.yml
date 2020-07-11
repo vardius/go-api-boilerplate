@@ -17,11 +17,8 @@ jobs:
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
         run:  make docker-build BIN=$IMAGE_NAME
-        run:  make docker-tag BIN=$IMAGE_NAME REGISTRY=docker.pkg.github.com/$GITHUB_REPOSITORY/
-      - name: Tag image
-        run: |
-          docker tag go-api-boilerplate-$IMAGE_NAME "docker.pkg.github.com/$GITHUB_REPOSITORY/$IMAGE_NAME:latest"
-          docker tag go-api-boilerplate-$IMAGE_NAME "docker.pkg.github.com/$GITHUB_REPOSITORY/$IMAGE_NAME:${{ steps.vars.outputs.tag }}"
+      - name: Tag image version
+        run:  make docker-tag BIN=$IMAGE_NAME REGISTRY=docker.pkg.github.com/$GITHUB_REPOSITORY
       - name: Publish image
         run: |
           docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/$IMAGE_NAME:latest"
