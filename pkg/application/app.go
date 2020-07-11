@@ -60,9 +60,11 @@ func (app *App) Run(ctx context.Context) {
 
 		for i := 0; i < len(app.adapters); i++ {
 			if err := <-errCh; err != nil {
-				app.logger.Critical(ctxWithTimeout, "shutdown error: %v\n", err)
 				// calling Goexit terminates that goroutine without returning (previous defers would not run)
-				defer os.Exit(1)
+				go func(err error) {
+					app.logger.Critical(ctxWithTimeout, "shutdown error: %v\n", err)
+					os.Exit(1)
+				}(err)
 				return
 			}
 		}
