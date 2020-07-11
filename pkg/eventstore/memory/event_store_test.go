@@ -1,4 +1,4 @@
-package eventstore
+package memory
 
 import (
 	"testing"

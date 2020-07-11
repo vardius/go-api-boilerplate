@@ -3,7 +3,7 @@ Package commandbus provides command bus interfaces
 
 Download:
 ```shell
-go get -u github.com/vardius/go-api-boilerplate/pkg/infrastructure/common/commandbus
+go get -u github.com/vardius/go-api-boilerplate/pkg/commandbus
 ```
 
 * * *

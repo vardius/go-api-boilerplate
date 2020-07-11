@@ -1,4 +1,4 @@
-package commandbus
+package memory
 
 import (
 	"context"
@@ -25,11 +25,13 @@ func TestNew(t *testing.T) {
 }
 
 func TestSubscribePublish(t *testing.T) {
-	bus := New(runtime.NumCPU(), log.New("development"))
-	ctx := context.Background()
-	c := make(chan error, 1)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
 
-	bus.Subscribe("command", func(ctx context.Context, _ *commandMock, out chan<- error) {
+	c := make(chan error, 1)
+	bus := New(runtime.NumCPU(), log.New("development"))
+
+	bus.Subscribe(ctx, "command", func(ctx context.Context, _ *commandMock, out chan<- error) {
 		out <- nil
 	})
 
@@ -51,17 +53,18 @@ func TestSubscribePublish(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	bus := New(runtime.NumCPU(), log.New("development"))
-	c := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
+
+	c := make(chan error, 1)
+	bus := New(runtime.NumCPU(), log.New("development"))
 
 	handler := func(ctx context.Context, _ *commandMock, out chan<- error) {
 		t.Fail()
 	}
 
-	bus.Subscribe("command", handler)
-	bus.Unsubscribe("command", handler)
+	bus.Subscribe(ctx, "command", handler)
+	bus.Unsubscribe(ctx, "command", handler)
 
 	bus.Publish(ctx, &commandMock{}, c)
 

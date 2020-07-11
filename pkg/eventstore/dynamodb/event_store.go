@@ -1,7 +1,7 @@
 /*
-Package eventstore provides dynamodb implementation of domain event store
+Package memory provides dynamodb implementation of domain event store
 */
-package eventstore
+package memory
 
 import (
 	"fmt"

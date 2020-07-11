@@ -8,7 +8,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/gocontainer"
-	pubsubproto "github.com/vardius/pubsub/v2/proto"
 	pushpullproto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
 	grpchealth "google.golang.org/grpc/health"
@@ -25,8 +24,9 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	oauth2util "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
-	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/eventbus/pushpull"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
@@ -63,7 +63,7 @@ func main() {
 		// 	firewall.GrantAccessForStreamRequest(identity.RoleUser),
 		// },
 	)
-	commandBus := commandbus.New(config.Env.CommandBus.QueueSize, logger)
+	commandBus := memory.New(config.Env.CommandBus.QueueSize, logger)
 
 	mysqlConnection := mysql.NewConnection(
 		ctx,
@@ -80,17 +80,6 @@ func main() {
 		logger,
 	)
 	defer mysqlConnection.Close()
-	grpcPubSubConn := grpcutils.NewConnection(
-		ctx,
-		config.Env.PubSub.Host,
-		config.Env.GRPC.Port,
-		grpcutils.ConnectionConfig{
-			ConnTime:    config.Env.GRPC.ConnTime,
-			ConnTimeout: config.Env.GRPC.ConnTimeout,
-		},
-		logger,
-	)
-	defer grpcPubSubConn.Close()
 	grpcPushPullConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.PushPull.Host,
@@ -114,9 +103,8 @@ func main() {
 	)
 	defer grpcUserConn.Close()
 
-	grpcPubsubClient := pubsubproto.NewPubSubClient(grpcPubSubConn)
 	grpPushPullClient := pushpullproto.NewPushPullClient(grpcPushPullConn)
-	eventBus := eventbus.New(config.Env.App.EventHandlerTimeout, grpcPubsubClient, grpPushPullClient, logger)
+	eventBus := pushpull.New(config.Env.App.EventHandlerTimeout, grpPushPullClient, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
 	grpcHealthServer := grpchealth.NewServer()
@@ -134,21 +122,20 @@ func main() {
 		mysqlConnection,
 		map[string]*grpc.ClientConn{
 			"pushpull": grpcPushPullConn,
-			"pubsub":   grpcPubSubConn,
 			"user":     grpcUserConn,
 		},
 	)
 	app := application.New(logger)
 
-	commandBus.Subscribe((user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, mysqlConnection))
-	commandBus.Subscribe((user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, mysqlConnection))
-	commandBus.Subscribe((user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, mysqlConnection))
-	commandBus.Subscribe((user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, mysqlConnection))
-	commandBus.Subscribe((user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, mysqlConnection))
+	commandBus.Subscribe(ctx, (user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, mysqlConnection))
+	commandBus.Subscribe(ctx, (user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, mysqlConnection))
+	commandBus.Subscribe(ctx, (user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, mysqlConnection))
+	commandBus.Subscribe(ctx, (user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, mysqlConnection))
+	commandBus.Subscribe(ctx, (user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, mysqlConnection))
 
 	go func() {
-		eventbus.RegisterHandlers(
-			grpcPubSubConn,
+		eventbus.RegisterGRPCHandlers(
+			"pushpull",
 			grpcPushPullConn,
 			eventBus,
 			map[string]eventbus.EventHandler{

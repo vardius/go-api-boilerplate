@@ -1,7 +1,7 @@
 /*
-Package eventstore provides memory implementation of domain event store
+Package memory provides memory implementation of domain event store
 */
-package eventstore
+package memory
 
 import (
 	"sync"

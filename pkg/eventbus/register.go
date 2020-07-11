@@ -13,18 +13,15 @@ import (
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 )
 
-// RegisterHandlers registers event handlers for topics
+// RegisterGRPCHandlers registers event handlers for topics
 // will panic after timeout if unable to register handlers
-func RegisterHandlers(grpcPubSubConn *grpc.ClientConn, grpcPushPullConn *grpc.ClientConn, eventBus EventBus, topicToHandlerMap map[string]EventHandler, timeout time.Duration) {
+func RegisterGRPCHandlers(serviceName string, conn *grpc.ClientConn, eventBus EventBus, topicToHandlerMap map[string]EventHandler, timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	// Will retry infinitely until timeouts by context (after 5 seconds)
 	_, err := gollback.Retry(ctx, 0, func(ctx context.Context) (interface{}, error) {
-		if !grpcutils.IsConnectionServing(ctx, "pubsub", grpcPubSubConn) {
-			return nil, fmt.Errorf(" %s gRPC connection is not serving", "pubsub")
-		}
-		if !grpcutils.IsConnectionServing(ctx, "pushpull", grpcPushPullConn) {
+		if !grpcutils.IsConnectionServing(ctx, serviceName, conn) {
 			return nil, fmt.Errorf(" %s gRPC connection is not serving", "pushpull")
 		}
 
@@ -40,9 +37,7 @@ func RegisterHandlers(grpcPubSubConn *grpc.ClientConn, grpcPushPullConn *grpc.Cl
 				}()
 
 				_, _ = gollback.Retry(context.Background(), 0, func(ctx context.Context) (interface{}, error) {
-					// we call Pull instead of Subscribe because we want only one handler to handle event
-					// while having multiple pods running
-					err := eventBus.Pull(ctx, topic, handler)
+					err := eventBus.Subscribe(ctx, topic, handler)
 
 					return nil, fmt.Errorf("EventHandler %s unsubscribed (%v)", topic, err)
 				})
