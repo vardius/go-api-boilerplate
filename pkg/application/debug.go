@@ -26,7 +26,10 @@ func NewDebugAdapter(address string) *DebugAdapter {
 
 // Start start http application adapter
 func (adapter *DebugAdapter) Start(ctx context.Context) error {
-	return adapter.ListenAndServe()
+	if err := adapter.ListenAndServe(); err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
 
 // Stop stops http application adapter

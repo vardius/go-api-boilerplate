@@ -149,7 +149,7 @@ func main() {
 					(client.WasCreated{}).GetType(): eventhandler.WhenClientWasCreated(mysqlConnection, clientPersistenceRepository),
 					(client.WasRemoved{}).GetType(): eventhandler.WhenClientWasRemoved(mysqlConnection, clientPersistenceRepository),
 				},
-				5*time.Minute,
+				5*time.Second,
 			)
 		}()
 	}()

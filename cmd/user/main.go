@@ -145,7 +145,7 @@ func main() {
 				(user.EmailAddressWasChanged{}).GetType():    eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository),
 				(user.AccessTokenWasRequested{}).GetType():   eventhandler.WhenUserAccessTokenWasRequested(tokenProvider),
 			},
-			5*time.Minute,
+			5*time.Second,
 		)
 	}()
 

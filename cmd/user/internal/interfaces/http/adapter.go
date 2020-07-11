@@ -30,7 +30,10 @@ func NewAdapter(address string, router http.Handler) *Adapter {
 func (adapter *Adapter) Start(ctx context.Context) error {
 	adapter.BaseContext = func(_ net.Listener) context.Context { return ctx }
 
-	return adapter.ListenAndServe()
+	if err := adapter.ListenAndServe(); err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
 
 // Stop stops http application adapter

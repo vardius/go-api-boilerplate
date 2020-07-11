@@ -19,7 +19,7 @@ func RegisterGRPCHandlers(serviceName string, conn *grpc.ClientConn, eventBus Ev
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	// Will retry infinitely until timeouts by context (after 5 seconds)
+	// Will retry infinitely until timeouts by context
 	_, err := gollback.Retry(ctx, 0, func(ctx context.Context) (interface{}, error) {
 		if !grpcutils.IsConnectionServing(ctx, serviceName, conn) {
 			return nil, fmt.Errorf(" %s gRPC connection is not serving", "pushpull")
