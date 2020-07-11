@@ -25,16 +25,16 @@ cert: ## [HTTP] Generate self signed certificate
 
 # DOCKER TASKS
 docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`
-	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) --build-arg VERSION=$(VERSION) --build-arg GIT_COMMIT=$(GIT_COMMIT) -t $(BIN):local -t $(BIN):latest .
+	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) --build-arg VERSION=$(VERSION) --build-arg GIT_COMMIT=$(GIT_COMMIT) -t go-api-boilerplate-$(BIN) .
 
 docker-run: ## [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
-	docker run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN)
+	docker run -i -t --rm -p=$(PORT):$(PORT) --name="go-api-boilerplate-$(BIN)" go-api-boilerplate-$(BIN)
 
 docker-stop: ## [DOCKER] Stop docker container. Example: `make docker-stop BIN=user`
-	docker stop $(BIN)
+	docker stop go-api-boilerplate-$(BIN)
 
 docker-rm: docker-stop ## [DOCKER] Stop and then remove docker container. Example: `make docker-rm BIN=user`
-	docker rm $(BIN)
+	docker rm go-api-boilerplate-$(BIN)
 
 docker-publish: aws-repo-login docker-publish-latest docker-publish-version ## [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
 
@@ -50,12 +50,12 @@ docker-tag: docker-tag-latest docker-tag-version ## [DOCKER] Tag current contain
 
 docker-tag-latest:
 	@echo 'create tag latest'
-	docker tag $(BIN) $(REGISTRY)/$(BIN):latest
-	docker tag $(BIN) $(REGISTRY)/$(BIN):latest
+	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/$(BIN):latest
+	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/$(BIN):latest
 
 docker-tag-version:
 	@echo 'create tag $(VERSION)'
-	docker tag $(BIN) $(REGISTRY)/$(BIN):$(VERSION)
+	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/$(BIN):$(VERSION)
 
 docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 
