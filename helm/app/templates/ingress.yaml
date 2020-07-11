@@ -1,5 +1,5 @@
 {{ if or (not (hasKey .Values.ingress "enabled")) (.Values.ingress.enabled | default false) }}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: {{ include "app.fullname" . }}
