@@ -51,7 +51,6 @@ docker-tag: docker-tag-latest docker-tag-version ## [DOCKER] Tag current contain
 docker-tag-latest:
 	@echo 'create tag latest'
 	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/$(BIN):latest
-	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/$(BIN):latest
 
 docker-tag-version:
 	@echo 'create tag $(VERSION)'
