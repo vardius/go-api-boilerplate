@@ -15,8 +15,6 @@ jobs:
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
       - name: Docker login
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
-      - name: docker system prune
-        run:  docker system prune
       - name: Build image
         run:  make docker-build BIN=$IMAGE_NAME
       - name: Tag image
@@ -37,8 +35,6 @@ jobs:
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
       - name: Docker login
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
-      - name: docker system prune
-        run:  docker system prune
       - name: Build image
         run:  make docker-build BIN=$IMAGE_NAME
       - name: Tag image
@@ -59,8 +55,6 @@ jobs:
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
       - name: Docker login
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
-      - name: docker system prune
-        run:  docker system prune
       - name: Build image
         run:  make docker-build BIN=$IMAGE_NAME
       - name: Tag image
