@@ -65,12 +65,12 @@ ingress:
           backend:
             serviceName: go-api-boilerplate-phpmyadmin
             servicePort: 443
-#    - host: localstack.go-api-boilerplate.local
-#      paths:
-#        - path: /(|$)(.*)
-#          backend:
-#            serviceName: go-api-boilerplate-localstack
-#            servicePort: 4567
+  #    - host: localstack.go-api-boilerplate.local
+  #      paths:
+  #        - path: /(|$)(.*)
+  #          backend:
+  #            serviceName: go-api-boilerplate-localstack
+  #            servicePort: 4567
   tls:
     - secretName: go-api-boilerplate-tls
       hosts:
@@ -124,19 +124,19 @@ mysql:
       CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
 
 maildev:
-   nameOverride: maildev
-   image:
-     repository: maildev/maildev
-     tag: 2.0.0-beta3
-     pullPolicy: IfNotPresent
-   service:
-     ports:
-       - name: maildev
-         internalPort: 1025
-         externalPort: 1025
-       - name: ui
-         internalPort: 1080
-         externalPort: 1080
+  nameOverride: maildev
+  image:
+    repository: maildev/maildev
+    tag: 2.0.0-beta3
+    pullPolicy: IfNotPresent
+  service:
+    ports:
+      - name: maildev
+        internalPort: 1025
+        externalPort: 1025
+      - name: ui
+        internalPort: 1080
+        externalPort: 1080
 
 # AWS localstack https://github.com/localstack/localstack
 localstack:
@@ -209,8 +209,8 @@ pushpull:
 auth:
   nameOverride: auth
   image:
-    repository: auth
-    tag: local
+    repository: go-api-boilerplate-auth
+    tag: latest
     pullPolicy: Never
   service:
     ports:
@@ -223,8 +223,8 @@ auth:
   initContainers:
     - name: migrations
       image:
-        repository: migrate
-        tag: local
+        repository: go-api-boilerplate-migrate
+        tag: latest
         pullPolicy: IfNotPresent
       command:
         - '/migrate'
@@ -265,8 +265,8 @@ auth:
 user:
   nameOverride: user
   image:
-    repository: user
-    tag: local
+    repository: go-api-boilerplate-user
+    tag: latest
     pullPolicy: Never
   service:
     ports:
@@ -279,8 +279,8 @@ user:
   initContainers:
     - name: migrations
       image:
-        repository: migrate
-        tag: local
+        repository: go-api-boilerplate-migrate
+        tag: latest
         pullPolicy: IfNotPresent
       command:
         - '/migrate'
