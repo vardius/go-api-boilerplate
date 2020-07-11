@@ -17,7 +17,7 @@ jobs:
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
         run:  make docker-build BIN=$IMAGE_NAME
-      - name: Tag image version
+      - name: Tag image
         run:  make docker-tag BIN=$IMAGE_NAME REGISTRY=docker.pkg.github.com/$GITHUB_REPOSITORY
       - name: Publish image
         run: |
