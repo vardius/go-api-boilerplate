@@ -19,7 +19,9 @@ func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload in
 		return err
 	}
 
-	w.WriteHeader(statusCode)
+	if statusCode != http.StatusOK {
+		w.WriteHeader(statusCode)
+	}
 
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(true)
