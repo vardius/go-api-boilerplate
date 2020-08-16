@@ -19,6 +19,8 @@ func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload in
 		return err
 	}
 
+	w.WriteHeader(statusCode)
+
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(true)
 	encoder.SetIndent("", "")
@@ -26,8 +28,6 @@ func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload in
 	if err := encoder.Encode(payload); err != nil {
 		return err
 	}
-
-	w.WriteHeader(statusCode)
 
 	Flush(w)
 
