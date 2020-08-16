@@ -18,6 +18,10 @@ import (
 // JSONError returns data as json response
 // uses JSON internally
 func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
+	if err == nil {
+		panic("JSONError called for nil error")
+	}
+
 	httpError := httperrors.NewHttpError(err)
 
 	w.WriteHeader(httpError.Code)
