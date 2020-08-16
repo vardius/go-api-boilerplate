@@ -80,11 +80,6 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
 
-		if r.Body == nil {
-			response.MustJSONError(r.Context(), w, ErrEmptyRequestBody)
-			return
-		}
-
 		i, _ := identity.FromContext(r.Context())
 
 		u, e := repository.Get(r.Context(), i.ID.String())
@@ -106,11 +101,6 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
-
-		if r.Body == nil {
-			response.MustJSONError(r.Context(), w, ErrEmptyRequestBody)
-			return
-		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
@@ -137,11 +127,6 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
-
-		if r.Body == nil {
-			response.MustJSONError(r.Context(), w, ErrEmptyRequestBody)
-			return
-		}
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
 		limitInt, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
