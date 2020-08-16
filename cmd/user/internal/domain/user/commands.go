@@ -64,7 +64,7 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 
 // RequestAccessToken command
 type RequestAccessToken struct {
-	ID uuid.UUID `json:"id"`
+	Email EmailAddress `json:"email"`
 }
 
 // GetName returns command name
@@ -79,7 +79,25 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		// therefore recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
-		u, err := repository.Get(c.ID)
+		var id string
+		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE emailAddress = ?`, c.Email)
+		err := row.Scan(&id)
+		if err != nil {
+			out <- errors.Wrap(err)
+			return
+		}
+		if id == "" {
+			out <- application.ErrNotFound
+			return
+		}
+
+		userID, err := uuid.Parse(id)
+		if err != nil {
+			out <- errors.Wrap(err)
+			return
+		}
+
+		u, err := repository.Get(userID)
 		if err != nil {
 			out <- errors.Wrap(err)
 			return

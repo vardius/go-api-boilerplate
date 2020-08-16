@@ -126,7 +126,7 @@ Access protected route using auth token [https://api.go-api-boilerplate.local/us
 ```
 Request access token for user
 ```sh
-curl -d '{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/request-user-access-token --insecure
+curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/request-user-access-token --insecure
 ```
 Get your access token from mail catcher [https://maildev.go-api-boilerplate.local](https://maildev.go-api-boilerplate.local).
 
