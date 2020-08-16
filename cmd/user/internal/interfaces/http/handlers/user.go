@@ -54,8 +54,9 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			cb.Publish(r.Context(), c, out)
 		}()
 
+		doneCh := r.Context().Done()
 		select {
-		case <-r.Context().Done():
+		case <-doneCh:
 			response.MustJSONError(r.Context(), w, errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, r.Context().Err())))
 			return
 		case e = <-out:
