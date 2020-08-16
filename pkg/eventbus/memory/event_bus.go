@@ -23,8 +23,7 @@ type eventBus struct {
 }
 
 func (bus *eventBus) Publish(parentCtx context.Context, event domain.Event) error {
-	ctx, cancel := context.WithTimeout(context.Background(), bus.handlerTimeout)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), bus.handlerTimeout)
 
 	bus.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v\n", event.Metadata.Type, event)
 	bus.messageBus.Publish(event.Metadata.Type, ctx, event)
