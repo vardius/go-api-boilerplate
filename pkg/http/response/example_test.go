@@ -15,9 +15,7 @@ func ExampleJSON() {
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-
-		if err := response.JSON(r.Context(), w, example{"John"}); err != nil {
+		if err := response.JSON(r.Context(), w, http.StatusOK, example{"John"}); err != nil {
 			panic(err)
 		}
 	})
@@ -35,9 +33,7 @@ func ExampleJSON() {
 
 func ExampleJSON_second() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-
-		if err := response.JSON(r.Context(), w, nil); err != nil {
+		if err := response.JSON(r.Context(), w, http.StatusOK, nil); err != nil {
 			panic(err)
 		}
 	})
@@ -59,8 +55,7 @@ func ExampleMustJSON() {
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		response.MustJSON(r.Context(), w, example{"John"})
+		response.MustJSON(r.Context(), w, http.StatusOK, example{"John"})
 	})
 
 	w := httptest.NewRecorder()
@@ -76,8 +71,7 @@ func ExampleMustJSON() {
 
 func ExampleMustJSON_second() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		response.MustJSON(r.Context(), w, nil)
+		response.MustJSON(r.Context(), w, http.StatusOK, nil)
 	})
 
 	w := httptest.NewRecorder()

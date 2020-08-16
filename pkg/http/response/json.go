@@ -10,7 +10,7 @@ import (
 )
 
 // JSON returns data as json response
-func JSON(ctx context.Context, w http.ResponseWriter, payload interface{}) error {
+func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	// If there is nothing to marshal then set status code and return.
@@ -27,6 +27,8 @@ func JSON(ctx context.Context, w http.ResponseWriter, payload interface{}) error
 		return err
 	}
 
+	w.WriteHeader(statusCode)
+
 	Flush(w)
 
 	return nil
@@ -35,8 +37,8 @@ func JSON(ctx context.Context, w http.ResponseWriter, payload interface{}) error
 // MustJSON returns data as json response
 // will panic if unable to marshal payload into JSON object
 // uses JSON internally
-func MustJSON(ctx context.Context, w http.ResponseWriter, payload interface{}) {
-	if err := JSON(ctx, w, payload); err != nil {
+func MustJSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload interface{}) {
+	if err := JSON(ctx, w, statusCode, payload); err != nil {
 		panic(err)
 	}
 }

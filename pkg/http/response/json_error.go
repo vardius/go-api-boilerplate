@@ -23,8 +23,6 @@ func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
 	}
 
 	httpError := httperrors.NewHttpError(err)
-
-	w.WriteHeader(httpError.Code)
 	if m, ok := mtd.FromContext(ctx); ok {
 		httpError.RequestID = m.TraceID
 	}
@@ -47,7 +45,7 @@ func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
 		}
 	}
 
-	if err := JSON(ctx, w, httpError); err != nil {
+	if err := JSON(ctx, w, httpError.Code, httpError); err != nil {
 		return err
 	}
 

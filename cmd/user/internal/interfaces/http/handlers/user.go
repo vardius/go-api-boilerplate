@@ -66,8 +66,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 			}
 		}
 
-		w.WriteHeader(http.StatusCreated)
-		if err := response.JSON(r.Context(), w, nil); err != nil {
+		if err := response.JSON(r.Context(), w, http.StatusCreated, nil); err != nil {
 			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
@@ -88,8 +87,7 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		if err := response.JSON(r.Context(), w, u); err != nil {
+		if err := response.JSON(r.Context(), w, http.StatusOK, u); err != nil {
 			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
@@ -114,8 +112,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		if err := response.JSON(r.Context(), w, u); err != nil {
+		if err := response.JSON(r.Context(), w, http.StatusOK, u); err != nil {
 			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
@@ -153,8 +150,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
-			w.WriteHeader(http.StatusOK)
-			if err := response.JSON(r.Context(), w, paginatedList); err != nil {
+			if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
 				response.MustJSONError(r.Context(), w, errors.Wrap(err))
 			}
 			return
@@ -166,8 +162,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		if err := response.JSON(r.Context(), w, paginatedList); err != nil {
+		if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
 			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}

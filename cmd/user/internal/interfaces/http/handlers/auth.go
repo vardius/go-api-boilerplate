@@ -71,8 +71,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		if err := response.JSON(r.Context(), w, token); err != nil {
+		if err := response.JSON(r.Context(), w, http.StatusOK, token); err != nil {
 			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 		}
 	}
