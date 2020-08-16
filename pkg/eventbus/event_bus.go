@@ -9,7 +9,7 @@ import (
 // EventHandler function
 type EventHandler func(ctx context.Context, event domain.Event)
 
-// EventBus intrface
+// EventBus interface
 type EventBus interface {
 	Publish(ctx context.Context, event domain.Event) error
 	Subscribe(ctx context.Context, eventType string, fn EventHandler) error

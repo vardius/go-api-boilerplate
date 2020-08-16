@@ -120,7 +120,7 @@ func (bus *eventBus) Unsubscribe(ctx context.Context, eventType string, fn event
 		ch <- struct{}{}
 	}
 	bus.mtx.RUnlock()
-	bus.logger.Info(nil, "[EventBus] Unsubscribe: %s\n", eventType)
+	bus.logger.Info(ctx, "[EventBus] Unsubscribe: %s\n", eventType)
 	return nil
 }
 

@@ -41,7 +41,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		defer close(out)
 
 		go func() {
-			out <- cb.Publish(r.Context(), c)
+			cb.Publish(r.Context(), c, out)
 		}()
 
 		ctxDoneCh := r.Context().Done()

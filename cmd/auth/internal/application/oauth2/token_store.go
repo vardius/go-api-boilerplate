@@ -37,7 +37,7 @@ func (ts *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 	}
 
 	go func() {
-		out <- ts.commandBus.Publish(ctx, c)
+		ts.commandBus.Publish(ctx, c, out)
 	}()
 
 	ctxDoneCh := ctx.Done()
@@ -136,7 +136,7 @@ func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 	}
 
 	go func() {
-		out <- ts.commandBus.Publish(ctx, c)
+		ts.commandBus.Publish(ctx, c, out)
 	}()
 
 	ctxDoneCh := ctx.Done()

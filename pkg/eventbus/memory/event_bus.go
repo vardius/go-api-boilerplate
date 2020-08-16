@@ -2,7 +2,7 @@ package memory
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	messagebus "github.com/vardius/message-bus"
 
@@ -12,31 +12,24 @@ import (
 )
 
 // New creates memory event bus
-func New(maxConcurrentCalls int, log *log.Logger) eventbus.EventBus {
-	return &eventBus{messagebus.New(maxConcurrentCalls), log}
+func New(handlerTimeout time.Duration, maxConcurrentCalls int, log *log.Logger) eventbus.EventBus {
+	return &eventBus{handlerTimeout, messagebus.New(maxConcurrentCalls), log}
 }
 
 type eventBus struct {
-	messageBus messagebus.MessageBus
-	logger     *log.Logger
+	handlerTimeout time.Duration
+	messageBus     messagebus.MessageBus
+	logger         *log.Logger
 }
 
-func (bus *eventBus) Publish(ctx context.Context, event domain.Event) error {
-	bus.logger.Debug(ctx, "[EventBus] Publish: %s %+v\n", event.Metadata.Type, event)
+func (bus *eventBus) Publish(parentCtx context.Context, event domain.Event) error {
+	ctx, cancel := context.WithTimeout(context.Background(), bus.handlerTimeout)
+	defer cancel()
 
-	exit := make(chan struct{}, 1)
-	go func() {
-		bus.messageBus.Publish(event.Metadata.Type, ctx, event)
-		exit <- struct{}{}
-	}()
+	bus.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v\n", event.Metadata.Type, event)
+	bus.messageBus.Publish(event.Metadata.Type, ctx, event)
 
-	ctxDoneCh := ctx.Done()
-	select {
-	case <-ctxDoneCh:
-		return fmt.Errorf("[EventBus] Publish: %w", ctx.Err())
-	case <-exit:
-		return nil
-	}
+	return nil
 }
 
 func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {

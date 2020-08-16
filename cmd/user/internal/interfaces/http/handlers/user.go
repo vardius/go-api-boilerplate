@@ -51,7 +51,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		defer close(out)
 
 		go func() {
-			out <- cb.Publish(r.Context(), c)
+			cb.Publish(r.Context(), c, out)
 		}()
 
 		ctxDoneCh := r.Context().Done()

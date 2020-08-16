@@ -35,7 +35,7 @@ func TestSubscribePublish(t *testing.T) {
 		out <- nil
 	})
 
-	c <- bus.Publish(ctx, &commandMock{})
+	bus.Publish(ctx, &commandMock{}, c)
 
 	ctxDoneCh := ctx.Done()
 	for {
@@ -66,7 +66,7 @@ func TestUnsubscribe(t *testing.T) {
 	bus.Subscribe(ctx, "command", handler)
 	bus.Unsubscribe(ctx, "command", handler)
 
-	c <- bus.Publish(ctx, &commandMock{})
+	bus.Publish(ctx, &commandMock{}, c)
 
 	ctxDoneCh := ctx.Done()
 	for {

@@ -6,6 +6,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	systemErrors "errors"
 	"fmt"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
@@ -114,7 +115,7 @@ func (r *tokenRepository) getTokenFromRow(row *sql.Row) (persistence.Token, erro
 	err := row.Scan(&token.ID, &token.ClientID, &token.UserID, &token.Code, &token.Access, &token.Refresh, &token.Data)
 
 	switch {
-	case err == sql.ErrNoRows:
+	case systemErrors.Is(err, sql.ErrNoRows):
 		return nil, errors.Wrap(fmt.Errorf("%w: Token not found: %s", application.ErrInternal, err))
 	case err != nil:
 		return nil, errors.Wrap(fmt.Errorf("%w: Error while scanning auth_tokens table: %s", application.ErrInternal, err))

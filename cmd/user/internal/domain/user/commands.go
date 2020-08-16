@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	systemErrors "errors"
 	"fmt"
 	"log"
 	"runtime/debug"
@@ -83,6 +84,10 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE emailAddress = ?`, c.Email)
 		err := row.Scan(&id)
 		if err != nil {
+			if systemErrors.Is(err, sql.ErrNoRows) {
+				out <- errors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+				return
+			}
 			out <- errors.Wrap(err)
 			return
 		}
@@ -234,14 +239,13 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 		var id, emailAddress, facebookID string
 
 		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId FROM users WHERE emailAddress = ? OR facebookId = ?`, c.Email, c.FacebookID)
-		err := row.Scan(&id, &emailAddress, &facebookID)
-		if err != nil {
+		if err := row.Scan(&id, &emailAddress, &facebookID); err != nil && !systemErrors.Is(err, sql.ErrNoRows) {
 			out <- errors.Wrap(err)
 			return
 		}
 
 		if facebookID == c.FacebookID {
-			out <- errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, err))
+			out <- errors.Wrap(application.ErrInvalid)
 			return
 		}
 
@@ -305,14 +309,13 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 		var id, emailAddress, googleID string
 
 		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, googleId FROM users WHERE emailAddress = ? OR googleId = ?`, c.Email, c.GoogleID)
-		err := row.Scan(&id, &emailAddress, &googleID)
-		if err != nil {
+		if err := row.Scan(&id, &emailAddress, &googleID); err != nil && !systemErrors.Is(err, sql.ErrNoRows) {
 			out <- errors.Wrap(err)
 			return
 		}
 
 		if googleID == c.GoogleID {
-			out <- errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, err))
+			out <- errors.Wrap(application.ErrInvalid)
 			return
 		}
 

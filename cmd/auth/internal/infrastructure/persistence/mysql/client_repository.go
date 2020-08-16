@@ -6,6 +6,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	systemErrors "errors"
 	"fmt"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
@@ -24,7 +25,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 
 	err := row.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.Data)
 	switch {
-	case err == sql.ErrNoRows:
+	case systemErrors.Is(err, sql.ErrNoRows):
 		return nil, errors.Wrap(fmt.Errorf("%w: Client not found: %s", application.ErrNotFound, err))
 	case err != nil:
 		return nil, errors.Wrap(err)
