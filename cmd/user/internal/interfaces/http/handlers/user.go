@@ -51,12 +51,12 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		defer close(out)
 
 		go func() {
-			cb.Publish(r.Context(), c, out)
+			out <- cb.Publish(r.Context(), c)
 		}()
 
-		doneCh := r.Context().Done()
+		ctxDoneCh := r.Context().Done()
 		select {
-		case <-doneCh:
+		case <-ctxDoneCh:
 			response.MustJSONError(r.Context(), w, errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, r.Context().Err())))
 			return
 		case e = <-out:

@@ -39,10 +39,10 @@ func TestSubscribePublish(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	bus.Subscribe(ctx, "event", func(ctx context.Context, event domain.Event) {
+	_ = bus.Subscribe(ctx, "event", func(ctx context.Context, event domain.Event) {
 		c <- nil
 	})
-	bus.Publish(ctx, e)
+	_ = bus.Publish(ctx, e)
 
 	ctxDoneCh := ctx.Done()
 	for {
@@ -74,10 +74,10 @@ func TestUnsubscribe(t *testing.T) {
 		t.Fail()
 	}
 
-	bus.Subscribe(ctx, "event", handler)
-	bus.Unsubscribe(ctx, "event", handler)
+	_ = bus.Subscribe(ctx, "event", handler)
+	_ = bus.Unsubscribe(ctx, "event", handler)
 
-	bus.Publish(ctx, e)
+	_ = bus.Publish(ctx, e)
 
 	ctxDoneCh := ctx.Done()
 	for {

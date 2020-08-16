@@ -42,7 +42,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 	defer close(out)
 
 	go func() {
-		s.commandBus.Publish(ctx, c, out)
+		out <- s.commandBus.Publish(ctx, c)
 	}()
 
 	ctxDoneCh := ctx.Done()

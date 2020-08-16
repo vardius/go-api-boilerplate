@@ -27,8 +27,9 @@ func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 	}
 
 	for _, event := range u.Changes() {
-		// we want to notify both groups of clients
-		r.eventBus.Publish(ctx, event)
+		if err := r.eventBus.Publish(ctx, event); err != nil {
+			return errors.Wrap(err)
+		}
 	}
 
 	return nil

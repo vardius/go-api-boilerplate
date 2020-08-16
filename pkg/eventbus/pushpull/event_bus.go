@@ -11,6 +11,7 @@ import (
 	pushpullproto "github.com/vardius/pushpull/proto"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
@@ -82,7 +83,7 @@ func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbu
 
 // Publish pushes event to the queue,
 // will be handled by first handler to Pull it from that queue
-func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
+func (bus *eventBus) Publish(ctx context.Context, event domain.Event) error {
 	o := dto{
 		Event: event,
 	}
@@ -94,7 +95,7 @@ func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
 	payload, err := json.Marshal(o)
 	if err != nil {
 		bus.logger.Error(ctx, "[EventBus] Push: Marshal error: %v\n", err)
-		return
+		return errors.Wrap(err)
 	}
 
 	bus.logger.Debug(ctx, "[EventBus] Push: %s %s\n", event.Metadata.Type, payload)
@@ -104,8 +105,10 @@ func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
 		Payload: payload,
 	}); err != nil {
 		bus.logger.Error(ctx, "[EventBus] Push: error: %v\n", err)
-		return
+		return errors.Wrap(err)
 	}
+
+	return nil
 }
 
 // Unsubscribe will unsubscribe after next event handler because stream.Recv() is blocking

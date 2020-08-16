@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"fmt"
 
 	messagebus "github.com/vardius/message-bus"
 
@@ -20,17 +21,30 @@ type eventBus struct {
 	logger     *log.Logger
 }
 
-func (bus *eventBus) Publish(ctx context.Context, event domain.Event) {
+func (bus *eventBus) Publish(ctx context.Context, event domain.Event) error {
 	bus.logger.Debug(ctx, "[EventBus] Publish: %s %+v\n", event.Metadata.Type, event)
-	bus.messageBus.Publish(event.Metadata.Type, ctx, event)
+
+	exit := make(chan struct{}, 1)
+	go func() {
+		bus.messageBus.Publish(event.Metadata.Type, ctx, event)
+		exit <- struct{}{}
+	}()
+
+	ctxDoneCh := ctx.Done()
+	select {
+	case <-ctxDoneCh:
+		return fmt.Errorf("[EventBus] Publish: %w", ctx.Err())
+	case <-exit:
+		return nil
+	}
 }
 
 func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
-	bus.logger.Info(nil, "[EventBus] Subscribe: %s\n", eventType)
+	bus.logger.Info(ctx, "[EventBus] Subscribe: %s\n", eventType)
 	return bus.messageBus.Subscribe(eventType, fn)
 }
 
 func (bus *eventBus) Unsubscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
-	bus.logger.Info(nil, "[EventBus] Unsubscribe: %s\n", eventType)
+	bus.logger.Info(ctx, "[EventBus] Unsubscribe: %s\n", eventType)
 	return bus.messageBus.Unsubscribe(eventType, fn)
 }

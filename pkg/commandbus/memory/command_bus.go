@@ -20,9 +20,14 @@ type commandBus struct {
 	logger     *log.Logger
 }
 
-func (bus *commandBus) Publish(ctx context.Context, command domain.Command, out chan<- error) {
+func (bus *commandBus) Publish(ctx context.Context, command domain.Command) error {
+	out := make(chan error, 1)
+	defer close(out)
+
 	bus.logger.Debug(ctx, "[CommandBus] Publish: %s %+v\n", command.GetName(), command)
 	bus.messageBus.Publish(command.GetName(), ctx, command, out)
+
+	return <-out
 }
 
 func (bus *commandBus) Subscribe(ctx context.Context, commandName string, fn commandbus.CommandHandler) error {

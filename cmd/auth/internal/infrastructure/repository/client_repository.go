@@ -27,7 +27,9 @@ func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 	}
 
 	for _, event := range u.Changes() {
-		r.eventBus.Publish(ctx, event)
+		if err := r.eventBus.Publish(ctx, event); err != nil {
+			return errors.Wrap(err)
+		}
 	}
 
 	return nil

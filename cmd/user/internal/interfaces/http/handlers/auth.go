@@ -41,12 +41,12 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		defer close(out)
 
 		go func() {
-			cb.Publish(r.Context(), c, out)
+			out <- cb.Publish(r.Context(), c)
 		}()
 
-		doneCh := r.Context().Done()
+		ctxDoneCh := r.Context().Done()
 		select {
-		case <-doneCh:
+		case <-ctxDoneCh:
 			appErr := errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, r.Context().Err()))
 
 			response.MustJSONError(r.Context(), w, appErr)
