@@ -12,6 +12,7 @@ import (
 
 	httpformmiddleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	userpersistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
@@ -30,6 +31,10 @@ const facebookAPIURL = "https://graph.facebook.com/me"
 // NewRouter provides new router
 func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, tokenProvider oauth2.TokenProvider, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
 	authenticator := httpauthenticator.NewToken(tokenAuthorizer.Auth)
+	cors := httpcors.New(httpcors.Options{
+		AllowedOrigins:   config.Env.HTTP.Origins,
+		AllowCredentials: true,
+	})
 
 	// Global middleware
 	router := gorouter.New(
@@ -37,7 +42,7 @@ func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, reposit
 		httpmiddleware.WithMetadata(),
 		httpmiddleware.WithContainer(gocontainer.New()), // used to pass logger to JSONError method
 		httpmiddleware.Logger(logger),
-		httpcors.Default().Handler,
+		cors.Handler,
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),
 		httpmiddleware.Metrics(),

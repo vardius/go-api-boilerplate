@@ -12,6 +12,7 @@ import (
 
 	httpformmiddleware "github.com/mar1n3r0/gorouter-middleware-formjson"
 
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http/handlers"
 	httpmiddleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
@@ -19,13 +20,18 @@ import (
 
 // NewRouter provides new router
 func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
+	cors := httpcors.New(httpcors.Options{
+		AllowedOrigins:   config.Env.HTTP.Origins,
+		AllowCredentials: true,
+	})
+
 	// Global middleware
 	router := gorouter.New(
 		httpmiddleware.Recover(logger),
 		httpmiddleware.WithMetadata(),
 		httpmiddleware.WithContainer(gocontainer.New()), // used to pass logger between middleware
 		httpmiddleware.Logger(logger),
-		httpcors.Default().Handler,
+		cors.Handler,
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),
 		httpmiddleware.Metrics(),
