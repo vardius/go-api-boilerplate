@@ -2,6 +2,7 @@ package http
 
 import (
 	"database/sql"
+	"net/http"
 	"time"
 
 	httpcors "github.com/rs/cors"
@@ -21,8 +22,16 @@ import (
 // NewRouter provides new router
 func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
 	cors := httpcors.New(httpcors.Options{
-		AllowedOrigins:   config.Env.HTTP.Origins,
 		AllowCredentials: true,
+		AllowedOrigins:   config.Env.HTTP.Origins,
+		AllowedMethods: []string{
+			http.MethodHead,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+		},
+		AllowedHeaders: []string{"*"},
 	})
 
 	// Global middleware

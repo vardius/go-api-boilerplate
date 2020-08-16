@@ -32,8 +32,16 @@ const facebookAPIURL = "https://graph.facebook.com/me"
 func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, tokenProvider oauth2.TokenProvider, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
 	authenticator := httpauthenticator.NewToken(tokenAuthorizer.Auth)
 	cors := httpcors.New(httpcors.Options{
-		AllowedOrigins:   config.Env.HTTP.Origins,
 		AllowCredentials: true,
+		AllowedOrigins:   config.Env.HTTP.Origins,
+		AllowedMethods: []string{
+			http.MethodHead,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+		},
+		AllowedHeaders: []string{"*"},
 	})
 
 	// Global middleware
