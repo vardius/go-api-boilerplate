@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
@@ -15,7 +16,10 @@ import (
 
 // WhenUserConnectedWithGoogle handles event
 func WhenUserConnectedWithGoogle(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
-	fn := func(ctx context.Context, event domain.Event) {
+	fn := func(parentCtx context.Context, event domain.Event) {
+		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
+		defer cancel()
+
 		logger := log.New(config.Env.App.Environment)
 		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 

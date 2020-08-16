@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"time"
 
 	messagebus "github.com/vardius/message-bus"
 
@@ -12,21 +11,18 @@ import (
 )
 
 // New creates memory event bus
-func New(handlerTimeout time.Duration, maxConcurrentCalls int, log *log.Logger) eventbus.EventBus {
-	return &eventBus{handlerTimeout, messagebus.New(maxConcurrentCalls), log}
+func New(maxConcurrentCalls int, log *log.Logger) eventbus.EventBus {
+	return &eventBus{messagebus.New(maxConcurrentCalls), log}
 }
 
 type eventBus struct {
-	handlerTimeout time.Duration
-	messageBus     messagebus.MessageBus
-	logger         *log.Logger
+	messageBus messagebus.MessageBus
+	logger     *log.Logger
 }
 
 func (bus *eventBus) Publish(parentCtx context.Context, event domain.Event) error {
-	ctx, _ := context.WithTimeout(context.Background(), bus.handlerTimeout)
-
 	bus.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v\n", event.Metadata.Type, event)
-	bus.messageBus.Publish(event.Metadata.Type, ctx, event)
+	bus.messageBus.Publish(event.Metadata.Type, context.Background(), event)
 
 	return nil
 }

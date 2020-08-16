@@ -3,6 +3,7 @@ package eventhandler
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/mailer"
@@ -15,7 +16,10 @@ import (
 
 // WhenUserAccessTokenWasRequested handles event
 func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider) eventbus.EventHandler {
-	fn := func(ctx context.Context, event domain.Event) {
+	fn := func(parentCtx context.Context, event domain.Event) {
+		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
+		defer cancel()
+
 		logger := log.New(config.Env.App.Environment)
 		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 
