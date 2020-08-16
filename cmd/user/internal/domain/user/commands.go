@@ -76,12 +76,16 @@ func (c RequestAccessToken) GetName() string {
 func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c RequestAccessToken, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// therefor recover middlewears will not recover from panic to prevent crash
+		// therefore recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
-		u := repository.Get(c.ID)
-		err := u.RequestAccessToken()
+		u, err := repository.Get(c.ID)
 		if err != nil {
+			out <- errors.Wrap(err)
+			return
+		}
+
+		if err := u.RequestAccessToken(); err != nil {
 			out <- errors.Wrap(err)
 			return
 		}
@@ -124,9 +128,13 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 			return
 		}
 
-		u := repository.Get(c.ID)
-		err = u.ChangeEmailAddress(c.Email)
+		u, err := repository.Get(c.ID)
 		if err != nil {
+			out <- errors.Wrap(err)
+			return
+		}
+
+		if err = u.ChangeEmailAddress(c.Email); err != nil {
 			out <- errors.Wrap(err)
 			return
 		}
@@ -151,7 +159,7 @@ func (c RegisterWithEmail) GetName() string {
 func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c RegisterWithEmail, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// therefor recover middlewears will not recover from panic to prevent crash
+		// therefore recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var totalUsers int32
@@ -202,7 +210,7 @@ func (c RegisterWithFacebook) GetName() string {
 func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c RegisterWithFacebook, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// therefor recover middlewears will not recover from panic to prevent crash
+		// therefore recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var id, emailAddress, facebookID string
@@ -227,9 +235,13 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 				return
 			}
 
-			u = repository.Get(userID)
-			err = u.ConnectWithFacebook(c.FacebookID)
+			u, err = repository.Get(userID)
 			if err != nil {
+				out <- errors.Wrap(err)
+				return
+			}
+
+			if err = u.ConnectWithFacebook(c.FacebookID); err != nil {
 				out <- errors.Wrap(err)
 				return
 			}
@@ -269,7 +281,7 @@ func (c RegisterWithGoogle) GetName() string {
 func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c RegisterWithGoogle, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// therefor recover middlewears will not recover from panic to prevent crash
+		// therefore recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var id, emailAddress, googleID string
@@ -294,9 +306,13 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 				return
 			}
 
-			u = repository.Get(userID)
-			err = u.ConnectWithGoogle(c.GoogleID)
+			u, err = repository.Get(userID)
 			if err != nil {
+				out <- errors.Wrap(err)
+				return
+			}
+
+			if err = u.ConnectWithGoogle(c.GoogleID); err != nil {
 				out <- errors.Wrap(err)
 				return
 			}

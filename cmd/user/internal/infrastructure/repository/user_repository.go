@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
@@ -41,8 +42,12 @@ func (r *userRepository) Save(ctx context.Context, u user.User) error {
 }
 
 // Get user with current state applied
-func (r *userRepository) Get(id uuid.UUID) user.User {
+func (r *userRepository) Get(id uuid.UUID) (user.User, error) {
 	events := r.eventStore.GetStream(id, user.StreamName)
 
-	return user.FromHistory(events)
+	if len(events) == 0 {
+		return user.User{}, application.ErrNotFound
+	}
+
+	return user.FromHistory(events), nil
 }

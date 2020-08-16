@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
@@ -36,10 +37,14 @@ func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 }
 
 // Get client with current state applied
-func (r *clientRepository) Get(id uuid.UUID) client.Client {
+func (r *clientRepository) Get(id uuid.UUID) (client.Client, error) {
 	events := r.eventStore.GetStream(id, client.StreamName)
 
-	return client.FromHistory(events)
+	if len(events) == 0 {
+		return client.Client{}, application.ErrNotFound
+	}
+
+	return client.FromHistory(events), nil
 }
 
 // NewClientRepository creates new client event sourced repository

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
@@ -36,10 +37,14 @@ func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 }
 
 // Get token with current state applied
-func (r *tokenRepository) Get(id uuid.UUID) token.Token {
+func (r *tokenRepository) Get(id uuid.UUID) (token.Token, error) {
 	events := r.eventStore.GetStream(id, token.StreamName)
 
-	return token.FromHistory(events)
+	if len(events) == 0 {
+		return token.Token{}, application.ErrNotFound
+	}
+
+	return token.FromHistory(events), nil
 }
 
 // NewTokenRepository creates new token event sourced repository
