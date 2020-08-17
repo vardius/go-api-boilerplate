@@ -10,6 +10,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
@@ -27,24 +28,26 @@ func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepos
 
 		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
-			logger.Error(ctx, "[EventHandler] Error: %v\n", err)
+			logger.Error(ctx, "[EventHandler] Error: %v\n", errors.Wrap(err))
 			return
 		}
 
 		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
-			logger.Error(ctx, "[EventHandler] Error: %v\n", err)
+			logger.Error(ctx, "[EventHandler] Error: %v\n", errors.Wrap(err))
 			return
 		}
 		defer tx.Rollback()
 
-		err = repository.UpdateEmail(ctx, e.ID.String(), string(e.Email))
-		if err != nil {
-			logger.Error(ctx, "[EventHandler] Error: %v\n", err)
+		if err := repository.UpdateEmail(ctx, e.ID.String(), string(e.Email)); err != nil {
+			logger.Error(ctx, "[EventHandler] Error: %v\n", errors.Wrap(err))
 			return
 		}
 
-		tx.Commit()
+		if err := tx.Commit(); err != nil {
+			logger.Error(ctx, "[EventHandler] Error: %v\n", errors.Wrap(err))
+			return
+		}
 	}
 
 	return fn

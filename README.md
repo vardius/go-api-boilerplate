@@ -88,6 +88,7 @@ Worth getting to know packages used in this boilerplate:
 make docker-build BIN=auth
 make docker-build BIN=migrate
 make docker-build BIN=user
+make docker-build BIN=web
 ```
 ### Install [Cert Manager](https://github.com/vardius/go-api-boilerplate/wiki/3.3.-Cert-manager)
 ```sh
@@ -110,6 +111,9 @@ Send example JSON via POST request
 curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/register-user-with-email --insecure
 ```
 ## View
+### Web UI example (React)
+This boilerplate includes simple Web UI to demonstrate example interaction with API.
+Once deployed and hosts are set please visit [https://api.go-api-boilerplate.local](https://api.go-api-boilerplate.local) to access UI.
 ### Public routes
 Get user details [https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812](https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812)
 ```json

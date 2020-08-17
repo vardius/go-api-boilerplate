@@ -10,6 +10,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
@@ -27,18 +28,18 @@ func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider) eventbu
 
 		err := json.Unmarshal(event.Payload, &e)
 		if err != nil {
-			logger.Error(ctx, "[EventHandler] WhenUserAccessTokenWasRequested: %v\n", err)
+			logger.Error(ctx, "[EventHandler] WhenUserAccessTokenWasRequested: %v\n", errors.Wrap(err))
 			return
 		}
 
 		token, err := tokenProvider.RetrieveToken(ctx, string(e.Email))
 		if err != nil {
-			logger.Error(ctx, "[EventHandler] WhenUserAccessTokenWasRequested: %v\n", err)
+			logger.Error(ctx, "[EventHandler] WhenUserAccessTokenWasRequested: %v\n", errors.Wrap(err))
 			return
 		}
 
-		if err := mailer.SendLoginEmail(ctx, string(e.Email), token.AccessToken); err != nil {
-			logger.Error(ctx, "[EventHandler] WhenUserAccessTokenWasRequested: %v\n", err)
+		if err := mailer.SendLoginEmail(ctx, "WhenUserAccessTokenWasRequested", string(e.Email), token.AccessToken); err != nil {
+			logger.Error(ctx, "[EventHandler] WhenUserAccessTokenWasRequested: %v\n", errors.Wrap(err))
 			return
 		}
 	}

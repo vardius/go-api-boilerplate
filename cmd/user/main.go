@@ -110,7 +110,7 @@ func main() {
 	grpcHealthServer := grpchealth.NewServer()
 	grpcUserServer := usergrpc.NewServer(commandBus, userPersistenceRepository, logger)
 	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.Auth.Secret))
-	tokenProvider := oauth2util.NewCredentialsAuthenticator(config.Env.App.Secret, oauth2Config)
+	tokenProvider := oauth2util.NewCredentialsAuthenticator(config.Env.Auth.Secret, oauth2Config)
 	claimsProvider := auth.NewClaimsProvider(authenticator)
 	tokenAuthorizer := auth.NewJWTTokenAuthorizer(claimsProvider)
 	router := userhttp.NewRouter(
@@ -139,9 +139,9 @@ func main() {
 			grpcPushPullConn,
 			eventBus,
 			map[string]eventbus.EventHandler{
-				(user.WasRegisteredWithEmail{}).GetType():    eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository),
-				(user.WasRegisteredWithGoogle{}).GetType():   eventhandler.WhenUserWasRegisteredWithGoogle(mysqlConnection, userPersistenceRepository),
-				(user.WasRegisteredWithFacebook{}).GetType(): eventhandler.WhenUserWasRegisteredWithFacebook(mysqlConnection, userPersistenceRepository),
+				(user.WasRegisteredWithEmail{}).GetType():    eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository, tokenProvider),
+				(user.WasRegisteredWithGoogle{}).GetType():   eventhandler.WhenUserWasRegisteredWithGoogle(mysqlConnection, userPersistenceRepository, tokenProvider),
+				(user.WasRegisteredWithFacebook{}).GetType(): eventhandler.WhenUserWasRegisteredWithFacebook(mysqlConnection, userPersistenceRepository, tokenProvider),
 				(user.EmailAddressWasChanged{}).GetType():    eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository),
 				(user.AccessTokenWasRequested{}).GetType():   eventhandler.WhenUserAccessTokenWasRequested(tokenProvider),
 			},

@@ -10,7 +10,7 @@ import (
 // User model
 type User struct {
 	ID         string           `json:"id"`
-	Email      string           `json:"emailAddress"`
+	Email      string           `json:"email"`
 	FacebookID mysql.NullString `json:"facebookId"`
 	GoogleID   mysql.NullString `json:"googleId"`
 }

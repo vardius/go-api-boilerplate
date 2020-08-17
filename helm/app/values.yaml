@@ -137,6 +137,17 @@ maildev:
       - name: ui
         internalPort: 1080
         externalPort: 1080
+  env:
+    - name: MAILDEV_INCOMING_USER
+      valueFrom:
+        secretKeyRef:
+          key: MAILER_USER
+          name: mail-secret
+    - name: MAILDEV_INCOMING_PASS
+      valueFrom:
+        secretKeyRef:
+          key: MAILER_PASSWORD
+          name: mail-secret
 
 # AWS localstack https://github.com/localstack/localstack
 localstack:
@@ -205,6 +216,19 @@ pushpull:
     initialDelaySeconds: 20
     exec:
       command: ["/bin/grpc_health_probe", "-addr=:3001"]
+
+web:
+  nameOverride: web
+  imagePullSecrets: regcred
+  image:
+    repository: go-api-boilerplate-web
+    tag: latest
+    pullPolicy: Never
+  service:
+    ports:
+      - name: http
+        internalPort: 3000
+        externalPort: 3000
 
 auth:
   nameOverride: auth
@@ -293,6 +317,7 @@ user:
   envFromSecretRefs:
     - auth-secret
     - user-secret
+    - mail-secret
   envFromConfigMapRefs:
     - app-config
     - http-config
@@ -334,8 +359,11 @@ secrets:
       USER_SECRET: a1lpYm51WlA0b1FFNUVMRDYyN21EaVFyaFB6VmxGT1M= # @FIXME: change secret value (remember its base64 encoded here)
       USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # @FIXME: change 0798173e-614c-4f78-996b-e9e63e01ed20 (its base64 encoded here)
       USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # @FIXME: change 0798173e-614c-4f78-996b-e9e63e01ed20 (its base64 encoded here)
-      MAILER_USER: '' # @FIXME
-      MAILER_PASSWORD: '' # @FIXME
+  - name: mail-secret
+    type: Opaque
+    data:
+      MAILER_USER: 'user' # @FIXME
+      MAILER_PASSWORD: 'pass' # @FIXME
   - name: role-secret
     type: Opaque
     data:
@@ -405,7 +433,7 @@ configMaps:
       PUSHPULL_HOST: 'go-api-boilerplate-pushpull'
       PUSHPULL_PORT: '3001'
       AUTH_HOST: 'go-api-boilerplate-auth'
-      MAILER_HOST: 'maildev.go-api-boilerplate' # @FIXME use real smtp service
+      MAILER_HOST: 'go-api-boilerplate-maildev' # @FIXME use real smtp service
       MAILER_PORT: '1025'
       GRPC_SERVER_MIN_TIME: '5m'    # if a client pings more than once every 5 minutes (default), terminate the connection
       GRPC_SERVER_TIME: '2h'        # ping the client if it is idle for 2 hours (default) to ensure the connection is still active

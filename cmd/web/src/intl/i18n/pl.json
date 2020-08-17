@@ -1,0 +1,22 @@
+{
+  "app.color_mode_switcher.mode_dark": "Noc",
+  "app.color_mode_switcher.mode_light": "Dzień",
+  "app.color_mode_switcher.toggle": "Przełącz tryb {mode}",
+  "app.header.home": "Strona Główna",
+  "app.header.logout": "Wyloguj",
+  "app.header.mail": "MailBox",
+  "app.header.menu": "Menu",
+  "app.header.mysql": "MYSQL",
+  "app.header.search": "Szukaj...",
+  "app.header.title": "go-api-boilerplate",
+  "home.table.title": "{users}/{total} Użytkowników | Strona {page}/{maxPage}",
+  "login.drawer_button.account": "Konto",
+  "login.form.email": "Email",
+  "login.form.error": "Błąd logowania: {error}",
+  "login.form.login": "Zaloguj",
+  "login.form.logout": "Wyloguj",
+  "login.form.submit": "Wyślij mi magiczny link",
+  "login.form.success.message": "Prosze sprawdzić email ({email}) i postępować zgodnie z intrukcją",
+  "login.form.success.title": "Wysłano wiadomość email",
+  "login.form.user": "{email}"
+}

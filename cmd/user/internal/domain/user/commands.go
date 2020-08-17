@@ -81,9 +81,8 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 		defer recoverCommandHandler(out)
 
 		var id string
-		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE emailAddress = ?`, c.Email)
-		err := row.Scan(&id)
-		if err != nil {
+		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE emailAddress=? LIMIT 1`, c.Email.String())
+		if err := row.Scan(&id); err != nil {
 			if systemErrors.Is(err, sql.ErrNoRows) {
 				out <- errors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
 				return
@@ -134,20 +133,19 @@ func (c ChangeEmailAddress) GetName() string {
 func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
 	fn := func(ctx context.Context, c ChangeEmailAddress, out chan<- error) {
 		// this goroutine runs independently to request's goroutine,
-		// therefor recover middleware will not recover from panic to prevent crash
+		// therefore recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
 		var totalUsers int32
 
-		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress = ?`, c.Email)
-		err := row.Scan(&totalUsers)
-		if err != nil {
+		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress=?`, c.Email.String())
+		if err := row.Scan(&totalUsers); err != nil {
 			out <- errors.Wrap(err)
 			return
 		}
 
 		if totalUsers != 0 {
-			out <- errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, err))
+			out <- errors.Wrap(application.ErrInvalid)
 			return
 		}
 
@@ -157,7 +155,7 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 			return
 		}
 
-		if err = u.ChangeEmailAddress(c.Email); err != nil {
+		if err := u.ChangeEmailAddress(c.Email); err != nil {
 			out <- errors.Wrap(err)
 			return
 		}
@@ -187,15 +185,14 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 
 		var totalUsers int32
 
-		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress = ?`, c.Email)
-		err := row.Scan(&totalUsers)
-		if err != nil {
+		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress=?`, c.Email.String())
+		if err := row.Scan(&totalUsers); err != nil {
 			out <- errors.Wrap(err)
 			return
 		}
 
 		if totalUsers != 0 {
-			out <- errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, err))
+			out <- errors.Wrap(application.ErrInvalid)
 			return
 		}
 
@@ -206,8 +203,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 		}
 
 		u := New()
-		err = u.RegisterWithEmail(id, c.Email)
-		if err != nil {
+		if err := u.RegisterWithEmail(id, c.Email); err != nil {
 			out <- errors.Wrap(err)
 			return
 		}
@@ -238,7 +234,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 
 		var id, emailAddress, facebookID string
 
-		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId FROM users WHERE emailAddress = ? OR facebookId = ?`, c.Email, c.FacebookID)
+		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId FROM users WHERE emailAddress=? OR facebookId=? LIMIT 1`, c.Email.String(), c.FacebookID)
 		if err := row.Scan(&id, &emailAddress, &facebookID); err != nil && !systemErrors.Is(err, sql.ErrNoRows) {
 			out <- errors.Wrap(err)
 			return
@@ -263,7 +259,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 				return
 			}
 
-			if err = u.ConnectWithFacebook(c.FacebookID); err != nil {
+			if err := u.ConnectWithFacebook(c.FacebookID); err != nil {
 				out <- errors.Wrap(err)
 				return
 			}
@@ -275,8 +271,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 			}
 
 			u = New()
-			err = u.RegisterWithFacebook(id, c.Email, c.FacebookID)
-			if err != nil {
+			if err := u.RegisterWithFacebook(id, c.Email, c.FacebookID); err != nil {
 				out <- errors.Wrap(err)
 				return
 			}
@@ -308,7 +303,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 
 		var id, emailAddress, googleID string
 
-		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, googleId FROM users WHERE emailAddress = ? OR googleId = ?`, c.Email, c.GoogleID)
+		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, googleId FROM users WHERE emailAddress=? OR googleId=? LIMIT 1`, c.Email.String(), c.GoogleID)
 		if err := row.Scan(&id, &emailAddress, &googleID); err != nil && !systemErrors.Is(err, sql.ErrNoRows) {
 			out <- errors.Wrap(err)
 			return
@@ -333,7 +328,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 				return
 			}
 
-			if err = u.ConnectWithGoogle(c.GoogleID); err != nil {
+			if err := u.ConnectWithGoogle(c.GoogleID); err != nil {
 				out <- errors.Wrap(err)
 				return
 			}
@@ -345,8 +340,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 			}
 
 			u = New()
-			err = u.RegisterWithGoogle(id, c.Email, c.GoogleID)
-			if err != nil {
+			if err := u.RegisterWithGoogle(id, c.Email, c.GoogleID); err != nil {
 				out <- errors.Wrap(err)
 				return
 			}

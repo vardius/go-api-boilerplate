@@ -20,7 +20,7 @@ import (
 )
 
 // NewRouter provides new router
-func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
+func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) http.Handler {
 	cors := httpcors.New(httpcors.Options{
 		AllowCredentials: true,
 		AllowedOrigins:   config.Env.HTTP.Origins,
@@ -57,5 +57,5 @@ func NewRouter(logger *log.Logger, server *server.Server, mysqlConnection *sql.D
 	router.POST("/v1/authorize", handlers.BuildAuthorizeHandler(server))
 	router.POST("/v1/token", handlers.BuildTokenHandler(server))
 
-	return router
+	return cors.Handler(router)
 }

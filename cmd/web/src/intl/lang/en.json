@@ -1,0 +1,62 @@
+{
+  "app.color_mode_switcher.mode_dark": {
+    "defaultMessage": "Dark"
+  },
+  "app.color_mode_switcher.mode_light": {
+    "defaultMessage": "Light"
+  },
+  "app.color_mode_switcher.toggle": {
+    "defaultMessage": "Switch to {mode} mode"
+  },
+  "app.header.home": {
+    "defaultMessage": "Home"
+  },
+  "app.header.logout": {
+    "defaultMessage": "Logout"
+  },
+  "app.header.mail": {
+    "defaultMessage": "MailBox"
+  },
+  "app.header.menu": {
+    "defaultMessage": "Menu"
+  },
+  "app.header.mysql": {
+    "defaultMessage": "MYSQL"
+  },
+  "app.header.search": {
+    "defaultMessage": "Search..."
+  },
+  "app.header.title": {
+    "defaultMessage": "go-api-boilerplate"
+  },
+  "home.table.title": {
+    "defaultMessage": "{users}/{total} Users | Page {page}/{maxPage}"
+  },
+  "login.drawer_button.account": {
+    "defaultMessage": "Account"
+  },
+  "login.form.email": {
+    "defaultMessage": "Email"
+  },
+  "login.form.error": {
+    "defaultMessage": "Login failed: {error}"
+  },
+  "login.form.login": {
+    "defaultMessage": "Login"
+  },
+  "login.form.logout": {
+    "defaultMessage": "Logout"
+  },
+  "login.form.submit": {
+    "defaultMessage": "Send me magic link"
+  },
+  "login.form.success.message": {
+    "defaultMessage": "Please check you mail box ({email}) and click magic link to login"
+  },
+  "login.form.success.title": {
+    "defaultMessage": "Email sent"
+  },
+  "login.form.user": {
+    "defaultMessage": "{email}"
+  }
+}

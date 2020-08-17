@@ -6,7 +6,7 @@ package mysql
 // User model
 type User struct {
 	ID    string `json:"id"`
-	Email string `json:"emailAddress"`
+	Email string `json:"email"`
 }
 
 // GetID the id

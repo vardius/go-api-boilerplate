@@ -43,8 +43,12 @@ func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 // IsValid returns error if value object is not valid
 func (e EmailAddress) IsValid() error {
 	if !govalidator.IsEmail(string(e)) {
-		return errors.New("Invalid email address")
+		return errors.New(fmt.Sprintf("Invalid email address: %s", e))
 	}
 
 	return nil
+}
+
+func (e EmailAddress) String() string {
+	return string(e)
 }

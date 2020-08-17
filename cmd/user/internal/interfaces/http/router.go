@@ -29,7 +29,7 @@ const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
 // NewRouter provides new router
-func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, tokenProvider oauth2.TokenProvider, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) gorouter.Router {
+func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, repository userpersistence.UserRepository, commandBus commandbus.CommandBus, tokenProvider oauth2.TokenProvider, mysqlConnection *sql.DB, grpcConnectionMap map[string]*grpc.ClientConn) http.Handler {
 	authenticator := httpauthenticator.NewToken(tokenAuthorizer.Auth)
 	cors := httpcors.New(httpcors.Options{
 		AllowCredentials: true,
@@ -50,7 +50,6 @@ func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, reposit
 		httpmiddleware.WithMetadata(),
 		httpmiddleware.WithContainer(gocontainer.New()), // used to pass logger to JSONError method
 		httpmiddleware.Logger(logger),
-		cors.Handler,
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),
 		httpmiddleware.Metrics(),
@@ -84,5 +83,5 @@ func NewRouter(logger *log.Logger, tokenAuthorizer auth.TokenAuthorizer, reposit
 	router.GET("/v1/", handlers.BuildListUserHandler(repository))
 	router.GET("/v1/{id}", handlers.BuildGetUserHandler(repository))
 
-	return router
+	return cors.Handler(router)
 }

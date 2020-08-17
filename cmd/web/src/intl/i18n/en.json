@@ -1,0 +1,22 @@
+{
+  "app.color_mode_switcher.mode_dark": "Dark",
+  "app.color_mode_switcher.mode_light": "Light",
+  "app.color_mode_switcher.toggle": "Switch to {mode} mode",
+  "app.header.home": "Home",
+  "app.header.logout": "Logout",
+  "app.header.mail": "MailBox",
+  "app.header.menu": "Menu",
+  "app.header.mysql": "MYSQL",
+  "app.header.search": "Search...",
+  "app.header.title": "go-api-boilerplate",
+  "home.table.title": "{users}/{total} Users | Page {page}/{maxPage}",
+  "login.drawer_button.account": "Account",
+  "login.form.email": "Email",
+  "login.form.error": "Login failed: {error}",
+  "login.form.login": "Login",
+  "login.form.logout": "Logout",
+  "login.form.submit": "Send me magic link",
+  "login.form.success.message": "Please check you mail box ({email}) and click magic link to login",
+  "login.form.success.title": "Email sent",
+  "login.form.user": "{email}"
+}
