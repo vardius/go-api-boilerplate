@@ -45,6 +45,8 @@ This project setup should reduce the time spent on environment configuration for
 
 *Please look for comments like `@TODO` and `@FIXME` to better understand thing than need attention.*
 
+<img align="center" src="https://github.com/vardius/go-api-boilerplate/blob/master/.github/Web%20UI.jpg?raw=true" alt="Web UI" />
+
 Key concepts:
 1. Rest API
 2. [Docker](https://www.docker.com/what-docker)
