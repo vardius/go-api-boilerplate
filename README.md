@@ -51,9 +51,7 @@ Once deployed and hosts are set please visit [https://api.go-api-boilerplate.loc
 
 <img align="center" src="https://github.com/vardius/go-api-boilerplate/blob/master/.github/Web%20UI.jpg?raw=true" alt="Web UI" />
 
-### API
-
-Key concepts:
+### Key concepts:
 1. Rest API
 2. [Docker](https://www.docker.com/what-docker)
 3. [Kubernetes](https://kubernetes.io/)
