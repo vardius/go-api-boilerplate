@@ -9,7 +9,7 @@
   "app.header.mysql": "MYSQL",
   "app.header.search": "Szukaj...",
   "app.header.title": "go-api-boilerplate",
-  "home.table.title": "{users}/{total} Użytkowników | Strona {page}/{maxPage}",
+  "home.table.title": "Użytkowników: {users}/{total} | Strona: {page}/{maxPage}",
   "login.drawer_button.account": "Konto",
   "login.form.email": "Email",
   "login.form.error": "Błąd logowania: {error}",

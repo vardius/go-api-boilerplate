@@ -1,0 +1,44 @@
+@keyframes slideFromLeft {
+    0% {
+      margin-left: -200px;
+      opacity: 0;
+    }
+    100% {
+      margin-left: 0;
+      opacity: 1;
+    }
+  }
+  
+  @-webkit-keyframes slideFromLeft {
+    0% {
+      margin-left: -200px;
+      opacity: 0;
+    }
+    100% {
+      margin-left: 0;
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideFromRight {
+    0% {
+      margin-right: -200px;
+      opacity: 0;
+    }
+    100% {
+      margin-right: 0;
+      opacity: 1;
+    }
+  }
+  
+  @-webkit-keyframes slideFromRight {
+    0% {
+      margin-right: -200px;
+      opacity: 0;
+    }
+    100% {
+      margin-right: 0;
+      opacity: 1;
+    }
+  }
+  

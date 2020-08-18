@@ -29,7 +29,7 @@ const AuthContextProvider = (props: Props) => {
   const authToken = query.get("authToken");
 
   const removeAuthToken = useCallback(() => {
-    removeCookie(AUTH_TOKEN_COOKIE)
+    removeCookie(AUTH_TOKEN_COOKIE);
   }, [removeCookie]);
 
   const setAuthToken = useCallback(

@@ -1,0 +1,38 @@
+/**
+https://developer.mozilla.org/en-US/docs/Web/CSS/cursor
+**/
+
+
+// General
+.cursor-auto        { cursor: auto !important }
+.cursor-default     { cursor: default !important }
+.cursor-none        { cursor: none !important }
+
+// Link & status
+.cursor-help        { cursor: help !important }
+.cursor-pointer     { cursor: pointer !important }
+.cursor-progress    { cursor: progress !important }
+.cursor-wait        { cursor: wait !important }
+
+// Selection
+.cursor-crosshair   { cursor: crosshair !important }
+.cursor-text        { cursor: text !important }
+
+// Drag & drop
+.cursor-move        { cursor: move !important }
+.cursor-no-drop     { cursor: no-drop !important }
+.cursor-not-allowed { cursor: not-allowed !important }
+
+// Resize & scrolling
+.cursor-n-resize    { cursor: n-resize !important }
+.cursor-e-resize    { cursor: e-resize !important }
+.cursor-s-resize    { cursor: s-resize !important }
+.cursor-w-resize    { cursor: w-resize !important }
+.cursor-ne-resize   { cursor: ne-resize !important }
+.cursor-nw-resize   { cursor: nw-resize !important }
+.cursor-se-resize   { cursor: se-resize !important }
+.cursor-sw-resize   { cursor: sw-resize !important }
+
+// Grab
+.cursor-grab        { cursor: grab !important }
+.cursor-grabbing    { cursor: grabbing !important }

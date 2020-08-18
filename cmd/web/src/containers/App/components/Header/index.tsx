@@ -138,7 +138,7 @@ const Header = () => {
         <MenuLink to="/" exact>
           {intl.formatMessage(messages.home)}
         </MenuLink>
-        <MenuLink to="https://maildev.go-api-boilerplate.local/" isExternal>
+        <MenuLink to="https://maildev.go-api-boilerplatel.local/" isExternal>
           {intl.formatMessage(messages.mail)}
         </MenuLink>
         <MenuLink to="https://phpmyadmin.go-api-boilerplate.local/" isExternal>

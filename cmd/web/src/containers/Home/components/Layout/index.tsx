@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { defineMessages, useIntl } from "react-intl";
-import { SimpleGrid, Text, Box, Stack } from "@chakra-ui/core";
-import { User } from "src/types";
+import { Heading, Stack } from "@chakra-ui/core";
 import { DEFAULT_PAGE, DEFAULT_LIMIT } from "src/constants";
 import { fetchJSON } from "src/api";
+import UserTable from "../UserTable";
 
 const messages = defineMessages({
   tableTitle: {
     id: "home.table.title",
-    defaultMessage: "{users}/{total} Users | Page {page}/{maxPage}",
+    defaultMessage: "User: {users}/{total} | Page {page}/{maxPage}",
   },
 });
 
@@ -24,8 +24,8 @@ const fetchUsers = async ({ page, limit }: { page: number; limit: number }) => {
 function Layout() {
   const intl = useIntl();
 
-  const [page] = useState(DEFAULT_PAGE);
-  const [limit] = useState(DEFAULT_LIMIT);
+  const [page, setPage] = useState(DEFAULT_PAGE);
+  const [limit, setLimit] = useState(DEFAULT_LIMIT);
   const [total, setTotal] = useState(0);
   const [users, setUsers] = useState([]);
 
@@ -46,21 +46,22 @@ function Layout() {
 
   return (
     <Stack flex={1}>
-      <Box>
+      <Heading m={4}>
         {intl.formatMessage(messages.tableTitle, {
           users: users.length,
           maxPage: Math.ceil(total / limit),
-          total,
+          total: total,
           page,
         })}
-      </Box>
-      <SimpleGrid columns={1} spacing={10}>
-        {users.map((user: User) => (
-          <Text key={user.id}>
-            {user.id} - {user.email}
-          </Text>
-        ))}
-      </SimpleGrid>
+      </Heading>
+      <UserTable
+        users={users}
+        page={page}
+        limit={limit}
+        total={total}
+        onPageChange={(newPage: number) => setPage(newPage)}
+        onLimitChange={(newLimit: number) => setLimit(newLimit)}
+      />
     </Stack>
   );
 }
