@@ -45,7 +45,13 @@ This project setup should reduce the time spent on environment configuration for
 
 *Please look for comments like `@TODO` and `@FIXME` to better understand thing than need attention.*
 
-Key concepts:
+### Web UI example (React)
+This boilerplate includes simple Web UI to demonstrate example interaction with API.
+Once deployed and hosts are set please visit [https://api.go-api-boilerplate.local](https://api.go-api-boilerplate.local) to access UI.
+
+<img align="center" src="https://github.com/vardius/go-api-boilerplate/blob/master/.github/Web%20UI.jpg?raw=true" alt="Web UI" />
+
+### Key concepts:
 1. Rest API
 2. [Docker](https://www.docker.com/what-docker)
 3. [Kubernetes](https://kubernetes.io/)
@@ -111,9 +117,6 @@ Send example JSON via POST request
 curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/register-user-with-email --insecure
 ```
 ## View
-### Web UI example (React)
-This boilerplate includes simple Web UI to demonstrate example interaction with API.
-Once deployed and hosts are set please visit [https://api.go-api-boilerplate.local](https://api.go-api-boilerplate.local) to access UI.
 ### Public routes
 Get user details [https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812](https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812)
 ```json
