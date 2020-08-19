@@ -3,7 +3,6 @@ import { defineMessages, useIntl } from "react-intl";
 import { Link as ReachLink, useRouteMatch } from "react-router-dom";
 import {
   Box,
-  Stack,
   Heading,
   Flex,
   InputGroup,
@@ -70,19 +69,25 @@ const MenuLink = ({ children, to, exact, isExternal }: MenuLinkProps) => {
 
   if (isExternal) {
     return (
-      <Link href={to} isExternal>
-        {children}
-        <Icon as={FaExternalLinkAlt} mx="4px" boxSize="12px" />
+      <Link href={to} mt={{ base: 4, md: 0 }} mr={6} display="block" isExternal>
+        <HStack>
+          <Text>{children}</Text>
+          <Icon as={FaExternalLinkAlt} ml={1} />
+        </HStack>
       </Link>
     );
   }
 
   if (match) {
-    return <Text>{children}</Text>;
+    return (
+      <Text mt={{ base: 4, md: 0 }} mr={6} display="block">
+        {children}
+      </Text>
+    );
   }
 
   return (
-    <Link as={ReachLink} to="/">
+    <Link as={ReachLink} to="/" mt={{ base: 4, md: 0 }} mr={6} display="block">
       {children}
     </Link>
   );
@@ -115,6 +120,7 @@ const Header = () => {
 
       <Box display={{ base: "block", md: "none" }} onClick={handleToggle}>
         <svg
+          fill={color.primary}
           width="12px"
           viewBox="0 0 20 20"
           xmlns="http://www.w3.org/2000/svg"
@@ -122,35 +128,30 @@ const Header = () => {
           <title>{intl.formatMessage(messages.menu)}</title>
           <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" />
         </svg>
-        {intl.formatMessage(messages.mail)}
-        {intl.formatMessage(messages.mysql)}
-        {intl.formatMessage(messages.mail)}
-        {intl.formatMessage(messages.mysql)}
       </Box>
 
-      <HStack
-        spacing={4}
-        display={{ sm: isVisible ? "block" : "none", md: "flex" }}
-        width={{ sm: "full", md: "auto" }}
+      <Box
+        display={{ base: isVisible ? "block" : "none", md: "flex" }}
+        width={{ base: "full", md: "auto" }}
         alignItems="center"
         flexGrow={1}
       >
         <MenuLink to="/" exact>
           {intl.formatMessage(messages.home)}
         </MenuLink>
-        <MenuLink to="https://maildev.go-api-boilerplatel.local/" isExternal>
+        <MenuLink to={`https://maildev.${window.location.hostname}`} isExternal>
           {intl.formatMessage(messages.mail)}
         </MenuLink>
-        <MenuLink to="https://phpmyadmin.go-api-boilerplate.local/" isExternal>
+        <MenuLink to={`https://phpmyadmin.${window.location.hostname}`} isExternal>
           {intl.formatMessage(messages.mysql)}
         </MenuLink>
-      </HStack>
+      </Box>
 
       <Box
-        display={{ sm: isVisible ? "block" : "none", md: "block" }}
+        display={{ base: isVisible ? "block" : "none", md: "block" }}
         mt={{ base: 4, md: 0 }}
       >
-        <Stack spacing={2} align="center" isInline>
+        <HStack spacing={2} align="center">
           <InputGroup flexGrow={1}>
             <InputLeftElement zIndex={0} children={<Icon name="search" />} />
             <Input flex="1" placeholder={intl.formatMessage(messages.search)} />
@@ -171,7 +172,7 @@ const Header = () => {
           ) : (
             <LoginDrawerButton />
           )}
-        </Stack>
+        </HStack>
       </Box>
     </Flex>
   );
