@@ -16,12 +16,13 @@ import {
   Link,
   Text,
   HStack,
+  Avatar,
   useColorModeValue,
 } from "@chakra-ui/core";
-import { FaExternalLinkAlt } from "react-icons/fa";
+import { FaExternalLinkAlt, FaChevronCircleDown } from "react-icons/fa";
 import { brandColors } from "src/theme/theme";
 import { useUser } from "src/hooks";
-import { LoginDrawerButton } from "src/components/login";
+import LoginDrawerButton from "src/components/common/LoginDrawerButton";
 
 const messages = defineMessages({
   title: {
@@ -108,7 +109,7 @@ const Header = () => {
       align="center"
       justify="space-between"
       wrap="wrap"
-      padding="1.5rem"
+      padding="1.0rem"
       borderBottomWidth="1px"
       borderColor={color.primary}
     >
@@ -142,7 +143,10 @@ const Header = () => {
         <MenuLink to={`https://maildev.${window.location.hostname}`} isExternal>
           {intl.formatMessage(messages.mail)}
         </MenuLink>
-        <MenuLink to={`https://phpmyadmin.${window.location.hostname}`} isExternal>
+        <MenuLink
+          to={`https://phpmyadmin.${window.location.hostname}`}
+          isExternal
+        >
           {intl.formatMessage(messages.mysql)}
         </MenuLink>
       </Box>
@@ -158,7 +162,10 @@ const Header = () => {
           </InputGroup>
           {user ? (
             <Menu>
-              <MenuButton as={Text}>{user.email}</MenuButton>
+              <MenuButton>
+                <Avatar name={user.email} src="https://bit.ly/broken-link" />
+                <FaChevronCircleDown />
+              </MenuButton>
               <MenuList>
                 <MenuItem
                   onClick={() => {

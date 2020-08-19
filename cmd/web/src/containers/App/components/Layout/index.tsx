@@ -1,10 +1,10 @@
 import React, { lazy, Suspense } from "react";
 import { Route, Switch } from "react-router-dom";
-import { Spinner, Flex } from "@chakra-ui/core";
+import { Spinner, Center, Flex } from "@chakra-ui/core";
+import ErrorBoundary from "src/components/common/ErrorBoundary";
 import getPath from "src/routes";
 
 import styles from "./Layout.module.scss";
-import ErrorBoundary from "../ErrorBoundary";
 import Header from "../Header";
 import Footer from "../Footer";
 
@@ -18,7 +18,11 @@ function Layout() {
         <Flex minHeight="100vh" flexDirection="column">
           <Header />
           <Suspense
-            fallback={<Spinner thickness="4px" speed="0.65s" size="xl" />}
+            fallback={
+              <Center>
+                <Spinner thickness="4px" speed="0.65s" size="xl" />
+              </Center>
+            }
           >
             <Switch>
               <Route exact path={getPath("home")} component={Home} />

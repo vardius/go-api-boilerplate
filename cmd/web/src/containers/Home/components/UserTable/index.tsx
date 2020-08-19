@@ -1,14 +1,28 @@
-import React, {useState} from "react";
-import {Box, HStack, IconButton, Select, useColorModeValue, VStack} from "@chakra-ui/core";
-import {FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight,} from "react-icons/fa";
-import {User} from "src/types";
+import React, { useState } from "react";
+import {
+  Box,
+  HStack,
+  IconButton,
+  Select,
+  Skeleton,
+  useColorModeValue,
+  VStack,
+} from "@chakra-ui/core";
+import {
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
+  FaAngleLeft,
+  FaAngleRight,
+} from "react-icons/fa";
+import { User } from "src/types";
 
-import classNames from 'classnames/bind';
-import styles from './Table.module.scss';
+import classNames from "classnames/bind";
+import styles from "./Table.module.scss";
 
 const cx = classNames.bind(styles);
 
 export interface Props {
+  isLoaded: boolean;
   users: Array<User>;
   limit: number;
   page: number;
@@ -23,14 +37,12 @@ const UserTable = (props: Props) => {
 
   const tableMode = useColorModeValue("table-light", "table-dark");
 
-  const tableStyles = cx(
-    {
-      table: true,
-      'table-striped': true,
-      'table-dark': tableMode === 'table-dark',
-      'table-light': tableMode === 'table-light',
-    },
-  );
+  const tableStyles = cx({
+    table: true,
+    "table-striped": true,
+    "table-dark": tableMode === "table-dark",
+    "table-light": tableMode === "table-light",
+  });
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1) {
@@ -53,61 +65,82 @@ const UserTable = (props: Props) => {
       <Box as="table" className={tableStyles}>
         <Box as="thead">
           <Box as="tr">
-            <Box as="th" scope="col">#</Box>
-            <Box as="th" scope="col">Email</Box>
-            <Box as="th" scope="col">ID</Box>
+            <Box as="th" scope="col">
+              #
+            </Box>
+            <Box as="th" scope="col">
+              Email
+            </Box>
+            <Box as="th" scope="col">
+              ID
+            </Box>
           </Box>
         </Box>
         <Box as="tbody">
-          {props.users.map((user, idx) => (
-            <Box as="tr" key={user.id}>
-              <Box as="th" scope="row">{idx}</Box>
-              <Box as="th">{user.email}</Box>
-              <Box as="th">{user.id}</Box>
-            </Box>
-          ))}
+          {!props.isLoaded &&
+            [...Array(limit)].map((x, i) => (
+              <Box as="tr" key={i}>
+                <Box as="th" scope="row">
+                  <Skeleton height="30px" />
+                </Box>
+                <Box as="th">
+                  <Skeleton height="30px" />
+                </Box>
+                <Box as="th">
+                  <Skeleton height="30px" />
+                </Box>
+              </Box>
+            ))}
+          {props.isLoaded &&
+            props.users.map((user, idx) => (
+              <Box as="tr" key={user.id}>
+                <Box as="th" scope="row">
+                  {idx}
+                </Box>
+                <Box as="th">{user.email}</Box>
+                <Box as="th">{user.id}</Box>
+              </Box>
+            ))}
         </Box>
       </Box>
       <HStack justifyContent="space-around" alignItems="baseline">
-        <HStack justifyContent="center" alignItems="center">
-          <IconButton
-            aria-label=""
-            marginLeft="2"
-            onClick={() => handlePageChange(0)}
-            icon={<FaAngleDoubleLeft/>}
-          />
-          <IconButton
-            aria-label=""
-            marginLeft="2"
-            onClick={() => handlePageChange(page - 1)}
-            icon={<FaAngleLeft/>}
-          />
-          <Select
-            mr={4}
-            variant="unstyled"
-            onChange={(e) => handleLimitChange(Number(e.target.value))}
-            value={limit}
-          >
-            <option aria-label="" value={10}>
-              10
-            </option>
-            <option aria-label="" value={100}>
-              100
-            </option>
-          </Select>
-          <IconButton
-            aria-label=""
-            marginLeft="2"
-            onClick={() => handlePageChange(page + 1)}
-            icon={<FaAngleRight/>}
-          />
-          <IconButton
-            aria-label=""
-            marginLeft="2"
-            onClick={() => handlePageChange(Math.ceil(props.total / page))}
-            icon={<FaAngleDoubleRight/>}
-          />
-        </HStack>
+        <IconButton
+          aria-label=""
+          mx={1}
+          onClick={() => handlePageChange(0)}
+          icon={<FaAngleDoubleLeft />}
+        />
+        <IconButton
+          aria-label=""
+          mx={1}
+          onClick={() => handlePageChange(page - 1)}
+          icon={<FaAngleLeft />}
+        />
+        <Select
+          mx={1}
+          variant="unstyled"
+          onChange={(e) => handleLimitChange(Number(e.target.value))}
+          value={limit}
+        >
+          <option aria-label="" value={10}>
+            10
+          </option>
+          <option aria-label="" value={100}>
+            100
+          </option>
+        </Select>
+        <IconButton
+          aria-label=""
+          mx={1}
+          onClick={() => handlePageChange(page + 1)}
+          icon={<FaAngleRight />}
+        />
+        <IconButton
+          aria-label=""
+          mx={1}
+          onClick={() => handlePageChange(Math.ceil(props.total / page))}
+          icon={<FaAngleDoubleRight />}
+        />
       </HStack>
     </VStack>
   );

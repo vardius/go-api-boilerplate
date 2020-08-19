@@ -26,6 +26,7 @@ function Layout() {
 
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
+  const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [users, setUsers] = useState([]);
 
@@ -34,6 +35,7 @@ function Layout() {
       try {
         const response = await fetchUsers({ page, limit });
 
+        setIsLoading(false);
         setUsers(response.users || []);
         setTotal(response.total || 0);
       } catch (err) {
@@ -47,14 +49,17 @@ function Layout() {
   return (
     <Stack flex={1}>
       <Heading m={4}>
-        {intl.formatMessage(messages.tableTitle, {
-          users: users.length,
-          maxPage: Math.ceil(total / limit),
-          total: total,
-          page,
-        })}
+        <Center>
+          {intl.formatMessage(messages.tableTitle, {
+            users: users.length,
+            maxPage: Math.ceil(total / limit),
+            total: total,
+            page,
+          })}
+        </Center>
       </Heading>
       <UserTable
+        isLoaded={!isLoading}
         users={users}
         page={page}
         limit={limit}
