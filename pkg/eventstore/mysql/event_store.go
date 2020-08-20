@@ -26,7 +26,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 		return nil
 	}
 
-	query := "INSERT INTO events (id, type, streamId, streamName, streamVersion, occurredAt, payload) VALUES "
+	query := "INSERT INTO events (event_id, event_type, streamId, streamName, streamVersion, occurredAt, payload) VALUES "
 	values := make([]interface{}, 0, lenEvents*7)
 
 	if lenEvents > 1 {
@@ -70,7 +70,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 }
 
 func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error) {
-	row := s.db.QueryRowContext(ctx, `SELECT id, type, streamId, streamName, streamVersion, occurredAt, payload FROM events WHERE id=? LIMIT 1`, id)
+	row := s.db.QueryRowContext(ctx, `SELECT event_id, event_type, streamId, streamName, streamVersion, occurredAt, payload FROM events WHERE id=? LIMIT 1`, id.String())
 
 	event := domain.Event{}
 
@@ -106,9 +106,7 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 }
 
 func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
-	e := make([]domain.Event, 0)
-
-	rows, err := s.db.QueryContext(ctx, `SELECT id, type, streamId, streamName, streamVersion, occurredAt, payload FROM events WHERE streamId=? AND streamName=? ORDER BY distinctId DESC`, streamID.String(), streamName)
+	rows, err := s.db.QueryContext(ctx, `SELECT event_id, event_type, streamId, streamName, streamVersion, occurredAt, payload FROM events WHERE streamId=? AND streamName=? ORDER BY distinctId ASC`, streamID.String(), streamName)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
@@ -145,7 +143,7 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 		return nil, errors.Wrap(err)
 	}
 
-	return e, nil
+	return events, nil
 }
 
 // New creates in mysql event store
