@@ -22,13 +22,13 @@ func TestUnmarshalRegisterWithEmail(t *testing.T) {
 }
 
 func TestUnmarshalRegisterWithFacebook(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com","facebookId":""}`)
+	testJSON := []byte(`{"email":"test@test.com","facebook_id":""}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithFacebook{})
 }
 
 func TestUnmarshalRegisterWithGoogle(t *testing.T) {
-	testJSON := []byte(`{"email":"test@test.com","googleId":""}`)
+	testJSON := []byte(`{"email":"test@test.com","google_id":""}`)
 
 	testUnmarshalCommand(t, testJSON, &RegisterWithGoogle{})
 }
@@ -45,7 +45,7 @@ func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
 
 	cmp := bytes.Compare(j, testJSON)
 	if cmp != 0 {
-		t.Errorf("Serialize command did not match expected result: %s | %d", string(j), cmp)
+		t.Errorf("Serialize command did not match expected result: %s | %s | %d", string(j), string(testJSON), cmp)
 	}
 }
 
