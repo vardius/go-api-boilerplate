@@ -11,8 +11,8 @@ import (
 type User struct {
 	ID         string           `json:"id"`
 	Email      string           `json:"email"`
-	FacebookID mysql.NullString `json:"facebookId"`
-	GoogleID   mysql.NullString `json:"googleId"`
+	FacebookID mysql.NullString `json:"facebook_id"`
+	GoogleID   mysql.NullString `json:"google_id"`
 }
 
 // GetID the id

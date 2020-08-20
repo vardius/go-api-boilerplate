@@ -11,8 +11,8 @@ import (
 type WasCreated struct {
 	ID uuid.UUID `json:"id"`
 
-	ClientID uuid.UUID `json:"clientId"`
-	UserID   uuid.UUID `json:"userId"`
+	ClientID uuid.UUID `json:"client_id"`
+	UserID   uuid.UUID `json:"user_id"`
 	Code     string    `json:"code"`
 	Scope    string    `json:"scope"`
 	Access   string    `json:"access"`

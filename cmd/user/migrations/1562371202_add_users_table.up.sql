@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     INDEX `i_facebookId` (`facebookId`),
     INDEX `i_googleId` (`googleId`)
 )
-ENGINE = InnoDB
-DEFAULT CHARSET = utf8
-COLLATE = utf8_bin;
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    COLLATE = utf8_bin;
 COMMIT;

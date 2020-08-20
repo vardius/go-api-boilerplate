@@ -12,8 +12,8 @@ import (
 // Token model
 type Token struct {
 	ID       string           `json:"id"`
-	ClientID string           `json:"clientId"`
-	UserID   string           `json:"userId"`
+	ClientID string           `json:"client_id"`
+	UserID   string           `json:"user_id"`
 	Scope    string           `json:"scope"`
 	Access   string           `json:"access"`
 	Refresh  string           `json:"refresh"`

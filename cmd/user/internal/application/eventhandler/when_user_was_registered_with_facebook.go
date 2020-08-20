@@ -27,9 +27,7 @@ func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRe
 		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 
 		e := user.WasRegisteredWithFacebook{}
-
-		err := json.Unmarshal(event.Payload, &e)
-		if err != nil {
+		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			logger.Error(ctx, "[EventHandler] Error: %v\n", errors.Wrap(err))
 			return
 		}

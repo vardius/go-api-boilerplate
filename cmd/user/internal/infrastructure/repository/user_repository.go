@@ -27,8 +27,7 @@ func NewUserRepository(store eventstore.EventStore, bus eventbus.EventBus) user.
 
 // Save current user changes to event store and publish each event with an event bus
 func (r *userRepository) Save(ctx context.Context, u user.User) error {
-	err := r.eventStore.Store(u.Changes())
-	if err != nil {
+	if err := r.eventStore.Store(ctx, u.Changes()); err != nil {
 		return errors.Wrap(err)
 	}
 
@@ -42,8 +41,11 @@ func (r *userRepository) Save(ctx context.Context, u user.User) error {
 }
 
 // Get user with current state applied
-func (r *userRepository) Get(id uuid.UUID) (user.User, error) {
-	events := r.eventStore.GetStream(id, user.StreamName)
+func (r *userRepository) Get(ctx context.Context, id uuid.UUID) (user.User, error) {
+	events, err := r.eventStore.GetStream(ctx, id, user.StreamName)
+	if err != nil {
+		return user.User{}, errors.Wrap(err)
+	}
 
 	if len(events) == 0 {
 		return user.User{}, application.ErrNotFound

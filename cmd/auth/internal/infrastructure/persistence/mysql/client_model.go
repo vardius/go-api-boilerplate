@@ -10,7 +10,7 @@ import (
 // Client model
 type Client struct {
 	ID     string          `json:"id"`
-	UserID string          `json:"userId"`
+	UserID string          `json:"user_id"`
 	Secret string          `json:"secret"`
 	Domain string          `json:"domain"`
 	Data   json.RawMessage `json:"data"`

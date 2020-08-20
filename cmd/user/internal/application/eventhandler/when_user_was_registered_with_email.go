@@ -27,9 +27,7 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 
 		e := user.WasRegisteredWithEmail{}
-
-		err := json.Unmarshal(event.Payload, &e)
-		if err != nil {
+		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			logger.Error(ctx, "[EventHandler] Error: %v\n", errors.Wrap(err))
 			return
 		}

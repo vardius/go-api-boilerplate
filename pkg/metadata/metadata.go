@@ -16,7 +16,7 @@ const metadataKey key = 1
 // Metadata represent state for each request.
 type Metadata struct {
 	Now        time.Time `json:"-"`
-	TraceID    string    `json:"traceId"`
+	TraceID    string    `json:"trace_id"`
 	StatusCode int       `json:"statusCode"`
 }
 

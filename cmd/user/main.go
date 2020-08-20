@@ -27,7 +27,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus/pushpull"
-	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
+	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
@@ -46,7 +46,6 @@ func main() {
 	defer cancel()
 
 	logger := log.New(config.Env.App.Environment)
-	eventStore := eventstore.New()
 	oauth2Config := oauth2.NewConfig()
 	grpcServer := grpcutils.NewServer(
 		grpcutils.ServerConfig{
@@ -103,6 +102,7 @@ func main() {
 	)
 	defer grpcUserConn.Close()
 
+	eventStore := eventstore.New(mysqlConnection)
 	grpPushPullClient := pushpullproto.NewPushPullClient(grpcPushPullConn)
 	eventBus := pushpull.New(config.Env.App.EventHandlerTimeout, grpPushPullClient, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
@@ -127,11 +127,21 @@ func main() {
 	)
 	app := application.New(logger)
 
-	commandBus.Subscribe(ctx, (user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, mysqlConnection))
-	commandBus.Subscribe(ctx, (user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, mysqlConnection))
-	commandBus.Subscribe(ctx, (user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, mysqlConnection))
-	commandBus.Subscribe(ctx, (user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, mysqlConnection))
-	commandBus.Subscribe(ctx, (user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, mysqlConnection))
+	if err := commandBus.Subscribe(ctx, (user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(userRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(userRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(userRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
 
 	go func() {
 		eventbus.RegisterGRPCHandlers(

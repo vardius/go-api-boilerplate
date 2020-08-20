@@ -10,7 +10,7 @@ import (
 // WasCreated event
 type WasCreated struct {
 	ID     uuid.UUID `json:"id"`
-	UserID uuid.UUID `json:"userId"`
+	UserID uuid.UUID `json:"user_id"`
 	Secret string
 	Domain string
 

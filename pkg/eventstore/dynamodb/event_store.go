@@ -1,9 +1,10 @@
 /*
-Package memory provides dynamodb implementation of domain event store
+Package eventstore provides dynamodb implementation of domain event store
 */
-package memory
+package eventstore
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -14,6 +15,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	baseeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
 
@@ -22,7 +24,7 @@ type eventStore struct {
 	tableName string
 }
 
-func (s *eventStore) Store(events []domain.Event) error {
+func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -49,7 +51,7 @@ func (s *eventStore) Store(events []domain.Event) error {
 	return nil
 }
 
-func (s *eventStore) Get(id uuid.UUID) (domain.Event, error) {
+func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error) {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String(s.tableName),
 		KeyConditionExpression: aws.String("id = :id"),
@@ -71,22 +73,21 @@ func (s *eventStore) Get(id uuid.UUID) (domain.Event, error) {
 	return domain.NullEvent, baseeventstore.ErrEventNotFound
 }
 
-func (s *eventStore) FindAll() []domain.Event {
+func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 	params := &dynamodb.QueryInput{
 		TableName:      aws.String(s.tableName),
 		ConsistentRead: aws.Bool(true),
 	}
 
-	es, _ := s.query(params)
-
-	if es == nil {
-		return make([]domain.Event, 0)
+	es, err := s.query(params)
+	if es != nil {
+		return nil, errors.Wrap(err)
 	}
 
-	return es
+	return es, nil
 }
 
-func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []domain.Event {
+func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String(s.tableName),
 		KeyConditionExpression: aws.String("metadata.streamID = :streamID"),
@@ -96,13 +97,12 @@ func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []domain.E
 		ConsistentRead: aws.Bool(true),
 	}
 
-	es, _ := s.query(params)
-
-	if es == nil {
-		return make([]domain.Event, 0)
+	es, err := s.query(params)
+	if err != nil {
+		return nil, errors.Wrap(err)
 	}
 
-	return es
+	return es, nil
 }
 
 func (s *eventStore) query(params *dynamodb.QueryInput) ([]domain.Event, error) {

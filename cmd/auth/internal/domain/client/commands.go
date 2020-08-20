@@ -32,7 +32,7 @@ func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
 		// therefore recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
-		client, err := repository.Get(c.ID)
+		client, err := repository.Get(ctx, c.ID)
 		if err != nil {
 			out <- errors.Wrap(err)
 			return
@@ -67,8 +67,7 @@ func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 		defer recoverCommandHandler(out)
 
 		client := New()
-		err := client.Create(c.ClientInfo)
-		if err != nil {
+		if err := client.Create(c.ClientInfo); err != nil {
 			out <- errors.Wrap(err)
 			return
 		}

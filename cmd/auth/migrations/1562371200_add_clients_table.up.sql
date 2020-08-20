@@ -1,5 +1,6 @@
 START TRANSACTION;
-CREATE TABLE IF NOT EXISTS `clients` (
+CREATE TABLE IF NOT EXISTS `clients`
+(
     `distinctId` INT          NOT NULL AUTO_INCREMENT,
     `id`         CHAR(36)     NOT NULL,
     `userId`     CHAR(36)     NOT NULL,
@@ -10,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `clients` (
     UNIQUE KEY `id` (`id`),
     INDEX `i_userId` (`userId`)
 )
-ENGINE = InnoDB
-DEFAULT CHARSET = utf8
-COLLATE = utf8_bin;
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    COLLATE = utf8_bin;
 COMMIT;

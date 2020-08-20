@@ -33,7 +33,7 @@ func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
 		// therefore recover middleware will not recover from panic to prevent crash
 		defer recoverCommandHandler(out)
 
-		token, err := repository.Get(c.ID)
+		token, err := repository.Get(ctx, c.ID)
 		if err != nil {
 			out <- errors.Wrap(err)
 			return
@@ -74,8 +74,7 @@ func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
 		}
 
 		token := New()
-		err = token.Create(id, c.TokenInfo)
-		if err != nil {
+		if err := token.Create(id, c.TokenInfo); err != nil {
 			out <- errors.Wrap(fmt.Errorf("%w: Error when creating new token: %s", application.ErrInternal, err))
 			return
 		}

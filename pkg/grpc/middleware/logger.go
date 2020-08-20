@@ -21,7 +21,6 @@ func LogOutgoingUnaryRequest(logger *log.Logger) grpc.UnaryClientInterceptor {
 		logger.Info(ctx, "[gRPC|Client] UnaryRequest Start\n")
 
 		err := invoker(ctx, method, req, reply, cc, opts...)
-
 		if err != nil {
 			logger.Warning(ctx, "[gRPC|Client] UnaryRequest End: (%s) Err: %v\n", time.Since(now), err)
 		} else {
@@ -71,7 +70,6 @@ func LogStreamRequest(logger *log.Logger) grpc.StreamServerInterceptor {
 		logger.Info(ss.Context(), "[gRPC|Server] StreamRequest Start\n")
 
 		err := handler(srv, ss)
-
 		if err != nil {
 			logger.Warning(ss.Context(), "[gRPC|Server] StreamRequest End: (%s) Err: %v\n", time.Since(now), err)
 		} else {

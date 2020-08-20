@@ -40,56 +40,49 @@ func FromHistory(events []domain.Event) User {
 		switch domainEvent.Metadata.Type {
 		case (AccessTokenWasRequested{}).GetType():
 			accessTokenWasRequested := AccessTokenWasRequested{}
-			err := unmarshalPayload(domainEvent.Payload, &accessTokenWasRequested)
-			if err != nil {
+			if err := unmarshalPayload(domainEvent.Payload, &accessTokenWasRequested); err != nil {
 				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = accessTokenWasRequested
 		case (EmailAddressWasChanged{}).GetType():
 			emailAddressWasChanged := EmailAddressWasChanged{}
-			err := unmarshalPayload(domainEvent.Payload, &emailAddressWasChanged)
-			if err != nil {
+			if err := unmarshalPayload(domainEvent.Payload, &emailAddressWasChanged); err != nil {
 				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = emailAddressWasChanged
 		case (WasRegisteredWithEmail{}).GetType():
 			wasRegisteredWithEmail := WasRegisteredWithEmail{}
-			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithEmail)
-			if err != nil {
+			if err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithEmail); err != nil {
 				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = wasRegisteredWithEmail
 		case (WasRegisteredWithFacebook{}).GetType():
 			wasRegisteredWithFacebook := WasRegisteredWithFacebook{}
-			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithFacebook)
-			if err != nil {
+			if err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithFacebook); err != nil {
 				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = wasRegisteredWithFacebook
 		case (ConnectedWithFacebook{}).GetType():
 			connectedWithFacebook := ConnectedWithFacebook{}
-			err := unmarshalPayload(domainEvent.Payload, &connectedWithFacebook)
-			if err != nil {
+			if err := unmarshalPayload(domainEvent.Payload, &connectedWithFacebook); err != nil {
 				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = connectedWithFacebook
 		case (WasRegisteredWithGoogle{}).GetType():
 			wasRegisteredWithGoogle := WasRegisteredWithGoogle{}
-			err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithGoogle)
-			if err != nil {
+			if err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithGoogle); err != nil {
 				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 
 			e = wasRegisteredWithGoogle
 		case (ConnectedWithGoogle{}).GetType():
 			connectedWithGoogle := ConnectedWithGoogle{}
-			err := unmarshalPayload(domainEvent.Payload, &connectedWithGoogle)
-			if err != nil {
+			if err := unmarshalPayload(domainEvent.Payload, &connectedWithGoogle); err != nil {
 				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
 			}
 

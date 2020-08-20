@@ -45,15 +45,14 @@ func (cs *ClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInf
 }
 
 // Internal according to the ID for the pkg client information
-func (cs *ClientStore) Internal(id string) (cli oauth2.ClientInfo, err error) {
+func (cs *ClientStore) Internal(id string) (oauth2.ClientInfo, error) {
+	var cli oauth2.ClientInfo
 	cs.RLock()
 	defer cs.RUnlock()
 	if c, ok := cs.internal[id]; ok {
-		cli = c
-		return
+		return c, nil
 	}
-	err = errors.Wrap(fmt.Errorf("%w: client with ID (%s)", application.ErrNotFound, id))
-	return
+	return cli, errors.Wrap(fmt.Errorf("%w: client with ID (%s)", application.ErrNotFound, id))
 }
 
 // SetInternal set pkg system client information
@@ -66,8 +65,7 @@ func (cs *ClientStore) SetInternal(id string, cli oauth2.ClientInfo) (err error)
 
 func (cs *ClientStore) toClientInfo(data []byte) (oauth2.ClientInfo, error) {
 	info := oauth2models.Client{}
-	err := json.Unmarshal(data, &info)
-	if err != nil {
+	if err := json.Unmarshal(data, &info); err != nil {
 		return nil, errors.Wrap(err)
 	}
 

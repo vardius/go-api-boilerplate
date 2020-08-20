@@ -11,8 +11,7 @@ import (
 )
 
 func unmarshalPayload(payload []byte, model interface{}) error {
-	err := json.Unmarshal(payload, model)
-	if err != nil {
+	if err := json.Unmarshal(payload, model); err != nil {
 		return errors.Wrap(fmt.Errorf("error while trying to unmarshal payload (%s)", payload))
 	}
 

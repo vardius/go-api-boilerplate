@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { defineMessages, useIntl } from "react-intl";
-import { Heading, Stack } from "@chakra-ui/core";
+import { Heading, Stack, Skeleton, Center } from "@chakra-ui/core";
 import { DEFAULT_PAGE, DEFAULT_LIMIT } from "src/constants";
 import { fetchJSON } from "src/api";
 import UserTable from "../UserTable";

@@ -34,8 +34,7 @@ func TestUnmarshalRegisterWithGoogle(t *testing.T) {
 }
 
 func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
-	err := json.Unmarshal(testJSON, c)
-	if err != nil {
+	if err := json.Unmarshal(testJSON, c); err != nil {
 		t.Fatal(err)
 	}
 

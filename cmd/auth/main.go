@@ -28,7 +28,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus/pushpull"
-	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
+	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
@@ -47,7 +47,6 @@ func main() {
 	defer cancel()
 
 	logger := log.New(config.Env.App.Environment)
-	eventStore := eventstore.New()
 	grpcServer := grpcutils.NewServer(
 		grpcutils.ServerConfig{
 			ServerMinTime: config.Env.GRPC.ServerMinTime,
@@ -98,6 +97,7 @@ func main() {
 	)
 	defer grpcAuthConn.Close()
 
+	eventStore := eventstore.New(mysqlConnection)
 	grpPushPullClient := pushpullproto.NewPushPullClient(grpcPushPullConn)
 	eventBus := pushpull.New(config.Env.App.EventHandlerTimeout, grpPushPullClient, logger)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
@@ -132,10 +132,18 @@ func main() {
 		panic(err)
 	}
 
-	commandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(tokenRepository, mysqlConnection))
-	commandBus.Subscribe(ctx, (token.Remove{}).GetName(), token.OnRemove(tokenRepository, mysqlConnection))
-	commandBus.Subscribe(ctx, (client.Create{}).GetName(), client.OnCreate(clientRepository, mysqlConnection))
-	commandBus.Subscribe(ctx, (client.Remove{}).GetName(), client.OnRemove(clientRepository, mysqlConnection))
+	if err := commandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(tokenRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (token.Remove{}).GetName(), token.OnRemove(tokenRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (client.Create{}).GetName(), client.OnCreate(clientRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (client.Remove{}).GetName(), client.OnRemove(clientRepository, mysqlConnection)); err != nil {
+		panic(err)
+	}
 
 	go func() {
 		go func() {

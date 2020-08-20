@@ -25,7 +25,7 @@ type userRepository struct {
 }
 
 func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
+	rows, err := r.db.QueryContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users ORDER BY id ASC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
@@ -35,16 +35,14 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 
 	for rows.Next() {
 		user := User{}
-		err = rows.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
-		if err != nil {
+		if err := rows.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID); err != nil {
 			return nil, errors.Wrap(err)
 		}
 
 		users = append(users, user)
 	}
 
-	err = rows.Err()
-	if err != nil {
+	if err := rows.Err(); err != nil {
 		return nil, errors.Wrap(err)
 	}
 
@@ -204,8 +202,7 @@ func (r *userRepository) Count(ctx context.Context) (int32, error) {
 	var totalUsers int32
 
 	row := r.db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users`)
-	err := row.Scan(&totalUsers)
-	if err != nil {
+	if err := row.Scan(&totalUsers); err != nil {
 		return 0, errors.Wrap(err)
 	}
 

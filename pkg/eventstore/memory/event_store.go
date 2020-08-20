@@ -1,9 +1,10 @@
 /*
-Package memory provides memory implementation of domain event store
+Package eventstore provides memory implementation of domain event store
 */
-package memory
+package eventstore
 
 import (
+	"context"
 	"sync"
 
 	"github.com/google/uuid"
@@ -17,7 +18,7 @@ type eventStore struct {
 	events map[string]domain.Event
 }
 
-func (s *eventStore) Store(events []domain.Event) error {
+func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -33,7 +34,7 @@ func (s *eventStore) Store(events []domain.Event) error {
 	return nil
 }
 
-func (s *eventStore) Get(id uuid.UUID) (domain.Event, error) {
+func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error) {
 	s.RLock()
 	defer s.RUnlock()
 	if val, ok := s.events[id.String()]; ok {
@@ -43,17 +44,17 @@ func (s *eventStore) Get(id uuid.UUID) (domain.Event, error) {
 	return domain.NullEvent, baseeventstore.ErrEventNotFound
 }
 
-func (s *eventStore) FindAll() []domain.Event {
+func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 	s.RLock()
 	defer s.RUnlock()
 	es := make([]domain.Event, 0, len(s.events))
 	for _, val := range s.events {
 		es = append(es, val)
 	}
-	return es
+	return es, nil
 }
 
-func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []domain.Event {
+func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
 	s.RLock()
 	defer s.RUnlock()
 	e := make([]domain.Event, 0, 0)
@@ -62,7 +63,7 @@ func (s *eventStore) GetStream(streamID uuid.UUID, streamName string) []domain.E
 			e = append(e, val)
 		}
 	}
-	return e
+	return e, nil
 }
 
 // New creates in memory event store

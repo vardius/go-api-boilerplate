@@ -74,8 +74,7 @@ func GrantAccessForStreamRequest(role identity.Role) grpc.StreamServerIntercepto
 		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
 			var i identity.Identity
 			if values := md.Get(mdIdentityKey); len(values) > 0 {
-				err := json.Unmarshal([]byte(values[0]), &i)
-				if err != nil {
+				if err := json.Unmarshal([]byte(values[0]), &i); err != nil {
 					return err
 				}
 
@@ -106,8 +105,7 @@ func GrantAccessForUnaryRequest(role identity.Role) grpc.UnaryServerInterceptor 
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			var i identity.Identity
 			if values := md.Get(mdIdentityKey); len(values) > 0 {
-				err := json.Unmarshal([]byte(values[0]), &i)
-				if err != nil {
+				if err := json.Unmarshal([]byte(values[0]), &i); err != nil {
 					return nil, err
 				}
 

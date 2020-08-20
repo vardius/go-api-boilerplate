@@ -29,9 +29,7 @@ func (e EmailAddress) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements Unmarshal interface
 func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 	var value string
-
-	err := json.Unmarshal(b, &value)
-	if err != nil {
+	if err := json.Unmarshal(b, &value); err != nil {
 		return errors.Wrap(fmt.Errorf("could not unmarshal json %s", b))
 	}
 

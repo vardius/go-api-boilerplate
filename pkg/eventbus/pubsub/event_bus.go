@@ -127,8 +127,7 @@ func (bus *eventBus) dispatchEvent(payload []byte, fn eventbus.EventHandler) err
 	defer cancel()
 
 	var o dto
-	err := json.Unmarshal(payload, &o)
-	if err != nil {
+	if err := json.Unmarshal(payload, &o); err != nil {
 		bus.logger.Error(ctx, "[EventBus] Unmarshal error: %v\n", err)
 		return fmt.Errorf("EventBus unmarshal error: %w", err)
 	}

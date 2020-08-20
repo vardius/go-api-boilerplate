@@ -28,8 +28,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullInt64
 func (ni NullInt64) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &ni.Int64)
-	if err != nil {
+	if err := json.Unmarshal(b, &ni.Int64); err != nil {
 		return fmt.Errorf("MySQL NullInt64 unmarshal error: %w", err)
 	}
 
@@ -57,8 +56,7 @@ func (nb NullBool) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullBool
 func (nb NullBool) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &nb.Bool)
-	if err != nil {
+	if err := json.Unmarshal(b, &nb.Bool); err != nil {
 		return fmt.Errorf("MySQL NullBool unmarshal error: %w", err)
 	}
 
@@ -86,8 +84,7 @@ func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullFloat64
 func (nf NullFloat64) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &nf.Float64)
-	if err != nil {
+	if err := json.Unmarshal(b, &nf.Float64); err != nil {
 		return fmt.Errorf("MySQL NullFloat64 unmarshal error: %w", err)
 	}
 
@@ -115,8 +112,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullString
 func (ns NullString) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &ns.String)
-	if err != nil {
+	if err := json.Unmarshal(b, &ns.String); err != nil {
 		return fmt.Errorf("MySQL NullString unmarshal error: %w", err)
 	}
 
@@ -139,8 +135,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullTime
 func (nt NullTime) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &nt.Time)
-	if err != nil {
+	if err := json.Unmarshal(b, &nt.Time); err != nil {
 		return fmt.Errorf("MySQL NullTime unmarshal error: %w", err)
 	}
 

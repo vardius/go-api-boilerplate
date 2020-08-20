@@ -101,7 +101,7 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 			return
 		}
 
-		u, err := repository.Get(userID)
+		u, err := repository.Get(ctx, userID)
 		if err != nil {
 			out <- errors.Wrap(err)
 			return
@@ -149,7 +149,7 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 			return
 		}
 
-		u, err := repository.Get(c.ID)
+		u, err := repository.Get(ctx, c.ID)
 		if err != nil {
 			out <- errors.Wrap(err)
 			return
@@ -217,7 +217,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 // RegisterWithFacebook command
 type RegisterWithFacebook struct {
 	Email      EmailAddress `json:"email"`
-	FacebookID string       `json:"facebookId"`
+	FacebookID string       `json:"facebook_id"`
 }
 
 // GetName returns command name
@@ -253,7 +253,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 				return
 			}
 
-			u, err = repository.Get(userID)
+			u, err = repository.Get(ctx, userID)
 			if err != nil {
 				out <- errors.Wrap(err)
 				return
@@ -286,7 +286,7 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 // RegisterWithGoogle command
 type RegisterWithGoogle struct {
 	Email    EmailAddress `json:"email"`
-	GoogleID string       `json:"googleId"`
+	GoogleID string       `json:"google_id"`
 }
 
 // GetName returns command name
@@ -322,7 +322,7 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 				return
 			}
 
-			u, err = repository.Get(userID)
+			u, err = repository.Get(ctx, userID)
 			if err != nil {
 				out <- errors.Wrap(err)
 				return

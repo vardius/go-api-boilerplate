@@ -43,7 +43,7 @@ func (e WasRegisteredWithEmail) GetType() string {
 type WasRegisteredWithFacebook struct {
 	ID         uuid.UUID    `json:"id"`
 	Email      EmailAddress `json:"email"`
-	FacebookID string       `json:"facebookId"`
+	FacebookID string       `json:"facebook_id"`
 }
 
 // GetType returns event type
@@ -54,7 +54,7 @@ func (e WasRegisteredWithFacebook) GetType() string {
 // ConnectedWithFacebook event
 type ConnectedWithFacebook struct {
 	ID         uuid.UUID `json:"id"`
-	FacebookID string    `json:"facebookId"`
+	FacebookID string    `json:"facebook_id"`
 }
 
 // GetType returns event type
@@ -66,7 +66,7 @@ func (e ConnectedWithFacebook) GetType() string {
 type WasRegisteredWithGoogle struct {
 	ID       uuid.UUID    `json:"id"`
 	Email    EmailAddress `json:"email"`
-	GoogleID string       `json:"googleId"`
+	GoogleID string       `json:"google_id"`
 }
 
 // GetType returns event type
@@ -77,7 +77,7 @@ func (e WasRegisteredWithGoogle) GetType() string {
 // ConnectedWithGoogle event
 type ConnectedWithGoogle struct {
 	ID       uuid.UUID `json:"id"`
-	GoogleID string    `json:"googleId"`
+	GoogleID string    `json:"google_id"`
 }
 
 // GetType returns event type

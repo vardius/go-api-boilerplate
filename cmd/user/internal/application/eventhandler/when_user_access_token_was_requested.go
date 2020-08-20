@@ -25,9 +25,7 @@ func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider) eventbu
 		logger.Info(ctx, "[EventHandler] %s\n", event.Payload)
 
 		e := user.WasRegisteredWithEmail{}
-
-		err := json.Unmarshal(event.Payload, &e)
-		if err != nil {
+		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			logger.Error(ctx, "[EventHandler] WhenUserAccessTokenWasRequested: %v\n", errors.Wrap(err))
 			return
 		}

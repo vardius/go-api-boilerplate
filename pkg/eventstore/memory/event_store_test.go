@@ -1,6 +1,7 @@
-package memory
+package eventstore
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/uuid"
@@ -39,13 +40,14 @@ func TestEventStore(t *testing.T) {
 		t.Fail()
 	}
 
+	ctx := context.Background()
 	store := New()
 
-	if store.Store([]domain.Event{e1, e2}) != nil {
+	if store.Store(ctx, []domain.Event{e1, e2}) != nil {
 		t.Fail()
 	}
 
-	se, err := store.Get(e1.ID)
+	se, err := store.Get(ctx, e1.ID)
 	if err != nil {
 		t.Fail()
 	}
@@ -54,11 +56,19 @@ func TestEventStore(t *testing.T) {
 		t.Fail()
 	}
 
-	if len(store.FindAll()) != 2 {
+	es, err := store.FindAll(ctx)
+	if err != nil {
+		t.Fail()
+	}
+	if len(es) != 2 {
 		t.Fail()
 	}
 
-	if len(store.GetStream(streamID, streamName)) != 2 {
+	s, err := store.GetStream(ctx, streamID, streamName)
+	if err != nil {
+		t.Fail()
+	}
+	if len(s) != 2 {
 		t.Fail()
 	}
 }

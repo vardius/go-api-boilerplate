@@ -114,8 +114,7 @@ func (ts *TokenStore) GetByRefresh(ctx context.Context, refresh string) (oauth2.
 
 func (ts *TokenStore) toTokenInfo(ctx context.Context, data []byte) (oauth2.TokenInfo, error) {
 	info := oauth2models.Token{}
-	err := json.Unmarshal(data, &info)
-	if err != nil {
+	if err := json.Unmarshal(data, &info); err != nil {
 		return nil, errors.Wrap(fmt.Errorf("unmarshal token failed: %w", err))
 	}
 
