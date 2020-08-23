@@ -1,24 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "microservice.fullname" . }}
+  name: {{ include "microservice.fullname" $ }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "microservice.name" . }}
-    helm.sh/chart: {{ include "microservice.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "microservice.chart" $ }}
+    app.kubernetes.io/name: {{ include "microservice.name" $ }}
+    app.kubernetes.io/instance: {{ include "microservice.fullname" $ }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/part-of: {{ $.Release.Name }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "microservice.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "microservice.name" $ }}
+      app.kubernetes.io/part-of: {{ $.Release.Name }}
   replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "microservice.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ include "microservice.name" $ }}
+        app.kubernetes.io/part-of: {{ $.Release.Name }}
     spec:
       containers:
         - name: {{ .Chart.Name }}

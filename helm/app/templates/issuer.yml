@@ -5,10 +5,11 @@ metadata:
   name: {{ .Values.issuer.name }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    helm.sh/chart: {{ include "app.chart" . }}
-    app.kubernetes.io/name: {{ include "app.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "app.chart" $ }}
+    app.kubernetes.io/name: {{ include "app.name" $ }}
+    app.kubernetes.io/instance: {{ include "app.fullname" $ }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/part-of: {{ $.Release.Name }}
 spec:
   {{- if .Values.issuer.selfSigned }}
   selfSigned: {}

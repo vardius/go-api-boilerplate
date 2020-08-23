@@ -7,8 +7,9 @@ metadata:
   labels:
     helm.sh/chart: {{ include "app.chart" $ }}
     app.kubernetes.io/name: {{ include "app.name" $ }}
-    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/instance: {{ include "app.fullname" $ }}
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/part-of: {{ $.Release.Name }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

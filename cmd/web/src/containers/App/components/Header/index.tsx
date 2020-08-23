@@ -143,12 +143,6 @@ const Header = () => {
         <MenuLink to={`https://maildev.${window.location.hostname}`} isExternal>
           {intl.formatMessage(messages.mail)}
         </MenuLink>
-        <MenuLink
-          to={`https://phpmyadmin.${window.location.hostname}`}
-          isExternal
-        >
-          {intl.formatMessage(messages.mysql)}
-        </MenuLink>
       </Box>
 
       <Box

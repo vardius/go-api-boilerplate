@@ -9,17 +9,16 @@ metadata:
   labels:
     helm.sh/chart: {{ include "app.chart" $ }}
     app.kubernetes.io/name: {{ include "app.name" $ }}
-    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/instance: {{ include "app.fullname" $ }}
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/part-of: {{ $.Release.Name }}
 spec:
   secretName: {{ .secretName }}
   {{- with .hosts }}
   dnsNames:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if $values.issuer.selfSigned }}
-  # @TODO: how to do if not ?
-  {{- else }}
+  {{ if or (not (hasKey $values.issuer "selfSigned")) (not ($values.issuer.selfSigned | default false)) }}
   acme:
     config:
       - http01:

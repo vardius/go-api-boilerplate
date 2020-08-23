@@ -59,12 +59,12 @@ ingress:
           backend:
             serviceName: go-api-boilerplate-maildev
             servicePort: 1080
-    - host: phpmyadmin.go-api-boilerplate.local
-      paths:
-        - path: /(|$)(.*)
-          backend:
-            serviceName: go-api-boilerplate-phpmyadmin
-            servicePort: 443
+  #    - host: phpmyadmin.go-api-boilerplate.local
+  #      paths:
+  #        - path: /(|$)(.*)
+  #          backend:
+  #            serviceName: go-api-boilerplate-phpmyadmin
+  #            servicePort: 443
   #    - host: localstack.go-api-boilerplate.local
   #      paths:
   #        - path: /(|$)(.*)
@@ -76,8 +76,12 @@ ingress:
       hosts:
         - go-api-boilerplate.local
         - api.go-api-boilerplate.local
-        - phpmyadmin.go-api-boilerplate.local
         - maildev.go-api-boilerplate.local
+#        - phpmyadmin.go-api-boilerplate.local
+
+nginx-ingress:
+  tcp:
+    3306: "go-api-boilerplate/go-api-boilerplate-mysql:3306"
 
 cert-manager:
   # https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/#new-installcrds-addition
@@ -106,11 +110,12 @@ issuer:
   # http01: true
 
 phpmyadmin:
-  service:
-    port: 443
-  db:
-    port: 3306
-    host: go-api-boilerplate-mysql
+  enabled: false
+#  service:
+#    port: 443
+#  db:
+#    port: 3306
+#    host: go-api-boilerplate-mysql
 
 mysql:
   existingSecret: mysql-secret
