@@ -5,7 +5,7 @@ import React, {
   useCallback,
 } from "react";
 import { useCookies } from "react-cookie";
-import { useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { AUTH_TOKEN_COOKIE } from "src/constants";
 import { AuthToken } from "src/types";
 
@@ -24,6 +24,7 @@ export interface Props {
 
 const AuthContextProvider = (props: Props) => {
   const query = useQuery();
+  const history = useHistory();
   const [cookies, setCookie, removeCookie] = useCookies([AUTH_TOKEN_COOKIE]);
 
   const authToken = query.get("authToken");
@@ -34,6 +35,10 @@ const AuthContextProvider = (props: Props) => {
 
   const setAuthToken = useCallback(
     (token: AuthToken) => {
+      if (!token) {
+        return
+      }
+
       if (token === "none") {
         removeAuthToken();
       } else if (token && token.length > 0) {
@@ -45,8 +50,14 @@ const AuthContextProvider = (props: Props) => {
 
         setCookie(AUTH_TOKEN_COOKIE, authToken, cookieOptions);
       }
+
+      query.delete("authToken");
+
+      history.replace({
+        search: query.toString()
+      });
     },
-    [authToken, removeAuthToken, setCookie]
+    [authToken, removeAuthToken, setCookie, history, query]
   );
 
   useEffect(() => {

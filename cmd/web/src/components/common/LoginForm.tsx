@@ -1,5 +1,5 @@
-import React, {useState} from "react";
-import {defineMessages, useIntl} from "react-intl";
+import React, { useState, useCallback } from "react";
+import { defineMessages, useIntl } from "react-intl";
 import {
   Box,
   Button,
@@ -12,33 +12,9 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/core";
-import {useAuthToken, useUser} from "src/hooks";
-import {fetchJSON, NotFoundHttpError} from "src/api";
+import { useAuthToken, useUser, useApi } from "src/hooks";
+import { NotFoundHttpError } from "src/errors";
 import SubmitMessage from "./SubmitMessage";
-
-const login = async ({email}: { email: string }) => {
-  try {
-    const json = await fetchJSON(
-      "/users/v1/dispatch/request-user-access-token",
-      "POST",
-      null,
-      JSON.stringify({email})
-    );
-
-    return json;
-  } catch (err) {
-    if (err instanceof NotFoundHttpError) {
-      const json = await fetchJSON(
-        "/users/v1/dispatch/register-user-with-email",
-        "POST",
-        null,
-        JSON.stringify({email})
-      );
-
-      return json;
-    }
-  }
-};
 
 const messages = defineMessages({
   logout: {
@@ -83,12 +59,40 @@ export interface Props {
 const LoginForm = (props: Props) => {
   const intl = useIntl();
   const toast = useToast();
+  const fetchJSON = useApi();
 
   const [user, setUser] = useUser();
   const [, logout] = useAuthToken();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const login = useCallback(
+    async ({ email }: { email: string }) => {
+      try {
+        const json = await fetchJSON(
+          "/users/v1/dispatch/request-user-access-token",
+          "POST",
+          null,
+          JSON.stringify({ email })
+        );
+
+        return json;
+      } catch (err) {
+        if (err instanceof NotFoundHttpError) {
+          const json = await fetchJSON(
+            "/users/v1/dispatch/register-user-with-email",
+            "POST",
+            null,
+            JSON.stringify({ email })
+          );
+
+          return json;
+        }
+      }
+    },
+    [fetchJSON]
+  );
 
   const handleLogout = () => {
     setUser(null);
@@ -102,12 +106,12 @@ const LoginForm = (props: Props) => {
 
     if (email) {
       try {
-        await login({email});
+        await login({ email });
 
         toast({
           position: "top",
           title: intl.formatMessage(messages.successTitle),
-          description: intl.formatMessage(messages.successMessage, {email}),
+          description: intl.formatMessage(messages.successMessage, { email }),
           status: "success",
           duration: 9000,
           isClosable: true,
@@ -117,7 +121,7 @@ const LoginForm = (props: Props) => {
           props.onSuccess();
         }
       } catch (err) {
-        setError(intl.formatMessage(messages.error, {error: err.message}));
+        setError(intl.formatMessage(messages.error, { error: err.message }));
         logout();
       }
     }
@@ -138,7 +142,7 @@ const LoginForm = (props: Props) => {
         {user ? (
           <Box textAlign="center">
             <Text>
-              {intl.formatMessage(messages.user, {email: user.email})}
+              {intl.formatMessage(messages.user, { email: user.email })}
             </Text>
             <Button
               variant="outline"
@@ -156,7 +160,7 @@ const LoginForm = (props: Props) => {
             </Box>
             <Box my={4} textAlign="left">
               <form onSubmit={handleSubmit}>
-                {error && <SubmitMessage message={error} status="error"/>}
+                {error && <SubmitMessage message={error} status="error" />}
                 <FormControl isRequired>
                   <FormLabel>{intl.formatMessage(messages.email)}</FormLabel>
                   <Input
@@ -169,7 +173,7 @@ const LoginForm = (props: Props) => {
                 </FormControl>
                 <Button variant="outline" type="submit" width="full" mt={4}>
                   {isLoading ? (
-                    <CircularProgress/>
+                    <CircularProgress />
                   ) : (
                     intl.formatMessage(messages.submit)
                   )}

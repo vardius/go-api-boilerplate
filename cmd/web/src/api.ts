@@ -1,39 +1,12 @@
-import {API_URL} from "src/constants";
+import { API_URL } from "src/constants";
+import { AuthToken } from "src/types";
+import HttpError, {
+  AccessDeniedHttpError,
+  NotFoundHttpError,
+  UnauthorizedHttpError,
+} from "src/errors";
 
-interface Options {
-  statusCode: number;
-}
-
-export class HttpError extends Error {
-  public readonly statusCode: number;
-
-  constructor(message?: string, options?: Options) {
-    super(message);
-
-    const {statusCode} = options || {};
-    this.statusCode = statusCode || 500;
-  }
-}
-
-export class NotFoundHttpError extends HttpError {
-  constructor(message?: string) {
-    super(message, {statusCode: 404});
-  }
-}
-
-export class UnauthorizedHttpError extends HttpError {
-  constructor(message?: string) {
-    super(message, {statusCode: 401});
-  }
-}
-
-export class AccessDeniedHttpError extends HttpError {
-  constructor(message?: string) {
-    super(message, {statusCode: 403});
-  }
-}
-
-export const fetchJSON = async (
+export const fetchJSON = (authToken?: AuthToken) => async (
   path: string,
   method: string,
   params?: { [key: string]: string | Array<string> } | null,
@@ -53,13 +26,15 @@ export const fetchJSON = async (
     });
   }
 
-  const response = await fetch(url.toString(), {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body,
-  });
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
+  const response = await fetch(url.toString(), { method, headers, body });
 
   if (!response.ok) {
     switch (response.status) {

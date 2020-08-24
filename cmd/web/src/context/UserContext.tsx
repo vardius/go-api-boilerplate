@@ -1,26 +1,14 @@
-import React, { createContext, ReactChild, useEffect } from "react";
-import { User, AuthToken } from "src/types";
-import { UnauthorizedHttpError, fetchJSON } from "src/api";
-import { useAuthToken } from "src/hooks";
+import React, {
+  createContext,
+  ReactChild,
+  useEffect,
+  useCallback,
+} from "react";
+import { User } from "src/types";
+import { UnauthorizedHttpError } from "src/errors";
+import { useAuthToken, useApi } from "src/hooks";
 
 type user = User | null;
-
-const fetchMe = async (authToken?: AuthToken): Promise<user> => {
-  if (!authToken) {
-    return null;
-  }
-  try {
-    const json = await fetchJSON(`/users/v1/me?authToken=${authToken}`, "GET");
-
-    return json as User;
-  } catch (err) {
-    if (err instanceof UnauthorizedHttpError) {
-      throw err;
-    }
-  }
-
-  return null;
-};
 
 export const UserContext = createContext<
   [user, React.Dispatch<React.SetStateAction<user>>]
@@ -31,23 +19,42 @@ export interface Props {
 }
 
 const UserContextProvider = (props: Props) => {
-  const [authToken] = useAuthToken();
   const [user, setUser] = React.useState(null as user);
+  const [authToken] = useAuthToken();
+  const fetchJSON = useApi();
+
+  const fetchMe = useCallback(async (): Promise<user> => {
+    try {
+      const json = await fetchJSON(`/users/v1/me`, "GET");
+
+      return json as User;
+    } catch (err) {
+      if (err instanceof UnauthorizedHttpError) {
+        return null;
+      }
+
+      throw err;
+    }
+  }, [fetchJSON]);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetchMe(authToken);
+        const response = await fetchMe();
 
         setUser(response);
       } catch (err) {
         console.error(err);
         setUser(null);
       }
+
+      
     };
 
-    load();
-  }, [authToken]);
+    if (authToken) {
+      load();
+    }
+  }, [authToken, fetchMe]);
 
   return (
     <UserContext.Provider value={[user, setUser]}>

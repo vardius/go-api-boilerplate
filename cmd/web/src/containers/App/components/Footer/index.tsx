@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Stack, Flex, useColorModeValue } from "@chakra-ui/core";
+import { Box, Flex, useColorModeValue } from "@chakra-ui/core";
 import { brandColors } from "src/theme/theme";
 import { useLocale } from "src/hooks";
 import { LOCALE } from "src/types";

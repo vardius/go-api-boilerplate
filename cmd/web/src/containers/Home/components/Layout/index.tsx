@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { defineMessages, useIntl } from "react-intl";
-import { Heading, Stack, Skeleton, Center } from "@chakra-ui/core";
-import { DEFAULT_PAGE, DEFAULT_LIMIT } from "src/constants";
-import { fetchJSON } from "src/api";
+import React, {useCallback, useEffect, useState} from "react";
+import {defineMessages, useIntl} from "react-intl";
+import {Center, Heading, Stack} from "@chakra-ui/core";
+import {DEFAULT_LIMIT, DEFAULT_PAGE} from "src/constants";
+import {useApi} from "src/hooks";
 import UserTable from "../UserTable";
 
 const messages = defineMessages({
@@ -12,23 +12,25 @@ const messages = defineMessages({
   },
 });
 
-const fetchUsers = async ({ page, limit }: { page: number; limit: number }) => {
-  const json = await fetchJSON("/users/v1", "GET", {
-    page: String(page),
-    limit: String(limit),
-  });
-
-  return json;
-};
-
 function Layout() {
   const intl = useIntl();
+  const fetchJSON = useApi();
 
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [users, setUsers] = useState([]);
+
+  const fetchUsers = useCallback(
+    async ({ page, limit }: { page: number; limit: number }) => {
+      return await fetchJSON("/users/v1", "GET", {
+        page: String(page),
+        limit: String(limit),
+      });
+    },
+    [fetchJSON]
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -44,7 +46,7 @@ function Layout() {
     };
 
     load();
-  }, [page, limit]);
+  }, [page, limit, fetchUsers]);
 
   return (
     <Stack flex={1}>

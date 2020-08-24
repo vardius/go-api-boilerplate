@@ -1,7 +1,6 @@
 package authenticator
 
 import (
-	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -45,18 +44,16 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 			}
 
 			if strings.HasPrefix(token, "Bearer ") {
-				if bearer, err := base64.StdEncoding.DecodeString(token[7:]); err == nil {
-					i, err := a.afn(string(bearer))
-					if err != nil {
-						w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
+				i, err := a.afn(token[7:])
+				if err != nil {
+					w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
 
-						response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
-						return
-					}
-
-					next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
+					response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
 					return
 				}
+
+				next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
+				return
 			}
 
 			w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))

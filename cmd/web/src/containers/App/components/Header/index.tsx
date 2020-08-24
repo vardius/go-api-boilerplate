@@ -19,7 +19,7 @@ import {
   Avatar,
   useColorModeValue,
 } from "@chakra-ui/core";
-import { FaExternalLinkAlt, FaChevronCircleDown } from "react-icons/fa";
+import { FaExternalLinkAlt } from "react-icons/fa";
 import { brandColors } from "src/theme/theme";
 import { useUser } from "src/hooks";
 import LoginDrawerButton from "src/components/common/LoginDrawerButton";
@@ -157,8 +157,7 @@ const Header = () => {
           {user ? (
             <Menu>
               <MenuButton>
-                <Avatar name={user.email} src="https://bit.ly/broken-link" />
-                <FaChevronCircleDown />
+                <Avatar name={user.email} src="#" />
               </MenuButton>
               <MenuList>
                 <MenuItem
