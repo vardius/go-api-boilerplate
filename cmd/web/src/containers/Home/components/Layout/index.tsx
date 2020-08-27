@@ -42,6 +42,7 @@ function Layout() {
         setTotal(response.total || 0);
       } catch (err) {
         console.error(err);
+        setIsLoading(false);
       }
     };
 

@@ -9,6 +9,12 @@ import { useHistory, useLocation } from "react-router-dom";
 import { AUTH_TOKEN_COOKIE } from "src/constants";
 import { AuthToken } from "src/types";
 
+const cookieOptions = {
+  domain: window.location.hostname,
+  path: "/",
+  maxAge: 60 * 60 * 24 * 365, // 365 days in seconds
+};
+
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
@@ -30,7 +36,7 @@ const AuthContextProvider = (props: Props) => {
   const authToken = query.get("authToken");
 
   const removeAuthToken = useCallback(() => {
-    removeCookie(AUTH_TOKEN_COOKIE);
+    removeCookie(AUTH_TOKEN_COOKIE, cookieOptions);
   }, [removeCookie]);
 
   const setAuthToken = useCallback(
@@ -42,12 +48,6 @@ const AuthContextProvider = (props: Props) => {
       if (token === "none") {
         removeAuthToken();
       } else if (token && token.length > 0) {
-        const cookieOptions = {
-          domain: window.location.hostname,
-          path: "/",
-          maxAge: 60 * 60 * 24 * 365, // 365 days in seconds
-        };
-
         setCookie(AUTH_TOKEN_COOKIE, authToken, cookieOptions);
       }
 

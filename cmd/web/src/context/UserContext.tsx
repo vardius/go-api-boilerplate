@@ -20,7 +20,7 @@ export interface Props {
 
 const UserContextProvider = (props: Props) => {
   const [user, setUser] = React.useState(null as user);
-  const [authToken] = useAuthToken();
+  const [authToken, logout] = useAuthToken();
   const fetchJSON = useApi();
 
   const fetchMe = useCallback(async (): Promise<user> => {
@@ -30,12 +30,14 @@ const UserContextProvider = (props: Props) => {
       return json as User;
     } catch (err) {
       if (err instanceof UnauthorizedHttpError) {
+        logout();
+
         return null;
       }
 
       throw err;
     }
-  }, [fetchJSON]);
+  }, [fetchJSON, logout]);
 
   useEffect(() => {
     const load = async () => {
@@ -48,7 +50,7 @@ const UserContextProvider = (props: Props) => {
         setUser(null);
       }
 
-      
+
     };
 
     if (authToken) {

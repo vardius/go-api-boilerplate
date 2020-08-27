@@ -5,7 +5,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -55,7 +54,7 @@ func (a *jwtAuthorizer) Auth(token string) (identity.Identity, error) {
 			}
 		}
 
-		return identity.NullIdentity, errors.Wrap(fmt.Errorf("%w: Could not verify token: %s", application.ErrUnauthorized, err))
+		return identity.NullIdentity, errors.Wrap(fmt.Errorf("could not verify token %s: %w", token, err))
 	}
 
 	return c.Identity.WithToken(token), nil
