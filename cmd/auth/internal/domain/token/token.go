@@ -97,7 +97,7 @@ func (t *Token) Create(ctx context.Context, id uuid.UUID, info oauth2.TokenInfo)
 		return errors.Wrap(err)
 	}
 
-	if _, err = t.trackChange(ctx, WasCreated{
+	if _, err := t.trackChange(ctx, WasCreated{
 		ID:       id,
 		ClientID: clientID,
 		UserID:   userID,
