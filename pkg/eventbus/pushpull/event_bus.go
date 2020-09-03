@@ -112,8 +112,6 @@ func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 
 func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain.Event) error {
 	panic("not implemented")
-
-	return nil
 }
 
 // Unsubscribe will unsubscribe after next event handler because stream.Recv() is blocking

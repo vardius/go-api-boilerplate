@@ -34,13 +34,13 @@ func TestSubscribePublish(t *testing.T) {
 	c := make(chan error, 1)
 	bus := New(runtime.NumCPU(), log.New("development"))
 
-	e, err := domain.NewEvent(uuid.New(), "event", 0, eventMock{})
+	e, err := domain.NewEvent(uuid.New(), "event", 0, eventMock{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_ = bus.Subscribe(ctx, "event", func(ctx context.Context, event domain.Event) {
-		c <- nil
+	_ = bus.Subscribe(ctx, "event", func(ctx context.Context, event domain.Event) error {
+		return nil
 	})
 	_ = bus.Publish(ctx, e)
 
@@ -65,13 +65,15 @@ func TestUnsubscribe(t *testing.T) {
 
 	bus := New(runtime.NumCPU(), log.New("development"))
 
-	e, err := domain.NewEvent(uuid.New(), "event", 0, eventMock{})
+	e, err := domain.NewEvent(uuid.New(), "event", 0, eventMock{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	handler := func(ctx context.Context, event domain.Event) {
+	handler := func(ctx context.Context, event domain.Event) error {
 		t.Fail()
+
+		return nil
 	}
 
 	_ = bus.Subscribe(ctx, "event", handler)
