@@ -39,10 +39,16 @@ func TestSubscribePublish(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_ = bus.Subscribe(ctx, "event", func(ctx context.Context, event domain.Event) error {
+	if err := bus.Subscribe(ctx, "event", func(ctx context.Context, event domain.Event) error {
+		c <- nil
 		return nil
-	})
-	_ = bus.Publish(ctx, e)
+	}); err != nil {
+		t.Error(err)
+	}
+
+	if err := bus.Publish(ctx, e); err != nil {
+		t.Error(err)
+	}
 
 	ctxDoneCh := ctx.Done()
 	for {
@@ -76,16 +82,16 @@ func TestUnsubscribe(t *testing.T) {
 		return nil
 	}
 
-	_ = bus.Subscribe(ctx, "event", handler)
-	_ = bus.Unsubscribe(ctx, "event", handler)
-
-	_ = bus.Publish(ctx, e)
-
-	ctxDoneCh := ctx.Done()
-	for {
-		select {
-		case <-ctxDoneCh:
-			return
-		}
+	if err := bus.Subscribe(ctx, "event", handler); err != nil {
+		t.Error(err)
 	}
+	if err := bus.Unsubscribe(ctx, "event", handler); err != nil {
+		t.Error(err)
+	}
+
+	if err := bus.Publish(ctx, e); err != nil {
+		t.Error(err)
+	}
+
+	<-ctx.Done()
 }

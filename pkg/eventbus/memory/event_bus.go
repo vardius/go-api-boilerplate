@@ -131,6 +131,11 @@ func (b *eventBus) Unsubscribe(ctx context.Context, eventType string, fn eventbu
 
 	if topicHandlers, ok := b.handlers[eventType]; ok {
 		if handler, ok := topicHandlers[rv]; ok {
+			delete(topicHandlers, rv)
+			if len(topicHandlers) == 0 {
+				delete(b.handlers, eventType)
+			}
+
 			return b.messageBus.Unsubscribe(eventType, handler)
 		}
 	}

@@ -2,10 +2,12 @@ package memory
 
 import (
 	"context"
+	"errors"
 	"runtime"
 	"testing"
 	"time"
 
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
@@ -57,7 +59,7 @@ func TestUnsubscribe(t *testing.T) {
 	bus.Subscribe(ctx, "command", handler)
 	bus.Unsubscribe(ctx, "command")
 
-	if err := bus.Publish(ctx, &commandMock{}); err != nil {
+	if err := bus.Publish(ctx, &commandMock{}); err != nil && !errors.Is(err, application.ErrTimeout) {
 		t.Error(err)
 	}
 }
