@@ -1,24 +1,39 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "goapiboilerplate.grpc.auth";
+option java_package = "casadepapel.grpc.auth";
 option java_outer_classname = "AuthProto";
 
 package proto;
 
 // AuthenticationService handles auth token verification
 service AuthenticationService {
-  rpc GetTokenInfo (GetTokenInfoRequest) returns (GetTokenInfoResponse);
+  rpc ValidationBearerToken (ValidationBearerTokenRequest) returns (ValidationBearerTokenResponse);
+  rpc CreateClient (CreateClientRequest) returns (CreateClientResponse);
 }
 
-// GetTokenInfoRequest is passed when dispatching
-message GetTokenInfoRequest {
+// ValidationBearerTokenRequest validates auth token
+message ValidationBearerTokenRequest {
   string token = 1;
 }
 
-// GetTokenInfoResponse return auth token information after successful verification
-message GetTokenInfoResponse {
-  int64 expiresIn = 1;
-  string clientId = 2;
-  string userId = 3;
+// ValidationBearerTokenResponse return auth token information after successful verification
+message ValidationBearerTokenResponse {
+  string clientID = 1;
+  string userID = 2;
+  string scope = 3;
+}
+
+// CreateClientRequest creates client credentials
+message CreateClientRequest {
+  string userID = 1;
+  string domain = 2;
+}
+
+// CreateClientResponse new client credentials
+message CreateClientResponse {
+  string clientID = 1;
+  string clientSecret = 2;
+  string userID = 3;
+  string domain = 4;
 }

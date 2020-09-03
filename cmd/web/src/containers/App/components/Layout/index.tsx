@@ -1,6 +1,6 @@
-import React, { lazy, Suspense } from "react";
-import { Route, Switch } from "react-router-dom";
-import { Spinner, Center, Flex } from "@chakra-ui/core";
+import React, {lazy, Suspense} from "react";
+import {Route, Switch} from "react-router-dom";
+import {Center, Flex, Spinner} from "@chakra-ui/core";
 import ErrorBoundary from "src/components/common/ErrorBoundary";
 import getPath from "src/routes";
 
@@ -16,20 +16,20 @@ function Layout() {
     <div className={styles.site}>
       <ErrorBoundary>
         <Flex minHeight="100vh" flexDirection="column">
-          <Header />
+          <Header/>
           <Suspense
             fallback={
               <Center>
-                <Spinner thickness="4px" speed="0.65s" size="xl" />
+                <Spinner thickness="4px" speed="0.65s" size="xl"/>
               </Center>
             }
           >
             <Switch>
-              <Route exact path={getPath("home")} component={Home} />
-              <Route component={NotFound} />
+              <Route exact path={getPath("home")} component={Home}/>
+              <Route component={NotFound}/>
             </Switch>
           </Suspense>
-          <Footer />
+          <Footer/>
         </Flex>
       </ErrorBoundary>
     </div>

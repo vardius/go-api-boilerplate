@@ -2,15 +2,13 @@ package client
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"log"
-	"runtime/debug"
 
 	"github.com/google/uuid"
 	"gopkg.in/oauth2.v4"
 
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
@@ -26,27 +24,30 @@ func (c Remove) GetName() string {
 }
 
 // OnRemove creates command handler
-func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c Remove, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
+func OnRemove(repository Repository) commandbus.CommandHandler {
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(Remove)
+		if !ok {
+			return errors.New("invalid command")
+		}
 
 		client, err := repository.Get(ctx, c.ID)
 		if err != nil {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
-		if err := client.Remove(); err != nil {
-			out <- errors.Wrap(err)
-			return
+		if err := client.Remove(ctx); err != nil {
+			return errors.Wrap(err)
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), client)
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), client); err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
+	return fn
 }
 
 // Create command
@@ -60,29 +61,27 @@ func (c Create) GetName() string {
 }
 
 // OnCreate creates command handler
-func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c Create, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
-
-		client := New()
-		if err := client.Create(c.ClientInfo); err != nil {
-			out <- errors.Wrap(err)
-			return
+func OnCreate(repository Repository) commandbus.CommandHandler {
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(Create)
+		if !ok {
+			return errors.New("invalid command")
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), client)
+		client := New()
+		if err := client.Create(ctx, c.ClientInfo); err != nil {
+			return errors.Wrap(err)
+		}
+
+		// we block here until event handler is done
+		// this is because when other services request access token after creating client
+		// we want handler to be finished and client persisted in storage
+		if err := repository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), client); err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
-}
-
-func recoverCommandHandler(out chan<- error) {
-	if r := recover(); r != nil {
-		out <- errors.Wrap(fmt.Errorf("[CommandHandler] Recovered in %v", r))
-
-		// Log the Go stack trace for this panic'd goroutine.
-		log.Printf("%s\n", debug.Stack())
-	}
+	return fn
 }

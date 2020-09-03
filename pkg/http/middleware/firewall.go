@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
@@ -17,7 +16,7 @@ func GrantAccessFor(role identity.Role) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if !firewall.IsGranted(r.Context(), role) {
-				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: could not read role from context", application.ErrUnauthorized))
+				response.MustJSONError(r.Context(), w, application.ErrForbidden)
 				return
 			}
 

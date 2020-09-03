@@ -1,7 +1,8 @@
 import React from "react";
-import { Heading } from "@chakra-ui/core";
+import {Heading} from "@chakra-ui/core";
 
-export interface Props {}
+export interface Props {
+}
 
 function NotFound() {
   return <Heading>Page not found</Heading>;

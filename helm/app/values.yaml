@@ -59,25 +59,12 @@ ingress:
           backend:
             serviceName: go-api-boilerplate-maildev
             servicePort: 1080
-  #    - host: phpmyadmin.go-api-boilerplate.local
-  #      paths:
-  #        - path: /(|$)(.*)
-  #          backend:
-  #            serviceName: go-api-boilerplate-phpmyadmin
-  #            servicePort: 443
-  #    - host: localstack.go-api-boilerplate.local
-  #      paths:
-  #        - path: /(|$)(.*)
-  #          backend:
-  #            serviceName: go-api-boilerplate-localstack
-  #            servicePort: 4567
   tls:
     - secretName: go-api-boilerplate-tls
       hosts:
         - go-api-boilerplate.local
         - api.go-api-boilerplate.local
         - maildev.go-api-boilerplate.local
-#        - phpmyadmin.go-api-boilerplate.local
 
 nginx-ingress:
   tcp:
@@ -108,14 +95,6 @@ issuer:
   # email: example@example.com
   # secretName: go-api-boilerplate-tls
   # http01: true
-
-phpmyadmin:
-  enabled: false
-#  service:
-#    port: 443
-#  db:
-#    port: 3306
-#    host: go-api-boilerplate-mysql
 
 mysql:
   existingSecret: mysql-secret
@@ -153,74 +132,6 @@ maildev:
         secretKeyRef:
           key: MAILER_PASSWORD
           name: mail-secret
-
-# AWS localstack https://github.com/localstack/localstack
-localstack:
-  enabled: false
-#   nameOverride: localstack
-#   image:
-#     repository: localstack/localstack
-#     tag: 0.8.10
-#     pullPolicy: IfNotPresent
-#   service:
-#     ports:
-#       - name: dynamodb
-#         internalPort: 4569
-#         externalPort: 4569
-#       - name: ui
-#         internalPort: 4567
-#         externalPort: 4567
-#   env:
-#     - name: SERVICES
-#       value: "dynamodb:4569"
-#     - name: PORT_WEB_UI
-#       value: "4567"
-
-pubsub:
-  nameOverride: pubsub
-  image:
-    repository: vardius/pubsub
-    tag: 2.0.0
-    pullPolicy: IfNotPresent
-  service:
-    ports:
-      - name: grpc
-        internalPort: 3001
-        externalPort: 3001
-  envFromConfigMapRefs:
-    - pubsub-config
-  readiness:
-    initialDelaySeconds: 20
-    timeoutSeconds: 5
-    exec:
-      command: ["/bin/grpc_health_probe", "-addr=:3001"]
-  liveness:
-    initialDelaySeconds: 20
-    exec:
-      command: ["/bin/grpc_health_probe", "-addr=:3001"]
-
-pushpull:
-  nameOverride: pushpull
-  image:
-    repository: vardius/pushpull
-    tag: 1.0.0
-    pullPolicy: IfNotPresent
-  service:
-    ports:
-      - name: grpc
-        internalPort: 3001
-        externalPort: 3001
-  envFromConfigMapRefs:
-    - pushpull-config
-  readiness:
-    initialDelaySeconds: 20
-    timeoutSeconds: 5
-    exec:
-      command: ["/bin/grpc_health_probe", "-addr=:3001"]
-  liveness:
-    initialDelaySeconds: 20
-    exec:
-      command: ["/bin/grpc_health_probe", "-addr=:3001"]
 
 web:
   nameOverride: web
@@ -283,12 +194,12 @@ auth:
     initialDelaySeconds: 20
     timeoutSeconds: 5
     httpGet:
-      path: /v1/readiness
+      path: /readiness
       port: 3000
   liveness:
     initialDelaySeconds: 20
     httpGet:
-      path: /v1/health
+      path: /health
       port: 3000
 
 user:
@@ -340,12 +251,12 @@ user:
     initialDelaySeconds: 20
     timeoutSeconds: 5
     httpGet:
-      path: /v1/readiness
+      path: /readiness
       port: 3000
   liveness:
     initialDelaySeconds: 20
     httpGet:
-      path: /v1/health
+      path: /health
       port: 3000
 
 secrets:
@@ -378,12 +289,13 @@ configMaps:
   - name: app-config
     data:
       APP_ENV: development
+        APP_DOMAIN: 'https://go-api-boilerplate.local'
       APP_SHUTDOWN_TIMEOUT: '5s'
       APP_EVENT_HANDLER_TIMEOUT: '120s'
   - name: http-config
     data:
       HTTP_PORT: '3000'
-      HTTP_ORIGINS: go-api-boilerplate.local|api.go-api-boilerplate.local|localhost|0.0.0.0|127.0.0.1
+      HTTP_ORIGINS: https://go-api-boilerplate.local|https://api.go-api-boilerplate.local|http://localhost:3000|http://0.0.0.0:3000|http://127.0.0.1:3000
   - name: grpc-config
     data:
       GRPC_PORT: '3001'
@@ -393,32 +305,10 @@ configMaps:
       MYSQL_PORT: '3306'
       MYSQL_DATABASE: 'goapiboilerplate'
       MYSQL_USER: 'goapiboilerplate'
-  - name: pubsub-config
-    data:
-      HOST: '0.0.0.0'
-      PORT: '3001'
-      QUEUE_BUFFER_SIZE: '100'
-      KEEPALIVE_MIN_TIME: '5m' # if a client pings more than once every 5 minutes (default), terminate the connection
-      KEEPALIVE_TIME: '2h'     # ping the client if it is idle for 2 hours (default) to ensure the connection is still active
-      KEEPALIVE_TIMEOUT: '20s' # wait 20 second (default) for the ping ack before assuming the connection is dead
-      LOG_VERBOSE_LEVEL: '3'
-  - name: pushpull-config
-    data:
-      HOST: '0.0.0.0'
-      PORT: '3001'
-      QUEUE_BUFFER_SIZE: '100'
-      KEEPALIVE_MIN_TIME: '5m' # if a client pings more than once every 5 minutes (default), terminate the connection
-      KEEPALIVE_TIME: '2h'     # ping the client if it is idle for 2 hours (default) to ensure the connection is still active
-      KEEPALIVE_TIMEOUT: '20s' # wait 20 second (default) for the ping ack before assuming the connection is dead
-      LOG_VERBOSE_LEVEL: '3'
   - name: auth-config
     data:
       HOST: '0.0.0.0'
       COMMAND_BUS_BUFFER: '100'
-      PUBSUB_HOST: 'go-api-boilerplate-pubsub'
-      PUBSUB_PORT: '3001'
-      PUSHPULL_HOST: 'go-api-boilerplate-pushpull'
-      PUSHPULL_PORT: '3001'
       USER_HOST: 'go-api-boilerplate-user'
       OAUTH_INIT_TIMEOUT: '15s'     # wait 15 sec for oauth server to initialize
       GRPC_SERVER_MIN_TIME: '5m'    # if a client pings more than once every 5 minutes (default), terminate the connection
@@ -433,10 +323,6 @@ configMaps:
     data:
       HOST: '0.0.0.0'
       COMMAND_BUS_BUFFER: '100'
-      PUBSUB_HOST: 'go-api-boilerplate-pubsub'
-      PUBSUB_PORT: '3001'
-      PUSHPULL_HOST: 'go-api-boilerplate-pushpull'
-      PUSHPULL_PORT: '3001'
       AUTH_HOST: 'go-api-boilerplate-auth'
       MAILER_HOST: 'go-api-boilerplate-maildev' # @FIXME use real smtp service
       MAILER_PORT: '1025'

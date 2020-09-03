@@ -17,12 +17,12 @@ func (e rawEventMock) GetType() string {
 }
 
 func TestEvent(t *testing.T) {
-	event, err := NewEvent(uuid.New(), "streamName", 0, rawEventMock{Page: 1, Fruits: []string{"apple", "peach", "pear"}})
+	event, err := NewEvent(uuid.New(), "streamName", 0, rawEventMock{Page: 1, Fruits: []string{"apple", "peach", "pear"}}, nil)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	mEvent, err2 := MakeEvent(event.Metadata, event.Payload)
+	mEvent, err2 := MakeEvent(event.Metadata, event.Payload, nil)
 	if err2 != nil {
 		t.Errorf("%s", err)
 	}
@@ -46,7 +46,7 @@ func (e invalidRawEventMock) GetType() string {
 }
 
 func TestNewEventInvalidValue(t *testing.T) {
-	_, err := NewEvent(uuid.New(), "streamName", 0, invalidRawEventMock{make(chan int)})
+	_, err := NewEvent(uuid.New(), "streamName", 0, invalidRawEventMock{make(chan int)}, nil)
 	if err == nil {
 		t.Error("Parsing value to json should fail")
 	}

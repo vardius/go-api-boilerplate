@@ -1,20 +1,7 @@
-import React, { useState } from "react";
-import {
-  Box,
-  HStack,
-  IconButton,
-  Select,
-  Skeleton,
-  useColorModeValue,
-  VStack,
-} from "@chakra-ui/core";
-import {
-  FaAngleDoubleLeft,
-  FaAngleDoubleRight,
-  FaAngleLeft,
-  FaAngleRight,
-} from "react-icons/fa";
-import { User } from "src/types";
+import React, {useState} from "react";
+import {Box, HStack, IconButton, Select, Skeleton, useColorModeValue, VStack,} from "@chakra-ui/core";
+import {FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight,} from "react-icons/fa";
+import {User} from "src/types";
 
 import classNames from "classnames/bind";
 import styles from "./Table.module.scss";
@@ -78,29 +65,29 @@ const UserTable = (props: Props) => {
         </Box>
         <Box as="tbody">
           {!props.isLoaded &&
-            [...Array(limit)].map((x, i) => (
-              <Box as="tr" key={i}>
-                <Box as="th" scope="row">
-                  <Skeleton height="30px" />
-                </Box>
-                <Box as="th">
-                  <Skeleton height="30px" />
-                </Box>
-                <Box as="th">
-                  <Skeleton height="30px" />
-                </Box>
+          [...Array(limit)].map((x, i) => (
+            <Box as="tr" key={i}>
+              <Box as="th" scope="row">
+                <Skeleton height="30px"/>
               </Box>
-            ))}
+              <Box as="th">
+                <Skeleton height="30px"/>
+              </Box>
+              <Box as="th">
+                <Skeleton height="30px"/>
+              </Box>
+            </Box>
+          ))}
           {props.isLoaded &&
-            props.users.map((user, idx) => (
-              <Box as="tr" key={user.id}>
-                <Box as="th" scope="row">
-                  {idx}
-                </Box>
-                <Box as="th">{user.email}</Box>
-                <Box as="th">{user.id}</Box>
+          props.users.map((user, idx) => (
+            <Box as="tr" key={user.id}>
+              <Box as="th" scope="row">
+                {idx}
               </Box>
-            ))}
+              <Box as="th">{user.email}</Box>
+              <Box as="th">{user.id}</Box>
+            </Box>
+          ))}
         </Box>
       </Box>
       <HStack justifyContent="space-around" alignItems="baseline">
@@ -108,13 +95,13 @@ const UserTable = (props: Props) => {
           aria-label=""
           mx={1}
           onClick={() => handlePageChange(0)}
-          icon={<FaAngleDoubleLeft />}
+          icon={<FaAngleDoubleLeft/>}
         />
         <IconButton
           aria-label=""
           mx={1}
           onClick={() => handlePageChange(page - 1)}
-          icon={<FaAngleLeft />}
+          icon={<FaAngleLeft/>}
         />
         <Select
           mx={1}
@@ -133,13 +120,13 @@ const UserTable = (props: Props) => {
           aria-label=""
           mx={1}
           onClick={() => handlePageChange(page + 1)}
-          icon={<FaAngleRight />}
+          icon={<FaAngleRight/>}
         />
         <IconButton
           aria-label=""
           mx={1}
           onClick={() => handlePageChange(Math.ceil(props.total / page))}
-          icon={<FaAngleDoubleRight />}
+          icon={<FaAngleDoubleRight/>}
         />
       </HStack>
     </VStack>

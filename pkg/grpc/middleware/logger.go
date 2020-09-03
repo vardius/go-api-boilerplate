@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	healthproto "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
@@ -16,6 +17,11 @@ import (
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(LogOutgoingUnaryRequest()))
 func LogOutgoingUnaryRequest(logger *log.Logger) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		// Skip health check requests
+		if _, ok := req.(*healthproto.HealthCheckRequest); ok {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}
+
 		now := time.Now()
 
 		logger.Info(ctx, "[gRPC|Client] UnaryRequest Start\n")
@@ -91,6 +97,11 @@ func LogStreamRequest(logger *log.Logger) grpc.StreamServerInterceptor {
 // pb.RegisterGreeterServer(s, &server{})
 func LogUnaryRequest(logger *log.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// Skip health check requests
+		if _, ok := req.(*healthproto.HealthCheckRequest); ok {
+			return handler(ctx, req)
+		}
+
 		now := time.Now()
 
 		logger.Info(ctx, "[gRPC|Server] UnaryRequest Start\n")

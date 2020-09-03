@@ -1,6 +1,6 @@
 import React from "react";
-import { Select } from "@chakra-ui/core";
-import { LOCALE } from "src/types";
+import {Select} from "@chakra-ui/core";
+import {LOCALE} from "src/types";
 
 type SelectProps = React.ComponentProps<typeof Select>;
 
@@ -27,10 +27,10 @@ export interface Props {
 }
 
 function LanguageSwitcher({
-  locale,
-  onLocaleChange,
-  ...props
-}: Props & SelectProps) {
+                            locale,
+                            onLocaleChange,
+                            ...props
+                          }: Props & SelectProps) {
   return (
     <Select
       bg="transparent"
@@ -40,8 +40,8 @@ function LanguageSwitcher({
       value={locale}
       {...props}
     >
-      <Language label={LOCALE.en} symbol="🇺🇸" />
-      <Language label={LOCALE.pl} symbol="🇵🇱" />
+      <Language label={LOCALE.en} symbol="🇺🇸"/>
+      <Language label={LOCALE.pl} symbol="🇵🇱"/>
     </Select>
   );
 }

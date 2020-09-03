@@ -7,25 +7,26 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	grpcerrors "github.com/vardius/go-api-boilerplate/pkg/grpc/errors"
 )
 
 type userServer struct {
 	commandBus     commandbus.CommandBus
 	userRepository persistence.UserRepository
-	logger         *log.Logger
 }
 
 // NewServer returns new user server object
-func NewServer(cb commandbus.CommandBus, r persistence.UserRepository, l *log.Logger) proto.UserServiceServer {
-	s := &userServer{cb, r, l}
+func NewServer(cb commandbus.CommandBus, r persistence.UserRepository) proto.UserServiceServer {
+	s := &userServer{
+		commandBus:     cb,
+		userRepository: r,
+	}
 
 	return s
 }
@@ -34,37 +35,21 @@ func NewServer(cb commandbus.CommandBus, r persistence.UserRepository, l *log.Lo
 func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
 	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
 	if err != nil {
-		s.logger.Error(ctx, "%v\n", err)
-		return nil, status.Error(codes.Internal, "Could not build command from payload")
+		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
 	}
 
-	out := make(chan error, 1)
-	defer close(out)
-
-	go func() {
-		s.commandBus.Publish(ctx, c, out)
-	}()
-
-	ctxDoneCh := ctx.Done()
-	select {
-	case <-ctxDoneCh:
-		return nil, status.Error(codes.Internal, "Context done")
-	case err := <-out:
-		if err != nil {
-			s.logger.Error(ctx, "%v\n", err)
-			return nil, status.Error(codes.Internal, "Publish command error")
-		}
-
-		return new(empty.Empty), nil
+	if err := s.commandBus.Publish(ctx, c); err != nil {
+		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
 	}
+
+	return new(empty.Empty), nil
 }
 
 // GetUser implements proto.UserServiceServer interface
 func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*proto.User, error) {
 	u, err := s.userRepository.Get(ctx, r.GetId())
 	if err != nil {
-		s.logger.Error(ctx, "%v\n", err)
-		return nil, status.Error(codes.NotFound, "User not found")
+		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
 	}
 
 	return &proto.User{
@@ -78,7 +63,7 @@ func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*pro
 // ListUsers implements proto.UserServiceServer interface
 func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*proto.ListUserResponse, error) {
 	if r.GetPage() < 1 || r.GetLimit() < 1 {
-		return nil, status.Error(codes.Internal, "Invalid page or limit value. Please provide values greater then 1")
+		return nil, grpcerrors.NewGRPCError(errors.New("Invalid page or limit value. Please provide values greater then 1"))
 	}
 
 	var users []persistence.User
@@ -86,8 +71,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 
 	totalUsers, err := s.userRepository.Count(ctx)
 	if err != nil {
-		s.logger.Error(ctx, "%v\n", err)
-		return nil, status.Error(codes.Internal, "Failed to count users")
+		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
 	}
 
 	offset := (r.GetPage() * r.GetLimit()) - r.GetLimit()
@@ -103,8 +87,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 
 	users, err = s.userRepository.FindAll(ctx, r.GetLimit(), offset)
 	if err != nil {
-		s.logger.Error(ctx, "%v\n", err)
-		return nil, status.Error(codes.Internal, "Failed to fetch users")
+		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
 	}
 
 	list = make([]*proto.User, len(users))

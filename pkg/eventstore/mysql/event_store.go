@@ -26,7 +26,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 		return nil
 	}
 
-	query := "INSERT INTO events (event_id, event_type, streamId, streamName, streamVersion, occurredAt, payload) VALUES "
+	query := "INSERT INTO events (event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload) VALUES "
 	values := make([]interface{}, 0, lenEvents*7)
 
 	if lenEvents > 1 {
@@ -70,7 +70,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 }
 
 func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error) {
-	row := s.db.QueryRowContext(ctx, `SELECT event_id, event_type, streamId, streamName, streamVersion, occurredAt, payload FROM events WHERE id=? LIMIT 1`, id.String())
+	row := s.db.QueryRowContext(ctx, `SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload FROM events WHERE event_id=? LIMIT 1`, id.String())
 
 	event := domain.Event{}
 
@@ -92,7 +92,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 	case systemErrors.Is(err, sql.ErrNoRows):
 		return event, errors.Wrap(fmt.Errorf("%w: %s", baseeventstore.ErrEventNotFound, err))
 	case err != nil:
-		return event, errors.Wrap(err)
+		return event, errors.Wrap(fmt.Errorf(`%w: SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload FROM events WHERE id=%s LIMIT 1`, err, id.String()))
 	}
 
 	event.ID = uuid.MustParse(eventId)
@@ -106,9 +106,9 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 }
 
 func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT event_id, event_type, streamId, streamName, streamVersion, occurredAt, payload FROM events WHERE streamId=? AND streamName=? ORDER BY distinctId ASC`, streamID.String(), streamName)
+	rows, err := s.db.QueryContext(ctx, `SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload FROM events WHERE stream_id=? AND stream_name=? ORDER BY distinct_id ASC`, streamID.String(), streamName)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, errors.Wrap(fmt.Errorf(`%w: SELECT id, type, stream_id, stream_name, stream_version, occurred_at, payload FROM events WHERE stream_id=%s AND stream_name=%s ORDER BY distinct_id DESC`, err, streamID.String(), streamName))
 	}
 	defer rows.Close()
 

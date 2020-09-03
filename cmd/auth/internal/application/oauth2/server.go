@@ -64,12 +64,12 @@ func InitServer(manager oauth2.Manager, db *sql.DB, logger *log.Logger, secretKe
 }
 
 func getUserIDByEmail(ctx context.Context, db *sql.DB, email string) (id string, err error) {
-	row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE emailAddress=?`, email)
+	row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE email_address=? LIMIT 1`, email)
 	e := row.Scan(&id)
 
 	switch {
 	case e == sql.ErrNoRows:
-		err = errors.Wrap(fmt.Errorf("%w: User ID not found: %s", application.ErrNotFound, e))
+		err = errors.Wrap(fmt.Errorf("%w: User UserID not found: %s", application.ErrNotFound, e))
 	case e != nil:
 		err = errors.Wrap(fmt.Errorf("error while scanning users table: %w", e))
 	}

@@ -1,4 +1,4 @@
-FROM golang:1.14 AS buildenv
+FROM golang:1.15 AS buildenv
 
 LABEL maintainer="Rafał Lorenz <vardius@gmail.com>"
 

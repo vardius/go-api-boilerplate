@@ -1,12 +1,6 @@
-import React, { Component, ReactNode } from "react";
-import { defineMessages, injectIntl, IntlShape } from "react-intl";
-import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-  CloseButton,
-} from "@chakra-ui/core";
+import React, {Component, ReactNode} from "react";
+import {defineMessages, injectIntl, IntlShape} from "react-intl";
+import {Alert, AlertDescription, AlertIcon, AlertTitle, CloseButton,} from "@chakra-ui/core";
 
 const messages = defineMessages({
   title: {
@@ -35,25 +29,25 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   static getDerivedStateFromError(error: Error) {
-    return { error };
+    return {error};
   }
 
   componentDidCatch(error: Error, errorInfo: Object): void {
-    this.setState({ error, errorInfo });
+    this.setState({error, errorInfo});
   }
 
   render() {
     if (this.state.error) {
       return (
         <Alert status="error">
-          <AlertIcon />
+          <AlertIcon/>
           <AlertTitle mr={2}>
             {this.props.intl.formatMessage(messages.title)}
           </AlertTitle>
           <AlertDescription>
             {this.props.intl.formatMessage(messages.description)}
           </AlertDescription>
-          <CloseButton position="absolute" right="8px" top="8px" />
+          <CloseButton position="absolute" right="8px" top="8px"/>
         </Alert>
       );
     }

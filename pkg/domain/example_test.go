@@ -24,6 +24,7 @@ func ExampleNewEvent() {
 		"streamName",
 		0,
 		Test{1, []string{"apple", "peach"}},
+		nil,
 	)
 
 	fmt.Printf("%v\n", event.Metadata.StreamName)
@@ -46,6 +47,7 @@ func ExampleMakeEvent() {
 			OccurredAt:    time.Now(),
 		},
 		[]byte(`{"page":1,"fruits":["apple","peach"]}`),
+		nil,
 	)
 
 	fmt.Printf("%v\n", event.Metadata.StreamName)

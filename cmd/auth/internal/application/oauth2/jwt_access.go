@@ -12,10 +12,8 @@ import (
 	oauth2errors "gopkg.in/oauth2.v4/errors"
 	"gopkg.in/oauth2.v4/utils/uuid"
 
-	userpersistence "github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 // JWTAccessClaims jwt claims
@@ -25,18 +23,18 @@ type JWTAccessClaims struct {
 
 // Valid claims verification
 func (c *JWTAccessClaims) Valid() error {
-	if time.Unix(c.ExpiresAt, 0).Before(time.Now()) {
+	if c.ExpiresAt != 0 && time.Unix(c.ExpiresAt, 0).Before(time.Now()) {
 		return oauth2errors.ErrInvalidAccessToken
 	}
+
 	return c.Claims.Valid()
 }
 
 // NewJWTAccess create to generate the jwt access token instance
-func NewJWTAccess(method jwt.SigningMethod, authenticator auth.Authenticator, repository userpersistence.UserRepository) *JWTAccess {
+func NewJWTAccess(method jwt.SigningMethod, authenticator auth.Authenticator) *JWTAccess {
 	return &JWTAccess{
 		signedMethod:  method,
 		authenticator: authenticator,
-		repository:    repository,
 	}
 }
 
@@ -44,19 +42,23 @@ func NewJWTAccess(method jwt.SigningMethod, authenticator auth.Authenticator, re
 type JWTAccess struct {
 	signedMethod  jwt.SigningMethod
 	authenticator auth.Authenticator
-	repository    userpersistence.UserRepository
 }
 
 // Token based on the UUID generated token
 func (a *JWTAccess) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
-	user, err := a.repository.Get(ctx, data.TokenInfo.GetUserID()) // @TODO: call user service to get user info
+	userID, err := id.Parse(data.TokenInfo.GetUserID())
 	if err != nil {
 		return "", "", errors.Wrap(err)
 	}
 
-	userID, err := id.Parse(user.GetID())
+	clientID, err := id.Parse(data.Client.GetID())
 	if err != nil {
 		return "", "", errors.Wrap(err)
+	}
+
+	var expiresAt int64
+	if data.TokenInfo.GetAccessExpiresIn() != 0 {
+		expiresAt = data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix()
 	}
 
 	claims := &JWTAccessClaims{
@@ -64,14 +66,10 @@ func (a *JWTAccess) Token(ctx context.Context, data *oauth2.GenerateBasic, isGen
 			StandardClaims: jwt.StandardClaims{
 				Audience:  data.Client.GetID(),
 				Subject:   data.UserID,
-				ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
+				ExpiresAt: expiresAt,
 			},
-			Identity: identity.Identity{
-				ID:    userID,
-				Token: data.TokenInfo.GetAccess(),
-				Email: user.GetEmail(),
-				Roles: identity.RoleUser,
-			},
+			UserID:   userID,
+			ClientID: clientID,
 		},
 	}
 

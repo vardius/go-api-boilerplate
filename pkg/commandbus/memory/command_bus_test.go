@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
@@ -28,27 +29,16 @@ func TestSubscribePublish(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	c := make(chan error, 1)
 	bus := New(runtime.NumCPU(), log.New("development"))
 
-	bus.Subscribe(ctx, "command", func(ctx context.Context, _ *commandMock, out chan<- error) {
-		out <- nil
+	bus.Subscribe(ctx, "command", func(ctx context.Context, _ domain.Command) error {
+		return nil
 	})
 
-	bus.Publish(ctx, &commandMock{}, c)
+	bus.Publish(ctx, &commandMock{})
 
-	ctxDoneCh := ctx.Done()
-	for {
-		select {
-		case <-ctxDoneCh:
-			t.Fatal(ctx.Err())
-			return
-		case err := <-c:
-			if err != nil {
-				t.Error(err)
-			}
-			return
-		}
+	if err := bus.Publish(ctx, &commandMock{}); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -56,23 +46,18 @@ func TestUnsubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	c := make(chan error, 1)
 	bus := New(runtime.NumCPU(), log.New("development"))
 
-	handler := func(ctx context.Context, _ *commandMock, out chan<- error) {
+	handler := func(ctx context.Context, _ domain.Command) error {
 		t.Fail()
+
+		return nil
 	}
 
 	bus.Subscribe(ctx, "command", handler)
-	bus.Unsubscribe(ctx, "command", handler)
+	bus.Unsubscribe(ctx, "command")
 
-	bus.Publish(ctx, &commandMock{}, c)
-
-	ctxDoneCh := ctx.Done()
-	for {
-		select {
-		case <-ctxDoneCh:
-			return
-		}
+	if err := bus.Publish(ctx, &commandMock{}); err != nil {
+		t.Error(err)
 	}
 }

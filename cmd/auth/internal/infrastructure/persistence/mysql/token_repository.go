@@ -9,6 +9,8 @@ import (
 	systemErrors "errors"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -25,25 +27,25 @@ type tokenRepository struct {
 }
 
 func (r *tokenRepository) Get(ctx context.Context, id string) (persistence.Token, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, clientId, userId, code, access, refresh, data FROM auth_tokens WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, client_id, user_id, code, access, refresh, data FROM auth_tokens WHERE id=? LIMIT 1`, id)
 
 	return r.getTokenFromRow(row)
 }
 
 func (r *tokenRepository) GetByCode(ctx context.Context, code string) (persistence.Token, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, clientId, userId, code, access, refresh, data FROM auth_tokens WHERE code=? LIMIT 1`, code)
+	row := r.db.QueryRowContext(ctx, `SELECT id, client_id, user_id, code, access, refresh, data FROM auth_tokens WHERE code=? LIMIT 1`, code)
 
 	return r.getTokenFromRow(row)
 }
 
 func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (persistence.Token, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, clientId, userId, code, access, refresh, data FROM auth_tokens WHERE access=? LIMIT 1`, access)
+	row := r.db.QueryRowContext(ctx, `SELECT id, client_id, user_id, code, access, refresh, data FROM auth_tokens WHERE access=? LIMIT 1`, access)
 
 	return r.getTokenFromRow(row)
 }
 
 func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (persistence.Token, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, clientId, userId, code, access, refresh, data FROM auth_tokens WHERE refresh=? LIMIT 1`, refresh)
+	row := r.db.QueryRowContext(ctx, `SELECT id, client_id, user_id, code, access, refresh, data FROM auth_tokens WHERE refresh=? LIMIT 1`, refresh)
 
 	return r.getTokenFromRow(row)
 }
@@ -63,7 +65,7 @@ func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
 		Data: t.GetData(),
 	}
 
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, clientId, userId, code, access, refresh, data) VALUES (?,?,?,?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, client_id, user_id, code, access, refresh, data) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(fmt.Errorf("%w: Invalid token insert query: %s", application.ErrInternal, err))
 	}
@@ -122,4 +124,29 @@ func (r *tokenRepository) getTokenFromRow(row *sql.Row) (persistence.Token, erro
 	default:
 		return token, nil
 	}
+}
+
+func (r *tokenRepository) GetByUserID(ctx context.Context, clientID string, userID uuid.UUID) ([]persistence.Token, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT id, code, access, refresh, data FROM auth_tokens WHERE client_id=? AND user_id=?`, clientID, userID.String())
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	defer rows.Close()
+
+	var tokens []persistence.Token
+
+	for rows.Next() {
+		token := Token{}
+		if err := rows.Scan(&token.ID, &token.Code, &token.Access, &token.Refresh, &token.Data); err != nil {
+			return nil, errors.Wrap(err)
+		}
+
+		tokens = append(tokens, token)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err)
+	}
+
+	return tokens, nil
 }

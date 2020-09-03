@@ -8,10 +8,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/gocontainer"
-	pushpullproto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
 	grpchealth "google.golang.org/grpc/health"
-	oauth2models "gopkg.in/oauth2.v4/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
@@ -25,9 +23,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
-	"github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus/pushpull"
+	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
+	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
@@ -57,7 +54,7 @@ func main() {
 		nil,
 		nil,
 	)
-	commandBus := memory.New(config.Env.CommandBus.QueueSize, logger)
+	commandBus := commandbus.New(config.Env.CommandBus.QueueSize, logger)
 
 	mysqlConnection := mysql.NewConnection(
 		ctx,
@@ -74,17 +71,6 @@ func main() {
 		logger,
 	)
 	defer mysqlConnection.Close()
-	grpcPushPullConn := grpcutils.NewConnection(
-		ctx,
-		config.Env.PushPull.Host,
-		config.Env.GRPC.Port,
-		grpcutils.ConnectionConfig{
-			ConnTime:    config.Env.GRPC.ConnTime,
-			ConnTimeout: config.Env.GRPC.ConnTimeout,
-		},
-		logger,
-	)
-	defer grpcPushPullConn.Close()
 	grpcAuthConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.GRPC.Host,
@@ -98,69 +84,53 @@ func main() {
 	defer grpcAuthConn.Close()
 
 	eventStore := eventstore.New(mysqlConnection)
-	grpPushPullClient := pushpullproto.NewPushPullClient(grpcPushPullConn)
-	eventBus := pushpull.New(config.Env.App.EventHandlerTimeout, grpPushPullClient, logger)
+	eventBus := eventbus.New(config.Env.EventBus.QueueSize, logger)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
 	tokenPersistenceRepository := persistence.NewTokenRepository(mysqlConnection)
 	clientPersistenceRepository := persistence.NewClientRepository(mysqlConnection)
-	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	tokenStore := oauth2.NewTokenStore(tokenPersistenceRepository, commandBus)
-	clientStore := oauth2.NewClientStore(clientPersistenceRepository)
+	clientStore := oauth2.NewClientStore(clientPersistenceRepository, commandBus)
 	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.App.Secret))
-	manager := oauth2.NewManager(tokenStore, clientStore, authenticator, userPersistenceRepository)
+	manager := oauth2.NewManager(tokenStore, clientStore, authenticator)
 	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.App.Secret, config.Env.OAuth.InitTimeout)
 	grpcHealthServer := grpchealth.NewServer()
-	grpcAuthServer := authgrpc.NewServer(oauth2Server, authenticator, logger)
+	grpcAuthServer := authgrpc.NewServer(oauth2Server, clientStore, authenticator)
 	router := authhttp.NewRouter(
 		logger,
 		oauth2Server,
 		mysqlConnection,
 		map[string]*grpc.ClientConn{
-			"pushpull": grpcPushPullConn,
-			"auth":     grpcAuthConn,
+			"auth": grpcAuthConn,
 		},
 	)
 	app := application.New(logger)
 
-	// store our internal user service client
-	if err := clientStore.SetInternal(config.Env.User.ClientID, &oauth2models.Client{
-		ID:     config.Env.User.ClientID,
-		Secret: config.Env.User.ClientSecret,
-		Domain: fmt.Sprintf("http://%s:%d", config.Env.User.Host, config.Env.HTTP.Port),
-	}); err != nil {
+	if err := commandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(tokenRepository)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (token.Remove{}).GetName(), token.OnRemove(tokenRepository)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (client.Create{}).GetName(), client.OnCreate(clientRepository)); err != nil {
+		panic(err)
+	}
+	if err := commandBus.Subscribe(ctx, (client.Remove{}).GetName(), client.OnRemove(clientRepository)); err != nil {
 		panic(err)
 	}
 
-	if err := commandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(tokenRepository, mysqlConnection)); err != nil {
+	if err := eventBus.Subscribe(ctx, (token.WasCreated{}).GetType(), eventhandler.WhenTokenWasCreated(mysqlConnection, tokenPersistenceRepository)); err != nil {
 		panic(err)
 	}
-	if err := commandBus.Subscribe(ctx, (token.Remove{}).GetName(), token.OnRemove(tokenRepository, mysqlConnection)); err != nil {
+	if err := eventBus.Subscribe(ctx, (token.WasRemoved{}).GetType(), eventhandler.WhenTokenWasRemoved(mysqlConnection, tokenPersistenceRepository)); err != nil {
 		panic(err)
 	}
-	if err := commandBus.Subscribe(ctx, (client.Create{}).GetName(), client.OnCreate(clientRepository, mysqlConnection)); err != nil {
+	if err := eventBus.Subscribe(ctx, (client.WasCreated{}).GetType(), eventhandler.WhenClientWasCreated(mysqlConnection, clientPersistenceRepository)); err != nil {
 		panic(err)
 	}
-	if err := commandBus.Subscribe(ctx, (client.Remove{}).GetName(), client.OnRemove(clientRepository, mysqlConnection)); err != nil {
+	if err := eventBus.Subscribe(ctx, (client.WasRemoved{}).GetType(), eventhandler.WhenClientWasRemoved(mysqlConnection, clientPersistenceRepository)); err != nil {
 		panic(err)
 	}
-
-	go func() {
-		go func() {
-			eventbus.RegisterGRPCHandlers(
-				"pushpull",
-				grpcPushPullConn,
-				eventBus,
-				map[string]eventbus.EventHandler{
-					(token.WasCreated{}).GetType():  eventhandler.WhenTokenWasCreated(mysqlConnection, tokenPersistenceRepository),
-					(token.WasRemoved{}).GetType():  eventhandler.WhenTokenWasRemoved(mysqlConnection, tokenPersistenceRepository),
-					(client.WasCreated{}).GetType(): eventhandler.WhenClientWasCreated(mysqlConnection, clientPersistenceRepository),
-					(client.WasRemoved{}).GetType(): eventhandler.WhenClientWasRemoved(mysqlConnection, clientPersistenceRepository),
-				},
-				5*time.Second,
-			)
-		}()
-	}()
 
 	app.AddAdapters(
 		authhttp.NewAdapter(

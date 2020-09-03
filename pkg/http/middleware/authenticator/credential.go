@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -33,7 +33,7 @@ func (a *credentialsAuth) FromBasicAuth(realm string) func(next http.Handler) ht
 				if err != nil {
 					w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, realm))
 
-					response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
+					response.MustJSONError(r.Context(), w, errors.Wrap(err))
 					return
 				}
 

@@ -5,49 +5,73 @@ package grpc
 
 import (
 	"context"
-	"time"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/google/uuid"
+	oauth2models "gopkg.in/oauth2.v4/models"
 	"gopkg.in/oauth2.v4/server"
 
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/oauth2"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	grpcerrors "github.com/vardius/go-api-boilerplate/pkg/grpc/errors"
 )
 
 type authenticationServer struct {
 	server        *server.Server
+	clientStore   *oauth2.ClientStore
 	authenticator auth.Authenticator
-	logger        *log.Logger
 }
 
-// NewServer returns new user server object
-func NewServer(server *server.Server, authenticator auth.Authenticator, logger *log.Logger) proto.AuthenticationServiceServer {
+// NewServer returns new auth server object
+func NewServer(server *server.Server, clientStore *oauth2.ClientStore, authenticator auth.Authenticator) proto.AuthenticationServiceServer {
 	return &authenticationServer{
-		server,
-		authenticator,
-		logger,
+		server:        server,
+		clientStore:   clientStore,
+		authenticator: authenticator,
 	}
 }
 
-// GetTokenInfo verifies token
-func (s *authenticationServer) GetTokenInfo(ctx context.Context, req *proto.GetTokenInfoRequest) (*proto.GetTokenInfoResponse, error) {
+// ValidationBearerToken verifies token
+func (s *authenticationServer) ValidationBearerToken(ctx context.Context, req *proto.ValidationBearerTokenRequest) (*proto.ValidationBearerTokenResponse, error) {
 	if err := s.authenticator.Verify(req.GetToken(), &auth.Claims{}); err != nil {
-		s.logger.Error(ctx, "%v\n", err)
-		return nil, status.Error(codes.Internal, "Invalid token, could not verify")
+		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
 	}
 
 	tokenInfo, err := s.server.Manager.LoadAccessToken(ctx, req.GetToken())
 	if err != nil {
-		s.logger.Error(ctx, "%v\n", err)
-		return nil, status.Error(codes.NotFound, "Could not load token info")
+		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
 	}
 
-	res := &proto.GetTokenInfoResponse{
-		ExpiresIn: int64(tokenInfo.GetAccessCreateAt().Add(tokenInfo.GetAccessExpiresIn()).Sub(time.Now()).Seconds()),
-		ClientId:  tokenInfo.GetClientID(),
-		UserId:    tokenInfo.GetUserID(),
+	res := &proto.ValidationBearerTokenResponse{
+		ClientID: tokenInfo.GetClientID(),
+		UserID:   tokenInfo.GetUserID(),
+		Scope:    tokenInfo.GetScope(),
+	}
+
+	return res, nil
+}
+
+// CreateClient verifies token
+func (s *authenticationServer) CreateClient(ctx context.Context, req *proto.CreateClientRequest) (*proto.CreateClientResponse, error) {
+	clientID := uuid.New().String()
+	clientSecret := uuid.New().String()
+
+	// store our internal user service client
+	if err := s.clientStore.Set(ctx, &oauth2models.Client{
+		ID:     clientID,
+		Secret: clientSecret,
+		UserID: req.GetUserID(),
+		Domain: req.GetDomain(),
+	}); err != nil {
+		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
+	}
+
+	res := &proto.CreateClientResponse{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		UserID:       req.GetUserID(),
+		Domain:       req.GetDomain(),
 	}
 
 	return res, nil

@@ -7,41 +7,31 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	id := uuid.New()
+	userID := uuid.New()
+	userEmail := "example@example.com"
+	clientID := uuid.New()
+	clientSecret := "token"
 	token := "token"
-	email := "test@emai.com"
 
-	identity := New(id, token, email)
+	identity := New(userID, clientID, userEmail, clientSecret, token)
 
-	if identity.ID != id {
-		t.Errorf("Identity ID does not match, given: %s | expected %s", identity.ID, id)
+	if identity.UserID != userID {
+		t.Errorf("Identity UserID does not match, given: %s | expected %s", identity.UserID, userID)
 	}
-	if identity.Email != email {
-		t.Errorf("Identity Email does not match, given: %s | expected %s", identity.Email, email)
+	if identity.UserEmail != userEmail {
+		t.Errorf("Identity UserEmail does not match, given: %s | expected %s", identity.UserEmail, userEmail)
+	}
+	if identity.ClientID != clientID {
+		t.Errorf("Identity ClientID does not match, given: %s | expected %s", identity.ClientID, clientID)
+	}
+	if identity.ClientSecret != clientSecret {
+		t.Errorf("Identity ClientSecret does not match, given: %s | expected %s", identity.ClientSecret, clientSecret)
 	}
 	if identity.Token != token {
 		t.Errorf("Identity Token does not match, given: %s | expected %s", identity.Token, token)
 	}
 	if !identity.HasRole(RoleUser) {
 		t.Errorf("Identity Roles does not match, given: %s | expected %s", identity.Roles, RoleUser)
-	}
-}
-
-func TestWithEmail(t *testing.T) {
-	email := "test@emai.com"
-
-	identity := Identity{
-		Email: "old@email.com",
-	}
-
-	newIdentity := identity.WithEmail(email)
-
-	if identity.Email == email {
-		t.Error("Identity copy has overridden original instance")
-	}
-
-	if newIdentity.Email != email {
-		t.Errorf("Identity Email does not match, given: %s | expected %s", identity.Email, email)
 	}
 }
 
@@ -58,5 +48,24 @@ func TestWithToken(t *testing.T) {
 
 	if newIdentity.Token != token {
 		t.Errorf("Identity Token does not match, given: %s | expected %s", identity.Token, token)
+	}
+}
+
+func TestRole_String(t *testing.T) {
+	tests := []struct {
+		name string
+		r    Role
+		want string
+	}{
+		{"USER", RoleUser, "USER"},
+		{"ADMIN", RoleAdmin, "ADMIN"},
+		{"SUPER_ADMIN", RoleSuperAdmin, "SUPER_ADMIN"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.r.String(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

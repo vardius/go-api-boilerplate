@@ -8,7 +8,7 @@ import (
 )
 
 // NullIdentity represents empty Identity
-var NullIdentity = Identity{}
+var NullIdentity Identity
 
 // Role type
 type Role uint8
@@ -18,25 +18,21 @@ const (
 	// @TODO: MANAGE YOUR ROLES HERE
 	RoleUser Role = 1 << iota
 	RoleAdmin
+	RoleSuperAdmin
 )
 
 func (r Role) String() string {
-	return [...]string{"USER", "ADMIN"}[r]
+	return [...]string{"USER", "ADMIN", "SUPER_ADMIN"}[r>>1]
 }
 
 // Identity data to be encode in auth token
 type Identity struct {
-	ID    uuid.UUID `json:"id"`
-	Token string    `json:"token"`
-	Email string    `json:"email"`
-	Roles Role      `json:"roles"`
-}
-
-// WithEmail returns copy of an identity with given email value
-func (i Identity) WithEmail(email string) Identity {
-	i.Email = email
-
-	return i
+	Token        string    `json:"token"`
+	UserID       uuid.UUID `json:"user_id"`
+	UserEmail    string    `json:"user_email"`
+	ClientID     uuid.UUID `json:"client_id"`
+	ClientSecret string    `json:"client_secret"`
+	Roles        Role      `json:"roles"`
 }
 
 // WithToken returns copy of an identity with given oauth2 token
@@ -64,6 +60,13 @@ func (i Identity) RemoveRole(role Role) Identity {
 func (i Identity) HasRole(role Role) bool { return i.Roles&role != 0 }
 
 // New returns a new Identity
-func New(id uuid.UUID, token, email string) Identity {
-	return Identity{id, token, email, RoleUser}
+func New(userID, clientID uuid.UUID, userEmail, clientSecret, token string) Identity {
+	return Identity{
+		Token:        token,
+		UserID:       userID,
+		UserEmail:    userEmail,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Roles:        RoleUser,
+	}
 }

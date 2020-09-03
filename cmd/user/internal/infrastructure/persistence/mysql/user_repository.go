@@ -25,7 +25,7 @@ type userRepository struct {
 }
 
 func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users ORDER BY id ASC LIMIT ? OFFSET ?`, limit, offset)
+	rows, err := r.db.QueryContext(ctx, `SELECT id, email_address, facebook_id, google_id FROM users ORDER BY distinct_id ASC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
@@ -50,7 +50,7 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 }
 
 func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId, googleId FROM users WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, email_address, facebook_id, google_id FROM users WHERE id=? LIMIT 1`, id)
 
 	user := User{}
 
@@ -79,31 +79,21 @@ func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 		}},
 	}
 
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO users (id, emailAddress, facebookId, googleId) VALUES (?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT IGNORE INTO users (id, email_address, facebook_id, google_id) VALUES (?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 	defer stmt.Close()
 
-	result, err := stmt.ExecContext(ctx, user.ID, user.Email, user.FacebookID, user.GoogleID)
-	if err != nil {
+	if _, err := stmt.ExecContext(ctx, user.ID, user.Email, user.FacebookID, user.GoogleID); err != nil {
 		return errors.Wrap(err)
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	if rows != 1 {
-		return errors.New("Did not add user")
 	}
 
 	return nil
 }
 
 func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) error {
-	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET emailAddress=? WHERE id=?`)
+	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET email_address=? WHERE id=?`)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -201,7 +191,7 @@ func (r *userRepository) Delete(ctx context.Context, id string) error {
 func (r *userRepository) Count(ctx context.Context) (int32, error) {
 	var totalUsers int32
 
-	row := r.db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users`)
+	row := r.db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM users`)
 	if err := row.Scan(&totalUsers); err != nil {
 		return 0, errors.Wrap(err)
 	}

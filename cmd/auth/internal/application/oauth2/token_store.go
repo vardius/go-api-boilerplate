@@ -11,7 +11,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
@@ -29,27 +28,15 @@ type TokenStore struct {
 
 // Create create and store the new token information
 func (ts *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
-	out := make(chan error, 1)
-	defer close(out)
-
 	c := token.Create{
 		TokenInfo: info,
 	}
 
-	go func() {
-		ts.commandBus.Publish(ctx, c, out)
-	}()
-
-	ctxDoneCh := ctx.Done()
-	select {
-	case <-ctxDoneCh:
-		return errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, ctx.Err()))
-	case err := <-out:
-		if err != nil {
-			return errors.Wrap(fmt.Errorf("create token failed: %w", err))
-		}
-		return nil
+	if err := ts.commandBus.Publish(ctx, c); err != nil {
+		return errors.Wrap(err)
 	}
+
+	return nil
 }
 
 // RemoveByCode use the authorization code to delete the token information
@@ -122,9 +109,6 @@ func (ts *TokenStore) toTokenInfo(ctx context.Context, data []byte) (oauth2.Toke
 }
 
 func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
-	out := make(chan error, 1)
-	defer close(out)
-
 	id, err := uuid.Parse(t.GetID())
 	if err != nil {
 		return errors.Wrap(err)
@@ -134,18 +118,9 @@ func (ts *TokenStore) remove(ctx context.Context, t persistence.Token) error {
 		ID: id,
 	}
 
-	go func() {
-		ts.commandBus.Publish(ctx, c, out)
-	}()
-
-	ctxDoneCh := ctx.Done()
-	select {
-	case <-ctxDoneCh:
-		return errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, ctx.Err()))
-	case err := <-out:
-		if err != nil {
-			return errors.Wrap(fmt.Errorf("token remove failed: %w", err))
-		}
-		return nil
+	if err := ts.commandBus.Publish(ctx, c); err != nil {
+		return errors.Wrap(err)
 	}
+
+	return nil
 }

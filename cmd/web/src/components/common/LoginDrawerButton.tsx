@@ -1,12 +1,12 @@
-import React, { useRef } from "react";
-import { defineMessages, useIntl } from "react-intl";
+import React, {useRef} from "react";
+import {defineMessages, useIntl} from "react-intl";
 import {
+  Button,
   Drawer,
   DrawerBody,
-  DrawerOverlay,
-  DrawerContent,
   DrawerCloseButton,
-  Button,
+  DrawerContent,
+  DrawerOverlay,
   useDisclosure,
 } from "@chakra-ui/core";
 import LoginForm from "./LoginForm";
@@ -21,7 +21,7 @@ const messages = defineMessages({
 const LoginDrawerButton = () => {
   const intl = useIntl();
   const btnRef = useRef(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {isOpen, onOpen, onClose} = useDisclosure();
 
   return (
     <div>
@@ -34,11 +34,11 @@ const LoginDrawerButton = () => {
         finalFocusRef={btnRef}
         size="full"
       >
-        <DrawerOverlay />
+        <DrawerOverlay/>
         <DrawerContent>
-          <DrawerCloseButton border="none" />
+          <DrawerCloseButton border="none"/>
           <DrawerBody display="flex">
-            <LoginForm onSuccess={onClose} />
+            <LoginForm onSuccess={onClose}/>
           </DrawerBody>
         </DrawerContent>
       </Drawer>

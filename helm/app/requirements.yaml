@@ -12,22 +12,6 @@ dependencies:
   - name: microservice
     version: 0.1.0
     repository: "file://../microservice"
-    alias: pubsub
-    condition: pubsub.enabled
-  - name: microservice
-    version: 0.1.0
-    repository: "file://../microservice"
-    alias: pushpull
-    condition: pushpull.enabled
-  # AWS localstack (for local development)
-  - name: microservice
-    version: 0.1.0
-    repository: "file://../microservice"
-    alias: localstack
-    condition: localstack.enabled
-  - name: microservice
-    version: 0.1.0
-    repository: "file://../microservice"
     alias: maildev
     condition: maildev.enabled
   # External charts: https://github.com/helm/charts/blob/master/stable
@@ -43,7 +27,3 @@ dependencies:
     version: 1.6.4
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: mysql.enabled
-  - name: phpmyadmin
-    version: 6.2.0
-    repository: https://charts.bitnami.com/bitnami # `helm repo add bitnami https://charts.bitnami.com/bitnami`
-    condition: phpmyadmin.enabled

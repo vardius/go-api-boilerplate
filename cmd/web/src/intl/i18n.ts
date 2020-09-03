@@ -1,5 +1,5 @@
-import { DEFAULT_LOCALE } from "src/constants";
-import { LOCALE } from "src/types";
+import {DEFAULT_LOCALE} from "src/constants";
+import {LOCALE} from "src/types";
 
 export function loadTranslation(locale: LOCALE) {
   const l = LOCALE[locale] || DEFAULT_LOCALE;

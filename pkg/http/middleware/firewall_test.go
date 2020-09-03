@@ -23,9 +23,9 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 	}
 
 	i := identity.Identity{
-		ID:    uuid.New(),
-		Email: "test@emai.com",
-		Roles: identity.RoleAdmin,
+		UserID:    uuid.New(),
+		UserEmail: "test@emai.com",
+		Roles:     identity.RoleAdmin,
 	}
 	ctx := identity.ContextWithIdentity(req.Context(), i)
 
@@ -46,9 +46,9 @@ func TestGrantAccessFor(t *testing.T) {
 	}
 
 	i := identity.Identity{
-		ID:    uuid.New(),
-		Email: "test@emai.com",
-		Roles: identity.RoleUser,
+		UserID:    uuid.New(),
+		UserEmail: "test@emai.com",
+		Roles:     identity.RoleUser,
 	}
 	ctx := identity.ContextWithIdentity(req.Context(), i)
 

@@ -8,13 +8,13 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/gocontainer"
-	pushpullproto "github.com/vardius/pushpull/proto"
 	"google.golang.org/grpc"
 	grpchealth "google.golang.org/grpc/health"
 
+	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/eventhandler"
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/oauth2"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/repository"
@@ -24,9 +24,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	oauth2util "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
-	"github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	"github.com/vardius/go-api-boilerplate/pkg/eventbus/pushpull"
+	commandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
+	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
@@ -46,7 +45,6 @@ func main() {
 	defer cancel()
 
 	logger := log.New(config.Env.App.Environment)
-	oauth2Config := oauth2.NewConfig()
 	grpcServer := grpcutils.NewServer(
 		grpcutils.ServerConfig{
 			ServerMinTime: config.Env.GRPC.ServerMinTime,
@@ -62,7 +60,7 @@ func main() {
 		// 	firewall.GrantAccessForStreamRequest(identity.RoleUser),
 		// },
 	)
-	commandBus := memory.New(config.Env.CommandBus.QueueSize, logger)
+	commandBus := commandbus.New(config.Env.CommandBus.QueueSize, logger)
 
 	mysqlConnection := mysql.NewConnection(
 		ctx,
@@ -79,17 +77,6 @@ func main() {
 		logger,
 	)
 	defer mysqlConnection.Close()
-	grpcPushPullConn := grpcutils.NewConnection(
-		ctx,
-		config.Env.PushPull.Host,
-		config.Env.GRPC.Port,
-		grpcutils.ConnectionConfig{
-			ConnTime:    config.Env.GRPC.ConnTime,
-			ConnTimeout: config.Env.GRPC.ConnTimeout,
-		},
-		logger,
-	)
-	defer grpcPushPullConn.Close()
 	grpcUserConn := grpcutils.NewConnection(
 		ctx,
 		config.Env.GRPC.Host,
@@ -101,18 +88,30 @@ func main() {
 		logger,
 	)
 	defer grpcUserConn.Close()
+	grpcAuthConn := grpcutils.NewConnection(
+		ctx,
+		config.Env.Auth.Host,
+		config.Env.GRPC.Port,
+		grpcutils.ConnectionConfig{
+			ConnTime:    config.Env.GRPC.ConnTime,
+			ConnTimeout: config.Env.GRPC.ConnTimeout,
+		},
+		logger,
+	)
+	defer grpcAuthConn.Close()
 
 	eventStore := eventstore.New(mysqlConnection)
-	grpPushPullClient := pushpullproto.NewPushPullClient(grpcPushPullConn)
-	eventBus := pushpull.New(config.Env.App.EventHandlerTimeout, grpPushPullClient, logger)
+	eventBus := eventbus.New(config.Env.EventBus.QueueSize, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
 	grpcHealthServer := grpchealth.NewServer()
-	grpcUserServer := usergrpc.NewServer(commandBus, userPersistenceRepository, logger)
+	grpcUserServer := usergrpc.NewServer(commandBus, userPersistenceRepository)
+	grpAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
 	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.Auth.Secret))
-	tokenProvider := oauth2util.NewCredentialsAuthenticator(config.Env.Auth.Secret, oauth2Config)
+	tokenProvider := oauth2util.NewCredentialsAuthenticator(config.Env.Auth.Host, config.Env.HTTP.Port, config.Env.Auth.Secret)
 	claimsProvider := auth.NewClaimsProvider(authenticator)
-	tokenAuthorizer := auth.NewJWTTokenAuthorizer(claimsProvider)
+	identityProvider := identity.NewIdentityProvider(mysqlConnection)
+	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, identityProvider)
 	router := userhttp.NewRouter(
 		logger,
 		tokenAuthorizer,
@@ -120,9 +119,9 @@ func main() {
 		commandBus,
 		tokenProvider,
 		mysqlConnection,
+		identityProvider,
 		map[string]*grpc.ClientConn{
-			"pushpull": grpcPushPullConn,
-			"user":     grpcUserConn,
+			"user": grpcUserConn,
 		},
 	)
 	app := application.New(logger)
@@ -143,21 +142,21 @@ func main() {
 		panic(err)
 	}
 
-	go func() {
-		eventbus.RegisterGRPCHandlers(
-			"pushpull",
-			grpcPushPullConn,
-			eventBus,
-			map[string]eventbus.EventHandler{
-				(user.WasRegisteredWithEmail{}).GetType():    eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository, tokenProvider),
-				(user.WasRegisteredWithGoogle{}).GetType():   eventhandler.WhenUserWasRegisteredWithGoogle(mysqlConnection, userPersistenceRepository, tokenProvider),
-				(user.WasRegisteredWithFacebook{}).GetType(): eventhandler.WhenUserWasRegisteredWithFacebook(mysqlConnection, userPersistenceRepository, tokenProvider),
-				(user.EmailAddressWasChanged{}).GetType():    eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository),
-				(user.AccessTokenWasRequested{}).GetType():   eventhandler.WhenUserAccessTokenWasRequested(tokenProvider),
-			},
-			5*time.Second,
-		)
-	}()
+	if err := eventBus.Subscribe(ctx, (user.WasRegisteredWithEmail{}).GetType(), eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository, tokenProvider, grpAuthClient)); err != nil {
+		panic(err)
+	}
+	if err := eventBus.Subscribe(ctx, (user.WasRegisteredWithGoogle{}).GetType(), eventhandler.WhenUserWasRegisteredWithGoogle(mysqlConnection, userPersistenceRepository, grpAuthClient)); err != nil {
+		panic(err)
+	}
+	if err := eventBus.Subscribe(ctx, (user.WasRegisteredWithFacebook{}).GetType(), eventhandler.WhenUserWasRegisteredWithFacebook(mysqlConnection, userPersistenceRepository, grpAuthClient)); err != nil {
+		panic(err)
+	}
+	if err := eventBus.Subscribe(ctx, (user.EmailAddressWasChanged{}).GetType(), eventhandler.WhenUserEmailAddressWasChanged(mysqlConnection, userPersistenceRepository)); err != nil {
+		panic(err)
+	}
+	if err := eventBus.Subscribe(ctx, (user.AccessTokenWasRequested{}).GetType(), eventhandler.WhenUserAccessTokenWasRequested(tokenProvider, identityProvider)); err != nil {
+		panic(err)
+	}
 
 	app.AddAdapters(
 		userhttp.NewAdapter(

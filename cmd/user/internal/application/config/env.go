@@ -13,13 +13,11 @@ var Env *environment
 
 type environment struct {
 	App struct {
+		Domain              string        `env:"APP_DOMAIN"                envDefault:"localhost"`
 		Environment         string        `env:"APP_ENV"                   envDefault:"development"`
 		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
 		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
 		Secret              string        `env:"USER_SECRET"               envDefault:"secret"`
-
-		ClientID     string `env:"USER_CLIENT_ID"     envDefault:"clientId"`
-		ClientSecret string `env:"USER_CLIENT_SECRET" envDefault:"clientSecret"`
 	}
 	Debug struct {
 		Host string `env:"DEBUG_HOST" envDefault:"0.0.0.0"`
@@ -65,15 +63,10 @@ type environment struct {
 		Host   string `env:"AUTH_HOST" envDefault:"0.0.0.0"` // Auth service host
 		Secret string `env:"AUTH_SECRET"                envDefault:"secret"`
 	}
-	PubSub struct {
-		Host string `env:"PUBSUB_HOST" envDefault:"0.0.0.0"`
-		Port int    `env:"PUBSUB_HTTP" envDefault:"3001"`
-	}
-	PushPull struct {
-		Host string `env:"PUSHPULL_HOST" envDefault:"0.0.0.0"`
-		Port int    `env:"PUSHPULL_HTTP" envDefault:"3001"`
-	}
 	CommandBus struct {
+		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
+	}
+	EventBus struct {
 		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
 	}
 }
@@ -102,18 +95,18 @@ func init() {
 	if err := env.Parse(&Env.Auth); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.PubSub); err != nil {
-		panic(err)
-	}
-	if err := env.Parse(&Env.PushPull); err != nil {
-		panic(err)
-	}
 	if err := env.Parse(&Env.CommandBus); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&Env.EventBus); err != nil {
 		panic(err)
 	}
 
 	if Env.CommandBus.QueueSize == 0 {
 		Env.CommandBus.QueueSize = runtime.NumCPU()
+	}
+	if Env.EventBus.QueueSize == 0 {
+		Env.EventBus.QueueSize = runtime.NumCPU()
 	}
 
 	log.Printf("Env:\n%v\n", Env)

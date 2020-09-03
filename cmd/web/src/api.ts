@@ -1,10 +1,6 @@
-import { API_URL } from "src/constants";
-import { AuthToken } from "src/types";
-import HttpError, {
-  AccessDeniedHttpError,
-  NotFoundHttpError,
-  UnauthorizedHttpError,
-} from "src/errors";
+import {API_URL} from "src/constants";
+import {AuthToken} from "src/types";
+import HttpError, {AccessDeniedHttpError, NotFoundHttpError, UnauthorizedHttpError,} from "src/errors";
 
 export const fetchJSON = (authToken?: AuthToken) => async (
   path: string,
@@ -34,7 +30,7 @@ export const fetchJSON = (authToken?: AuthToken) => async (
     headers["Authorization"] = `Bearer ${authToken}`;
   }
 
-  const response = await fetch(url.toString(), { method, headers, body });
+  const response = await fetch(url.toString(), {method, headers, body});
 
   if (!response.ok) {
     switch (response.status) {

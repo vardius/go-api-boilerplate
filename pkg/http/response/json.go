@@ -6,7 +6,10 @@ package response
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+
+	httperrors "github.com/vardius/go-api-boilerplate/pkg/http/errors"
 )
 
 // JSON returns data as json response
@@ -43,4 +46,30 @@ func MustJSON(ctx context.Context, w http.ResponseWriter, statusCode int, payloa
 	if err := JSON(ctx, w, statusCode, payload); err != nil {
 		panic(err)
 	}
+}
+
+func NotFound() http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		httpError := &httperrors.HttpError{
+			Code:    http.StatusNotFound,
+			Message: fmt.Sprintf("Route %s", http.StatusText(http.StatusNotFound)),
+		}
+
+		_ = JSON(r.Context(), w, httpError.Code, httpError)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NotAllowed() http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		httpError := &httperrors.HttpError{
+			Code:    http.StatusMethodNotAllowed,
+			Message: http.StatusText(http.StatusMethodNotAllowed),
+		}
+
+		_ = JSON(r.Context(), w, httpError.Code, httpError)
+	}
+
+	return http.HandlerFunc(fn)
 }

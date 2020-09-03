@@ -1,27 +1,27 @@
 import React from "react";
-import { defineMessages, useIntl } from "react-intl";
-import { Link as ReachLink, useRouteMatch } from "react-router-dom";
+import {defineMessages, useIntl} from "react-intl";
+import {Link as ReachLink, useRouteMatch} from "react-router-dom";
 import {
+  Avatar,
   Box,
-  Heading,
   Flex,
-  InputGroup,
-  InputLeftElement,
+  Heading,
+  HStack,
   Icon,
   Input,
+  InputGroup,
+  InputLeftElement,
+  Link,
   Menu,
   MenuButton,
-  MenuList,
   MenuItem,
-  Link,
+  MenuList,
   Text,
-  HStack,
-  Avatar,
   useColorModeValue,
 } from "@chakra-ui/core";
-import { FaExternalLinkAlt } from "react-icons/fa";
-import { brandColors } from "src/theme/theme";
-import { useUser } from "src/hooks";
+import {FaExternalLinkAlt} from "react-icons/fa";
+import {brandColors} from "src/theme/theme";
+import {useUser} from "src/hooks";
 import LoginDrawerButton from "src/components/common/LoginDrawerButton";
 
 const messages = defineMessages({
@@ -62,7 +62,7 @@ export interface MenuLinkProps {
   children?: React.ReactNode;
 }
 
-const MenuLink = ({ children, to, exact, isExternal }: MenuLinkProps) => {
+const MenuLink = ({children, to, exact, isExternal}: MenuLinkProps) => {
   const match = useRouteMatch({
     path: to,
     exact,
@@ -70,10 +70,10 @@ const MenuLink = ({ children, to, exact, isExternal }: MenuLinkProps) => {
 
   if (isExternal) {
     return (
-      <Link href={to} mt={{ base: 4, md: 0 }} mr={6} display="block" isExternal>
+      <Link href={to} mt={{base: 4, md: 0}} mr={6} display="block" isExternal>
         <HStack>
           <Text>{children}</Text>
-          <Icon as={FaExternalLinkAlt} ml={1} />
+          <Icon as={FaExternalLinkAlt} ml={1}/>
         </HStack>
       </Link>
     );
@@ -81,14 +81,14 @@ const MenuLink = ({ children, to, exact, isExternal }: MenuLinkProps) => {
 
   if (match) {
     return (
-      <Text mt={{ base: 4, md: 0 }} mr={6} display="block">
+      <Text mt={{base: 4, md: 0}} mr={6} display="block">
         {children}
       </Text>
     );
   }
 
   return (
-    <Link as={ReachLink} to="/" mt={{ base: 4, md: 0 }} mr={6} display="block">
+    <Link as={ReachLink} to="/" mt={{base: 4, md: 0}} mr={6} display="block">
       {children}
     </Link>
   );
@@ -119,7 +119,7 @@ const Header = () => {
         </Heading>
       </Flex>
 
-      <Box display={{ base: "block", md: "none" }} onClick={handleToggle}>
+      <Box display={{base: "block", md: "none"}} onClick={handleToggle}>
         <svg
           fill={color.primary}
           width="12px"
@@ -127,13 +127,13 @@ const Header = () => {
           xmlns="http://www.w3.org/2000/svg"
         >
           <title>{intl.formatMessage(messages.menu)}</title>
-          <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" />
+          <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/>
         </svg>
       </Box>
 
       <Box
-        display={{ base: isVisible ? "block" : "none", md: "flex" }}
-        width={{ base: "full", md: "auto" }}
+        display={{base: isVisible ? "block" : "none", md: "flex"}}
+        width={{base: "full", md: "auto"}}
         alignItems="center"
         flexGrow={1}
       >
@@ -146,18 +146,18 @@ const Header = () => {
       </Box>
 
       <Box
-        display={{ base: isVisible ? "block" : "none", md: "block" }}
-        mt={{ base: 4, md: 0 }}
+        display={{base: isVisible ? "block" : "none", md: "block"}}
+        mt={{base: 4, md: 0}}
       >
         <HStack spacing={2} align="center">
           <InputGroup flexGrow={1}>
-            <InputLeftElement zIndex={0} children={<Icon name="search" />} />
-            <Input flex="1" placeholder={intl.formatMessage(messages.search)} />
+            <InputLeftElement zIndex={0} children={<Icon name="search"/>}/>
+            <Input flex="1" placeholder={intl.formatMessage(messages.search)}/>
           </InputGroup>
           {user ? (
             <Menu>
               <MenuButton>
-                <Avatar name={user.email} src="#" />
+                <Avatar name={user.email} src="#"/>
               </MenuButton>
               <MenuList>
                 <MenuItem
@@ -170,7 +170,7 @@ const Header = () => {
               </MenuList>
             </Menu>
           ) : (
-            <LoginDrawerButton />
+            <LoginDrawerButton/>
           )}
         </HStack>
       </Box>

@@ -1,8 +1,8 @@
-import React, { useEffect, ReactChild } from "react";
-import { IntlProvider } from "react-intl";
-import { DEFAULT_LOCALE } from "src/constants";
-import { loadTranslation } from "src/intl/i18n";
-import { useLocale } from "src/hooks";
+import React, {ReactChild, useEffect} from "react";
+import {IntlProvider} from "react-intl";
+import {DEFAULT_LOCALE} from "src/constants";
+import {loadTranslation} from "src/intl/i18n";
+import {useLocale} from "src/hooks";
 import useMessages from "../../useMessages";
 
 export interface LanguageProps {
@@ -23,7 +23,7 @@ export const flattenMessages = (
     const prefixedKey = prefix ? `${prefix}.${key}` : key;
 
     if (typeof value === "string") {
-      Object.assign(messages, { [prefixedKey]: value });
+      Object.assign(messages, {[prefixedKey]: value});
     } else {
       Object.assign(messages, flattenMessages(value, prefixedKey));
     }
@@ -32,7 +32,7 @@ export const flattenMessages = (
   }, {});
 };
 
-function LanguageProvider({ children }: LanguageProps) {
+function LanguageProvider({children}: LanguageProps) {
   const [locale] = useLocale();
   const [messages, setMessages] = useMessages();
 

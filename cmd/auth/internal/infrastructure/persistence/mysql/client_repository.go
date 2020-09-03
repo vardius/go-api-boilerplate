@@ -19,14 +19,14 @@ type clientRepository struct {
 }
 
 func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Client, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, userId, secret, domain, data FROM clients WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, user_id, secret, domain, data FROM clients WHERE id=? LIMIT 1`, id)
 
 	client := Client{}
 
 	err := row.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.Data)
 	switch {
 	case systemErrors.Is(err, sql.ErrNoRows):
-		return nil, errors.Wrap(fmt.Errorf("%w: Client not found: %s", application.ErrNotFound, err))
+		return nil, errors.Wrap(fmt.Errorf("%w: Client (id:%s) not found: %s", application.ErrNotFound, id, err))
 	case err != nil:
 		return nil, errors.Wrap(err)
 	default:
@@ -43,7 +43,7 @@ func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error 
 		Data:   c.GetData(),
 	}
 
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, userId, secret, domain, data) VALUES (?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, user_id, secret, domain, data) VALUES (?,?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err)
 	}

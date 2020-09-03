@@ -1,18 +1,12 @@
-import React, {
-  createContext,
-  ReactChild,
-  useEffect,
-  useCallback,
-} from "react";
-import { User } from "src/types";
-import { UnauthorizedHttpError } from "src/errors";
-import { useAuthToken, useApi } from "src/hooks";
+import React, {createContext, ReactChild, useCallback, useEffect,} from "react";
+import {User} from "src/types";
+import {UnauthorizedHttpError} from "src/errors";
+import {useApi, useAuthToken} from "src/hooks";
 
 type user = User | null;
 
-export const UserContext = createContext<
-  [user, React.Dispatch<React.SetStateAction<user>>]
->([null, () => {}]);
+export const UserContext = createContext<[user, React.Dispatch<React.SetStateAction<user>>]>([null, () => {
+}]);
 
 export interface Props {
   children: ReactChild;
@@ -46,11 +40,8 @@ const UserContextProvider = (props: Props) => {
 
         setUser(response);
       } catch (err) {
-        console.error(err);
         setUser(null);
       }
-
-
     };
 
     if (authToken) {

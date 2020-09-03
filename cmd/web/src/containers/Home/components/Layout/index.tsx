@@ -23,7 +23,7 @@ function Layout() {
   const [users, setUsers] = useState([]);
 
   const fetchUsers = useCallback(
-    async ({ page, limit }: { page: number; limit: number }) => {
+    async ({page, limit}: { page: number; limit: number }) => {
       return await fetchJSON("/users/v1", "GET", {
         page: String(page),
         limit: String(limit),
@@ -35,13 +35,12 @@ function Layout() {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetchUsers({ page, limit });
+        const response = await fetchUsers({page, limit});
 
         setIsLoading(false);
         setUsers(response.users || []);
         setTotal(response.total || 0);
       } catch (err) {
-        console.error(err);
         setIsLoading(false);
       }
     };

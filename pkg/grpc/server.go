@@ -44,6 +44,7 @@ func NewServer(cfg ServerConfig, logger *log.Logger, unaryInterceptors []grpc.Un
 		grpcmiddleware.WithUnaryServerChain(
 			append([]grpc.UnaryServerInterceptor{
 				grpcrecovery.UnaryServerInterceptor(opts...),
+				middleware.TransformUnaryIncomingError(),
 				middleware.SetMetadataFromUnaryRequest(),
 				middleware.LogUnaryRequest(logger),
 			}, unaryInterceptors...)...,
@@ -51,6 +52,7 @@ func NewServer(cfg ServerConfig, logger *log.Logger, unaryInterceptors []grpc.Un
 		grpcmiddleware.WithStreamServerChain(
 			append([]grpc.StreamServerInterceptor{
 				grpcrecovery.StreamServerInterceptor(opts...),
+				middleware.TransformStreamIncomingError(),
 				middleware.SetMetadataFromStreamRequest(),
 				middleware.LogStreamRequest(logger),
 			}, streamInterceptors...)...,

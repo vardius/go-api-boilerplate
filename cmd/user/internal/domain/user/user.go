@@ -4,6 +4,7 @@ Package user holds user domain logic
 package user
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -11,6 +12,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 // StreamName for user domain
@@ -114,74 +116,114 @@ func (u User) Changes() []domain.Event {
 }
 
 // RegisterWithEmail alters current user state and append changes to aggregate root
-func (u *User) RegisterWithEmail(id uuid.UUID, email EmailAddress) error {
-	return u.trackChange(WasRegisteredWithEmail{
+func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailAddress) error {
+	if _, err := u.trackChange(ctx, WasRegisteredWithEmail{
 		ID:    id,
 		Email: email,
-	})
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // RegisterWithGoogle alters current user state and append changes to aggregate root
-func (u *User) RegisterWithGoogle(id uuid.UUID, email EmailAddress, googleID string) error {
-	return u.trackChange(WasRegisteredWithGoogle{
-		ID:       id,
-		Email:    email,
-		GoogleID: googleID,
-	})
+func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email EmailAddress, googleID, accessToken string) error {
+	if _, err := u.trackChange(ctx, WasRegisteredWithGoogle{
+		ID:          id,
+		Email:       email,
+		GoogleID:    googleID,
+		AccessToken: accessToken,
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // ConnectWithGoogle alters current user state and append changes to aggregate root
-func (u *User) ConnectWithGoogle(googleID string) error {
-	return u.trackChange(ConnectedWithGoogle{
-		ID:       u.id,
-		GoogleID: googleID,
-	})
+func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken string) error {
+	if _, err := u.trackChange(ctx, ConnectedWithGoogle{
+		ID:          u.id,
+		GoogleID:    googleID,
+		AccessToken: accessToken,
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // RegisterWithFacebook alters current user state and append changes to aggregate root
-func (u *User) RegisterWithFacebook(id uuid.UUID, email EmailAddress, facebookID string) error {
-	return u.trackChange(WasRegisteredWithFacebook{
-		ID:         id,
-		Email:      email,
-		FacebookID: facebookID,
-	})
+func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email EmailAddress, facebookID, accessToken string) error {
+	if _, err := u.trackChange(ctx, WasRegisteredWithFacebook{
+		ID:          id,
+		Email:       email,
+		FacebookID:  facebookID,
+		AccessToken: accessToken,
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // ConnectWithFacebook alters current user state and append changes to aggregate root
-func (u *User) ConnectWithFacebook(facebookID string) error {
-	return u.trackChange(ConnectedWithFacebook{
-		ID:         u.id,
-		FacebookID: facebookID,
-	})
+func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken string) error {
+	if _, err := u.trackChange(ctx, ConnectedWithFacebook{
+		ID:          u.id,
+		FacebookID:  facebookID,
+		AccessToken: accessToken,
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // ChangeEmailAddress alters current user state and append changes to aggregate root
-func (u *User) ChangeEmailAddress(email EmailAddress) error {
-	return u.trackChange(EmailAddressWasChanged{
+func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error {
+	if _, err := u.trackChange(ctx, EmailAddressWasChanged{
 		ID:    u.id,
 		Email: email,
-	})
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // RequestAccessToken dispatches AccessTokenWasRequested event
-func (u *User) RequestAccessToken() error {
-	return u.trackChange(AccessTokenWasRequested{
+func (u *User) RequestAccessToken(ctx context.Context) error {
+	if _, err := u.trackChange(ctx, AccessTokenWasRequested{
 		ID:    u.id,
 		Email: u.email,
-	})
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
-func (u *User) trackChange(e domain.RawEvent) error {
+func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
 	u.transition(e)
 
-	event, err := domain.NewEvent(u.id, StreamName, u.version, e)
+	var (
+		event domain.Event
+		err   error
+	)
+	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
+		event, err = domain.NewEvent(u.id, StreamName, u.version, e, &i)
+	} else {
+		event, err = domain.NewEvent(u.id, StreamName, u.version, e, nil)
+	}
 	if err != nil {
-		return errors.Wrap(err)
+		return event, errors.Wrap(err)
 	}
 
 	u.changes = append(u.changes, event)
 
-	return nil
+	return event, nil
 }
 
 func (u *User) transition(e domain.RawEvent) {

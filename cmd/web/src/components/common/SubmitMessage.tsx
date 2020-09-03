@@ -1,21 +1,15 @@
 import React from "react";
-import {
-  Box,
-  Alert,
-  AlertIcon,
-  AlertDescription,
-  AlertProps,
-} from "@chakra-ui/core";
+import {Alert, AlertDescription, AlertIcon, AlertProps, Box,} from "@chakra-ui/core";
 
 export interface Props {
   message: string;
 }
 
-const SubmitMessage = ({ message, status }: Props & AlertProps) => {
+const SubmitMessage = ({message, status}: Props & AlertProps) => {
   return (
     <Box my={4}>
       <Alert status={status} borderRadius={4}>
-        <AlertIcon />
+        <AlertIcon/>
         <AlertDescription>{message}</AlertDescription>
       </Alert>
     </Box>

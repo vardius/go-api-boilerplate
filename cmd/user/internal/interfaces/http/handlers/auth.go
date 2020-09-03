@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
+	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -20,14 +20,20 @@ type requestBody struct {
 }
 
 // BuildSocialAuthHandler wraps user gRPC client with http.Handler
-func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName string, tokenProvider oauth2.TokenProvider) http.Handler {
+func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName string, tokenProvider oauth2.TokenProvider, identityProvider appidentity.Provider) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		accessToken := r.FormValue("accessToken")
-		profileData, e := getProfile(accessToken, apiURL)
-		if e != nil {
-			appErr := errors.Wrap(fmt.Errorf("%w: %s", application.ErrInvalid, e))
+		profileData, err := getProfile(accessToken, apiURL)
+		if err != nil {
+			appErr := errors.Wrap(err)
 
 			response.MustJSONError(r.Context(), w, appErr)
+			return
+		}
+
+		emailData := requestBody{}
+		if err := json.Unmarshal(profileData, &emailData); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 			return
 		}
 
@@ -37,35 +43,21 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			return
 		}
 
-		out := make(chan error, 1)
-		defer close(out)
-
-		go func() {
-			cb.Publish(r.Context(), c, out)
-		}()
-
-		ctxDoneCh := r.Context().Done()
-		select {
-		case <-ctxDoneCh:
-			appErr := errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, r.Context().Err()))
-
-			response.MustJSONError(r.Context(), w, appErr)
-			return
-		case err = <-out:
-			if err != nil {
-				response.MustJSONError(r.Context(), w, errors.Wrap(err))
-				return
-			}
-		}
-
-		emailData := requestBody{}
-		e = json.Unmarshal(profileData, &emailData)
-		if e != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(e))
+		if err := cb.Publish(r.Context(), c); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 			return
 		}
 
-		token, err := tokenProvider.RetrieveToken(r.Context(), emailData.Email)
+		// We can do that because command handler acknowledges events when persisting
+		// aggregate root so we know that event handlers have executed and data was
+		// persisted (see: SaveAndAcknowledge method)
+		i, err := identityProvider.GetByUserEmail(r.Context(), emailData.Email, config.Env.App.Domain)
+		if err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			return
+		}
+
+		token, err := tokenProvider.RetrievePasswordCredentialsToken(r.Context(), i.ClientID.String(), i.ClientSecret, emailData.Email, []string{"all"})
 		if err != nil {
 			response.MustJSONError(r.Context(), w, errors.Wrap(err))
 			return

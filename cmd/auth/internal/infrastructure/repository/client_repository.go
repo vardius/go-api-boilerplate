@@ -35,6 +35,22 @@ func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 	return nil
 }
 
+// Save current client changes to event store and publish each event with an event bus
+// blocks until event handlers are finished
+func (r *clientRepository) SaveAndAcknowledge(ctx context.Context, u client.Client) error {
+	if err := r.eventStore.Store(ctx, u.Changes()); err != nil {
+		return errors.Wrap(err)
+	}
+
+	for _, event := range u.Changes() {
+		if err := r.eventBus.PublishAndAcknowledge(ctx, event); err != nil {
+			return errors.Wrap(err)
+		}
+	}
+
+	return nil
+}
+
 // Get client with current state applied
 func (r *clientRepository) Get(ctx context.Context, id uuid.UUID) (client.Client, error) {
 	events, err := r.eventStore.GetStream(ctx, id, client.StreamName)

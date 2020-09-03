@@ -3,7 +3,6 @@ package pushpull
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -19,7 +18,12 @@ import (
 
 // New creates pubsub event bus
 func New(handlerTimeout time.Duration, client pushpullproto.PushPullClient, log *log.Logger) eventbus.EventBus {
-	return &eventBus{handlerTimeout, client, log, sync.RWMutex{}, make(map[reflect.Value]chan struct{})}
+	return &eventBus{
+		handlerTimeout:      handlerTimeout,
+		client:              client,
+		logger:              log,
+		unsubscribeChannels: make(map[reflect.Value]chan struct{}),
+	}
 }
 
 type dto struct {
@@ -41,23 +45,22 @@ type eventBus struct {
 
 // Subscribe adds worker to pull events from queue,
 // pulled even will not be handled by other handlers
-func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
-	stream, err := bus.client.Pull(ctx, &pushpullproto.PullRequest{
+func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
+	stream, err := b.client.Pull(ctx, &pushpullproto.PullRequest{
 		Topic: eventType,
 	})
 	if err != nil {
-		bus.logger.Error(ctx, "[EventBus] Pull: %v\n", err)
-		return fmt.Errorf("EventBus pushpull client subscribe error: %w", err)
+		return errors.Wrap(err)
 	}
 
-	bus.logger.Info(stream.Context(), "[EventBus] Pull: %s\n", eventType)
+	b.logger.Info(stream.Context(), "[EventBus] Pull: %s\n", eventType)
 
 	rv := reflect.ValueOf(fn)
 	unsubscribeCh := make(chan struct{}, 1)
 
-	bus.mtx.Lock()
-	bus.unsubscribeChannels[rv] = unsubscribeCh
-	bus.mtx.Unlock()
+	b.mtx.Lock()
+	b.unsubscribeChannels[rv] = unsubscribeCh
+	b.mtx.Unlock()
 
 	ctxDoneCh := ctx.Done()
 	for {
@@ -69,13 +72,11 @@ func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbu
 		default:
 			resp, err := stream.Recv()
 			if err != nil {
-				bus.logger.Error(stream.Context(), "[EventBus] Pull: stream.Recv: %v\n", err)
-				return fmt.Errorf("EventBus Pull stream recv: %w", err)
+				return errors.Wrap(err)
 			}
 
-			if err := bus.dispatchEvent(resp.GetPayload(), fn); err != nil {
-				bus.logger.Error(stream.Context(), "[EventBus] Pull: dispatchEvent: %v\n", err)
-				return fmt.Errorf("EventBus Pull stream dispatchEvent: %w", err)
+			if err := b.dispatchEvent(resp.GetPayload(), fn); err != nil {
+				return errors.Wrap(err)
 			}
 		}
 	}
@@ -83,7 +84,7 @@ func (bus *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbu
 
 // Publish pushes event to the queue,
 // will be handled by first handler to Pull it from that queue
-func (bus *eventBus) Publish(ctx context.Context, event domain.Event) error {
+func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 	o := dto{
 		Event: event,
 	}
@@ -94,53 +95,54 @@ func (bus *eventBus) Publish(ctx context.Context, event domain.Event) error {
 
 	payload, err := json.Marshal(o)
 	if err != nil {
-		bus.logger.Error(ctx, "[EventBus] Push: Marshal error: %v\n", err)
 		return errors.Wrap(err)
 	}
 
-	bus.logger.Debug(ctx, "[EventBus] Push: %s %s\n", event.Metadata.Type, payload)
+	b.logger.Debug(ctx, "[EventBus] Push: %s %s\n", event.Metadata.Type, payload)
 
-	if _, err := bus.client.Push(ctx, &pushpullproto.PushRequest{
+	if _, err := b.client.Push(ctx, &pushpullproto.PushRequest{
 		Topic:   event.Metadata.Type,
 		Payload: payload,
 	}); err != nil {
-		bus.logger.Error(ctx, "[EventBus] Push: error: %v\n", err)
 		return errors.Wrap(err)
 	}
+
+	return nil
+}
+
+func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain.Event) error {
+	panic("not implemented")
 
 	return nil
 }
 
 // Unsubscribe will unsubscribe after next event handler because stream.Recv() is blocking
 // this method was implemented only to satisfy interface
-func (bus *eventBus) Unsubscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
+func (b *eventBus) Unsubscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
 	rv := reflect.ValueOf(fn)
-	bus.mtx.RLock()
-	if ch, ok := bus.unsubscribeChannels[rv]; ok {
+	b.mtx.RLock()
+	if ch, ok := b.unsubscribeChannels[rv]; ok {
 		ch <- struct{}{}
 	}
-	bus.mtx.RUnlock()
-	bus.logger.Info(ctx, "[EventBus] Unsubscribe: %s\n", eventType)
+	b.mtx.RUnlock()
+	b.logger.Info(ctx, "[EventBus] Unsubscribe: %s\n", eventType)
 	return nil
 }
 
-func (bus *eventBus) dispatchEvent(payload []byte, fn eventbus.EventHandler) error {
-	ctx, cancel := context.WithTimeout(context.Background(), bus.handlerTimeout)
+func (b *eventBus) dispatchEvent(payload []byte, fn eventbus.EventHandler) error {
+	ctx, cancel := context.WithTimeout(context.Background(), b.handlerTimeout)
 	defer cancel()
 
 	var o dto
 	if err := json.Unmarshal(payload, &o); err != nil {
-		bus.logger.Error(ctx, "[EventBus] Unmarshal error: %v\n", err)
-		return fmt.Errorf("EventBus unmarshal error: %w", err)
+		return errors.Wrap(err)
 	}
 
 	if o.RequestMetadata != nil {
 		ctx = metadata.ContextWithMetadata(ctx, o.RequestMetadata)
 	}
 
-	bus.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s\n", o.Event.Metadata.Type, o.Event.Payload)
+	b.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s\n", o.Event.Metadata.Type, o.Event.Payload)
 
-	fn(ctx, o.Event)
-
-	return nil
+	return fn(ctx, o.Event)
 }

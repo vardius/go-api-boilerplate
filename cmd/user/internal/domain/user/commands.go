@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	systemErrors "errors"
 	"fmt"
-	"log"
-	"runtime/debug"
 
 	"github.com/google/uuid"
 
@@ -75,47 +73,46 @@ func (c RequestAccessToken) GetName() string {
 
 // OnRequestAccessToken creates command handler
 func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c RequestAccessToken, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(RequestAccessToken)
+		if !ok {
+			return errors.New("invalid command")
+		}
 
 		var id string
-		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE emailAddress=? LIMIT 1`, c.Email.String())
+		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE email_address=? LIMIT 1`, c.Email.String())
 		if err := row.Scan(&id); err != nil {
 			if systemErrors.Is(err, sql.ErrNoRows) {
-				out <- errors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
-				return
+				return errors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
 			}
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 		if id == "" {
-			out <- application.ErrNotFound
-			return
+			return application.ErrNotFound
 		}
 
 		userID, err := uuid.Parse(id)
 		if err != nil {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
 		u, err := repository.Get(ctx, userID)
 		if err != nil {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
-		if err := u.RequestAccessToken(); err != nil {
-			out <- errors.Wrap(err)
-			return
+		if err := u.RequestAccessToken(ctx); err != nil {
+			return errors.Wrap(err)
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
+	return fn
 }
 
 // ChangeEmailAddress command
@@ -131,39 +128,40 @@ func (c ChangeEmailAddress) GetName() string {
 
 // OnChangeEmailAddress creates command handler
 func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c ChangeEmailAddress, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(ChangeEmailAddress)
+		if !ok {
+			return errors.New("invalid command")
+		}
 
 		var totalUsers int32
 
-		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress=?`, c.Email.String())
+		row := db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM users WHERE email_address=?`, c.Email.String())
 		if err := row.Scan(&totalUsers); err != nil {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
 		if totalUsers != 0 {
-			out <- errors.Wrap(application.ErrInvalid)
-			return
+			return errors.Wrap(application.ErrInvalid)
 		}
 
 		u, err := repository.Get(ctx, c.ID)
 		if err != nil {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
-		if err := u.ChangeEmailAddress(c.Email); err != nil {
-			out <- errors.Wrap(err)
-			return
+		if err := u.ChangeEmailAddress(ctx, c.Email); err != nil {
+			return errors.Wrap(err)
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
+	return fn
 }
 
 // RegisterWithEmail command
@@ -178,46 +176,48 @@ func (c RegisterWithEmail) GetName() string {
 
 // OnRegisterWithEmail creates command handler
 func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c RegisterWithEmail, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(RegisterWithEmail)
+		if !ok {
+			return errors.New("invalid command")
+		}
 
 		var totalUsers int32
 
-		row := db.QueryRowContext(ctx, `SELECT COUNT(distinctId) FROM users WHERE emailAddress=?`, c.Email.String())
+		row := db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM users WHERE email_address=?`, c.Email.String())
 		if err := row.Scan(&totalUsers); err != nil {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
 		if totalUsers != 0 {
-			out <- errors.Wrap(application.ErrInvalid)
-			return
+			return errors.Wrap(application.ErrInvalid)
 		}
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
 		u := New()
-		if err := u.RegisterWithEmail(id, c.Email); err != nil {
-			out <- errors.Wrap(err)
-			return
+		if err := u.RegisterWithEmail(ctx, id, c.Email); err != nil {
+			return errors.Wrap(err)
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
+	return fn
 }
 
 // RegisterWithFacebook command
 type RegisterWithFacebook struct {
-	Email      EmailAddress `json:"email"`
-	FacebookID string       `json:"facebook_id"`
+	Email       EmailAddress `json:"email"`
+	FacebookID  string       `json:"facebook_id"`
+	AccessToken string       `json:"access_token"`
 }
 
 // GetName returns command name
@@ -227,66 +227,66 @@ func (c RegisterWithFacebook) GetName() string {
 
 // OnRegisterWithFacebook creates command handler
 func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c RegisterWithFacebook, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(RegisterWithFacebook)
+		if !ok {
+			return errors.New("invalid command")
+		}
 
 		var id, emailAddress, facebookID string
 
-		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, facebookId FROM users WHERE emailAddress=? OR facebookId=? LIMIT 1`, c.Email.String(), c.FacebookID)
+		row := db.QueryRowContext(ctx, `SELECT id, email_address, facebook_id FROM users WHERE email_address=? OR facebook_id=? LIMIT 1`, c.Email.String(), c.FacebookID)
 		if err := row.Scan(&id, &emailAddress, &facebookID); err != nil && !systemErrors.Is(err, sql.ErrNoRows) {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
 		if facebookID == c.FacebookID {
-			out <- errors.Wrap(application.ErrInvalid)
-			return
+			return errors.Wrap(application.ErrInvalid)
 		}
 
 		var u User
 		if emailAddress == string(c.Email) {
 			userID, err := uuid.Parse(id)
 			if err != nil {
-				out <- errors.Wrap(err)
-				return
+				return errors.Wrap(err)
 			}
 
-			u, err = repository.Get(ctx, userID)
+			u, err := repository.Get(ctx, userID)
 			if err != nil {
-				out <- errors.Wrap(err)
-				return
+				return errors.Wrap(err)
 			}
 
-			if err := u.ConnectWithFacebook(c.FacebookID); err != nil {
-				out <- errors.Wrap(err)
-				return
+			if err := u.ConnectWithFacebook(ctx, c.FacebookID, c.AccessToken); err != nil {
+				return errors.Wrap(err)
 			}
 		} else {
 			id, err := uuid.NewRandom()
 			if err != nil {
-				out <- errors.Wrap(err)
-				return
+				return errors.Wrap(err)
 			}
 
 			u = New()
-			if err := u.RegisterWithFacebook(id, c.Email, c.FacebookID); err != nil {
-				out <- errors.Wrap(err)
-				return
+
+			if err := u.RegisterWithFacebook(ctx, id, c.Email, c.FacebookID, c.AccessToken); err != nil {
+				return errors.Wrap(err)
 			}
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
+		if err := repository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
+	return fn
 }
 
 // RegisterWithGoogle command
 type RegisterWithGoogle struct {
-	Email    EmailAddress `json:"email"`
-	GoogleID string       `json:"google_id"`
+	Email       EmailAddress `json:"email"`
+	GoogleID    string       `json:"google_id"`
+	AccessToken string       `json:"access_token"`
 }
 
 // GetName returns command name
@@ -296,67 +296,56 @@ func (c RegisterWithGoogle) GetName() string {
 
 // OnRegisterWithGoogle creates command handler
 func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c RegisterWithGoogle, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(RegisterWithGoogle)
+		if !ok {
+			return errors.New("invalid command")
+		}
 
 		var id, emailAddress, googleID string
 
-		row := db.QueryRowContext(ctx, `SELECT id, emailAddress, googleId FROM users WHERE emailAddress=? OR googleId=? LIMIT 1`, c.Email.String(), c.GoogleID)
+		row := db.QueryRowContext(ctx, `SELECT id, email_address, google_id FROM users WHERE email_address=? OR google_id=? LIMIT 1`, c.Email.String(), c.GoogleID)
 		if err := row.Scan(&id, &emailAddress, &googleID); err != nil && !systemErrors.Is(err, sql.ErrNoRows) {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
 		}
 
 		if googleID == c.GoogleID {
-			out <- errors.Wrap(application.ErrInvalid)
-			return
+			return errors.Wrap(application.ErrInvalid)
 		}
 
 		var u User
 		if emailAddress == string(c.Email) {
 			userID, err := uuid.Parse(id)
 			if err != nil {
-				out <- errors.Wrap(err)
-				return
+				return errors.Wrap(err)
 			}
 
-			u, err = repository.Get(ctx, userID)
+			u, err := repository.Get(ctx, userID)
 			if err != nil {
-				out <- errors.Wrap(err)
-				return
+				return errors.Wrap(err)
 			}
 
-			if err := u.ConnectWithGoogle(c.GoogleID); err != nil {
-				out <- errors.Wrap(err)
-				return
+			if err := u.ConnectWithGoogle(ctx, c.GoogleID, c.AccessToken); err != nil {
+				return errors.Wrap(err)
 			}
 		} else {
 			id, err := uuid.NewRandom()
 			if err != nil {
-				out <- errors.Wrap(err)
-				return
+				return errors.Wrap(err)
 			}
 
 			u = New()
-			if err := u.RegisterWithGoogle(id, c.Email, c.GoogleID); err != nil {
-				out <- errors.Wrap(err)
-				return
+			if err := u.RegisterWithGoogle(ctx, id, c.Email, c.GoogleID, c.AccessToken); err != nil {
+				return errors.Wrap(err)
 			}
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u)
+		if err := repository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
-}
-
-func recoverCommandHandler(out chan<- error) {
-	if r := recover(); r != nil {
-		out <- errors.New(fmt.Sprintf("[CommandHandler] Recovered in %v", r))
-
-		// Log the Go stack trace for this panic'd goroutine.
-		log.Printf("%s\n", debug.Stack())
-	}
+	return fn
 }

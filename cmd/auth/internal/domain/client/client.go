@@ -4,6 +4,7 @@ Package client holds client domain logic
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 // StreamName for client domain
@@ -79,7 +81,7 @@ func (c Client) Changes() []domain.Event {
 }
 
 // Create alters current client state and append changes to aggregate root
-func (c *Client) Create(info oauth2.ClientInfo) error {
+func (c *Client) Create(ctx context.Context, info oauth2.ClientInfo) error {
 	data, err := json.Marshal(info)
 	if err != nil {
 		return errors.Wrap(err)
@@ -95,33 +97,49 @@ func (c *Client) Create(info oauth2.ClientInfo) error {
 		return errors.Wrap(err)
 	}
 
-	return c.trackChange(WasCreated{
+	if _, err := c.trackChange(ctx, WasCreated{
 		ID:     id,
 		UserID: userID,
 		Secret: info.GetSecret(),
 		Domain: info.GetDomain(),
 		Data:   data,
-	})
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // Remove alters current client state and append changes to aggregate root
-func (c *Client) Remove() error {
-	return c.trackChange(WasRemoved{
+func (c *Client) Remove(ctx context.Context) error {
+	if _, err := c.trackChange(ctx, WasRemoved{
 		ID: c.id,
-	})
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
-func (c *Client) trackChange(e domain.RawEvent) error {
+func (c *Client) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
 	c.transition(e)
 
-	event, err := domain.NewEvent(c.id, StreamName, c.version, e)
+	var (
+		event domain.Event
+		err   error
+	)
+	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
+		event, err = domain.NewEvent(c.id, StreamName, c.version, e, &i)
+	} else {
+		event, err = domain.NewEvent(c.id, StreamName, c.version, e, nil)
+	}
 	if err != nil {
-		return errors.Wrap(err)
+		return event, errors.Wrap(err)
 	}
 
 	c.changes = append(c.changes, event)
 
-	return nil
+	return event, nil
 }
 
 func (c *Client) transition(e domain.RawEvent) {

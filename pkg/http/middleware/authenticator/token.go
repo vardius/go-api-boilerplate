@@ -1,17 +1,19 @@
 package authenticator
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 // TokenAuthFunc returns Identity from token
-type TokenAuthFunc func(token string) (identity.Identity, error)
+type TokenAuthFunc func(ctx context.Context, token string) (identity.Identity, error)
 
 // TokenAuthenticator authorize by token
 // and adds Identity to request's Context
@@ -44,11 +46,11 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 			}
 
 			if strings.HasPrefix(token, "Bearer ") {
-				i, err := a.afn(token[7:])
+				i, err := a.afn(r.Context(), token[7:])
 				if err != nil {
 					w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
 
-					response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
+					response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, errors.Wrap(err)))
 					return
 				}
 
@@ -74,9 +76,9 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 				return
 			}
 
-			i, err := a.afn(token)
+			i, err := a.afn(r.Context(), token)
 			if err != nil {
-				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
+				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, errors.Wrap(err)))
 				return
 			}
 
@@ -96,9 +98,9 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 				return
 			}
 
-			i, err := a.afn(cookie.Value)
+			i, err := a.afn(r.Context(), cookie.Value)
 			if err != nil {
-				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, err))
+				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, errors.Wrap(err)))
 				return
 			}
 

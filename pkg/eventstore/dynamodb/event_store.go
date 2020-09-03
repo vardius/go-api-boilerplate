@@ -33,7 +33,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	for _, e := range events {
 		item, err := dynamodbattribute.MarshalMap(e)
 		if err != nil {
-			return fmt.Errorf("could not parse event: %w", err)
+			return errors.Wrap(err)
 		}
 		putParams := &dynamodb.PutItemInput{
 			TableName:           aws.String(s.tableName),
@@ -42,9 +42,9 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 		}
 		if _, err = s.service.PutItem(putParams); err != nil {
 			if err, ok := err.(awserr.RequestFailure); ok && err.Code() == "ConditionalCheckFailedException" {
-				return fmt.Errorf("PutItem request failureerror: %w", err)
+				return errors.Wrap(fmt.Errorf("PutItem request failureerror: %w", err))
 			}
-			return fmt.Errorf("PutItem error: %w", err)
+			return errors.Wrap(fmt.Errorf("PutItem error: %w", err))
 		}
 	}
 

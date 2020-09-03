@@ -1,13 +1,8 @@
-import React, {
-  createContext,
-  ReactChild,
-  useEffect,
-  useCallback,
-} from "react";
-import { useCookies } from "react-cookie";
-import { useHistory, useLocation } from "react-router-dom";
-import { AUTH_TOKEN_COOKIE } from "src/constants";
-import { AuthToken } from "src/types";
+import React, {createContext, ReactChild, useCallback, useEffect,} from "react";
+import {useCookies} from "react-cookie";
+import {useHistory, useLocation} from "react-router-dom";
+import {AUTH_TOKEN_COOKIE} from "src/constants";
+import {AuthToken} from "src/types";
 
 const cookieOptions = {
   domain: window.location.hostname,
@@ -21,7 +16,8 @@ function useQuery() {
 
 export const AuthContext = createContext<[AuthToken, () => void]>([
   null,
-  () => {},
+  () => {
+  },
 ]);
 
 export interface Props {
@@ -48,6 +44,7 @@ const AuthContextProvider = (props: Props) => {
       if (token === "none") {
         removeAuthToken();
       } else if (token && token.length > 0) {
+
         setCookie(AUTH_TOKEN_COOKIE, authToken, cookieOptions);
       }
 

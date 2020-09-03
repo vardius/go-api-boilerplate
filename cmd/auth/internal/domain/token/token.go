@@ -4,6 +4,7 @@ Package token holds token domain logic
 package token
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 // StreamName for token domain
@@ -79,7 +81,7 @@ func (t Token) Changes() []domain.Event {
 }
 
 // Create alters current token state and append changes to aggregate root
-func (t *Token) Create(id uuid.UUID, info oauth2.TokenInfo) error {
+func (t *Token) Create(ctx context.Context, id uuid.UUID, info oauth2.TokenInfo) error {
 	data, err := json.Marshal(info)
 	if err != nil {
 		return errors.Wrap(err)
@@ -95,7 +97,7 @@ func (t *Token) Create(id uuid.UUID, info oauth2.TokenInfo) error {
 		return errors.Wrap(err)
 	}
 
-	return t.trackChange(WasCreated{
+	if _, err = t.trackChange(ctx, WasCreated{
 		ID:       id,
 		ClientID: clientID,
 		UserID:   userID,
@@ -104,27 +106,43 @@ func (t *Token) Create(id uuid.UUID, info oauth2.TokenInfo) error {
 		Refresh:  info.GetRefresh(),
 		Scope:    info.GetScope(),
 		Data:     data,
-	})
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // Remove alters current token state and append changes to aggregate root
-func (t *Token) Remove() error {
-	return t.trackChange(WasRemoved{
+func (t *Token) Remove(ctx context.Context) error {
+	if _, err := t.trackChange(ctx, WasRemoved{
 		ID: t.id,
-	})
+	}); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
-func (t *Token) trackChange(e domain.RawEvent) error {
+func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
 	t.transition(e)
 
-	event, err := domain.NewEvent(t.id, StreamName, t.version, e)
+	var (
+		event domain.Event
+		err   error
+	)
+	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
+		event, err = domain.NewEvent(t.id, StreamName, t.version, e, &i)
+	} else {
+		event, err = domain.NewEvent(t.id, StreamName, t.version, e, nil)
+	}
 	if err != nil {
-		return errors.Wrap(err)
+		return event, errors.Wrap(err)
 	}
 
 	t.changes = append(t.changes, event)
 
-	return nil
+	return event, nil
 }
 
 func (t *Token) transition(e domain.RawEvent) {

@@ -1,6 +1,6 @@
 module github.com/vardius/go-api-boilerplate
 
-go 1.14
+go 1.15
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
@@ -11,12 +11,11 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/google/uuid v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/mar1n3r0/gorouter-middleware-formjson v1.1.0
 	github.com/rs/cors v1.7.0
 	github.com/vardius/gocontainer v1.0.3
 	github.com/vardius/gollback v1.1.0
 	github.com/vardius/golog v1.1.1
-	github.com/vardius/gorouter/v4 v4.4.3
+	github.com/vardius/gorouter/v4 v4.4.7
 	github.com/vardius/message-bus v1.1.4
 	github.com/vardius/pubsub/v2 v2.0.0
 	github.com/vardius/pushpull v1.0.0

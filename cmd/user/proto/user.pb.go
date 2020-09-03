@@ -9,6 +9,8 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -295,7 +297,9 @@ func init() {
 	proto.RegisterType((*ListUserResponse)(nil), "proto.ListUserResponse")
 }
 
-func init() { proto.RegisterFile("user.proto", fileDescriptor_116e343673f7ffaf) }
+func init() {
+	proto.RegisterFile("user.proto", fileDescriptor_116e343673f7ffaf)
+}
 
 var fileDescriptor_116e343673f7ffaf = []byte{
 	// 381 bytes of a gzipped FileDescriptorProto
@@ -327,11 +331,11 @@ var fileDescriptor_116e343673f7ffaf = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // UserServiceClient is the client API for UserService service.
 //
@@ -343,10 +347,10 @@ type UserServiceClient interface {
 }
 
 type userServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewUserServiceClient(cc *grpc.ClientConn) UserServiceClient {
+func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
 }
 
@@ -382,6 +386,20 @@ type UserServiceServer interface {
 	DispatchCommand(context.Context, *DispatchCommandRequest) (*empty.Empty, error)
 	GetUser(context.Context, *GetUserRequest) (*User, error)
 	ListUsers(context.Context, *ListUserRequest) (*ListUserResponse, error)
+}
+
+// UnimplementedUserServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedUserServiceServer struct {
+}
+
+func (*UnimplementedUserServiceServer) DispatchCommand(ctx context.Context, req *DispatchCommandRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DispatchCommand not implemented")
+}
+func (*UnimplementedUserServiceServer) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (*UnimplementedUserServiceServer) ListUsers(ctx context.Context, req *ListUserRequest) (*ListUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
 }
 
 func RegisterUserServiceServer(s *grpc.Server, srv UserServiceServer) {

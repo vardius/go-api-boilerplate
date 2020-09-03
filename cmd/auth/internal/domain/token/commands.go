@@ -2,16 +2,14 @@ package token
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"log"
-	"runtime/debug"
 
 	"github.com/google/uuid"
 	"gopkg.in/oauth2.v4"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
+	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
@@ -27,27 +25,29 @@ func (c Remove) GetName() string {
 }
 
 // OnRemove creates command handler
-func OnRemove(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c Remove, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
+func OnRemove(repository Repository) commandbus.CommandHandler {
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(Remove)
+		if !ok {
+			return errors.New("invalid command")
+		}
 
 		token, err := repository.Get(ctx, c.ID)
 		if err != nil {
-			out <- errors.Wrap(err)
-			return
+			return errors.Wrap(err)
+		}
+		if err := token.Remove(ctx); err != nil {
+			return errors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
 		}
 
-		if err := token.Remove(); err != nil {
-			out <- errors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
-			return
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {
+			return errors.Wrap(err)
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token)
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
+	return fn
 }
 
 // Create command
@@ -61,35 +61,29 @@ func (c Create) GetName() string {
 }
 
 // OnCreate creates command handler
-func OnCreate(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, c Create, out chan<- error) {
-		// this goroutine runs independently to request's goroutine,
-		// therefore recover middleware will not recover from panic to prevent crash
-		defer recoverCommandHandler(out)
+func OnCreate(repository Repository) commandbus.CommandHandler {
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(Create)
+		if !ok {
+			return errors.New("invalid command")
+		}
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			out <- errors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
-			return
+			return errors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
 		}
 
 		token := New()
-		if err := token.Create(id, c.TokenInfo); err != nil {
-			out <- errors.Wrap(fmt.Errorf("%w: Error when creating new token: %s", application.ErrInternal, err))
-			return
+		if err := token.Create(ctx, id, c.TokenInfo); err != nil {
+			return errors.Wrap(fmt.Errorf("%w: Error when creating new token: %s", application.ErrInternal, err))
 		}
 
-		out <- repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token)
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	return commandbus.CommandHandler(fn)
-}
-
-func recoverCommandHandler(out chan<- error) {
-	if r := recover(); r != nil {
-		out <- errors.Wrap(fmt.Errorf("[CommandHandler] Recovered in %v", r))
-
-		// Log the Go stack trace for this panic'd goroutine.
-		log.Printf("%s\n", debug.Stack())
-	}
+	return fn
 }

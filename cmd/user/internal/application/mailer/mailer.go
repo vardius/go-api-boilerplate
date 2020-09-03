@@ -35,7 +35,7 @@ func SendLoginEmail(ctx context.Context, subject, to string, authToken string) e
 		LoginURL string
 	}{
 		Title:    "Login to go-api-boilerplate",
-		LoginURL: fmt.Sprintf("https://go-api-boilerplate.local?%s", url.Values{"authToken": []string{authToken}}.Encode()),
+		LoginURL: fmt.Sprintf("%s?%s", config.Env.App.Domain, url.Values{"authToken": []string{authToken}}.Encode()),
 	}); err != nil {
 		return errors.Wrap(err)
 	}

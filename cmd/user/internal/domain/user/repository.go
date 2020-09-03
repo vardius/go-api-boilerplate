@@ -10,4 +10,7 @@ import (
 type Repository interface {
 	Save(ctx context.Context, u User) error
 	Get(ctx context.Context, id uuid.UUID) (User, error)
+
+	// Block and returns after event handlers are finished
+	SaveAndAcknowledge(ctx context.Context, u User) error
 }

@@ -9,11 +9,11 @@ import (
 
 func TestContext(t *testing.T) {
 	identity := Identity{
-		ID: uuid.New(),
+		UserID: uuid.New(),
 	}
 	ctx := ContextWithIdentity(context.Background(), identity)
 	identityFromContext, ok := FromContext(ctx)
-	if ok && identity.ID == identityFromContext.ID {
+	if ok && identity.UserID == identityFromContext.UserID {
 		return
 	}
 
