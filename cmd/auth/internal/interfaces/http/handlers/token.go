@@ -1,18 +1,63 @@
 package handlers
 
 import (
+	"io/ioutil"
 	"math"
 	"net/http"
 	"strconv"
 
 	"github.com/vardius/gorouter/v4/context"
 
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
+
+// BuildTokenCommandDispatchHandler dispatches domain command
+func BuildTokenCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		var e error
+
+		if r.Body == nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(application.ErrInvalid))
+			return
+		}
+
+		params, ok := context.Parameters(r.Context())
+		if !ok {
+			response.MustJSONError(r.Context(), w, errors.Wrap(application.ErrInvalid))
+			return
+		}
+
+		defer r.Body.Close()
+		body, e := ioutil.ReadAll(r.Body)
+		if e != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(e))
+			return
+		}
+
+		c, e := token.NewCommandFromPayload(params.Value("command"), body)
+		if e != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(e))
+			return
+		}
+
+		if err := cb.Publish(r.Context(), c); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			return
+		}
+
+		if err := response.JSON(r.Context(), w, http.StatusCreated, nil); err != nil {
+			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+		}
+	}
+
+	return http.HandlerFunc(fn)
+}
 
 // BuildListTokensHandler lists auth tokens by client and user IDs
 func BuildListTokensHandler(repository persistence.TokenRepository) http.Handler {

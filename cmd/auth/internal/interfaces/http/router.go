@@ -71,7 +71,7 @@ func NewRouter(
 	router.POST("/token", handlers.BuildTokenHandler(server))
 
 	router.POST("/dispatch/client/{command}", handlers.BuildClientCommandDispatchHandler(commandBus))
-	router.POST("/dispatch/token/{command}", handlers.BuildClientCommandDispatchHandler(commandBus))
+	router.POST("/dispatch/token/{command}", handlers.BuildTokenCommandDispatchHandler(commandBus))
 
 	router.GET("/clients", handlers.BuildListClientsHandler(clientRepository))
 	router.GET("/clients/{clientID}/tokens", handlers.BuildListTokensHandler(tokenRepository))

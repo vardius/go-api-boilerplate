@@ -32,30 +32,40 @@ const (
 func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
 	switch contract {
 	case RegisterUserWithEmail:
-		registerWithEmail := RegisterWithEmail{}
-		err := unmarshalPayload(payload, &registerWithEmail)
+		command := RegisterWithEmail{}
+		if err := unmarshalPayload(payload, &command); err != nil {
+			return command, errors.Wrap(err)
+		}
 
-		return registerWithEmail, errors.Wrap(err)
+		return command, nil
 	case RegisterUserWithGoogle:
-		registerWithGoogle := RegisterWithGoogle{}
-		err := unmarshalPayload(payload, &registerWithGoogle)
+		command := RegisterWithGoogle{}
+		if err := unmarshalPayload(payload, &command); err != nil {
+			return command, errors.Wrap(err)
+		}
 
-		return registerWithGoogle, errors.Wrap(err)
+		return command, nil
 	case RegisterUserWithFacebook:
-		registerWithFacebook := RegisterWithFacebook{}
-		err := unmarshalPayload(payload, &registerWithFacebook)
+		command := RegisterWithFacebook{}
+		if err := unmarshalPayload(payload, &command); err != nil {
+			return command, errors.Wrap(err)
+		}
 
-		return registerWithFacebook, errors.Wrap(err)
+		return command, nil
 	case ChangeUserEmailAddress:
-		changeEmailAddress := ChangeEmailAddress{}
-		err := unmarshalPayload(payload, &changeEmailAddress)
+		command := ChangeEmailAddress{}
+		if err := unmarshalPayload(payload, &command); err != nil {
+			return command, errors.Wrap(err)
+		}
 
-		return changeEmailAddress, errors.Wrap(err)
+		return command, nil
 	case RequestUserAccessToken:
-		requestAccessToken := RequestAccessToken{}
-		err := unmarshalPayload(payload, &requestAccessToken)
+		command := RequestAccessToken{}
+		if err := unmarshalPayload(payload, &command); err != nil {
+			return command, errors.Wrap(err)
+		}
 
-		return requestAccessToken, errors.Wrap(err)
+		return command, nil
 	default:
 		return nil, errors.New("Invalid command contract")
 	}

@@ -62,7 +62,7 @@ func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
 		}},
 	}
 
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, client_id, user_id, code, access, refresh) VALUES (?,?,?,?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, client_id, user_id, code, access, refresh) VALUES (?,?,?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(fmt.Errorf("%w: Invalid token insert query: %s", application.ErrInternal, err))
 	}

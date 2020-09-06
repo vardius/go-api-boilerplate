@@ -107,19 +107,17 @@ func InitServer(
 				}
 			}
 
-			return false, nil
+			return true, nil
 		})
 
 		srv.SetInternalErrorHandler(func(err error) (re *oauth2errors.Response) {
-			logger.Error(context.Background(), "[oAuth2|Server] internal error: %s", err.Error())
-
 			return &oauth2errors.Response{
 				Error: errors.Wrap(err),
 			}
 		})
 
 		srv.SetResponseErrorHandler(func(re *oauth2errors.Response) {
-			logger.Error(context.Background(), "[oAuth2|Server] response error: %v %v", re.Error, re)
+			logger.Error(context.Background(), "[oAuth2|Server] response error: %v", re)
 		})
 	})
 

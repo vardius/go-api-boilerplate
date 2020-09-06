@@ -8,6 +8,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/container"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
+	mtd "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // Logger wraps http.Handler with a logger middleware
@@ -27,9 +28,15 @@ func Logger(logger *log.Logger) gorouter.MiddlewareFunc {
 
 			next.ServeHTTP(w, r)
 
-			logger.Info(r.Context(), "[HTTP] End: %s %s -> %s (%s)",
+			var statusCode int
+			if m, ok := mtd.FromContext(r.Context()); ok {
+				statusCode = m.StatusCode
+			}
+
+			logger.Info(r.Context(), "[HTTP] End: %s %s -> %s [%d] (%s)",
 				r.Method, r.URL.Path,
 				r.RemoteAddr,
+				statusCode,
 				time.Since(now),
 			)
 		}

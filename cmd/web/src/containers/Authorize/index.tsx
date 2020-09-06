@@ -37,7 +37,7 @@ function Authorize() {
 
       window.location.assign(response.location);
     },
-    [fetchJSON, user]
+    [fetchJSON, user, query]
   );
 
   if (!user) {

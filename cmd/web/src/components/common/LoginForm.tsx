@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from "react";
-import {useHistory, useLocation} from "react-router-dom";
+import {useLocation} from "react-router-dom";
 import {defineMessages, useIntl} from "react-intl";
 import {
   Box,
@@ -59,7 +59,6 @@ export interface Props {
 
 const LoginForm = (props: Props) => {
   const intl = useIntl();
-  const history = useHistory();
   const location = useLocation();
   const toast = useToast();
   const fetchJSON = useApi();
@@ -74,8 +73,16 @@ const LoginForm = (props: Props) => {
 
   const login = useCallback(
     async ({email}: { email: string }) => {
-      // @ts-ignore
-      const body = JSON.stringify({email, redirect_path: from});
+      let redirectPath = null;
+      redirectPath += (from.pathname || '');
+      redirectPath += (from.search || '');
+      redirectPath += (from.hash || '');
+      if (redirectPath === "/") {
+        redirectPath = null;
+      }
+
+      const body = JSON.stringify({email, redirect_path: redirectPath});
+
       try {
         return await fetchJSON(
           "/users/v1/dispatch/user/request-user-access-token",
@@ -94,7 +101,7 @@ const LoginForm = (props: Props) => {
         }
       }
     },
-    [fetchJSON]
+    [fetchJSON, from]
   );
 
   const handleLogout = () => {

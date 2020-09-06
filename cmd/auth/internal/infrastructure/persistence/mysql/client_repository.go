@@ -70,7 +70,7 @@ func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, l
 	for rows.Next() {
 		var scope json.RawMessage
 		var client Client
-		if err := rows.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.RedirectURL); err != nil {
+		if err := rows.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.RedirectURL, &scope); err != nil {
 			return nil, errors.Wrap(err)
 		}
 		if err := json.Unmarshal(scope, &client.Scopes); err != nil {
@@ -118,7 +118,7 @@ func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error 
 		return errors.Wrap(err)
 	}
 
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, user_id, secret, domain, redirect_url, scope) VALUES (?,?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, user_id, secret, domain, redirect_url, scope) VALUES (?,?,?,?,?,?)`)
 	if err != nil {
 		return errors.Wrap(err)
 	}

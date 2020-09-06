@@ -1,7 +1,8 @@
-import React, {createContext, ReactChild, useCallback, useEffect,} from "react";
+import React, {createContext, ReactChild, useCallback, useEffect, useState,} from "react";
 import {User} from "src/types";
 import {UnauthorizedHttpError} from "src/errors";
 import {useApi, useAuthToken} from "src/hooks";
+import {Center, CircularProgress} from "@chakra-ui/core";
 
 type user = User | null;
 
@@ -16,6 +17,7 @@ const UserContextProvider = (props: Props) => {
   const [user, setUser] = React.useState(null as user);
   const [authToken, logout] = useAuthToken();
   const fetchJSON = useApi();
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchMe = useCallback(async (): Promise<user> => {
     try {
@@ -50,6 +52,8 @@ const UserContextProvider = (props: Props) => {
 
         setUser(null);
       }
+
+      setIsLoading(false);
     };
 
     if (authToken) {
@@ -63,7 +67,13 @@ const UserContextProvider = (props: Props) => {
 
   return (
     <UserContext.Provider value={[user, setUser]}>
-      {props.children}
+      {isLoading ? (
+        <Center>
+          <CircularProgress/>
+        </Center>
+      ) : (
+        props.children
+      )}
     </UserContext.Provider>
   );
 };

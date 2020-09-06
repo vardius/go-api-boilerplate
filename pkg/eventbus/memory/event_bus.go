@@ -12,7 +12,9 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // New creates memory event bus
@@ -46,6 +48,12 @@ func (b *eventBus) Publish(parentCtx context.Context, event domain.Event) error 
 
 	flags := executioncontext.FromContext(parentCtx)
 	ctx := executioncontext.WithFlag(context.Background(), flags)
+	if m, ok := metadata.FromContext(parentCtx); ok {
+		ctx = metadata.ContextWithMetadata(ctx, m)
+	}
+	if i, ok := identity.FromContext(parentCtx); ok {
+		ctx = identity.ContextWithIdentity(ctx, i)
+	}
 
 	go func() {
 		b.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v\n", event.Type, event)

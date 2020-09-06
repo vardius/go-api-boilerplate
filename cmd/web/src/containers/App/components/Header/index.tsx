@@ -122,6 +122,7 @@ const Header = () => {
       padding="1.0rem"
       borderBottomWidth="1px"
       borderColor={color.primary}
+      mb={4}
     >
       <Flex align="center" mr={5}>
         <Heading as="h1" size="lg" letterSpacing={"-.1rem"}>
