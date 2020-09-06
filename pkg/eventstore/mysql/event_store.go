@@ -31,7 +31,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 
 	if lenEvents > 1 {
 		for i := 0; i < lenEvents-1; i++ {
-			query += "(?, ?, ?, ?, ?, ?, ?),"
+			query += "(?, ?, ?, ?, ?, ?, ?, ?),"
 			values = append(values,
 				events[i].ID.String(),
 				events[i].Type,
@@ -46,7 +46,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	}
 
 	i := lenEvents - 1
-	query += "(?, ?, ?, ?, ?, ?, ?)"
+	query += "(?, ?, ?, ?, ?, ?, ?, ?)"
 	values = append(values,
 		events[i].ID.String(),
 		events[i].Type,
@@ -96,7 +96,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 	case systemErrors.Is(err, sql.ErrNoRows):
 		return event, errors.Wrap(fmt.Errorf("%w: %s", baseeventstore.ErrEventNotFound, err))
 	case err != nil:
-		return event, errors.Wrap(fmt.Errorf("%w: %s (%s, %s)", err, query, id.String()))
+		return event, errors.Wrap(fmt.Errorf("%w: %s (%s)", err, query, id.String()))
 	}
 
 	event.ID = uuid.MustParse(eventId)
