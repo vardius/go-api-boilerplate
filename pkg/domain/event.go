@@ -25,7 +25,7 @@ type Event struct {
 	StreamVersion int             `json:"stream_version"`
 	OccurredAt    time.Time       `json:"occurred_at"`
 	Payload       json.RawMessage `json:"payload"`
-	Metadata      interface{}     `json:"metadata,omitempty"`
+	Metadata      json.RawMessage `json:"metadata,omitempty"`
 }
 
 // NewEventFromRawEvent create new event
@@ -64,6 +64,13 @@ func NewEventFromPayload(streamID uuid.UUID, streamName string, streamVersion in
 	}, nil
 }
 
-func (e *Event) WithMetadata(meta interface{}) {
+func (e *Event) WithMetadata(rawMeta interface{}) error {
+	meta, err := json.Marshal(rawMeta)
+	if err != nil {
+		return fmt.Errorf("could not parse event metadata to json: %w", err)
+	}
+
 	e.Metadata = meta
+
+	return nil
 }

@@ -132,7 +132,9 @@ func (c *Client) trackChange(ctx context.Context, e domain.RawEvent) (domain.Eve
 		meta.IPAddress = m.IPAddress
 	}
 	if !meta.IsEmpty() {
-		event.WithMetadata(meta)
+		if err := event.WithMetadata(meta); err != nil {
+			return event, errors.Wrap(err)
+		}
 	}
 
 	c.changes = append(c.changes, event)

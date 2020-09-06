@@ -223,7 +223,9 @@ func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event
 		meta.IPAddress = m.IPAddress
 	}
 	if !meta.IsEmpty() {
-		event.WithMetadata(meta)
+		if err := event.WithMetadata(meta); err != nil {
+			return event, errors.Wrap(err)
+		}
 	}
 
 	u.changes = append(u.changes, event)
