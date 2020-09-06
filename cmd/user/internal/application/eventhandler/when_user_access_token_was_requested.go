@@ -13,6 +13,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
 
 // WhenUserAccessTokenWasRequested handles event
@@ -31,13 +32,15 @@ func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider, identit
 			return errors.Wrap(err)
 		}
 
-		token, err := tokenProvider.RetrievePasswordCredentialsToken(ctx, i.ClientID.String(), i.ClientSecret, string(e.Email), []string{"all"})
+		token, err := tokenProvider.RetrievePasswordCredentialsToken(ctx, i.ClientID.String(), i.ClientSecret, string(e.Email), oauth2.AllScopes)
 		if err != nil {
 			return errors.Wrap(err)
 		}
 
-		if err := mailer.SendLoginEmail(ctx, "WhenUserAccessTokenWasRequested", string(e.Email), token.AccessToken); err != nil {
-			return errors.Wrap(err)
+		if executioncontext.Has(ctx, executioncontext.LIVE) {
+			if err := mailer.SendLoginEmail(ctx, "WhenUserAccessTokenWasRequested", string(e.Email), token.AccessToken, e.RedirectPath); err != nil {
+				return errors.Wrap(err)
+			}
 		}
 
 		return nil

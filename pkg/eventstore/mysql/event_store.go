@@ -34,11 +34,11 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 			query += "(?, ?, ?, ?, ?, ?, ?),"
 			values = append(values,
 				events[i].ID.String(),
-				events[i].Metadata.Type,
-				events[i].Metadata.StreamID.String(),
-				events[i].Metadata.StreamName,
-				events[i].Metadata.StreamVersion,
-				events[i].Metadata.OccurredAt.UTC(),
+				events[i].Type,
+				events[i].StreamID.String(),
+				events[i].StreamName,
+				events[i].StreamVersion,
+				events[i].OccurredAt.UTC(),
 				events[i].Payload,
 			)
 		}
@@ -48,11 +48,11 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	query += "(?, ?, ?, ?, ?, ?, ?)"
 	values = append(values,
 		events[i].ID.String(),
-		events[i].Metadata.Type,
-		events[i].Metadata.StreamID.String(),
-		events[i].Metadata.StreamName,
-		events[i].Metadata.StreamVersion,
-		events[i].Metadata.OccurredAt.UTC(),
+		events[i].Type,
+		events[i].StreamID.String(),
+		events[i].StreamName,
+		events[i].StreamVersion,
+		events[i].OccurredAt.UTC(),
 		events[i].Payload,
 	)
 
@@ -80,11 +80,11 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 	)
 	err := row.Scan(
 		&eventId,
-		&event.Metadata.Type,
+		&event.Type,
 		&streamID,
-		&event.Metadata.StreamName,
-		&event.Metadata.StreamVersion,
-		&event.Metadata.OccurredAt,
+		&event.StreamName,
+		&event.StreamVersion,
+		&event.OccurredAt,
 		&event.Payload,
 	)
 
@@ -96,7 +96,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 	}
 
 	event.ID = uuid.MustParse(eventId)
-	event.Metadata.StreamID = uuid.MustParse(streamID)
+	event.StreamID = uuid.MustParse(streamID)
 
 	return event, nil
 }
@@ -123,18 +123,18 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 		)
 		if err := rows.Scan(
 			&id,
-			&event.Metadata.Type,
+			&event.Type,
 			&streamID,
-			&event.Metadata.StreamName,
-			&event.Metadata.StreamVersion,
-			&event.Metadata.OccurredAt,
+			&event.StreamName,
+			&event.StreamVersion,
+			&event.OccurredAt,
 			&event.Payload,
 		); err != nil {
 			return nil, errors.Wrap(err)
 		}
 
 		event.ID = uuid.MustParse(id)
-		event.Metadata.StreamID = uuid.MustParse(streamID)
+		event.StreamID = uuid.MustParse(streamID)
 
 		events = append(events, event)
 	}

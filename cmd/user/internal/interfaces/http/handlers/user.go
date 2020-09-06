@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -10,25 +11,26 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
-// BuildCommandDispatchHandler wraps user gRPC client with http.Handler
-func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
+// BuildUserCommandDispatchHandler
+func BuildUserCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		var e error
 
 		if r.Body == nil {
-			response.MustJSONError(r.Context(), w, ErrEmptyRequestBody)
+			response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %v", application.ErrInvalid, ErrEmptyRequestBody))
 			return
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.MustJSONError(r.Context(), w, ErrInvalidURLParams)
+			response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %v", application.ErrInvalid, ErrInvalidURLParams))
 			return
 		}
 
@@ -58,7 +60,7 @@ func BuildCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// BuildMeHandler wraps user gRPC client with http.Handler
+// BuildMeHandler
 func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		i, _ := identity.FromContext(r.Context())
@@ -77,7 +79,7 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// BuildGetUserHandler wraps user gRPC client with http.Handler
+// BuildGetUserHandler
 func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		params, ok := context.Parameters(r.Context())
@@ -100,7 +102,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// BuildListUserHandler wraps user gRPC client with http.Handler
+// BuildListUserHandler
 func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)

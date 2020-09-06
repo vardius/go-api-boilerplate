@@ -31,7 +31,7 @@ func ExampleHSTS() {
 
 	h.ServeHTTP(w, req)
 
-	fmt.Printf("%s\n", w.Header().Get("Strict-Transport-Security"))
+	fmt.Printf("%s", w.Header().Get("Strict-Transport-Security"))
 
 	// Output:
 	// max-age=63072000; includeSubDomains
@@ -47,7 +47,7 @@ func ExampleXSS() {
 	h.ServeHTTP(w, req)
 
 	fmt.Printf("%s\n", w.Header().Get("X-Content-Type-Options"))
-	fmt.Printf("%s\n", w.Header().Get("X-Frame-Options"))
+	fmt.Printf("%s", w.Header().Get("X-Frame-Options"))
 
 	// Output:
 	// nosniff

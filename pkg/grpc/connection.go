@@ -31,18 +31,18 @@ func NewConnection(ctx context.Context, host string, port int, cfg ConnectionCon
 		}),
 		grpc.WithChainUnaryInterceptor(
 			middleware.AppendMetadataToOutgoingUnaryContext(),
-			middleware.LogOutgoingUnaryRequest(logger),
 			firewall.AppendIdentityToOutgoingUnaryContext(),
+			middleware.LogOutgoingUnaryRequest(logger),
 		),
 		grpc.WithChainStreamInterceptor(
 			middleware.AppendMetadataToOutgoingStreamContext(),
-			middleware.LogOutgoingStreamRequest(logger),
 			firewall.AppendIdentityToOutgoingStreamContext(),
+			middleware.LogOutgoingStreamRequest(logger),
 		),
 	}
 	conn, err := grpc.DialContext(ctx, fmt.Sprintf("%s:%d", host, port), opts...)
 	if err != nil {
-		logger.Critical(ctx, "[gRPC|Client] auth conn dial error: %v\n", err)
+		logger.Critical(ctx, "[gRPC|Client] auth conn dial error: %v", err)
 		os.Exit(1)
 	}
 

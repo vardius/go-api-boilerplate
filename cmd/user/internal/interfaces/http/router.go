@@ -76,7 +76,7 @@ func NewRouter(logger *log.Logger,
 	router.GET("/{id}", handlers.BuildGetUserHandler(repository))
 	router.POST("/google/callback", handlers.BuildSocialAuthHandler(googleAPIURL, commandBus, user.RegisterUserWithGoogle, tokenProvider, identityProvider))
 	router.POST("/facebook/callback", handlers.BuildSocialAuthHandler(facebookAPIURL, commandBus, user.RegisterUserWithFacebook, tokenProvider, identityProvider))
-	router.POST("/dispatch/{command}", handlers.BuildCommandDispatchHandler(commandBus))
+	router.POST("/dispatch/user/{command}", handlers.BuildUserCommandDispatchHandler(commandBus))
 
 	router.USE(http.MethodGet, "/me", httpmiddleware.GrantAccessFor(identity.RoleUser))
 	router.USE(http.MethodPost, "/dispatch/"+user.ChangeUserEmailAddress, httpmiddleware.GrantAccessFor(identity.RoleUser))

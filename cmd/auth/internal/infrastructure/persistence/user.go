@@ -16,4 +16,5 @@ type User interface {
 // UserRepository allows to get/save current state of user to mysql storage
 type UserRepository interface {
 	Get(ctx context.Context, id string) (User, error)
+	GetByEmail(ctx context.Context, email string) (User, error)
 }

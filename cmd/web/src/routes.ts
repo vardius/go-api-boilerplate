@@ -1,6 +1,9 @@
 const routesMap = {
   home: '/',
-
+  login: '/login',
+  client_authorize: '/authorize',
+  auth_tokens: '/auth-tokens',
+  client_credentials: '/clients',
   // account_task_edit: makePath("/account/tasks/:id/edit")
 };
 

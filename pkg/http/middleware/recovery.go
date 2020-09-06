@@ -19,12 +19,12 @@ func Recover(logger *log.Logger) gorouter.MiddlewareFunc {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if rec := recover(); rec != nil {
-					logger.Critical(r.Context(), "[HTTP] Recovered in %v\n%s\n", rec, debug.Stack())
+					logger.Critical(r.Context(), "[HTTP] Recovered in %v %s", rec, debug.Stack())
 
 					appErr := errors.Wrap(fmt.Errorf("%w: recovered from panic", application.ErrInternal))
 
 					if err := response.JSONError(r.Context(), w, appErr); err != nil {
-						logger.Critical(r.Context(), "[HTTP] Errors while sending response after panic %v\n", err)
+						logger.Critical(r.Context(), "[HTTP] Errors while sending response after panic %v", err)
 					}
 				}
 			}()

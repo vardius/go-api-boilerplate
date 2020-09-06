@@ -34,18 +34,30 @@ const UserContextProvider = (props: Props) => {
   }, [fetchJSON, logout]);
 
   useEffect(() => {
+    let mounted = true
     const load = async () => {
       try {
         const response = await fetchMe();
+        if (!mounted) {
+          return
+        }
 
         setUser(response);
       } catch (err) {
+        if (!mounted) {
+          return
+        }
+
         setUser(null);
       }
     };
 
     if (authToken) {
       load();
+    }
+
+    return function cleanup() {
+      mounted = false
     }
   }, [authToken, fetchMe]);
 

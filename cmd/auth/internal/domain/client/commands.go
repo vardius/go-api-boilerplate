@@ -5,13 +5,39 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"gopkg.in/oauth2.v4"
 
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
+
+const (
+	// CreateClientCredentials command bus contract
+	CreateClientCredentials = "create-client-credentials"
+	// RemoveClientCredentials command bus contract
+	RemoveClientCredentials = "remove-client-credentials"
+)
+
+// NewCommandFromPayload builds command by contract from json payload
+func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
+	switch contract {
+	case CreateClientCredentials:
+		command := Create{}
+		err := unmarshalPayload(payload, &command)
+
+		return command, errors.Wrap(err)
+	case RemoveClientCredentials:
+		command := Remove{}
+		err := unmarshalPayload(payload, &command)
+
+		return command, errors.Wrap(err)
+	default:
+		return nil, errors.New("Invalid command contract")
+	}
+}
 
 // Remove command
 type Remove struct {
@@ -31,9 +57,17 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 			return errors.New("invalid command")
 		}
 
+		i, hasIdentity := identity.FromContext(ctx)
+		if !hasIdentity {
+			return errors.Wrap(application.ErrUnauthorized)
+		}
+
 		client, err := repository.Get(ctx, c.ID)
 		if err != nil {
 			return errors.Wrap(err)
+		}
+		if i.UserID.String() != client.userID.String() {
+			return errors.Wrap(application.ErrForbidden)
 		}
 
 		if err := client.Remove(ctx); err != nil {
@@ -52,7 +86,10 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 
 // Create command
 type Create struct {
-	ClientInfo oauth2.ClientInfo
+	UserID      uuid.UUID `json:"user_id"`
+	Domain      string    `json:"domain"`
+	RedirectURL string    `json:"redirect_url"`
+	Scopes      []string  `json:"scopes"`
 }
 
 // GetName returns command name
@@ -68,15 +105,29 @@ func OnCreate(repository Repository) commandbus.CommandHandler {
 			return errors.New("invalid command")
 		}
 
+		id, err := uuid.NewRandom()
+		if err != nil {
+			return errors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
+		}
+		secret, err := uuid.NewRandom()
+		if err != nil {
+			return errors.Wrap(fmt.Errorf("%w: Could not generate new secret: %s", application.ErrInternal, err))
+		}
+
+		i, hasIdentity := identity.FromContext(ctx)
+		if !hasIdentity {
+			return errors.Wrap(application.ErrUnauthorized)
+		}
+		if i.UserID.String() != c.UserID.String() {
+			return errors.Wrap(application.ErrForbidden)
+		}
+
 		client := New()
-		if err := client.Create(ctx, c.ClientInfo); err != nil {
+		if err := client.Create(ctx, id, secret.String(), c.UserID, c.Domain, c.RedirectURL, c.Scopes...); err != nil {
 			return errors.Wrap(err)
 		}
 
-		// we block here until event handler is done
-		// this is because when other services request access token after creating client
-		// we want handler to be finished and client persisted in storage
-		if err := repository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), client); err != nil {
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), client); err != nil {
 			return errors.Wrap(err)
 		}
 

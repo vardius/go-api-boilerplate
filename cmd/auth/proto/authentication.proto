@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "casadepapel.grpc.auth";
+option java_package = "goapiboilerplate.grpc.auth";
 option java_outer_classname = "AuthProto";
 
 package proto;
@@ -28,6 +28,8 @@ message ValidationBearerTokenResponse {
 message CreateClientRequest {
   string userID = 1;
   string domain = 2;
+  string redirectURL = 3;
+  repeated string scopes = 4;
 }
 
 // CreateClientResponse new client credentials
@@ -36,4 +38,6 @@ message CreateClientResponse {
   string clientSecret = 2;
   string userID = 3;
   string domain = 4;
+  string redirectURL = 5;
+  repeated string scopes = 6;
 }

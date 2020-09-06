@@ -28,14 +28,17 @@ func (a unencryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) 
 	return a.Auth.Start(&s)
 }
 
-func SendLoginEmail(ctx context.Context, subject, to string, authToken string) error {
+func SendLoginEmail(ctx context.Context, subject, to string, authToken, redirectPath string) error {
 	var template bytes.Buffer
 	if err := email.Login.Execute(&template, struct {
 		Title    string
 		LoginURL string
 	}{
-		Title:    "Login to go-api-boilerplate",
-		LoginURL: fmt.Sprintf("%s?%s", config.Env.App.Domain, url.Values{"authToken": []string{authToken}}.Encode()),
+		Title: "Login to go-api-boilerplate",
+		LoginURL: fmt.Sprintf("%s?%s", config.Env.App.Domain, url.Values{
+			"r":         []string{redirectPath},
+			"authToken": []string{authToken},
+		}.Encode()),
 	}); err != nil {
 		return errors.Wrap(err)
 	}

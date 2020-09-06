@@ -30,7 +30,7 @@ func WhenClientWasCreated(db *sql.DB, repository persistence.ClientRepository) e
 		}
 		defer tx.Rollback()
 
-		if err := repository.Add(ctx, clientModel{e}); err != nil {
+		if err := repository.Add(ctx, e); err != nil {
 			return errors.Wrap(err)
 		}
 
@@ -42,33 +42,4 @@ func WhenClientWasCreated(db *sql.DB, repository persistence.ClientRepository) e
 	}
 
 	return fn
-}
-
-type clientModel struct {
-	e client.WasCreated
-}
-
-// GetID client id
-func (c clientModel) GetID() string {
-	return c.e.ID.String()
-}
-
-// GetSecret client domain
-func (c clientModel) GetSecret() string {
-	return c.e.Secret
-}
-
-// GetDomain client domain
-func (c clientModel) GetDomain() string {
-	return c.e.Domain
-}
-
-// GetUserID user id
-func (c clientModel) GetUserID() string {
-	return c.e.UserID.String()
-}
-
-// GetData client data
-func (c clientModel) GetData() json.RawMessage {
-	return c.e.Data
 }

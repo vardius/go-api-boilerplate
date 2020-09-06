@@ -109,5 +109,5 @@ func init() {
 		Env.EventBus.QueueSize = runtime.NumCPU()
 	}
 
-	log.Printf("Env:\n%v\n", Env)
+	log.Printf("ENV: %v", Env)
 }

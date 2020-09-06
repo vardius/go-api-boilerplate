@@ -37,7 +37,7 @@
   "scripts": {
     "eject": "react-scripts eject",
     "start": "react-scripts start",
-    "test": "react-scripts test",
+    "test": "react-scripts test --passWithNoTests",
     "build": "react-scripts build",
     "intl:extract": "formatjs extract -- 'src/**/*.{ts,tsx}' --out-file src/lang/i18n/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
     "intl:compile": "formatjs compile -- src/intl/lang/en.json --ast --out-file src/intl/i18n/en.json"

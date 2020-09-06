@@ -34,7 +34,7 @@ func TestSubscribePublish(t *testing.T) {
 	c := make(chan error, 1)
 	bus := New(runtime.NumCPU(), log.New("development"))
 
-	e, err := domain.NewEvent(uuid.New(), "event", 0, eventMock{}, nil)
+	e, err := domain.NewEventFromRawEvent(uuid.New(), "event", 0, eventMock{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +71,7 @@ func TestUnsubscribe(t *testing.T) {
 
 	bus := New(runtime.NumCPU(), log.New("development"))
 
-	e, err := domain.NewEvent(uuid.New(), "event", 0, eventMock{}, nil)
+	e, err := domain.NewEventFromRawEvent(uuid.New(), "event", 0, eventMock{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,6 +18,7 @@ type environment struct {
 		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
 		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
 		Secret              string        `env:"AUTH_SECRET"               envDefault:"secret"`
+		AuthorizeURL        string        `env:"AUTH_AUTHORIZE_URL"`
 	}
 	OAuth struct {
 		InitTimeout time.Duration `env:"OAUTH_INIT_TIMEOUT" envDefault:"15s"`
@@ -99,5 +100,5 @@ func init() {
 		Env.EventBus.QueueSize = runtime.NumCPU()
 	}
 
-	log.Printf("Env:\n%v\n", Env)
+	log.Printf("ENV: %v", Env)
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/firewall"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
@@ -16,7 +17,7 @@ func GrantAccessFor(role identity.Role) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if !firewall.IsGranted(r.Context(), role) {
-				response.MustJSONError(r.Context(), w, application.ErrForbidden)
+				response.MustJSONError(r.Context(), w, errors.Wrap(application.ErrForbidden))
 				return
 			}
 

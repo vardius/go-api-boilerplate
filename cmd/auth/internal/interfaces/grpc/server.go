@@ -7,28 +7,28 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	oauth2models "gopkg.in/oauth2.v4/models"
 	"gopkg.in/oauth2.v4/server"
 
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/oauth2"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 	grpcerrors "github.com/vardius/go-api-boilerplate/pkg/grpc/errors"
 )
 
 type authenticationServer struct {
-	server        *server.Server
-	clientStore   *oauth2.ClientStore
-	authenticator auth.Authenticator
+	server                 *server.Server
+	eventSourcedRepository client.Repository
+	authenticator          auth.Authenticator
 }
 
 // NewServer returns new auth server object
-func NewServer(server *server.Server, clientStore *oauth2.ClientStore, authenticator auth.Authenticator) proto.AuthenticationServiceServer {
+func NewServer(server *server.Server, eventSourcedRepository client.Repository, authenticator auth.Authenticator) proto.AuthenticationServiceServer {
 	return &authenticationServer{
-		server:        server,
-		clientStore:   clientStore,
-		authenticator: authenticator,
+		server:                 server,
+		eventSourcedRepository: eventSourcedRepository,
+		authenticator:          authenticator,
 	}
 }
 
@@ -54,24 +54,33 @@ func (s *authenticationServer) ValidationBearerToken(ctx context.Context, req *p
 
 // CreateClient verifies token
 func (s *authenticationServer) CreateClient(ctx context.Context, req *proto.CreateClientRequest) (*proto.CreateClientResponse, error) {
-	clientID := uuid.New().String()
+	clientID := uuid.New()
 	clientSecret := uuid.New().String()
 
-	// store our internal user service client
-	if err := s.clientStore.Set(ctx, &oauth2models.Client{
-		ID:     clientID,
-		Secret: clientSecret,
-		UserID: req.GetUserID(),
-		Domain: req.GetDomain(),
-	}); err != nil {
-		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
+	userID, err := uuid.Parse(req.GetUserID())
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+
+	c := client.New()
+	if err := c.Create(ctx, clientID, clientSecret, userID, req.GetDomain(), req.GetRedirectURL(), req.GetScopes()...); err != nil {
+		return nil, errors.Wrap(err)
+	}
+
+	// we block here until event handler is done
+	// this is because when other services request access token after creating client
+	// we want handler to be finished and client persisted in storage
+	if err := s.eventSourcedRepository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), c); err != nil {
+		return nil, errors.Wrap(err)
 	}
 
 	res := &proto.CreateClientResponse{
-		ClientID:     clientID,
+		ClientID:     clientID.String(),
 		ClientSecret: clientSecret,
 		UserID:       req.GetUserID(),
 		Domain:       req.GetDomain(),
+		RedirectURL:  req.GetRedirectURL(),
+		Scopes:       req.GetScopes(),
 	}
 
 	return res, nil

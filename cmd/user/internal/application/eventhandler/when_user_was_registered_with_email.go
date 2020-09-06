@@ -36,7 +36,7 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 		}
 		defer tx.Rollback()
 
-		if err := repository.Add(ctx, userWasRegisteredWithEmailModel{e}); err != nil {
+		if err := repository.Add(ctx, e); err != nil {
 			return errors.Wrap(err)
 		}
 
@@ -47,18 +47,19 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 		clientResp, err := authClient.CreateClient(ctx, &proto.CreateClientRequest{
 			UserID: e.ID.String(),
 			Domain: config.Env.App.Domain,
+			Scopes: oauth2.AllScopes,
 		})
 		if err != nil {
 			return errors.Wrap(err)
 		}
 
-		token, err := tokenProvider.RetrievePasswordCredentialsToken(ctx, clientResp.ClientID, clientResp.ClientSecret, string(e.Email), []string{"all"})
+		token, err := tokenProvider.RetrievePasswordCredentialsToken(ctx, clientResp.ClientID, clientResp.ClientSecret, string(e.Email), oauth2.AllScopes)
 		if err != nil {
 			return errors.Wrap(err)
 		}
 
 		if executioncontext.Has(ctx, executioncontext.LIVE) {
-			if err := mailer.SendLoginEmail(ctx, "WhenUserWasRegisteredWithEmail", string(e.Email), token.AccessToken); err != nil {
+			if err := mailer.SendLoginEmail(ctx, "WhenUserWasRegisteredWithEmail", string(e.Email), token.AccessToken, e.RedirectPath); err != nil {
 				return errors.Wrap(err)
 			}
 		}
@@ -67,28 +68,4 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 	}
 
 	return fn
-}
-
-type userWasRegisteredWithEmailModel struct {
-	e user.WasRegisteredWithEmail
-}
-
-// GetID the id
-func (u userWasRegisteredWithEmailModel) GetID() string {
-	return u.e.ID.String()
-}
-
-// GetEmail the email
-func (u userWasRegisteredWithEmailModel) GetEmail() string {
-	return string(u.e.Email)
-}
-
-// GetFacebookID facebook id
-func (u userWasRegisteredWithEmailModel) GetFacebookID() string {
-	return ""
-}
-
-// GetGoogleID google id
-func (u userWasRegisteredWithEmailModel) GetGoogleID() string {
-	return ""
 }

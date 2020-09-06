@@ -5,7 +5,6 @@ package persistence
 
 import (
 	"context"
-	"encoding/json"
 )
 
 // Token the token persistence model interface
@@ -17,7 +16,6 @@ type Token interface {
 	GetRefresh() string
 	GetScope() string
 	GetCode() string
-	GetData() json.RawMessage
 }
 
 // TokenRepository allows to get/save current state of token to mysql storage
@@ -28,4 +26,7 @@ type TokenRepository interface {
 	GetByRefresh(ctx context.Context, refresh string) (Token, error)
 	Add(ctx context.Context, token Token) error
 	Delete(ctx context.Context, id string) error
+
+	CountByUserID(ctx context.Context, clientID, userID string) (int32, error)
+	FindAllByUserID(ctx context.Context, clientID, userID string, limit, offset int32) ([]Token, error)
 }

@@ -5,16 +5,16 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/google/uuid"
-	"gopkg.in/oauth2.v4"
 
+	authdomain "github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // StreamName for client domain
@@ -23,6 +23,7 @@ var StreamName = fmt.Sprintf("%T", Client{})
 // Client aggregate root
 type Client struct {
 	id      uuid.UUID
+	userID  uuid.UUID
 	version int
 	changes []domain.Event
 }
@@ -39,23 +40,23 @@ func FromHistory(events []domain.Event) Client {
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 
-		switch domainEvent.Metadata.Type {
+		switch domainEvent.Type {
 		case (WasCreated{}).GetType():
 			wasCreated := WasCreated{}
 			if err := unmarshalPayload(domainEvent.Payload, &wasCreated); err != nil {
-				log.Panicf("Error while trying to unmarshal client event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal client event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasCreated
 		case (WasRemoved{}).GetType():
 			wasRemoved := WasRemoved{}
 			if err := unmarshalPayload(domainEvent.Payload, &wasRemoved); err != nil {
-				log.Panicf("Error while trying to unmarshal client event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal client event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasRemoved
 		default:
-			log.Panicf("Unhandled client event %s\n", domainEvent.Metadata.Type)
+			log.Panicf("Unhandled client event %s", domainEvent.Type)
 		}
 
 		c.transition(e)
@@ -81,28 +82,22 @@ func (c Client) Changes() []domain.Event {
 }
 
 // Create alters current client state and append changes to aggregate root
-func (c *Client) Create(ctx context.Context, info oauth2.ClientInfo) error {
-	data, err := json.Marshal(info)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	id, err := uuid.Parse(info.GetID())
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	userID, err := uuid.Parse(info.GetUserID())
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
+func (c *Client) Create(
+	ctx context.Context,
+	clientID uuid.UUID,
+	clientSecret string,
+	userID uuid.UUID,
+	domain string,
+	redirectURL string,
+	scopes ...string,
+) error {
 	if _, err := c.trackChange(ctx, WasCreated{
-		ID:     id,
-		UserID: userID,
-		Secret: info.GetSecret(),
-		Domain: info.GetDomain(),
-		Data:   data,
+		ID:          clientID,
+		Secret:      clientSecret,
+		UserID:      userID,
+		Domain:      domain,
+		RedirectURL: redirectURL,
+		Scopes:      scopes,
 	}); err != nil {
 		return errors.Wrap(err)
 	}
@@ -124,17 +119,20 @@ func (c *Client) Remove(ctx context.Context) error {
 func (c *Client) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
 	c.transition(e)
 
-	var (
-		event domain.Event
-		err   error
-	)
-	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
-		event, err = domain.NewEvent(c.id, StreamName, c.version, e, &i)
-	} else {
-		event, err = domain.NewEvent(c.id, StreamName, c.version, e, nil)
-	}
+	event, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
 	if err != nil {
 		return event, errors.Wrap(err)
+	}
+
+	meta := authdomain.EventMetadata{}
+	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
+		meta.Identity = &i
+	}
+	if m, ok := metadata.FromContext(ctx); ok {
+		meta.IPAddress = m.IPAddress
+	}
+	if !meta.IsEmpty() {
+		event.WithMetadata(meta)
 	}
 
 	c.changes = append(c.changes, event)
@@ -146,5 +144,6 @@ func (c *Client) transition(e domain.RawEvent) {
 	switch e := e.(type) {
 	case WasCreated:
 		c.id = e.ID
+		c.userID = e.UserID
 	}
 }

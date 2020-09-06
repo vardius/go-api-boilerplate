@@ -13,6 +13,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/oauth2"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
@@ -20,6 +21,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/repository"
 	authgrpc "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/grpc"
 	authhttp "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http"
+	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
@@ -87,22 +89,30 @@ func main() {
 	eventBus := eventbus.New(config.Env.EventBus.QueueSize, logger)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
+	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	tokenPersistenceRepository := persistence.NewTokenRepository(mysqlConnection)
 	clientPersistenceRepository := persistence.NewClientRepository(mysqlConnection)
-	tokenStore := oauth2.NewTokenStore(tokenPersistenceRepository, commandBus)
-	clientStore := oauth2.NewClientStore(clientPersistenceRepository, commandBus)
+	tokenStore := oauth2.NewTokenStore(tokenPersistenceRepository, tokenRepository)
 	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.App.Secret))
-	manager := oauth2.NewManager(tokenStore, clientStore, authenticator)
-	oauth2Server := oauth2.InitServer(manager, mysqlConnection, logger, config.Env.App.Secret, config.Env.OAuth.InitTimeout)
+	manager := oauth2.NewManager(tokenStore, clientPersistenceRepository, authenticator)
+	oauth2Server := oauth2.InitServer(manager, logger, userPersistenceRepository, clientPersistenceRepository, config.Env.App.Secret, config.Env.OAuth.InitTimeout)
 	grpcHealthServer := grpchealth.NewServer()
-	grpcAuthServer := authgrpc.NewServer(oauth2Server, clientStore, authenticator)
+	grpcAuthServer := authgrpc.NewServer(oauth2Server, clientRepository, authenticator)
+	grpAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
+	claimsProvider := auth.NewClaimsProvider(authenticator)
+	identityProvider := identity.NewIdentityProvider(mysqlConnection)
+	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, identityProvider)
 	router := authhttp.NewRouter(
 		logger,
+		tokenAuthorizer,
 		oauth2Server,
+		commandBus,
 		mysqlConnection,
 		map[string]*grpc.ClientConn{
 			"auth": grpcAuthConn,
 		},
+		tokenPersistenceRepository,
+		clientPersistenceRepository,
 	)
 	app := application.New(logger)
 

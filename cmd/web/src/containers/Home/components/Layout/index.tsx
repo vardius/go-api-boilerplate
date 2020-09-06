@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from "react";
 import {defineMessages, useIntl} from "react-intl";
 import {Center, Heading, Stack} from "@chakra-ui/core";
 import {DEFAULT_LIMIT, DEFAULT_PAGE} from "src/constants";
+import {User} from "src/types";
 import {useApi} from "src/hooks";
 import UserTable from "../UserTable";
 
@@ -20,32 +21,44 @@ function Layout() {
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<Array<User>>([]);
 
   const fetchUsers = useCallback(
     async ({page, limit}: { page: number; limit: number }) => {
-      return await fetchJSON("/users/v1", "GET", {
+      return await fetchJSON("/users/v1", "GET", new URLSearchParams({
         page: String(page),
         limit: String(limit),
-      });
+      }));
     },
     [fetchJSON]
   );
 
   useEffect(() => {
+    let mounted = true
     const load = async () => {
       try {
         const response = await fetchUsers({page, limit});
+        if (!mounted) {
+          return
+        }
 
         setIsLoading(false);
         setUsers(response.users || []);
         setTotal(response.total || 0);
       } catch (err) {
+        if (!mounted) {
+          return
+        }
+
         setIsLoading(false);
       }
     };
 
     load();
+
+    return function cleanup() {
+      mounted = false
+    }
   }, [page, limit, fetchUsers]);
 
   return (

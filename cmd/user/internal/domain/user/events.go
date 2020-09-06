@@ -8,8 +8,9 @@ import (
 
 // AccessTokenWasRequested event
 type AccessTokenWasRequested struct {
-	ID    uuid.UUID    `json:"id"`
-	Email EmailAddress `json:"email"`
+	ID           uuid.UUID    `json:"id"`
+	Email        EmailAddress `json:"email"`
+	RedirectPath string       `json:"redirect_path,omitempty"`
 }
 
 // GetType returns event type
@@ -30,13 +31,34 @@ func (e EmailAddressWasChanged) GetType() string {
 
 // WasRegisteredWithEmail event
 type WasRegisteredWithEmail struct {
-	ID    uuid.UUID    `json:"id"`
-	Email EmailAddress `json:"email"`
+	ID           uuid.UUID    `json:"id"`
+	Email        EmailAddress `json:"email"`
+	RedirectPath string       `json:"redirect_path,omitempty"`
 }
 
 // GetType returns event type
 func (e WasRegisteredWithEmail) GetType() string {
 	return fmt.Sprintf("%T", e)
+}
+
+// GetID the id
+func (e WasRegisteredWithEmail) GetID() string {
+	return e.ID.String()
+}
+
+// GetEmail the email
+func (e WasRegisteredWithEmail) GetEmail() string {
+	return e.Email.String()
+}
+
+// GetFacebookID facebook id
+func (e WasRegisteredWithEmail) GetFacebookID() string {
+	return ""
+}
+
+// GetGoogleID google id
+func (e WasRegisteredWithEmail) GetGoogleID() string {
+	return ""
 }
 
 // WasRegisteredWithFacebook event
@@ -50,6 +72,26 @@ type WasRegisteredWithFacebook struct {
 // GetType returns event type
 func (e WasRegisteredWithFacebook) GetType() string {
 	return fmt.Sprintf("%T", e)
+}
+
+// GetID the id
+func (e WasRegisteredWithFacebook) GetID() string {
+	return e.ID.String()
+}
+
+// GetEmail the email
+func (e WasRegisteredWithFacebook) GetEmail() string {
+	return e.Email.String()
+}
+
+// GetFacebookID facebook id
+func (e WasRegisteredWithFacebook) GetFacebookID() string {
+	return e.FacebookID
+}
+
+// GetGoogleID google id
+func (e WasRegisteredWithFacebook) GetGoogleID() string {
+	return ""
 }
 
 // ConnectedWithFacebook event
@@ -75,6 +117,26 @@ type WasRegisteredWithGoogle struct {
 // GetType returns event type
 func (e WasRegisteredWithGoogle) GetType() string {
 	return fmt.Sprintf("%T", e)
+}
+
+// GetID the id
+func (e WasRegisteredWithGoogle) GetID() string {
+	return e.ID.String()
+}
+
+// GetEmail the email
+func (e WasRegisteredWithGoogle) GetEmail() string {
+	return e.Email.String()
+}
+
+// GetFacebookID facebook id
+func (e WasRegisteredWithGoogle) GetFacebookID() string {
+	return ""
+}
+
+// GetGoogleID google id
+func (e WasRegisteredWithGoogle) GetGoogleID() string {
+	return e.GoogleID
 }
 
 // ConnectedWithGoogle event

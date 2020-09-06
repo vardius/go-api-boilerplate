@@ -48,7 +48,7 @@ func (app *App) Run(ctx context.Context) {
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, app.shutdownTimeout)
 		defer cancel()
 
-		app.logger.Info(ctxWithTimeout, "shutting down...\n")
+		app.logger.Info(ctxWithTimeout, "shutting down...")
 
 		errCh := make(chan error, len(app.adapters))
 
@@ -62,20 +62,20 @@ func (app *App) Run(ctx context.Context) {
 			if err := <-errCh; err != nil {
 				// calling Goexit terminates that goroutine without returning (previous defers would not run)
 				go func(err error) {
-					app.logger.Critical(ctxWithTimeout, "shutdown error: %v\n", err)
+					app.logger.Critical(ctxWithTimeout, "shutdown error: %v", err)
 					os.Exit(1)
 				}(err)
 				return
 			}
 		}
 
-		app.logger.Info(ctxWithTimeout, "gracefully stopped\n")
+		app.logger.Info(ctxWithTimeout, "gracefully stopped")
 	}
 
 	for _, adapter := range app.adapters {
 		go func(adapter Adapter) {
 			if err := adapter.Start(ctx); err != nil {
-				app.logger.Critical(ctx, "adapter start error: %v\n", adapter.Start(ctx))
+				app.logger.Critical(ctx, "adapter start error: %v", adapter.Start(ctx))
 				os.Exit(1)
 			}
 		}(adapter)

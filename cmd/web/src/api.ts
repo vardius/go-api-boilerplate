@@ -5,21 +5,15 @@ import HttpError, {AccessDeniedHttpError, NotFoundHttpError, UnauthorizedHttpErr
 export const fetchJSON = (authToken?: AuthToken) => async (
   path: string,
   method: string,
-  params?: { [key: string]: string | Array<string> } | null,
+  params?: URLSearchParams | null,
   body?: string
 ): Promise<any> => {
   const url = new URL(decodeURIComponent(path), API_URL);
 
   if (params) {
-    Object.keys(params).forEach((k) => {
-      if (Array.isArray(params[k])) {
-        (params[k] as Array<string>).forEach((v) => {
-          url.searchParams.set(k, v);
-        });
-      } else {
-        url.searchParams.set(k, params[k] as string);
-      }
-    });
+    params.forEach((v: string, k: string) => {
+      url.searchParams.set(k, v);
+    })
   }
 
   const headers: HeadersInit = {

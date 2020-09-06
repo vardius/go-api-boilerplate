@@ -16,7 +16,7 @@ func Logger(logger *log.Logger) gorouter.MiddlewareFunc {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			now := time.Now()
 
-			logger.Info(r.Context(), "[HTTP] Start: %s %s -> %s\n",
+			logger.Info(r.Context(), "[HTTP] Start: %s %s -> %s",
 				r.Method, r.URL.Path,
 				r.RemoteAddr,
 			)
@@ -27,7 +27,7 @@ func Logger(logger *log.Logger) gorouter.MiddlewareFunc {
 
 			next.ServeHTTP(w, r)
 
-			logger.Info(r.Context(), "[HTTP] End: %s %s -> %s (%s)\n",
+			logger.Info(r.Context(), "[HTTP] End: %s %s -> %s (%s)",
 				r.Method, r.URL.Path,
 				r.RemoteAddr,
 				time.Since(now),

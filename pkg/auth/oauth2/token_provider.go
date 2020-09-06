@@ -9,6 +9,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
+var AllScopes = []string{"all"}
+
 type TokenProvider interface {
 	RetrievePasswordCredentialsToken(ctx context.Context, clientID, clientSecret, email string, scopes []string) (*oauth2.Token, error)
 }
@@ -29,7 +31,7 @@ func NewCredentialsAuthenticator(host string, port int, secretKey string) TokenP
 
 func (a *credentialsProvider) RetrievePasswordCredentialsToken(ctx context.Context, clientID, clientSecret, email string, scopes []string) (*oauth2.Token, error) {
 	if len(scopes) == 0 {
-		scopes = []string{"all"}
+		return nil, errors.Wrap(fmt.Errorf("insufficent scope: %v", scopes))
 	}
 
 	config := oauth2.Config{

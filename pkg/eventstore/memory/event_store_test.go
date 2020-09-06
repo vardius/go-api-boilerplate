@@ -30,12 +30,12 @@ func TestEventStore(t *testing.T) {
 	streamID := uuid.New()
 	streamName := "test"
 
-	e1, err := domain.NewEvent(streamID, streamName, 1, rawEventMock{}, nil)
+	e1, err := domain.NewEventFromRawEvent(streamID, streamName, 1, rawEventMock{})
 	if err != nil {
 		t.Fail()
 	}
 
-	e2, err := domain.NewEvent(streamID, streamName, 2, rawEventMock{}, nil)
+	e2, err := domain.NewEventFromRawEvent(streamID, streamName, 2, rawEventMock{})
 	if err != nil {
 		t.Fail()
 	}

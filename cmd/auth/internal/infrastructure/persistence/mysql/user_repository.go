@@ -24,17 +24,33 @@ type userRepository struct {
 }
 
 func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, emailAddress FROM users WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, email_address FROM users WHERE id=? LIMIT 1`, id)
 
-	user := User{}
+	var user User
+	if err := row.Scan(&user.ID, &user.Email); err != nil {
+		if systemErrors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+		}
 
-	err := row.Scan(&user.ID, &user.Email)
-	switch {
-	case systemErrors.Is(err, sql.ErrNoRows):
-		return nil, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
-	case err != nil:
 		return nil, errors.Wrap(err)
-	default:
-		return user, nil
 	}
+
+	return user, nil
+}
+
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (persistence.User, error) {
+	row := r.db.QueryRowContext(ctx, `SELECT id FROM users WHERE email_address=? LIMIT 1`, email)
+
+	var user User
+	if err := row.Scan(&user.ID); err != nil {
+		if systemErrors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+		}
+
+		return nil, errors.Wrap(err)
+	}
+
+	user.Email = email
+
+	return user, nil
 }

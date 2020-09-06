@@ -170,7 +170,7 @@ func TestLogger(t *testing.T) {
 		m(h).ServeHTTP(w, req)
 	})
 
-	t.Logf("\n %s", output)
+	t.Logf("%s", output)
 
 	if output == "" {
 		t.Fail()

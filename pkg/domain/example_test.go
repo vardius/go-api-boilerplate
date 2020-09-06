@@ -18,17 +18,16 @@ func (e Test) GetType() string {
 	return ""
 }
 
-func ExampleNewEvent() {
-	event, _ := domain.NewEvent(
+func ExampleNewEventFromRawEvent() {
+	event, _ := domain.NewEventFromRawEvent(
 		uuid.New(),
 		"streamName",
 		0,
 		Test{1, []string{"apple", "peach"}},
-		nil,
 	)
 
-	fmt.Printf("%v\n", event.Metadata.StreamName)
-	fmt.Printf("%v\n", event.Metadata.StreamVersion)
+	fmt.Printf("%v\n", event.StreamName)
+	fmt.Printf("%v\n", event.StreamVersion)
 	fmt.Printf("%s\n", event.Payload)
 
 	// Output:
@@ -37,21 +36,19 @@ func ExampleNewEvent() {
 	// {"page":1,"fruits":["apple","peach"]}
 }
 
-func ExampleMakeEvent() {
-	event, _ := domain.MakeEvent(
-		domain.EventMetaData{
-			Type:          "type",
-			StreamID:      uuid.New(),
-			StreamName:    "streamName",
-			StreamVersion: 0,
-			OccurredAt:    time.Now(),
-		},
+func ExampleNewEventFromPayload() {
+	event, _ := domain.NewEventFromPayload(
+		uuid.New(),
+		"streamName",
+		0,
+		uuid.New(),
+		"type",
+		time.Now(),
 		[]byte(`{"page":1,"fruits":["apple","peach"]}`),
-		nil,
 	)
 
-	fmt.Printf("%v\n", event.Metadata.StreamName)
-	fmt.Printf("%v\n", event.Metadata.StreamVersion)
+	fmt.Printf("%v\n", event.StreamName)
+	fmt.Printf("%v\n", event.StreamVersion)
 	fmt.Printf("%s\n", event.Payload)
 
 	// Output:

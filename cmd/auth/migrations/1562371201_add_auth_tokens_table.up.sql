@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS `auth_tokens`
     `code`        VARCHAR(255) DEFAULT NULL,
     `refresh`     TEXT     NOT NULL,
     `access`      TEXT     NOT NULL,
-    `data`        JSON     NOT NULL,
     PRIMARY KEY (`distinct_id`),
     UNIQUE KEY `id` (`id`),
     INDEX `i_userId` (`user_id`),

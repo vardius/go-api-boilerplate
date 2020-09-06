@@ -10,6 +10,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
@@ -33,7 +34,7 @@ func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRe
 		}
 		defer tx.Rollback()
 
-		if err := repository.Add(ctx, userWasRegisteredWithFacebookModel{e}); err != nil {
+		if err := repository.Add(ctx, e); err != nil {
 			return errors.Wrap(err)
 		}
 
@@ -44,6 +45,7 @@ func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRe
 		if _, err := authClient.CreateClient(ctx, &proto.CreateClientRequest{
 			UserID: e.ID.String(),
 			Domain: config.Env.App.Domain,
+			Scopes: oauth2.AllScopes,
 		}); err != nil {
 			return errors.Wrap(err)
 		}
@@ -52,28 +54,4 @@ func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRe
 	}
 
 	return fn
-}
-
-type userWasRegisteredWithFacebookModel struct {
-	e user.WasRegisteredWithFacebook
-}
-
-// GetID the id
-func (u userWasRegisteredWithFacebookModel) GetID() string {
-	return u.e.ID.String()
-}
-
-// GetEmail the email
-func (u userWasRegisteredWithFacebookModel) GetEmail() string {
-	return string(u.e.Email)
-}
-
-// GetFacebookID facebook id
-func (u userWasRegisteredWithFacebookModel) GetFacebookID() string {
-	return u.e.FacebookID
-}
-
-// GetGoogleID google id
-func (u userWasRegisteredWithFacebookModel) GetGoogleID() string {
-	return ""
 }

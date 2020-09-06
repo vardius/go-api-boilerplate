@@ -37,9 +37,9 @@ func JSONError(ctx context.Context, w http.ResponseWriter, err error) error {
 
 			if logger, ok := v.(*log.Logger); ok {
 				if httpError.Code == http.StatusInternalServerError {
-					logger.Error(ctx, "[HTTP] Error: %v\n%s\n", err, stackTrace)
+					logger.Error(ctx, "[HTTP] Error: %v %s", err, stackTrace)
 				} else {
-					logger.Debug(ctx, "[HTTP] Error: %v\n%s\n", err, stackTrace)
+					logger.Debug(ctx, "[HTTP] Error: %v %s", err, stackTrace)
 				}
 			}
 		}

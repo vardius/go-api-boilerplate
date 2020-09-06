@@ -5,6 +5,7 @@ import (
 
 	"github.com/vardius/gorouter/v4"
 
+	"github.com/vardius/go-api-boilerplate/pkg/http/request"
 	md "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
@@ -39,6 +40,10 @@ func WithMetadata() gorouter.MiddlewareFunc {
 			// set the context with the required values to
 			// process the request.
 			mtd := md.New()
+
+			if ip, err := request.IpAddress(r); err == nil {
+				mtd.IPAddress = ip
+			}
 
 			ctx := md.ContextWithMetadata(r.Context(), mtd)
 

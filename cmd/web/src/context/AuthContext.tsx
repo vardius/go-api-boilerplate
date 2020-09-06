@@ -1,7 +1,8 @@
 import React, {createContext, ReactChild, useCallback, useEffect,} from "react";
 import {useCookies} from "react-cookie";
-import {useHistory, useLocation} from "react-router-dom";
+import {useHistory} from "react-router-dom";
 import {AUTH_TOKEN_COOKIE} from "src/constants";
+import {useQuery} from "src/hooks";
 import {AuthToken} from "src/types";
 
 const cookieOptions = {
@@ -9,10 +10,6 @@ const cookieOptions = {
   path: "/",
   maxAge: 60 * 60 * 24 * 365, // 365 days in seconds
 };
-
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
 
 export const AuthContext = createContext<[AuthToken, () => void]>([
   null,

@@ -59,7 +59,7 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 	defer s.RUnlock()
 	e := make([]domain.Event, 0, 0)
 	for _, val := range s.events {
-		if val.Metadata.StreamName == streamName && val.Metadata.StreamID == streamID {
+		if val.StreamName == streamName && val.StreamID == streamID {
 			e = append(e, val)
 		}
 	}

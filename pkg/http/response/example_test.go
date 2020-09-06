@@ -25,7 +25,7 @@ func ExampleJSON() {
 
 	h.ServeHTTP(w, req)
 
-	fmt.Printf("%s\n", w.Body)
+	fmt.Printf("%s", w.Body)
 
 	// Output:
 	// {"name":"John"}
@@ -43,7 +43,7 @@ func ExampleJSON_second() {
 
 	h.ServeHTTP(w, req)
 
-	fmt.Printf("%s\n", w.Body)
+	fmt.Printf("%s", w.Body)
 
 	// Output:
 	// {}
@@ -63,7 +63,7 @@ func ExampleMustJSON() {
 
 	h.ServeHTTP(w, req)
 
-	fmt.Printf("%s\n", w.Body)
+	fmt.Printf("%s", w.Body)
 
 	// Output:
 	// {"name":"John"}
@@ -79,7 +79,7 @@ func ExampleMustJSON_second() {
 
 	h.ServeHTTP(w, req)
 
-	fmt.Printf("%s\n", w.Body)
+	fmt.Printf("%s", w.Body)
 
 	// Output:
 	// {}
@@ -99,7 +99,7 @@ func ExampleJSONError() {
 
 	h.ServeHTTP(w, req)
 
-	fmt.Printf("%s\n", w.Body)
+	fmt.Printf("%s", w.Body)
 
 	// Output:
 	// {"code":500,"message":"Internal Server Error"}
@@ -117,7 +117,7 @@ func ExampleMustJSONError() {
 
 	h.ServeHTTP(w, req)
 
-	fmt.Printf("%s\n", w.Body)
+	fmt.Printf("%s", w.Body)
 
 	// Output:
 	// {"code":500,"message":"Internal Server Error"}

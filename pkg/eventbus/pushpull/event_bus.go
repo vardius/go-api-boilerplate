@@ -98,10 +98,10 @@ func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 		return errors.Wrap(err)
 	}
 
-	b.logger.Debug(ctx, "[EventBus] Push: %s %s\n", event.Metadata.Type, payload)
+	b.logger.Debug(ctx, "[EventBus] Push: %s %s\n", event.Type, payload)
 
 	if _, err := b.client.Push(ctx, &pushpullproto.PushRequest{
-		Topic:   event.Metadata.Type,
+		Topic:   event.Type,
 		Payload: payload,
 	}); err != nil {
 		return errors.Wrap(err)
@@ -140,7 +140,7 @@ func (b *eventBus) dispatchEvent(payload []byte, fn eventbus.EventHandler) error
 		ctx = metadata.ContextWithMetadata(ctx, o.RequestMetadata)
 	}
 
-	b.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s\n", o.Event.Metadata.Type, o.Event.Payload)
+	b.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s\n", o.Event.Type, o.Event.Payload)
 
 	return fn(ctx, o.Event)
 }

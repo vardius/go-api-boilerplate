@@ -10,9 +10,11 @@ import (
 
 	"github.com/google/uuid"
 
+	userdomain "github.com/vardius/go-api-boilerplate/cmd/user/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // StreamName for user domain
@@ -39,58 +41,58 @@ func FromHistory(events []domain.Event) User {
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 
-		switch domainEvent.Metadata.Type {
+		switch domainEvent.Type {
 		case (AccessTokenWasRequested{}).GetType():
 			accessTokenWasRequested := AccessTokenWasRequested{}
 			if err := unmarshalPayload(domainEvent.Payload, &accessTokenWasRequested); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
 			}
 
 			e = accessTokenWasRequested
 		case (EmailAddressWasChanged{}).GetType():
 			emailAddressWasChanged := EmailAddressWasChanged{}
 			if err := unmarshalPayload(domainEvent.Payload, &emailAddressWasChanged); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
 			}
 
 			e = emailAddressWasChanged
 		case (WasRegisteredWithEmail{}).GetType():
 			wasRegisteredWithEmail := WasRegisteredWithEmail{}
 			if err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithEmail); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasRegisteredWithEmail
 		case (WasRegisteredWithFacebook{}).GetType():
 			wasRegisteredWithFacebook := WasRegisteredWithFacebook{}
 			if err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithFacebook); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasRegisteredWithFacebook
 		case (ConnectedWithFacebook{}).GetType():
 			connectedWithFacebook := ConnectedWithFacebook{}
 			if err := unmarshalPayload(domainEvent.Payload, &connectedWithFacebook); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
 			}
 
 			e = connectedWithFacebook
 		case (WasRegisteredWithGoogle{}).GetType():
 			wasRegisteredWithGoogle := WasRegisteredWithGoogle{}
 			if err := unmarshalPayload(domainEvent.Payload, &wasRegisteredWithGoogle); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasRegisteredWithGoogle
 		case (ConnectedWithGoogle{}).GetType():
 			connectedWithGoogle := ConnectedWithGoogle{}
 			if err := unmarshalPayload(domainEvent.Payload, &connectedWithGoogle); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
 			}
 
 			e = connectedWithGoogle
 		default:
-			log.Panicf("Unhandled user event %s\n", domainEvent.Metadata.Type)
+			log.Panicf("Unhandled user event %s", domainEvent.Type)
 		}
 
 		u.transition(e)
@@ -208,17 +210,20 @@ func (u *User) RequestAccessToken(ctx context.Context) error {
 func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
 	u.transition(e)
 
-	var (
-		event domain.Event
-		err   error
-	)
-	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
-		event, err = domain.NewEvent(u.id, StreamName, u.version, e, &i)
-	} else {
-		event, err = domain.NewEvent(u.id, StreamName, u.version, e, nil)
-	}
+	event, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
 	if err != nil {
 		return event, errors.Wrap(err)
+	}
+
+	meta := userdomain.EventMetadata{}
+	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
+		meta.Identity = &i
+	}
+	if m, ok := metadata.FromContext(ctx); ok {
+		meta.IPAddress = m.IPAddress
+	}
+	if !meta.IsEmpty() {
+		event.WithMetadata(meta)
 	}
 
 	u.changes = append(u.changes, event)

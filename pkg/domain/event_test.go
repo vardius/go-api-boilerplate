@@ -17,18 +17,38 @@ func (e rawEventMock) GetType() string {
 }
 
 func TestEvent(t *testing.T) {
-	event, err := NewEvent(uuid.New(), "streamName", 0, rawEventMock{Page: 1, Fruits: []string{"apple", "peach", "pear"}}, nil)
+	event, err := NewEventFromRawEvent(uuid.New(), "streamName", 0, rawEventMock{Page: 1, Fruits: []string{"apple", "peach", "pear"}})
 	if err != nil {
-		t.Errorf("%s", err)
+		t.Error(err)
 	}
 
-	mEvent, err2 := MakeEvent(event.Metadata, event.Payload, nil)
+	mEvent, err2 := NewEventFromPayload(event.StreamID, event.StreamName, event.StreamVersion, event.ID, event.Type, event.OccurredAt, event.Payload)
 	if err2 != nil {
-		t.Errorf("%s", err)
+		t.Fatal(err)
 	}
 
-	if event.Metadata != mEvent.Metadata {
-		t.Error("Events metadata do not match")
+	if event.ID != mEvent.ID {
+		t.Error("Events ID do not match")
+	}
+
+	if event.StreamID != mEvent.StreamID {
+		t.Error("Events StreamID do not match")
+	}
+
+	if event.StreamName != mEvent.StreamName {
+		t.Error("Events StreamName do not match")
+	}
+
+	if event.StreamVersion != mEvent.StreamVersion {
+		t.Error("Events StreamVersion do not match")
+	}
+
+	if event.Type != mEvent.Type {
+		t.Error("Events Type do not match")
+	}
+
+	if event.OccurredAt != mEvent.OccurredAt {
+		t.Error("Events OccurredAt do not match")
 	}
 
 	cmp := bytes.Compare(event.Payload, mEvent.Payload)
@@ -46,7 +66,7 @@ func (e invalidRawEventMock) GetType() string {
 }
 
 func TestNewEventInvalidValue(t *testing.T) {
-	_, err := NewEvent(uuid.New(), "streamName", 0, invalidRawEventMock{make(chan int)}, nil)
+	_, err := NewEventFromRawEvent(uuid.New(), "streamName", 0, invalidRawEventMock{make(chan int)})
 	if err == nil {
 		t.Error("Parsing value to json should fail")
 	}

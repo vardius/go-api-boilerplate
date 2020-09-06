@@ -5,7 +5,8 @@ package persistence
 
 import (
 	"context"
-	"encoding/json"
+
+	"gopkg.in/oauth2.v4"
 )
 
 // Client the client persistence model interface
@@ -14,7 +15,8 @@ type Client interface {
 	GetUserID() string
 	GetSecret() string
 	GetDomain() string
-	GetData() json.RawMessage
+	GetRedirectURL() string
+	GetScopes() []string
 }
 
 // ClientRepository allows to get/save current state of user to mysql storage
@@ -22,4 +24,11 @@ type ClientRepository interface {
 	Get(ctx context.Context, id string) (Client, error)
 	Add(ctx context.Context, client Client) error
 	Delete(ctx context.Context, id string) error
+
+	// GetByID Calls Get method and returns oauth2 client info
+	// Implements client store interface
+	GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error)
+
+	CountByUserID(ctx context.Context, userID string) (int32, error)
+	FindAllByUserID(ctx context.Context, userID string, limit, offset int32) ([]Client, error)
 }

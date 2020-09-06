@@ -24,6 +24,8 @@ func NewManager(tokenStore oauth2.TokenStore, clientStore oauth2.ClientStore, au
 
 	manager.SetAuthorizeCodeTokenCfg(oauth2manage.DefaultAuthorizeCodeTokenCfg)
 	manager.SetPasswordTokenCfg(PasswordTokenCfg)
+	manager.SetClientTokenCfg(oauth2manage.DefaultClientTokenCfg)
+	manager.SetAuthorizeCodeTokenCfg(oauth2manage.DefaultAuthorizeCodeTokenCfg)
 	manager.SetRefreshTokenCfg(oauth2manage.DefaultRefreshTokenCfg)
 	manager.MapTokenStorage(tokenStore)
 	manager.MapClientStorage(clientStore)

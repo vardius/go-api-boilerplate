@@ -4,8 +4,6 @@ Package mysql holds view model repositories
 package mysql
 
 import (
-	"encoding/json"
-
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
@@ -18,7 +16,6 @@ type Token struct {
 	Access   string           `json:"access"`
 	Refresh  string           `json:"refresh"`
 	Code     mysql.NullString `json:"code"`
-	Data     json.RawMessage  `json:"data"`
 }
 
 // GetID the id
@@ -54,9 +51,4 @@ func (t Token) GetScope() string {
 // GetCode authorization code
 func (t Token) GetCode() string {
 	return t.Code.String
-}
-
-// GetData token data
-func (t Token) GetData() json.RawMessage {
-	return t.Data
 }

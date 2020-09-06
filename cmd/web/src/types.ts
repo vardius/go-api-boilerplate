@@ -8,4 +8,10 @@ export interface User {
   email: string;
 }
 
+export interface Client {
+  id: string;
+  secret: string;
+  domain: string;
+}
+
 export type AuthToken = string | null;

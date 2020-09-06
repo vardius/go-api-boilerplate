@@ -35,27 +35,27 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 		registerWithEmail := RegisterWithEmail{}
 		err := unmarshalPayload(payload, &registerWithEmail)
 
-		return registerWithEmail, err
+		return registerWithEmail, errors.Wrap(err)
 	case RegisterUserWithGoogle:
 		registerWithGoogle := RegisterWithGoogle{}
 		err := unmarshalPayload(payload, &registerWithGoogle)
 
-		return registerWithGoogle, err
+		return registerWithGoogle, errors.Wrap(err)
 	case RegisterUserWithFacebook:
 		registerWithFacebook := RegisterWithFacebook{}
 		err := unmarshalPayload(payload, &registerWithFacebook)
 
-		return registerWithFacebook, err
+		return registerWithFacebook, errors.Wrap(err)
 	case ChangeUserEmailAddress:
 		changeEmailAddress := ChangeEmailAddress{}
 		err := unmarshalPayload(payload, &changeEmailAddress)
 
-		return changeEmailAddress, err
+		return changeEmailAddress, errors.Wrap(err)
 	case RequestUserAccessToken:
 		requestAccessToken := RequestAccessToken{}
 		err := unmarshalPayload(payload, &requestAccessToken)
 
-		return requestAccessToken, err
+		return requestAccessToken, errors.Wrap(err)
 	default:
 		return nil, errors.New("Invalid command contract")
 	}
@@ -63,7 +63,8 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 
 // RequestAccessToken command
 type RequestAccessToken struct {
-	Email EmailAddress `json:"email"`
+	Email        EmailAddress `json:"email"`
+	RedirectPath string       `json:"redirect_path,omitempty"`
 }
 
 // GetName returns command name
@@ -166,7 +167,8 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 
 // RegisterWithEmail command
 type RegisterWithEmail struct {
-	Email EmailAddress `json:"email"`
+	Email        EmailAddress `json:"email"`
+	RedirectPath string       `json:"redirect_path,omitempty"`
 }
 
 // GetName returns command name

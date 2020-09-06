@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"context"
+	"net"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,8 +17,9 @@ const metadataKey key = 1
 // Metadata represent state for each request.
 type Metadata struct {
 	Now        time.Time `json:"-"`
-	TraceID    string    `json:"trace_id"`
-	StatusCode int       `json:"statusCode"`
+	TraceID    string    `json:"trace_id,omitempty"`
+	IPAddress  net.IP    `json:"ip_address,omitempty"`
+	StatusCode int       `json:"statusCode,omitempty"`
 }
 
 func New() *Metadata {

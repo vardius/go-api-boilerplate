@@ -5,14 +5,32 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"gopkg.in/oauth2.v4"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
+
+const (
+	// RemoveAuthToken command bus contract
+	RemoveAuthToken = "remove-auth-token"
+)
+
+// NewCommandFromPayload builds command by contract from json payload
+func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
+	switch contract {
+	case RemoveAuthToken:
+		command := Remove{}
+		err := unmarshalPayload(payload, &command)
+
+		return command, errors.Wrap(err)
+	default:
+		return nil, errors.New("Invalid command contract")
+	}
+}
 
 // Remove command
 type Remove struct {
@@ -32,10 +50,19 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 			return errors.New("invalid command")
 		}
 
+		i, hasIdentity := identity.FromContext(ctx)
+		if !hasIdentity {
+			return errors.Wrap(application.ErrUnauthorized)
+		}
+
 		token, err := repository.Get(ctx, c.ID)
 		if err != nil {
 			return errors.Wrap(err)
 		}
+		if i.UserID.String() != token.userID.String() {
+			return errors.Wrap(application.ErrForbidden)
+		}
+
 		if err := token.Remove(ctx); err != nil {
 			return errors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
 		}
@@ -52,7 +79,12 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 
 // Create command
 type Create struct {
-	TokenInfo oauth2.TokenInfo
+	ClientID uuid.UUID `json:"client_id"`
+	UserID   uuid.UUID `json:"user_id"`
+	Code     string    `json:"code"`
+	Scope    string    `json:"scope"`
+	Access   string    `json:"access"`
+	Refresh  string    `json:"refresh"`
 }
 
 // GetName returns command name
@@ -68,13 +100,30 @@ func OnCreate(repository Repository) commandbus.CommandHandler {
 			return errors.New("invalid command")
 		}
 
+		i, hasIdentity := identity.FromContext(ctx)
+		if !hasIdentity {
+			return errors.Wrap(application.ErrUnauthorized)
+		}
+		if i.UserID.String() != c.UserID.String() {
+			return errors.Wrap(application.ErrForbidden)
+		}
+
 		id, err := uuid.NewRandom()
 		if err != nil {
 			return errors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
 		}
 
 		token := New()
-		if err := token.Create(ctx, id, c.TokenInfo); err != nil {
+		if err := token.Create(
+			ctx,
+			id,
+			c.ClientID,
+			c.UserID,
+			c.Code,
+			c.Scope,
+			c.Access,
+			c.Refresh,
+		); err != nil {
 			return errors.Wrap(fmt.Errorf("%w: Error when creating new token: %s", application.ErrInternal, err))
 		}
 

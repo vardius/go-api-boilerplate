@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware"
+	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware/firewall"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
@@ -26,9 +27,9 @@ type ServerConfig struct {
 func NewServer(cfg ServerConfig, logger *log.Logger, unaryInterceptors []grpc.UnaryServerInterceptor, streamInterceptors []grpc.StreamServerInterceptor) *grpc.Server {
 	opts := []grpcrecovery.Option{
 		grpcrecovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
-			logger.Critical(ctx, "[gRPC|Server] Recovered in %v\n", rec)
+			logger.Critical(ctx, "[gRPC|Server] Recovered in %v", rec)
 
-			return status.Errorf(codes.Internal, "Recovered in %v\n", rec)
+			return status.Errorf(codes.Internal, "Recovered in %v", rec)
 		}),
 	}
 
@@ -46,6 +47,7 @@ func NewServer(cfg ServerConfig, logger *log.Logger, unaryInterceptors []grpc.Un
 				grpcrecovery.UnaryServerInterceptor(opts...),
 				middleware.TransformUnaryIncomingError(),
 				middleware.SetMetadataFromUnaryRequest(),
+				firewall.SetIdentityFromUnaryRequest(),
 				middleware.LogUnaryRequest(logger),
 			}, unaryInterceptors...)...,
 		),
@@ -54,6 +56,7 @@ func NewServer(cfg ServerConfig, logger *log.Logger, unaryInterceptors []grpc.Un
 				grpcrecovery.StreamServerInterceptor(opts...),
 				middleware.TransformStreamIncomingError(),
 				middleware.SetMetadataFromStreamRequest(),
+				firewall.SetIdentityFromStreamRequest(),
 				middleware.LogStreamRequest(logger),
 			}, streamInterceptors...)...,
 		),

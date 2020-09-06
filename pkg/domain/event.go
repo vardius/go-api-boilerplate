@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
-	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 // NullEvent represents empty event
@@ -20,31 +18,18 @@ type RawEvent interface {
 
 // Event contains id, payload and metadata
 type Event struct {
-	ID       uuid.UUID          `json:"id"`
-	Metadata EventMetaData      `json:"metadata"`
-	Payload  json.RawMessage    `json:"payload"`
-	Identity *identity.Identity `json:"identity,omitempty"`
+	ID            uuid.UUID       `json:"id"`
+	Type          string          `json:"type"`
+	StreamID      uuid.UUID       `json:"stream_id"`
+	StreamName    string          `json:"stream_name"`
+	StreamVersion int             `json:"stream_version"`
+	OccurredAt    time.Time       `json:"occurred_at"`
+	Payload       json.RawMessage `json:"payload"`
+	Metadata      interface{}     `json:"metadata,omitempty"`
 }
 
-// EventMetaData for Event
-type EventMetaData struct {
-	Type          string    `json:"type"`
-	StreamID      uuid.UUID `json:"stream_id"`
-	StreamName    string    `json:"stream_name"`
-	StreamVersion int       `json:"stream_version"`
-	OccurredAt    time.Time `json:"occurred_at"`
-}
-
-// NewEvent create new event
-func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent RawEvent, identity *identity.Identity) (Event, error) {
-	meta := EventMetaData{
-		Type:          rawEvent.GetType(),
-		StreamID:      streamID,
-		StreamName:    streamName,
-		StreamVersion: streamVersion,
-		OccurredAt:    time.Now(),
-	}
-
+// NewEventFromRawEvent create new event
+func NewEventFromRawEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent RawEvent) (Event, error) {
 	payload, err := json.Marshal(rawEvent)
 	if err != nil {
 		return NullEvent, fmt.Errorf("could not parse event to json: %w", err)
@@ -56,24 +41,29 @@ func NewEvent(streamID uuid.UUID, streamName string, streamVersion int, rawEvent
 	}
 
 	return Event{
-		ID:       id,
-		Metadata: meta,
-		Payload:  payload,
-		Identity: identity,
+		ID:            id,
+		Type:          rawEvent.GetType(),
+		StreamID:      streamID,
+		StreamName:    streamName,
+		StreamVersion: streamVersion,
+		OccurredAt:    time.Now(),
+		Payload:       payload,
 	}, nil
 }
 
-// MakeEvent makes a event object from metadata and payload
-func MakeEvent(meta EventMetaData, payload json.RawMessage, identity *identity.Identity) (Event, error) {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return NullEvent, fmt.Errorf("could not generate event id: %w", err)
-	}
-
+// NewEventFromPayload makes a event object from metadata and payload
+func NewEventFromPayload(streamID uuid.UUID, streamName string, streamVersion int, eventID uuid.UUID, eventType string, occurredAt time.Time, payload json.RawMessage) (Event, error) {
 	return Event{
-		ID:       id,
-		Metadata: meta,
-		Payload:  payload,
-		Identity: identity,
+		ID:            eventID,
+		Type:          eventType,
+		StreamID:      streamID,
+		StreamName:    streamName,
+		StreamVersion: streamVersion,
+		OccurredAt:    occurredAt,
+		Payload:       payload,
 	}, nil
+}
+
+func (e *Event) WithMetadata(meta interface{}) {
+	e.Metadata = meta
 }

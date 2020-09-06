@@ -309,6 +309,7 @@ configMaps:
     data:
       HOST: '0.0.0.0'
       COMMAND_BUS_BUFFER: '100'
+        AUTH_AUTHORIZE_URL: 'https://go-api-boilerplate.local/authorize'
       USER_HOST: 'go-api-boilerplate-user'
       OAUTH_INIT_TIMEOUT: '15s'     # wait 15 sec for oauth server to initialize
       GRPC_SERVER_MIN_TIME: '5m'    # if a client pings more than once every 5 minutes (default), terminate the connection

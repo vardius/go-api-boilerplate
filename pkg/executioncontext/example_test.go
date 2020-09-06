@@ -11,7 +11,7 @@ func ExampleWithFlag() {
 	ctx := context.Background()
 	ctx = executioncontext.WithFlag(ctx, executioncontext.LIVE)
 
-	fmt.Printf("%v\n", executioncontext.Has(ctx, executioncontext.LIVE))
+	fmt.Printf("%v", executioncontext.Has(ctx, executioncontext.LIVE))
 
 	// Output:
 	// true

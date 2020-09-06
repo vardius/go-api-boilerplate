@@ -84,7 +84,7 @@ func RateLimit(logger *log.Logger, r rate.Limit, b int, frequency time.Duration)
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ip, err := request.IpAddress(r)
 			if err != nil {
-				logger.Error(r.Context(), "[HTTP] RateLimit invalid IP Address: %v\n", err)
+				logger.Error(r.Context(), "[HTTP] RateLimit invalid IP Address: %v", err)
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}

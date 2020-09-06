@@ -30,7 +30,7 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 		}
 		defer tx.Rollback()
 
-		if err := repository.Add(ctx, tokenModel{e}); err != nil {
+		if err := repository.Add(ctx, e); err != nil {
 			return errors.Wrap(err)
 		}
 
@@ -42,48 +42,4 @@ func WhenTokenWasCreated(db *sql.DB, repository persistence.TokenRepository) eve
 	}
 
 	return fn
-}
-
-type tokenModel struct {
-	e token.WasCreated
-}
-
-// GetID the id
-func (t tokenModel) GetID() string {
-	return t.e.ID.String()
-}
-
-// GetClientID the client id
-func (t tokenModel) GetClientID() string {
-	return t.e.ClientID.String()
-}
-
-// GetUserID the user id
-func (t tokenModel) GetUserID() string {
-	return t.e.UserID.String()
-}
-
-// GetAccess access token
-func (t tokenModel) GetAccess() string {
-	return t.e.Access
-}
-
-// GetRefresh refresh token
-func (t tokenModel) GetRefresh() string {
-	return t.e.Refresh
-}
-
-// GetScope get scope of authorization
-func (t tokenModel) GetScope() string {
-	return t.e.Scope
-}
-
-// GetCode authorization code
-func (t tokenModel) GetCode() string {
-	return t.e.Code
-}
-
-// GetData token data
-func (t tokenModel) GetData() json.RawMessage {
-	return t.e.Data
 }

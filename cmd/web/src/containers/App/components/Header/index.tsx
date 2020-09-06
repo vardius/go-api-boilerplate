@@ -14,6 +14,7 @@ import {
   Link,
   Menu,
   MenuButton,
+  MenuDivider,
   MenuItem,
   MenuList,
   Text,
@@ -22,6 +23,7 @@ import {
 import {FaExternalLinkAlt} from "react-icons/fa";
 import {brandColors} from "src/theme/theme";
 import {useUser} from "src/hooks";
+import getPath from "src/routes";
 import LoginDrawerButton from "src/components/common/LoginDrawerButton";
 
 const messages = defineMessages({
@@ -40,6 +42,14 @@ const messages = defineMessages({
   home: {
     id: "app.header.home",
     defaultMessage: "Home",
+  },
+  auth_tokens: {
+    id: "app.header.auth_tokens",
+    defaultMessage: "Auth Tokens",
+  },
+  clients: {
+    id: "app.header.clients",
+    defaultMessage: "Client Credentials",
   },
   mail: {
     id: "app.header.mail",
@@ -88,7 +98,7 @@ const MenuLink = ({children, to, exact, isExternal}: MenuLinkProps) => {
   }
 
   return (
-    <Link as={ReachLink} to="/" mt={{base: 4, md: 0}} mr={6} display="block">
+    <Link as={ReachLink} to={to} mt={{base: 4, md: 0}} mr={6} display="block">
       {children}
     </Link>
   );
@@ -137,7 +147,7 @@ const Header = () => {
         alignItems="center"
         flexGrow={1}
       >
-        <MenuLink to="/" exact>
+        <MenuLink to={getPath("home")} exact>
           {intl.formatMessage(messages.home)}
         </MenuLink>
         <MenuLink to={`https://maildev.${window.location.hostname}`} isExternal>
@@ -160,6 +170,17 @@ const Header = () => {
                 <Avatar name={user.email} src="#"/>
               </MenuButton>
               <MenuList>
+                <MenuLink to={getPath("auth_tokens")} exact>
+                  <MenuItem>
+                    {intl.formatMessage(messages.auth_tokens)}
+                  </MenuItem>
+                </MenuLink>
+                <MenuItem>
+                  <MenuLink to={getPath("client_credentials")} exact>
+                    {intl.formatMessage(messages.clients)}
+                  </MenuLink>
+                </MenuItem>
+                <MenuDivider/>
                 <MenuItem
                   onClick={() => {
                     setUser(null);

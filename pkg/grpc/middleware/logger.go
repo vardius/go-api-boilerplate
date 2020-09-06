@@ -24,13 +24,13 @@ func LogOutgoingUnaryRequest(logger *log.Logger) grpc.UnaryClientInterceptor {
 
 		now := time.Now()
 
-		logger.Info(ctx, "[gRPC|Client] UnaryRequest Start\n")
+		logger.Info(ctx, "[gRPC|Client] UnaryRequest Start: %s", method)
 
 		err := invoker(ctx, method, req, reply, cc, opts...)
 		if err != nil {
-			logger.Warning(ctx, "[gRPC|Client] UnaryRequest End: (%s) Err: %v\n", time.Since(now), err)
+			logger.Warning(ctx, "[gRPC|Client] UnaryRequest End: %s (%s) Err: %v", method, time.Since(now), err)
 		} else {
-			logger.Info(ctx, "[gRPC|Client] UnaryRequest End: (%s)\n", time.Since(now))
+			logger.Info(ctx, "[gRPC|Client] UnaryRequest End: %s (%s)", method, time.Since(now))
 		}
 
 		return err
@@ -46,14 +46,14 @@ func LogOutgoingStreamRequest(logger *log.Logger) grpc.StreamClientInterceptor {
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 		now := time.Now()
 
-		logger.Info(ctx, "[gRPC|Client] StreamRequest Start\n")
+		logger.Info(ctx, "[gRPC|Client] StreamRequest Start: %s", desc.StreamName)
 
 		stream, err := streamer(ctx, desc, cc, method, opts...)
 
 		if err != nil {
-			logger.Warning(ctx, "[gRPC|Client] StreamRequest End: (%s) Err: %v\n", time.Since(now), err)
+			logger.Warning(ctx, "[gRPC|Client] StreamRequest End: %s (%s) Err: %v", desc.StreamName, time.Since(now), err)
 		} else {
-			logger.Info(ctx, "[gRPC|Client] StreamRequest End: (%s)\n", time.Since(now))
+			logger.Info(ctx, "[gRPC|Client] StreamRequest End: %s (%s)", desc.StreamName, time.Since(now))
 		}
 
 		return stream, err
@@ -73,13 +73,13 @@ func LogStreamRequest(logger *log.Logger) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		now := time.Now()
 
-		logger.Info(ss.Context(), "[gRPC|Server] StreamRequest Start\n")
+		logger.Info(ss.Context(), "[gRPC|Server] StreamRequest Start: %s", info.FullMethod)
 
 		err := handler(srv, ss)
 		if err != nil {
-			logger.Warning(ss.Context(), "[gRPC|Server] StreamRequest End: (%s) Err: %v\n", time.Since(now), err)
+			logger.Warning(ss.Context(), "[gRPC|Server] StreamRequest End: %s (%s) Err: %v", info.FullMethod, time.Since(now), err)
 		} else {
-			logger.Info(ss.Context(), "[gRPC|Server] StreamRequest End: (%s)\n", time.Since(now))
+			logger.Info(ss.Context(), "[gRPC|Server] StreamRequest End: %s (%s)", info.FullMethod, time.Since(now))
 		}
 
 		return err
@@ -104,14 +104,14 @@ func LogUnaryRequest(logger *log.Logger) grpc.UnaryServerInterceptor {
 
 		now := time.Now()
 
-		logger.Info(ctx, "[gRPC|Server] UnaryRequest Start\n")
+		logger.Info(ctx, "[gRPC|Server] UnaryRequest Start: %s", info.FullMethod)
 
 		resp, err := handler(ctx, req)
 
 		if err != nil {
-			logger.Warning(ctx, "[gRPC|Server] UnaryRequest End: (%s) Err: %v\n", time.Since(now), err)
+			logger.Warning(ctx, "[gRPC|Server] UnaryRequest End: %s (%s) Err: %v", info.FullMethod, time.Since(now), err)
 		} else {
-			logger.Info(ctx, "[gRPC|Server] UnaryRequest End: (%s)\n", time.Since(now))
+			logger.Info(ctx, "[gRPC|Server] UnaryRequest End: %s (%s)", info.FullMethod, time.Since(now))
 		}
 
 		return resp, err

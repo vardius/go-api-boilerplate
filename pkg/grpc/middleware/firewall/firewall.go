@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
@@ -60,6 +61,59 @@ func AppendIdentityToOutgoingStreamContext() grpc.StreamClientInterceptor {
 	}
 }
 
+// SetIdentityFromStreamRequest updates context with identity
+//
+// 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
+//
+// opts := []grpc.ServerOption{
+// 	grpc.UnaryInterceptor(SetIdentityFromStreamRequest()),
+// }
+// s := grpc.NewServer(opts...)
+// pb.RegisterGreeterServer(s, &server{})
+func SetIdentityFromStreamRequest() grpc.StreamServerInterceptor {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
+			var i identity.Identity
+			if values := md.Get(mdIdentityKey); len(values) > 0 {
+				if err := json.Unmarshal([]byte(values[0]), &i); err != nil {
+					return err
+				}
+
+				// TODO: update server stream context
+				// ctx := identity.ContextWithIdentity(ss.Context(), i)
+			}
+		}
+
+		return handler(srv, ss)
+	}
+}
+
+// SetIdentityFromUnaryRequest updates context with identity
+//
+// 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
+//
+// opts := []grpc.ServerOption{
+// 	grpc.UnaryInterceptor(SetIdentityFromUnaryRequest()),
+// }
+// s := grpc.NewServer(opts...)
+// pb.RegisterGreeterServer(s, &server{})
+func SetIdentityFromUnaryRequest() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			var i identity.Identity
+			if values := md.Get(mdIdentityKey); len(values) > 0 {
+				if err := json.Unmarshal([]byte(values[0]), &i); err != nil {
+					return nil, err
+				}
+
+				ctx = identity.ContextWithIdentity(ctx, i)
+			}
+		}
+
+		return handler(ctx, req)
+	}
+}
+
 // GrantAccessForStreamRequest returns error if Identity not set within context or user does not have required role
 //
 // 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
@@ -71,23 +125,12 @@ func AppendIdentityToOutgoingStreamContext() grpc.StreamClientInterceptor {
 // pb.RegisterGreeterServer(s, &server{})
 func GrantAccessForStreamRequest(role identity.Role) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
-			var i identity.Identity
-			if values := md.Get(mdIdentityKey); len(values) > 0 {
-				if err := json.Unmarshal([]byte(values[0]), &i); err != nil {
-					return err
-				}
-
-				// TODO: update server stream context
-				// ctx := identity.ContextWithIdentity(ss.Context(), i)
-
-				if i.HasRole(role) {
-					return handler(srv, ss)
-				}
-			}
+		i, ok := identity.FromContext(ss.Context())
+		if ok && i.HasRole(role) {
+			return handler(srv, ss)
 		}
 
-		return ErrInvalidRole
+		return errors.Wrap(ErrInvalidRole)
 	}
 }
 
@@ -102,21 +145,11 @@ func GrantAccessForStreamRequest(role identity.Role) grpc.StreamServerIntercepto
 // pb.RegisterGreeterServer(s, &server{})
 func GrantAccessForUnaryRequest(role identity.Role) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			var i identity.Identity
-			if values := md.Get(mdIdentityKey); len(values) > 0 {
-				if err := json.Unmarshal([]byte(values[0]), &i); err != nil {
-					return nil, err
-				}
-
-				ctx = identity.ContextWithIdentity(ctx, i)
-
-				if i.HasRole(role) {
-					return handler(ctx, req)
-				}
-			}
+		i, ok := identity.FromContext(ctx)
+		if ok && i.HasRole(role) {
+			return handler(ctx, req)
 		}
 
-		return nil, ErrInvalidRole
+		return nil, errors.Wrap(ErrInvalidRole)
 	}
 }

@@ -37,7 +37,7 @@ func (b *eventBus) Publish(parentCtx context.Context, event domain.Event) error 
 	b.mtx.RLock()
 	defer b.mtx.RUnlock()
 
-	handlers, ok := b.handlers[event.Metadata.Type]
+	handlers, ok := b.handlers[event.Type]
 	if !ok {
 		return nil
 	}
@@ -48,8 +48,8 @@ func (b *eventBus) Publish(parentCtx context.Context, event domain.Event) error 
 	ctx := executioncontext.WithFlag(context.Background(), flags)
 
 	go func() {
-		b.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v\n", event.Metadata.Type, event)
-		b.messageBus.Publish(event.Metadata.Type, ctx, event, out)
+		b.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v\n", event.Type, event)
+		b.messageBus.Publish(event.Type, ctx, event, out)
 	}()
 
 	return nil
@@ -59,7 +59,7 @@ func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain
 	b.mtx.RLock()
 	defer b.mtx.RUnlock()
 
-	handlers, ok := b.handlers[event.Metadata.Type]
+	handlers, ok := b.handlers[event.Type]
 	if !ok {
 		return nil
 	}
@@ -69,8 +69,8 @@ func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain
 	flags := executioncontext.FromContext(parentCtx)
 	ctx := executioncontext.WithFlag(context.Background(), flags)
 
-	b.logger.Debug(parentCtx, "[EventBus] PublishAndAcknowledge: %s %+v\n", event.Metadata.Type, event)
-	b.messageBus.Publish(event.Metadata.Type, ctx, event, out)
+	b.logger.Debug(parentCtx, "[EventBus] PublishAndAcknowledge: %s %+v\n", event.Type, event)
+	b.messageBus.Publish(event.Type, ctx, event, out)
 
 	var errs []error
 

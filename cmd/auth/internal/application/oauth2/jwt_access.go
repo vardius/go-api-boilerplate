@@ -77,7 +77,7 @@ func (a *JWTAccess) Token(ctx context.Context, data *oauth2.GenerateBasic, isGen
 
 	access, err := a.authenticator.Sign(token)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.Wrap(err)
 	}
 	refresh := ""
 

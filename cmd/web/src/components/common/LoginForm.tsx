@@ -1,4 +1,5 @@
 import React, {useCallback, useState} from "react";
+import {useHistory, useLocation} from "react-router-dom";
 import {defineMessages, useIntl} from "react-intl";
 import {
   Box,
@@ -58,36 +59,38 @@ export interface Props {
 
 const LoginForm = (props: Props) => {
   const intl = useIntl();
+  const history = useHistory();
+  const location = useLocation();
   const toast = useToast();
   const fetchJSON = useApi();
-
   const [user, setUser] = useUser();
   const [, logout] = useAuthToken();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // @ts-ignore
+  const {from} = location.state || {from: {pathname: "/"}}
+
   const login = useCallback(
     async ({email}: { email: string }) => {
+      // @ts-ignore
+      const body = JSON.stringify({email, redirect_path: from});
       try {
-        const json = await fetchJSON(
-          "/users/v1/dispatch/request-user-access-token",
+        return await fetchJSON(
+          "/users/v1/dispatch/user/request-user-access-token",
           "POST",
           null,
-          JSON.stringify({email})
+          body
         );
-
-        return json;
       } catch (err) {
         if (err instanceof NotFoundHttpError) {
-          const json = await fetchJSON(
-            "/users/v1/dispatch/register-user-with-email",
+          return await fetchJSON(
+            "/users/v1/dispatch/user/register-user-with-email",
             "POST",
             null,
-            JSON.stringify({email})
+            body
           );
-
-          return json;
         }
       }
     },

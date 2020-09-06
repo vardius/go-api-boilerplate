@@ -14,8 +14,10 @@ import (
 // BuildAuthorizeHandler provides authorize handler
 func BuildAuthorizeHandler(srv *server.Server) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		// Implementation example
+		// https://github.com/go-oauth2/oauth2/blob/b46cf9f1db6551beb549ad1afe69826b3b2f1abf/example/server/server.go#L62-L82
 		if err := srv.HandleAuthorizeRequest(w, r); err != nil {
-			appErr := errors.Wrap(fmt.Errorf("%w: Authorize request failure", application.ErrUnauthorized))
+			appErr := errors.Wrap(fmt.Errorf("%w: %v", application.ErrInvalid, err))
 
 			response.MustJSONError(r.Context(), w, appErr)
 		}
@@ -28,7 +30,7 @@ func BuildAuthorizeHandler(srv *server.Server) http.Handler {
 func BuildTokenHandler(srv *server.Server) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := srv.HandleTokenRequest(w, r); err != nil {
-			appErr := errors.Wrap(fmt.Errorf("%w: Token request failure", application.ErrInternal))
+			appErr := errors.Wrap(fmt.Errorf("%w: %v", application.ErrInternal, err))
 
 			response.MustJSONError(r.Context(), w, appErr)
 		}

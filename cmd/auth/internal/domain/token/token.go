@@ -5,16 +5,16 @@ package token
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/google/uuid"
-	"gopkg.in/oauth2.v4"
 
+	authdomain "github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // StreamName for token domain
@@ -23,6 +23,7 @@ var StreamName = fmt.Sprintf("%T", Token{})
 // Token aggregate root
 type Token struct {
 	id      uuid.UUID
+	userID  uuid.UUID
 	version int
 	changes []domain.Event
 }
@@ -39,23 +40,23 @@ func FromHistory(events []domain.Event) Token {
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 
-		switch domainEvent.Metadata.Type {
+		switch domainEvent.Type {
 		case (WasCreated{}).GetType():
 			wasCreated := WasCreated{}
 			if err := unmarshalPayload(domainEvent.Payload, &wasCreated); err != nil {
-				log.Panicf("Error while trying to unmarshal token event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal token event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasCreated
 		case (WasRemoved{}).GetType():
 			wasRemoved := WasRemoved{}
 			if err := unmarshalPayload(domainEvent.Payload, &wasRemoved); err != nil {
-				log.Panicf("Error while trying to unmarshal token event %s. %s\n", domainEvent.Metadata.Type, err)
+				log.Panicf("Error while trying to unmarshal token event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasRemoved
 		default:
-			log.Panicf("Unhandled token event %s\n", domainEvent.Metadata.Type)
+			log.Panicf("Unhandled token event %s", domainEvent.Type)
 		}
 
 		t.transition(e)
@@ -81,31 +82,25 @@ func (t Token) Changes() []domain.Event {
 }
 
 // Create alters current token state and append changes to aggregate root
-func (t *Token) Create(ctx context.Context, id uuid.UUID, info oauth2.TokenInfo) error {
-	data, err := json.Marshal(info)
-	if err != nil {
-		return errors.Wrap(err)
-	}
+func (t *Token) Create(
+	ctx context.Context,
+	id uuid.UUID,
+	clientID uuid.UUID,
+	userID uuid.UUID,
+	code string,
+	scope string,
+	access string,
+	refresh string,
 
-	clientID, err := uuid.Parse(info.GetClientID())
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	userID, err := uuid.Parse(info.GetUserID())
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
+) error {
 	if _, err := t.trackChange(ctx, WasCreated{
 		ID:       id,
 		ClientID: clientID,
 		UserID:   userID,
-		Code:     info.GetCode(),
-		Access:   info.GetAccess(),
-		Refresh:  info.GetRefresh(),
-		Scope:    info.GetScope(),
-		Data:     data,
+		Code:     code,
+		Access:   access,
+		Refresh:  refresh,
+		Scope:    scope,
 	}); err != nil {
 		return errors.Wrap(err)
 	}
@@ -127,17 +122,20 @@ func (t *Token) Remove(ctx context.Context) error {
 func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
 	t.transition(e)
 
-	var (
-		event domain.Event
-		err   error
-	)
-	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
-		event, err = domain.NewEvent(t.id, StreamName, t.version, e, &i)
-	} else {
-		event, err = domain.NewEvent(t.id, StreamName, t.version, e, nil)
-	}
+	event, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
 	if err != nil {
 		return event, errors.Wrap(err)
+	}
+
+	meta := authdomain.EventMetadata{}
+	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
+		meta.Identity = &i
+	}
+	if m, ok := metadata.FromContext(ctx); ok {
+		meta.IPAddress = m.IPAddress
+	}
+	if !meta.IsEmpty() {
+		event.WithMetadata(meta)
 	}
 
 	t.changes = append(t.changes, event)
@@ -149,5 +147,6 @@ func (t *Token) transition(e domain.RawEvent) {
 	switch e := e.(type) {
 	case WasCreated:
 		t.id = e.ID
+		t.userID = e.UserID
 	}
 }
