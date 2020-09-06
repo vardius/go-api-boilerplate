@@ -1,0 +1,29 @@
+name: Test
+on: [push]
+jobs:
+  test-go:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy Files
+        uses: actions/checkout@v2
+      - name: Print Go version
+        run: go version
+      - name: Add and install dependencies
+        run: go get ./...
+      - name: Examine source code
+        run: go vet ./...
+      - name: Run tests
+        run: go test ./... -v -race -cover
+  test-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy Files
+        uses: actions/checkout@v2
+      - name: Print Node version
+        run: node -v
+      - name: Print yarn version
+        run: yarn -v
+      - name: Install dependencies
+        run: cd cmd/web && yarn
+      - name: Run tests
+        run: cd cmd/web && yarn test
