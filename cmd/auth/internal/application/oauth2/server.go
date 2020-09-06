@@ -47,7 +47,7 @@ func InitServer(
 			// oauth2.AuthorizationCode, // Example usage of authorization code
 			// https://github.com/go-oauth2/oauth2/blob/b46cf9f1db6551beb549ad1afe69826b3b2f1abf/example/client/client.go#L35-L62
 		)
-		srv.SetClientInfoHandler(oauth2server.ClientFormHandler)
+		srv.SetClientInfoHandler(oauth2server.ClientBasicHandler)
 
 		srv.SetPasswordAuthorizationHandler(func(email, password string) (string, error) {
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
