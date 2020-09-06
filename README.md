@@ -1,6 +1,7 @@
 🧰 Golang API Starter Kit
 ================
 [![Build Status](https://travis-ci.com/vardius/go-api-boilerplate.svg?branch=master)](https://travis-ci.com/vardius/go-api-boilerplate)
+![Test](https://github.com/vardius/go-api-boilerplate/workflows/Test/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vardius/go-api-boilerplate)](https://goreportcard.com/report/github.com/vardius/go-api-boilerplate)
 [![codecov](https://codecov.io/gh/vardius/go-api-boilerplate/branch/master/graph/badge.svg)](https://codecov.io/gh/vardius/go-api-boilerplate)
 [![](https://godoc.org/github.com/vardius/go-api-boilerplate?status.svg)](https://pkg.go.dev/github.com/vardius/go-api-boilerplate)
