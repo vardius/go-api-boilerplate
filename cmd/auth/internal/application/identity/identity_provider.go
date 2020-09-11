@@ -3,13 +3,13 @@ package identity
 import (
 	"context"
 	"database/sql"
-	systemErrors "errors"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
@@ -27,7 +27,7 @@ func (p *identityProvider) GetByUserID(ctx context.Context, userID, clientID uui
 	var i identity.Identity
 
 	row := p.db.QueryRowContext(ctx, `
-SELECT c.id, c.secret, u.id, u.email_address
+SELECT c.id, c.secret, c.domain, u.id, u.email_address
 FROM clients AS c
   INNER JOIN users AS u ON u.id = c.user_id
 WHERE c.id = ?
@@ -35,12 +35,12 @@ WHERE c.id = ?
 LIMIT 1
 `, clientID, userID)
 
-	err := row.Scan(&i.ClientID, &i.ClientSecret, &i.UserID, &i.UserEmail)
+	err := row.Scan(&i.ClientID, &i.ClientSecret, &i.ClientDomain, &i.UserID, &i.UserEmail)
 	switch {
-	case systemErrors.Is(err, sql.ErrNoRows):
-		return i, errors.Wrap(fmt.Errorf("%w: credentials not found: %s", application.ErrNotFound, err))
+	case errors.Is(err, sql.ErrNoRows):
+		return i, apperrors.Wrap(fmt.Errorf("%w: credentials not found: %s", application.ErrNotFound, err))
 	case err != nil:
-		return i, errors.Wrap(err)
+		return i, apperrors.Wrap(err)
 	}
 
 	return i, nil

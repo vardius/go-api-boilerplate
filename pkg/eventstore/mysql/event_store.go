@@ -6,13 +6,13 @@ package eventstore
 import (
 	"context"
 	"database/sql"
-	systemErrors "errors"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	baseeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
 
@@ -60,12 +60,12 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 
 	stmt, err := s.db.PrepareContext(ctx, query)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	if _, err := stmt.ExecContext(ctx, values...); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -93,10 +93,10 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 	)
 
 	switch {
-	case systemErrors.Is(err, sql.ErrNoRows):
-		return event, errors.Wrap(fmt.Errorf("%w: %s", baseeventstore.ErrEventNotFound, err))
+	case errors.Is(err, sql.ErrNoRows):
+		return event, apperrors.Wrap(fmt.Errorf("%w: %s", baseeventstore.ErrEventNotFound, err))
 	case err != nil:
-		return event, errors.Wrap(fmt.Errorf("%w: %s (%s)", err, query, id.String()))
+		return event, apperrors.Wrap(fmt.Errorf("%w: %s (%s)", err, query, id.String()))
 	}
 
 	event.ID = uuid.MustParse(eventId)
@@ -106,14 +106,14 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 }
 
 func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
-	return nil, errors.Wrap(fmt.Errorf("should never load all events from mysql"))
+	return nil, apperrors.Wrap(fmt.Errorf("should never load all events from mysql"))
 }
 
 func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
 	query := `SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata FROM events WHERE stream_id=? AND stream_name=? ORDER BY distinct_id ASC`
 	rows, err := s.db.QueryContext(ctx, query, streamID.String(), streamName)
 	if err != nil {
-		return nil, errors.Wrap(fmt.Errorf("%w: %s (%s, %s)", err, query, streamID.String(), streamName))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: %s (%s, %s)", err, query, streamID.String(), streamName))
 	}
 	defer rows.Close()
 
@@ -135,7 +135,7 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 			&event.Payload,
 			&event.Metadata,
 		); err != nil {
-			return nil, errors.Wrap(err)
+			return nil, apperrors.Wrap(err)
 		}
 
 		event.ID = uuid.MustParse(id)
@@ -145,7 +145,7 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	return events, nil

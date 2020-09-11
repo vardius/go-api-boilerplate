@@ -6,13 +6,13 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
-var AllScopes = []string{"all"}
+var AllScopes = []Scope{ScopeAll}
 
 type TokenProvider interface {
-	RetrievePasswordCredentialsToken(ctx context.Context, clientID, clientSecret, email string, scopes []string) (*oauth2.Token, error)
+	RetrievePasswordCredentialsToken(ctx context.Context, clientID, clientSecret, email string, scopes []Scope) (*oauth2.Token, error)
 }
 
 type credentialsProvider struct {
@@ -29,24 +29,28 @@ func NewCredentialsAuthenticator(host string, port int, secretKey string) TokenP
 	}
 }
 
-func (a *credentialsProvider) RetrievePasswordCredentialsToken(ctx context.Context, clientID, clientSecret, email string, scopes []string) (*oauth2.Token, error) {
+func (a *credentialsProvider) RetrievePasswordCredentialsToken(ctx context.Context, clientID, clientSecret, email string, scopes []Scope) (*oauth2.Token, error) {
 	if len(scopes) == 0 {
-		return nil, errors.Wrap(fmt.Errorf("insufficent scope: %v", scopes))
+		return nil, apperrors.Wrap(fmt.Errorf("insufficent scope: %v", scopes))
 	}
 
 	config := oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		Scopes:       scopes,
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  fmt.Sprintf("http://%s:%d/v1/authorize", a.host, a.port),
-			TokenURL: fmt.Sprintf("http://%s:%d/v1/token", a.host, a.port),
+			AuthStyle: oauth2.AuthStyleInHeader,
+			AuthURL:   fmt.Sprintf("http://%s:%d/v1/authorize", a.host, a.port),
+			TokenURL:  fmt.Sprintf("http://%s:%d/v1/token", a.host, a.port),
 		},
+	}
+
+	for _, scope := range scopes {
+		config.Scopes = append(config.Scopes, string(scope))
 	}
 
 	token, err := config.PasswordCredentialsToken(ctx, email, a.secretKey)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	return token, nil

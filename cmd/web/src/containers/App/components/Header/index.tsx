@@ -21,7 +21,6 @@ import {
   useColorModeValue,
 } from "@chakra-ui/core";
 import {FaExternalLinkAlt} from "react-icons/fa";
-import {brandColors} from "src/theme/theme";
 import {useUser} from "src/hooks";
 import getPath from "src/routes";
 import LoginDrawerButton from "src/components/common/LoginDrawerButton";
@@ -43,21 +42,13 @@ const messages = defineMessages({
     id: "app.header.home",
     defaultMessage: "Home",
   },
-  auth_tokens: {
-    id: "app.header.auth_tokens",
-    defaultMessage: "Auth Tokens",
-  },
-  clients: {
-    id: "app.header.clients",
-    defaultMessage: "Client Credentials",
+  security: {
+    id: "app.header.security",
+    defaultMessage: "Security",
   },
   mail: {
     id: "app.header.mail",
     defaultMessage: "MailBox",
-  },
-  mysql: {
-    id: "app.header.mysql",
-    defaultMessage: "MYSQL",
   },
   logout: {
     id: "app.header.logout",
@@ -109,7 +100,7 @@ const Header = () => {
   const [isVisible, setVisible] = React.useState(false);
   const [user, setUser] = useUser();
 
-  const color = useColorModeValue(brandColors.light, brandColors.dark);
+  const color = useColorModeValue("brand.light.primary", "brand.dark.primary");
 
   const handleToggle = () => setVisible(!isVisible);
 
@@ -121,7 +112,7 @@ const Header = () => {
       wrap="wrap"
       padding="1.0rem"
       borderBottomWidth="1px"
-      borderColor={color.primary}
+      borderColor={color}
       mb={4}
     >
       <Flex align="center" mr={5}>
@@ -132,7 +123,7 @@ const Header = () => {
 
       <Box display={{base: "block", md: "none"}} onClick={handleToggle}>
         <svg
-          fill={color.primary}
+          fill={color}
           width="12px"
           viewBox="0 0 20 20"
           xmlns="http://www.w3.org/2000/svg"
@@ -171,16 +162,11 @@ const Header = () => {
                 <Avatar name={user.email} src="#"/>
               </MenuButton>
               <MenuList>
-                <MenuLink to={getPath("auth_tokens")} exact>
+                <MenuLink to={getPath("security")} exact>
                   <MenuItem>
-                    {intl.formatMessage(messages.auth_tokens)}
+                    {intl.formatMessage(messages.security)}
                   </MenuItem>
                 </MenuLink>
-                <MenuItem>
-                  <MenuLink to={getPath("client_credentials")} exact>
-                    {intl.formatMessage(messages.clients)}
-                  </MenuLink>
-                </MenuItem>
                 <MenuDivider/>
                 <MenuItem
                   onClick={() => {

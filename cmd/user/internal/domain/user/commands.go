@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
-	systemErrors "errors"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -11,7 +11,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
 
@@ -34,40 +34,40 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	case RegisterUserWithEmail:
 		command := RegisterWithEmail{}
 		if err := unmarshalPayload(payload, &command); err != nil {
-			return command, errors.Wrap(err)
+			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RegisterUserWithGoogle:
 		command := RegisterWithGoogle{}
 		if err := unmarshalPayload(payload, &command); err != nil {
-			return command, errors.Wrap(err)
+			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RegisterUserWithFacebook:
 		command := RegisterWithFacebook{}
 		if err := unmarshalPayload(payload, &command); err != nil {
-			return command, errors.Wrap(err)
+			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case ChangeUserEmailAddress:
 		command := ChangeEmailAddress{}
 		if err := unmarshalPayload(payload, &command); err != nil {
-			return command, errors.Wrap(err)
+			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RequestUserAccessToken:
 		command := RequestAccessToken{}
 		if err := unmarshalPayload(payload, &command); err != nil {
-			return command, errors.Wrap(err)
+			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	default:
-		return nil, errors.New("Invalid command contract")
+		return nil, apperrors.Wrap(fmt.Errorf("invalid command contract: %s", contract))
 	}
 }
 
@@ -87,16 +87,16 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(RequestAccessToken)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		var id string
 		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE email_address=? LIMIT 1`, c.Email.String())
 		if err := row.Scan(&id); err != nil {
-			if systemErrors.Is(err, sql.ErrNoRows) {
-				return errors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			if errors.Is(err, sql.ErrNoRows) {
+				return apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
 			}
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 		if id == "" {
 			return application.ErrNotFound
@@ -104,20 +104,20 @@ func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandH
 
 		userID, err := uuid.Parse(id)
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		u, err := repository.Get(ctx, userID)
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if err := u.RequestAccessToken(ctx); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil
@@ -142,31 +142,31 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(ChangeEmailAddress)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		var totalUsers int32
 
 		row := db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM users WHERE email_address=?`, c.Email.String())
 		if err := row.Scan(&totalUsers); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if totalUsers != 0 {
-			return errors.Wrap(application.ErrInvalid)
+			return apperrors.Wrap(application.ErrInvalid)
 		}
 
 		u, err := repository.Get(ctx, c.ID)
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if err := u.ChangeEmailAddress(ctx, c.Email); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil
@@ -191,32 +191,32 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(RegisterWithEmail)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		var totalUsers int32
 
 		row := db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM users WHERE email_address=?`, c.Email.String())
 		if err := row.Scan(&totalUsers); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if totalUsers != 0 {
-			return errors.Wrap(application.ErrInvalid)
+			return apperrors.Wrap(application.ErrInvalid)
 		}
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		u := New()
 		if err := u.RegisterWithEmail(ctx, id, c.Email); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil
@@ -242,50 +242,50 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(RegisterWithFacebook)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		var id, emailAddress, facebookID string
 
 		row := db.QueryRowContext(ctx, `SELECT id, email_address, facebook_id FROM users WHERE email_address=? OR facebook_id=? LIMIT 1`, c.Email.String(), c.FacebookID)
-		if err := row.Scan(&id, &emailAddress, &facebookID); err != nil && !systemErrors.Is(err, sql.ErrNoRows) {
-			return errors.Wrap(err)
+		if err := row.Scan(&id, &emailAddress, &facebookID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return apperrors.Wrap(err)
 		}
 
 		if facebookID == c.FacebookID {
-			return errors.Wrap(application.ErrInvalid)
+			return apperrors.Wrap(application.ErrInvalid)
 		}
 
 		var u User
 		if emailAddress == string(c.Email) {
 			userID, err := uuid.Parse(id)
 			if err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 
 			u, err := repository.Get(ctx, userID)
 			if err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 
 			if err := u.ConnectWithFacebook(ctx, c.FacebookID, c.AccessToken); err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 		} else {
 			id, err := uuid.NewRandom()
 			if err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 
 			u = New()
 
 			if err := u.RegisterWithFacebook(ctx, id, c.Email, c.FacebookID, c.AccessToken); err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 		}
 
 		if err := repository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil
@@ -311,49 +311,49 @@ func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandH
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(RegisterWithGoogle)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		var id, emailAddress, googleID string
 
 		row := db.QueryRowContext(ctx, `SELECT id, email_address, google_id FROM users WHERE email_address=? OR google_id=? LIMIT 1`, c.Email.String(), c.GoogleID)
-		if err := row.Scan(&id, &emailAddress, &googleID); err != nil && !systemErrors.Is(err, sql.ErrNoRows) {
-			return errors.Wrap(err)
+		if err := row.Scan(&id, &emailAddress, &googleID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return apperrors.Wrap(err)
 		}
 
 		if googleID == c.GoogleID {
-			return errors.Wrap(application.ErrInvalid)
+			return apperrors.Wrap(application.ErrInvalid)
 		}
 
 		var u User
 		if emailAddress == string(c.Email) {
 			userID, err := uuid.Parse(id)
 			if err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 
 			u, err := repository.Get(ctx, userID)
 			if err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 
 			if err := u.ConnectWithGoogle(ctx, c.GoogleID, c.AccessToken); err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 		} else {
 			id, err := uuid.NewRandom()
 			if err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 
 			u = New()
 			if err := u.RegisterWithGoogle(ctx, id, c.Email, c.GoogleID, c.AccessToken); err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 		}
 
 		if err := repository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil

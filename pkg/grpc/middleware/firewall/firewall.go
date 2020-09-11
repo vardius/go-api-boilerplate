@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
@@ -130,7 +130,7 @@ func GrantAccessForStreamRequest(role identity.Role) grpc.StreamServerIntercepto
 			return handler(srv, ss)
 		}
 
-		return errors.Wrap(ErrInvalidRole)
+		return apperrors.Wrap(ErrInvalidRole)
 	}
 }
 
@@ -150,6 +150,6 @@ func GrantAccessForUnaryRequest(role identity.Role) grpc.UnaryServerInterceptor 
 			return handler(ctx, req)
 		}
 
-		return nil, errors.Wrap(ErrInvalidRole)
+		return nil, apperrors.Wrap(ErrInvalidRole)
 	}
 }

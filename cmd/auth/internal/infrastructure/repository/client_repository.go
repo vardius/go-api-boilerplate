@@ -10,7 +10,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
@@ -23,12 +23,12 @@ type clientRepository struct {
 // Save current client changes to event store and publish each event with an event bus
 func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 	if err := r.eventStore.Store(ctx, u.Changes()); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	for _, event := range u.Changes() {
 		if err := r.eventBus.Publish(ctx, event); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 	}
 
@@ -39,12 +39,12 @@ func (r *clientRepository) Save(ctx context.Context, u client.Client) error {
 // blocks until event handlers are finished
 func (r *clientRepository) SaveAndAcknowledge(ctx context.Context, u client.Client) error {
 	if err := r.eventStore.Store(ctx, u.Changes()); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	for _, event := range u.Changes() {
 		if err := r.eventBus.PublishAndAcknowledge(ctx, event); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 	}
 
@@ -55,7 +55,7 @@ func (r *clientRepository) SaveAndAcknowledge(ctx context.Context, u client.Clie
 func (r *clientRepository) Get(ctx context.Context, id uuid.UUID) (client.Client, error) {
 	events, err := r.eventStore.GetStream(ctx, id, client.StreamName)
 	if err != nil {
-		return client.Client{}, errors.Wrap(err)
+		return client.Client{}, apperrors.Wrap(err)
 	}
 
 	if len(events) == 0 {

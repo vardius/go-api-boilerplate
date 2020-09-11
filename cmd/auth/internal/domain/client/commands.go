@@ -9,7 +9,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -27,19 +27,19 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	case CreateClientCredentials:
 		command := Create{}
 		if err := unmarshalPayload(payload, &command); err != nil {
-			return command, errors.Wrap(err)
+			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RemoveClientCredentials:
 		command := Remove{}
 		if err := unmarshalPayload(payload, &command); err != nil {
-			return command, errors.Wrap(err)
+			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	default:
-		return nil, errors.New("Invalid command contract")
+		return nil, apperrors.Wrap(fmt.Errorf("invalid command contract: %s", contract))
 	}
 }
 
@@ -58,28 +58,28 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(Remove)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		i, hasIdentity := identity.FromContext(ctx)
 		if !hasIdentity {
-			return errors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(application.ErrUnauthorized)
 		}
 
 		client, err := repository.Get(ctx, c.ID)
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 		if i.UserID.String() != client.userID.String() {
-			return errors.Wrap(application.ErrForbidden)
+			return apperrors.Wrap(application.ErrForbidden)
 		}
 
 		if err := client.Remove(ctx); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), client); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil
@@ -90,10 +90,9 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 
 // Create command
 type Create struct {
-	UserID      uuid.UUID `json:"user_id"`
-	Domain      string    `json:"domain"`
-	RedirectURL string    `json:"redirect_url"`
-	Scopes      []string  `json:"scopes"`
+	Domain      string   `json:"domain"`
+	RedirectURL string   `json:"redirect_url"`
+	Scopes      []string `json:"scopes"`
 }
 
 // GetName returns command name
@@ -106,33 +105,30 @@ func OnCreate(repository Repository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(Create)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			return errors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
 		}
 		secret, err := uuid.NewRandom()
 		if err != nil {
-			return errors.Wrap(fmt.Errorf("%w: Could not generate new secret: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new secret: %s", application.ErrInternal, err))
 		}
 
 		i, hasIdentity := identity.FromContext(ctx)
 		if !hasIdentity {
-			return errors.Wrap(application.ErrUnauthorized)
-		}
-		if i.UserID.String() != c.UserID.String() {
-			return errors.Wrap(application.ErrForbidden)
+			return apperrors.Wrap(application.ErrUnauthorized)
 		}
 
 		client := New()
-		if err := client.Create(ctx, id, secret.String(), c.UserID, c.Domain, c.RedirectURL, c.Scopes...); err != nil {
-			return errors.Wrap(err)
+		if err := client.Create(ctx, id, secret, i.UserID, c.Domain, c.RedirectURL, c.Scopes...); err != nil {
+			return apperrors.Wrap(err)
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), client); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil

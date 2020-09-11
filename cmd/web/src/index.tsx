@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import {BrowserRouter as Router} from "react-router-dom";
-import {ChakraProvider, CSSReset} from "@chakra-ui/core";
+import {ChakraProvider} from "@chakra-ui/core";
 
 import App from "src/containers/App";
 import IntlProvider from "src/containers/IntlProvider";
@@ -23,8 +23,7 @@ const render = () =>
         <Router>
           <AuthProvider>
             <UserProvider>
-              <ChakraProvider theme={theme}>
-                <CSSReset/>
+              <ChakraProvider resetCSS theme={theme}>
                 <App/>
               </ChakraProvider>
             </UserProvider>

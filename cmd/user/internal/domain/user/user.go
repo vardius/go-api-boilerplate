@@ -12,7 +12,7 @@ import (
 
 	userdomain "github.com/vardius/go-api-boilerplate/cmd/user/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
@@ -123,7 +123,7 @@ func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailA
 		ID:    id,
 		Email: email,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -137,7 +137,7 @@ func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email Email
 		GoogleID:    googleID,
 		AccessToken: accessToken,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -150,7 +150,7 @@ func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken stri
 		GoogleID:    googleID,
 		AccessToken: accessToken,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -164,7 +164,7 @@ func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email Ema
 		FacebookID:  facebookID,
 		AccessToken: accessToken,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -177,7 +177,7 @@ func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken 
 		FacebookID:  facebookID,
 		AccessToken: accessToken,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -189,7 +189,7 @@ func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error
 		ID:    u.id,
 		Email: email,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -201,7 +201,7 @@ func (u *User) RequestAccessToken(ctx context.Context) error {
 		ID:    u.id,
 		Email: u.email,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -212,7 +212,7 @@ func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event
 
 	event, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
 	if err != nil {
-		return event, errors.Wrap(err)
+		return event, apperrors.Wrap(err)
 	}
 
 	meta := userdomain.EventMetadata{}
@@ -224,7 +224,7 @@ func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event
 	}
 	if !meta.IsEmpty() {
 		if err := event.WithMetadata(meta); err != nil {
-			return event, errors.Wrap(err)
+			return event, apperrors.Wrap(err)
 		}
 	}
 

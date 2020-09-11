@@ -1,13 +1,23 @@
-import React, {useCallback, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {defineMessages, useIntl} from "react-intl";
-import {Box, Button, Center, CircularProgress, Heading, Stack} from "@chakra-ui/core";
+import {Box, Button, Center, Checkbox, CheckboxGroup, CircularProgress, Heading, HStack, Stack} from "@chakra-ui/core";
 import {useApi, useQuery, useUser} from "src/hooks";
 import {SubmitMessage} from "src/components/common";
+
+type Client = { domain: string } | null;
 
 const messages = defineMessages({
   title: {
     id: "authorize.title",
     defaultMessage: "Authorize",
+  },
+  scopes_user_read: {
+    id: "create_client.form.scopes_user_read",
+    defaultMessage: "User read",
+  },
+  scopes_user_write: {
+    id: "create_client.form.scopes_user_write",
+    defaultMessage: "User write",
   },
   submit: {
     id: "authorize.submit",
@@ -25,7 +35,18 @@ function Authorize() {
   const query = useQuery();
   const [user] = useUser();
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [client, setClient] = React.useState(null as Client);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const clientID = query.get('client_id');
+  const scope = query.get('scope');
+
+  const fetchClient = useCallback(async (): Promise<Client> => {
+    const json = await fetchJSON(`/auth/v1/clients/${clientID}`, "GET");
+
+    return json as Client;
+  }, [fetchJSON, clientID]);
 
   const authorize = useCallback(
     async () => {
@@ -33,21 +54,51 @@ function Authorize() {
         return null;
       }
 
-      const response = await fetchJSON(`/auth/v1/authorize`, "GET", query);
+      const response = await fetchJSON(`/auth/v1/authorize`, "POST", query);
 
       window.location.assign(response.location);
     },
     [fetchJSON, user, query]
   );
 
-  if (!user) {
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const response = await fetchClient();
+        if (!mounted) {
+          return
+        }
+
+        setClient(response);
+      } catch (err) {
+        if (!mounted) {
+          return
+        }
+
+        setClient(null);
+      }
+
+      setIsFetching(false);
+    };
+
+    if (clientID) {
+      load();
+    }
+
+    return function cleanup() {
+      mounted = false
+    }
+  }, [clientID, fetchClient]);
+
+  if (!user || isFetching) {
     return null;
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       await authorize();
@@ -55,29 +106,48 @@ function Authorize() {
       setError(intl.formatMessage(messages.error, {error: err.message}));
     }
 
-    setIsLoading(false);
+    setIsSubmitting(false);
   };
 
   return (
-    <Stack flex={1}>
-      <Heading m={4}>
+    <Center minHeight="100vh">
+      <Box
+        p={8}
+        maxWidth="500px"
+        borderWidth={1}
+        borderRadius={8}
+        boxShadow="lg"
+      >
         <Center>
-          {intl.formatMessage(messages.title)}
+          <Stack>
+            <Heading>{intl.formatMessage(messages.title)}</Heading>
+            {client && <Heading>{client.domain}</Heading>}
+          </Stack>
         </Center>
-      </Heading>
-      <Box my={4} textAlign="left">
-        <form onSubmit={handleSubmit}>
-          {error && <SubmitMessage message={error} status="error"/>}
-          <Button variant="outline" type="submit" width="full" mt={4}>
-            {isLoading ? (
-              <CircularProgress/>
-            ) : (
-              intl.formatMessage(messages.submit)
-            )}
-          </Button>
-        </form>
+        <Box my={4} textAlign="left">
+          <form onSubmit={handleSubmit}>
+            {error && <SubmitMessage message={error} status="error"/>}
+            {scope && <CheckboxGroup colorScheme="green" defaultValue={scope.split(' ')}>
+              <HStack>
+                <Checkbox isDisabled isReadOnly value="user_read">
+                  {intl.formatMessage(messages.scopes_user_read)}
+                </Checkbox>
+                <Checkbox isDisabled isReadOnly value="user_write">
+                  {intl.formatMessage(messages.scopes_user_write)}
+                </Checkbox>
+              </HStack>
+            </CheckboxGroup>}
+            <Button variant="outline" type="submit" width="full" mt={4}>
+              {isSubmitting ? (
+                <CircularProgress/>
+              ) : (
+                intl.formatMessage(messages.submit)
+              )}
+            </Button>
+          </form>
+        </Box>
       </Box>
-    </Stack>
+    </Center>
   );
 }
 

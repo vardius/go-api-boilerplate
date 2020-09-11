@@ -12,7 +12,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -23,36 +23,62 @@ func BuildClientCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		var e error
 
 		if r.Body == nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(application.ErrInvalid))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrInvalid))
 			return
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.MustJSONError(r.Context(), w, errors.Wrap(application.ErrInvalid))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrInvalid))
 			return
 		}
 
 		defer r.Body.Close()
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(e))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(e))
 			return
 		}
 
 		c, e := client.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(e))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(e))
 			return
 		}
 
 		if err := cb.Publish(r.Context(), c); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
 		if err := response.JSON(r.Context(), w, http.StatusCreated, nil); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		}
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func BuildGetClientHandler(repository persistence.ClientRepository) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		params, ok := context.Parameters(r.Context())
+		if !ok {
+			response.MustJSONError(r.Context(), w, application.ErrInvalid)
+			return
+		}
+
+		c, err := repository.Get(r.Context(), params.Value("clientID"))
+		if err != nil {
+			response.MustJSONError(r.Context(), w, err)
+			return
+		}
+
+		if err := response.JSON(r.Context(), w, http.StatusOK, struct {
+			Domain string `json:"domain"`
+		}{
+			Domain: c.GetDomain(),
+		}); err != nil {
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 		}
 	}
 
@@ -64,7 +90,7 @@ func BuildListClientsHandler(repository persistence.ClientRepository) http.Handl
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		i, hasIdentity := identity.FromContext(r.Context())
 		if !hasIdentity {
-			response.MustJSONError(r.Context(), w, errors.Wrap(application.ErrUnauthorized))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrUnauthorized))
 		}
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
@@ -74,7 +100,7 @@ func BuildListClientsHandler(repository persistence.ClientRepository) http.Handl
 
 		totalUsers, err := repository.CountByUserID(r.Context(), i.UserID.String())
 		if err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
@@ -93,19 +119,19 @@ func BuildListClientsHandler(repository persistence.ClientRepository) http.Handl
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
 			if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-				response.MustJSONError(r.Context(), w, errors.Wrap(err))
+				response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			}
 			return
 		}
 
 		paginatedList.Clients, err = repository.FindAllByUserID(r.Context(), i.UserID.String(), limit, offset)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
 		if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 		}
 	}
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // EmailAddress is an email address value object
@@ -20,7 +20,7 @@ func (e EmailAddress) MarshalJSON() ([]byte, error) {
 
 	jsn, err := json.Marshal(string(e))
 	if err != nil {
-		return jsn, errors.Wrap(fmt.Errorf("could not marshal EmailAddress %s", e))
+		return jsn, apperrors.Wrap(fmt.Errorf("could not marshal EmailAddress %s", e))
 	}
 
 	return jsn, nil
@@ -30,7 +30,7 @@ func (e EmailAddress) MarshalJSON() ([]byte, error) {
 func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 	var value string
 	if err := json.Unmarshal(b, &value); err != nil {
-		return errors.Wrap(fmt.Errorf("could not unmarshal json %s", b))
+		return apperrors.Wrap(fmt.Errorf("could not unmarshal json %s", b))
 	}
 
 	*e = (EmailAddress)(value)
@@ -41,7 +41,7 @@ func (e *EmailAddress) UnmarshalJSON(b []byte) error {
 // IsValid returns error if value object is not valid
 func (e EmailAddress) IsValid() error {
 	if !govalidator.IsEmail(string(e)) {
-		return errors.New(fmt.Sprintf("Invalid email address: %s", e))
+		return apperrors.New(fmt.Sprintf("Invalid email address: %s", e))
 	}
 
 	return nil

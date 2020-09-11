@@ -10,10 +10,10 @@ func TestNew(t *testing.T) {
 	userID := uuid.New()
 	userEmail := "example@example.com"
 	clientID := uuid.New()
-	clientSecret := "token"
+	clientSecret := uuid.New()
 	token := "token"
 
-	identity := New(userID, clientID, userEmail, clientSecret, token)
+	identity := New(userID, clientID, clientSecret, userEmail, token)
 
 	if identity.UserID != userID {
 		t.Errorf("Identity UserID does not match, given: %s | expected %s", identity.UserID, userID)
@@ -24,7 +24,7 @@ func TestNew(t *testing.T) {
 	if identity.ClientID != clientID {
 		t.Errorf("Identity ClientID does not match, given: %s | expected %s", identity.ClientID, clientID)
 	}
-	if identity.ClientSecret != clientSecret {
+	if identity.ClientSecret.String() != clientSecret.String() {
 		t.Errorf("Identity ClientSecret does not match, given: %s | expected %s", identity.ClientSecret, clientSecret)
 	}
 	if identity.Token != token {

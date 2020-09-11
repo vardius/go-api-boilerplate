@@ -23,10 +23,10 @@ func NewManager(tokenStore oauth2.TokenStore, clientStore oauth2.ClientStore, au
 	manager := oauth2manage.NewDefaultManager()
 
 	manager.SetAuthorizeCodeTokenCfg(oauth2manage.DefaultAuthorizeCodeTokenCfg)
-	manager.SetPasswordTokenCfg(PasswordTokenCfg)
 	manager.SetClientTokenCfg(oauth2manage.DefaultClientTokenCfg)
 	manager.SetAuthorizeCodeTokenCfg(oauth2manage.DefaultAuthorizeCodeTokenCfg)
 	manager.SetRefreshTokenCfg(oauth2manage.DefaultRefreshTokenCfg)
+	manager.SetPasswordTokenCfg(PasswordTokenCfg)
 	manager.MapTokenStorage(tokenStore)
 	manager.MapClientStorage(clientStore)
 	manager.MapAccessGenerate(NewJWTAccess(jwt.SigningMethodHS512, authenticator))

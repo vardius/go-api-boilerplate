@@ -9,7 +9,7 @@ import (
 	messagebus "github.com/vardius/message-bus"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
@@ -95,7 +95,7 @@ func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain
 			err = fmt.Errorf("%v\n%v", err, handlerErr)
 		}
 
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -105,11 +105,11 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 	b.logger.Info(ctx, "[EventBus] Subscribe: %s\n", eventType)
 
 	handler := func(ctx context.Context, event domain.Event, out chan<- error) {
-		b.logger.Debug(ctx, "[EventHandler] %s: %s\n", eventType, event.Payload)
+		b.logger.Debug(ctx, "[EventHandler] %s: %s", eventType, event.Payload)
 
 		if err := fn(ctx, event); err != nil {
-			b.logger.Error(ctx, "[EventHandler] %s: %v\n", eventType, err)
-			out <- errors.Wrap(err)
+			b.logger.Error(ctx, "[EventHandler] %s: %v", eventType, err)
+			out <- apperrors.Wrap(err)
 		} else {
 			out <- nil
 		}

@@ -6,12 +6,12 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	systemErrors "errors"
+	"errors"
 	"fmt"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
@@ -27,7 +27,7 @@ type userRepository struct {
 func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT id, email_address, facebook_id, google_id FROM users ORDER BY distinct_id ASC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -36,14 +36,14 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 	for rows.Next() {
 		user := User{}
 		if err := rows.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID); err != nil {
-			return nil, errors.Wrap(err)
+			return nil, apperrors.Wrap(err)
 		}
 
 		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	return users, nil
@@ -56,10 +56,10 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 
 	err := row.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
 	switch {
-	case systemErrors.Is(err, sql.ErrNoRows):
-		return nil, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
 	case err != nil:
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	default:
 		return user, nil
 	}
@@ -81,12 +81,12 @@ func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT IGNORE INTO users (id, email_address, facebook_id, google_id) VALUES (?,?,?,?)`)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	if _, err := stmt.ExecContext(ctx, user.ID, user.Email, user.FacebookID, user.GoogleID); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -95,22 +95,22 @@ func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) error {
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET email_address=? WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, email, id)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New("Did not update user")
+		return apperrors.New("Did not update user")
 	}
 
 	return nil
@@ -119,22 +119,22 @@ func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) erro
 func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID string) error {
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET facebookID=? WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, facebookID, id)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New("Did not update user")
+		return apperrors.New("Did not update user")
 	}
 
 	return nil
@@ -143,22 +143,22 @@ func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID st
 func (r *userRepository) UpdateGoogleID(ctx context.Context, id, googleID string) error {
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE users SET googleID=? WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, googleID, id)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New("Did not update user")
+		return apperrors.New("Did not update user")
 	}
 
 	return nil
@@ -167,22 +167,22 @@ func (r *userRepository) UpdateGoogleID(ctx context.Context, id, googleID string
 func (r *userRepository) Delete(ctx context.Context, id string) error {
 	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM users WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, id)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New("Did not delete user")
+		return apperrors.New("Did not delete user")
 	}
 
 	return nil
@@ -193,7 +193,7 @@ func (r *userRepository) Count(ctx context.Context) (int32, error) {
 
 	row := r.db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM users`)
 	if err := row.Scan(&totalUsers); err != nil {
-		return 0, errors.Wrap(err)
+		return 0, apperrors.Wrap(err)
 	}
 
 	return totalUsers, nil

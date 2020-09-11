@@ -13,7 +13,7 @@ var Env *environment
 
 type environment struct {
 	App struct {
-		Domain              string        `env:"APP_DOMAIN"                envDefault:"localhost"`
+		Domain              string        `env:"APP_DOMAIN"                envDefault:"http://localhost:3000"`
 		Environment         string        `env:"APP_ENV"                   envDefault:"development"`
 		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
 		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
@@ -30,9 +30,10 @@ type environment struct {
 		Password string `env:"MAILER_PASSWORD" envDefault:"password"`
 	}
 	HTTP struct {
-		Host    string   `env:"HOST"         envDefault:"0.0.0.0"`
-		Port    int      `env:"HTTP_PORT"    envDefault:"3000"`
-		Origins []string `env:"HTTP_ORIGINS" envSeparator:"|"` // Origins should follow format: scheme "://" host [ ":" port ]t int    `env:"DEBUG_PORT_HTTP" envDefault:"4000"`
+		Host string `env:"HOST"      envDefault:"0.0.0.0"`
+		Port int    `env:"HTTP_PORT" envDefault:"3000"`
+		// Origins should follow format: scheme "://" host [ ":" port ]
+		Origins []string `env:"HTTP_ORIGINS" envSeparator:"|" envDefault:"http://localhost:3000|http://0.0.0.0:3000|http://127.0.0.1:3000"`
 
 		ReadTimeout  time.Duration `env:"HTTP_SERVER_READ_TIMEOUT"     envDefault:"5s"`
 		WriteTimeout time.Duration `env:"HTTP_SERVER_WRITE_TIMEOUT"    envDefault:"10s"`

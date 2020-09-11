@@ -13,7 +13,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -37,23 +37,23 @@ func BuildUserCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		defer r.Body.Close()
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(e))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(e))
 			return
 		}
 
 		c, e := user.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(e))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(e))
 			return
 		}
 
 		if err := cb.Publish(r.Context(), c); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
 		if err := response.JSON(r.Context(), w, http.StatusCreated, nil); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 		}
 	}
 
@@ -67,12 +67,12 @@ func BuildMeHandler(repository persistence.UserRepository) http.Handler {
 
 		u, err := repository.Get(r.Context(), i.UserID.String())
 		if err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
 		if err := response.JSON(r.Context(), w, http.StatusOK, u); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 		}
 	}
 
@@ -95,7 +95,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		if err := response.JSON(r.Context(), w, http.StatusOK, u); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 		}
 	}
 
@@ -112,7 +112,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 
 		totalUsers, err := repository.Count(r.Context())
 		if err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
@@ -131,19 +131,19 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
 			if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-				response.MustJSONError(r.Context(), w, errors.Wrap(err))
+				response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			}
 			return
 		}
 
 		paginatedList.Users, err = repository.FindAll(r.Context(), limit, offset)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
 		if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 		}
 	}
 

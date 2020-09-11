@@ -4,8 +4,8 @@ import {defineMessages, useIntl} from "react-intl";
 import {
   Box,
   Button,
+  Center,
   CircularProgress,
-  Flex,
   FormControl,
   FormLabel,
   Heading,
@@ -73,8 +73,7 @@ const LoginForm = (props: Props) => {
 
   const login = useCallback(
     async ({email}: { email: string }) => {
-      let redirectPath = null;
-      redirectPath += (from.pathname || '');
+      let redirectPath = (from.pathname || '');
       redirectPath += (from.search || '');
       redirectPath += (from.hash || '');
       if (redirectPath === "/") {
@@ -141,59 +140,57 @@ const LoginForm = (props: Props) => {
   };
 
   return (
-    <Flex width="full" align="center" justifyContent="center">
-      <Box
-        p={8}
-        maxWidth="500px"
-        borderWidth={1}
-        borderRadius={8}
-        boxShadow="lg"
-      >
-        {user ? (
-          <Box textAlign="center">
-            <Text>
-              {intl.formatMessage(messages.user, {email: user.email})}
-            </Text>
-            <Button
-              variant="outline"
-              width="full"
-              mt={4}
-              onClick={handleLogout}
-            >
-              {intl.formatMessage(messages.logout)}
-            </Button>
+    <Box
+      p={8}
+      maxWidth="500px"
+      borderWidth={1}
+      borderRadius={8}
+      boxShadow="lg"
+    >
+      {user ? (
+        <Box textAlign="center">
+          <Text>
+            {intl.formatMessage(messages.user, {email: user.email})}
+          </Text>
+          <Button
+            variant="outline"
+            width="full"
+            mt={4}
+            onClick={handleLogout}
+          >
+            {intl.formatMessage(messages.logout)}
+          </Button>
+        </Box>
+      ) : (
+        <>
+          <Center>
+            <Heading>{intl.formatMessage(messages.login)}</Heading>
+          </Center>
+          <Box my={4} textAlign="left">
+            <form onSubmit={handleSubmit}>
+              {error && <SubmitMessage message={error} status="error"/>}
+              <FormControl isRequired>
+                <FormLabel>{intl.formatMessage(messages.email)}</FormLabel>
+                <Input
+                  type="email"
+                  size="lg"
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    setEmail(event.currentTarget.value)
+                  }
+                />
+              </FormControl>
+              <Button variant="outline" type="submit" width="full" mt={4}>
+                {isLoading ? (
+                  <CircularProgress/>
+                ) : (
+                  intl.formatMessage(messages.submit)
+                )}
+              </Button>
+            </form>
           </Box>
-        ) : (
-          <>
-            <Box textAlign="center">
-              <Heading>{intl.formatMessage(messages.login)}</Heading>
-            </Box>
-            <Box my={4} textAlign="left">
-              <form onSubmit={handleSubmit}>
-                {error && <SubmitMessage message={error} status="error"/>}
-                <FormControl isRequired>
-                  <FormLabel>{intl.formatMessage(messages.email)}</FormLabel>
-                  <Input
-                    type="email"
-                    size="lg"
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      setEmail(event.currentTarget.value)
-                    }
-                  />
-                </FormControl>
-                <Button variant="outline" type="submit" width="full" mt={4}>
-                  {isLoading ? (
-                    <CircularProgress/>
-                  ) : (
-                    intl.formatMessage(messages.submit)
-                  )}
-                </Button>
-              </form>
-            </Box>
-          </>
-        )}
-      </Box>
-    </Flex>
+        </>
+      )}
+    </Box>
   );
 };
 

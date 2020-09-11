@@ -9,7 +9,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
@@ -33,10 +33,10 @@ func (bus *commandBus) Publish(ctx context.Context, command domain.Command) erro
 	ctxDoneCh := ctx.Done()
 	select {
 	case <-ctxDoneCh:
-		return errors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, ctx.Err()))
+		return apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrTimeout, ctx.Err()))
 	case err := <-out:
 		if err != nil {
-			return errors.Wrap(fmt.Errorf("create client failed: %w", err))
+			return apperrors.Wrap(fmt.Errorf("create client failed: %w", err))
 		}
 		return nil
 	}

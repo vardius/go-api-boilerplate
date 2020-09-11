@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // NullInt64 is an alias for sql.NullInt64 data type
@@ -31,7 +31,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON for NullInt64
 func (ni NullInt64) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &ni.Int64); err != nil {
-		return errors.Wrap(fmt.Errorf("MySQL NullInt64 unmarshal error: %w", err))
+		return apperrors.Wrap(fmt.Errorf("MySQL NullInt64 unmarshal error: %w", err))
 	}
 
 	ni.Valid = true
@@ -59,7 +59,7 @@ func (nb NullBool) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON for NullBool
 func (nb NullBool) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &nb.Bool); err != nil {
-		return errors.Wrap(fmt.Errorf("MySQL NullBool unmarshal error: %w", err))
+		return apperrors.Wrap(fmt.Errorf("MySQL NullBool unmarshal error: %w", err))
 	}
 
 	nb.Valid = true
@@ -87,7 +87,7 @@ func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON for NullFloat64
 func (nf NullFloat64) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &nf.Float64); err != nil {
-		return errors.Wrap(fmt.Errorf("MySQL NullFloat64 unmarshal error: %w", err))
+		return apperrors.Wrap(fmt.Errorf("MySQL NullFloat64 unmarshal error: %w", err))
 	}
 
 	nf.Valid = true
@@ -115,7 +115,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON for NullString
 func (ns NullString) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &ns.String); err != nil {
-		return errors.Wrap(fmt.Errorf("MySQL NullString unmarshal error: %w", err))
+		return apperrors.Wrap(fmt.Errorf("MySQL NullString unmarshal error: %w", err))
 	}
 
 	ns.Valid = true
@@ -138,7 +138,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON for NullTime
 func (nt NullTime) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &nt.Time); err != nil {
-		return errors.Wrap(fmt.Errorf("MySQL NullTime unmarshal error: %w", err))
+		return apperrors.Wrap(fmt.Errorf("MySQL NullTime unmarshal error: %w", err))
 	}
 
 	nt.Valid = true

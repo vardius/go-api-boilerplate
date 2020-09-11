@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	baseeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
 
@@ -33,7 +33,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	for _, e := range events {
 		item, err := dynamodbattribute.MarshalMap(e)
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 		putParams := &dynamodb.PutItemInput{
 			TableName:           aws.String(s.tableName),
@@ -42,9 +42,9 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 		}
 		if _, err = s.service.PutItem(putParams); err != nil {
 			if err, ok := err.(awserr.RequestFailure); ok && err.Code() == "ConditionalCheckFailedException" {
-				return errors.Wrap(fmt.Errorf("PutItem request failureerror: %w", err))
+				return apperrors.Wrap(fmt.Errorf("PutItem request failureerror: %w", err))
 			}
-			return errors.Wrap(fmt.Errorf("PutItem error: %w", err))
+			return apperrors.Wrap(fmt.Errorf("PutItem error: %w", err))
 		}
 	}
 
@@ -81,7 +81,7 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 
 	es, err := s.query(params)
 	if es != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	return es, nil
@@ -99,7 +99,7 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 
 	es, err := s.query(params)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	return es, nil

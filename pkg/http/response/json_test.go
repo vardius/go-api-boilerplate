@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 func TestJSON(t *testing.T) {
@@ -68,7 +68,7 @@ func TestJSONNil(t *testing.T) {
 
 func TestJSONError(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		appErr := errors.Wrap(fmt.Errorf("%w: invalid request", application.ErrInvalid))
+		appErr := apperrors.Wrap(fmt.Errorf("%w: invalid request", application.ErrInvalid))
 
 		if err := JSONError(r.Context(), w, appErr); err != nil {
 			t.Fatal(err)

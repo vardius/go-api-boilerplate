@@ -15,7 +15,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
@@ -42,9 +42,7 @@ func InitServer(
 			oauth2.Refreshing,
 			oauth2.ClientCredentials, // Example usage of client credentials
 			// https://github.com/go-oauth2/oauth2/blob/b46cf9f1db6551beb549ad1afe69826b3b2f1abf/example/client/client.go#L112-L128
-
-			// @TODO: AuthorizationCode  uncomment below and look for other todos if you want to enable this flow
-			// oauth2.AuthorizationCode, // Example usage of authorization code
+			oauth2.AuthorizationCode, // Example usage of authorization code
 			// https://github.com/go-oauth2/oauth2/blob/b46cf9f1db6551beb549ad1afe69826b3b2f1abf/example/client/client.go#L35-L62
 		)
 		srv.SetClientInfoHandler(oauth2server.ClientBasicHandler)
@@ -56,12 +54,12 @@ func InitServer(
 			// we allow password grant only within our system, due to email passwordless authentication
 			// password value here should contain secretKey
 			if password != secretKey {
-				return "", errors.Wrap(fmt.Errorf("%w: Invalid client, user password does not match secret key", application.ErrUnauthorized))
+				return "", apperrors.Wrap(fmt.Errorf("%w: Invalid client, user password does not match secret key", application.ErrUnauthorized))
 			}
 
 			user, err := userRepository.GetByEmail(ctx, email)
 			if err != nil {
-				return "", errors.Wrap(err)
+				return "", apperrors.Wrap(err)
 			}
 
 			return user.GetID(), nil
@@ -69,7 +67,13 @@ func InitServer(
 		srv.SetUserAuthorizationHandler(func(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 			i, isAuthorized := identity.FromContext(r.Context())
 			if !isAuthorized {
-				http.Redirect(w, r, config.Env.App.AuthorizeURL, http.StatusFound)
+				if r.Form == nil {
+					if err := r.ParseForm(); err != nil {
+						return "", apperrors.Wrap(err)
+					}
+				}
+
+				http.Redirect(w, r, fmt.Sprintf("%s?%s", config.Env.App.AuthorizeURL, r.Form.Encode()), http.StatusFound)
 
 				return "", nil
 			}
@@ -82,17 +86,19 @@ func InitServer(
 
 			client, err := clientRepository.Get(ctx, clientID)
 			if err != nil {
-				return false, errors.Wrap(err)
+				return false, apperrors.Wrap(err)
 			}
 
 			tokenScopes := strings.Split(scope, ",")
 			clientScopes := client.GetScopes()
 
 			if len(tokenScopes) > len(clientScopes) {
+				logger.Debug(ctx, "Token not allowed: scopes do not match len(tokenScopes) > len(clientScopes) %v > %v", tokenScopes, clientScopes)
 				return false, nil
 			}
 
 			if len(tokenScopes) == 0 || len(tokenScopes) == 0 {
+				logger.Debug(ctx, "Token not allowed: empty scopes len(tokenScopes) == 0 || len(tokenScopes) == 0 %v %v", tokenScopes, clientScopes)
 				return false, nil
 			}
 
@@ -101,7 +107,7 @@ func InitServer(
 				clientScopesMap[clientScope] = struct{}{}
 			}
 
-			for _, s := range strings.Split(scope, ",") {
+			for _, s := range strings.Split(scope, " ") {
 				if _, ok := clientScopesMap[s]; !ok {
 					return false, nil
 				}
@@ -112,7 +118,7 @@ func InitServer(
 
 		srv.SetInternalErrorHandler(func(err error) (re *oauth2errors.Response) {
 			return &oauth2errors.Response{
-				Error: errors.Wrap(err),
+				Error: apperrors.Wrap(err),
 			}
 		})
 

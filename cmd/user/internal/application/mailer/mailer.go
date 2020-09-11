@@ -9,7 +9,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/email"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 const (
@@ -40,7 +40,7 @@ func SendLoginEmail(ctx context.Context, subject, to string, authToken, redirect
 			"authToken": []string{authToken},
 		}.Encode()),
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return sendHTMLEmail(subject, FROM, []string{to}, template.Bytes())

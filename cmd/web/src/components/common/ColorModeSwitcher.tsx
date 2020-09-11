@@ -44,7 +44,6 @@ function ColorModeSwitcher(props: Omit<Props, "aria-label">) {
       size="md"
       fontSize="lg"
       variant="ghost"
-      color="current"
       marginLeft="2"
       onClick={toggleColorMode}
       icon={<SwitchIcon/>}

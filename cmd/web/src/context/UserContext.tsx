@@ -17,7 +17,7 @@ const UserContextProvider = (props: Props) => {
   const [user, setUser] = React.useState(null as user);
   const [authToken, logout] = useAuthToken();
   const fetchJSON = useApi();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!!authToken);
 
   const fetchMe = useCallback(async (): Promise<user> => {
     try {
@@ -68,7 +68,7 @@ const UserContextProvider = (props: Props) => {
   return (
     <UserContext.Provider value={[user, setUser]}>
       {isLoading ? (
-        <Center>
+        <Center minHeight="100vh">
           <CircularProgress/>
         </Center>
       ) : (

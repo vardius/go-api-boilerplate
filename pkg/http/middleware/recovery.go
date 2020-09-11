@@ -8,7 +8,7 @@ import (
 	"github.com/vardius/gorouter/v4"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
@@ -21,7 +21,7 @@ func Recover(logger *log.Logger) gorouter.MiddlewareFunc {
 				if rec := recover(); rec != nil {
 					logger.Critical(r.Context(), "[HTTP] Recovered in %v %s", rec, debug.Stack())
 
-					appErr := errors.Wrap(fmt.Errorf("%w: recovered from panic", application.ErrInternal))
+					appErr := apperrors.Wrap(fmt.Errorf("%w: recovered from panic", application.ErrInternal))
 
 					if err := response.JSONError(r.Context(), w, appErr); err != nil {
 						logger.Critical(r.Context(), "[HTTP] Errors while sending response after panic %v", err)

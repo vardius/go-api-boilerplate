@@ -10,7 +10,7 @@ import (
 type WasCreated struct {
 	ID          uuid.UUID `json:"id"`
 	UserID      uuid.UUID `json:"user_id"`
-	Secret      string    `json:"secret"`
+	Secret      uuid.UUID `json:"secret"`
 	Domain      string    `json:"domain"`
 	RedirectURL string    `json:"redirect_url"`
 	Scopes      []string  `json:"scopes"`
@@ -28,7 +28,7 @@ func (e WasCreated) GetID() string {
 
 // GetSecret client domain
 func (e WasCreated) GetSecret() string {
-	return e.Secret
+	return e.Secret.String()
 }
 
 // GetDomain client domain

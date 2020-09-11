@@ -6,12 +6,12 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	systemErrors "errors"
+	"errors"
 	"fmt"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // NewUserRepository returns mysql view model repository for user
@@ -28,11 +28,11 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 
 	var user User
 	if err := row.Scan(&user.ID, &user.Email); err != nil {
-		if systemErrors.Is(err, sql.ErrNoRows) {
-			return nil, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
 		}
 
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	return user, nil
@@ -43,11 +43,11 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (persiste
 
 	var user User
 	if err := row.Scan(&user.ID); err != nil {
-		if systemErrors.Is(err, sql.ErrNoRows) {
-			return nil, errors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
 		}
 
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	user.Email = email

@@ -10,7 +10,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
@@ -23,12 +23,12 @@ type tokenRepository struct {
 // Save current token changes to event store and publish each event with an event bus
 func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 	if err := r.eventStore.Store(ctx, u.Changes()); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	for _, event := range u.Changes() {
 		if err := r.eventBus.Publish(ctx, event); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 	}
 
@@ -39,12 +39,12 @@ func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 // blocks until event handlers are finished
 func (r *tokenRepository) SaveAndAcknowledge(ctx context.Context, u token.Token) error {
 	if err := r.eventStore.Store(ctx, u.Changes()); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	for _, event := range u.Changes() {
 		if err := r.eventBus.PublishAndAcknowledge(ctx, event); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 	}
 
@@ -55,7 +55,7 @@ func (r *tokenRepository) SaveAndAcknowledge(ctx context.Context, u token.Token)
 func (r *tokenRepository) Get(ctx context.Context, id uuid.UUID) (token.Token, error) {
 	events, err := r.eventStore.GetStream(ctx, id, token.StreamName)
 	if err != nil {
-		return token.Token{}, errors.Wrap(err)
+		return token.Token{}, apperrors.Wrap(err)
 	}
 
 	if len(events) == 0 {

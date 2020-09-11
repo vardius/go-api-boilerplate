@@ -12,7 +12,7 @@ import (
 
 	authdomain "github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
@@ -85,7 +85,7 @@ func (c Client) Changes() []domain.Event {
 func (c *Client) Create(
 	ctx context.Context,
 	clientID uuid.UUID,
-	clientSecret string,
+	clientSecret uuid.UUID,
 	userID uuid.UUID,
 	domain string,
 	redirectURL string,
@@ -99,7 +99,7 @@ func (c *Client) Create(
 		RedirectURL: redirectURL,
 		Scopes:      scopes,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -110,7 +110,7 @@ func (c *Client) Remove(ctx context.Context) error {
 	if _, err := c.trackChange(ctx, WasRemoved{
 		ID: c.id,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -121,7 +121,7 @@ func (c *Client) trackChange(ctx context.Context, e domain.RawEvent) (domain.Eve
 
 	event, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
 	if err != nil {
-		return event, errors.Wrap(err)
+		return event, apperrors.Wrap(err)
 	}
 
 	meta := authdomain.EventMetadata{}
@@ -133,7 +133,7 @@ func (c *Client) trackChange(ctx context.Context, e domain.RawEvent) (domain.Eve
 	}
 	if !meta.IsEmpty() {
 		if err := event.WithMetadata(meta); err != nil {
-			return event, errors.Wrap(err)
+			return event, apperrors.Wrap(err)
 		}
 	}
 

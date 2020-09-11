@@ -31,7 +31,8 @@ type Identity struct {
 	UserID       uuid.UUID `json:"user_id"`
 	UserEmail    string    `json:"user_email"`
 	ClientID     uuid.UUID `json:"client_id"`
-	ClientSecret string    `json:"client_secret"`
+	ClientSecret uuid.UUID `json:"client_secret"`
+	ClientDomain string    `json:"client_domain"`
 	Roles        Role      `json:"roles"`
 }
 
@@ -60,7 +61,7 @@ func (i Identity) RemoveRole(role Role) Identity {
 func (i Identity) HasRole(role Role) bool { return i.Roles&role != 0 }
 
 // New returns a new Identity
-func New(userID, clientID uuid.UUID, userEmail, clientSecret, token string) Identity {
+func New(userID, clientID, clientSecret uuid.UUID, userEmail, token string) Identity {
 	return Identity{
 		Token:        token,
 		UserID:       userID,

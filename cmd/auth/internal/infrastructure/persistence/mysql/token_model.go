@@ -13,8 +13,8 @@ type Token struct {
 	ClientID string           `json:"client_d,omitempty"`
 	UserID   string           `json:"user_id,omitempty"`
 	Scope    string           `json:"scope"`
-	Access   string           `json:"access"`
-	Refresh  string           `json:"refresh"`
+	Access   string           `json:"access_token"`
+	Refresh  string           `json:"refresh_token"`
 	Code     mysql.NullString `json:"code"`
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
@@ -21,21 +21,21 @@ func WhenClientWasRemoved(db *sql.DB, repository persistence.ClientRepository) e
 
 		e := client.WasRemoved{}
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 		defer tx.Rollback()
 
 		if err := repository.Delete(ctx, e.ID.String()); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if err := tx.Commit(); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil

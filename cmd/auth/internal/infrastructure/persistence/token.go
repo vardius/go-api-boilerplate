@@ -27,6 +27,6 @@ type TokenRepository interface {
 	Add(ctx context.Context, token Token) error
 	Delete(ctx context.Context, id string) error
 
-	CountByUserID(ctx context.Context, clientID, userID string) (int32, error)
-	FindAllByUserID(ctx context.Context, clientID, userID string, limit, offset int32) ([]Token, error)
+	CountByClientID(ctx context.Context, clientID string) (int32, error)
+	FindAllByClientID(ctx context.Context, clientID string, limit, offset int32) ([]Token, error)
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -50,7 +50,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 				if err != nil {
 					w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
 
-					response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, errors.Wrap(err)))
+					response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, apperrors.Wrap(err)))
 					return
 				}
 
@@ -58,9 +58,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 				return
 			}
 
-			w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
-
-			response.MustJSONError(r.Context(), w, application.ErrUnauthorized)
+			next.ServeHTTP(w, r)
 		}
 
 		return http.HandlerFunc(fn)
@@ -78,7 +76,7 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 
 			i, err := a.afn(r.Context(), token)
 			if err != nil {
-				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, errors.Wrap(err)))
+				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, apperrors.Wrap(err)))
 				return
 			}
 
@@ -100,7 +98,7 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 
 			i, err := a.afn(r.Context(), cookie.Value)
 			if err != nil {
-				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, errors.Wrap(err)))
+				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, apperrors.Wrap(err)))
 				return
 			}
 

@@ -10,7 +10,7 @@ import (
 	pushpullproto "github.com/vardius/pushpull/proto"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
@@ -50,7 +50,7 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 		Topic: eventType,
 	})
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	b.logger.Info(stream.Context(), "[EventBus] Pull: %s\n", eventType)
@@ -72,11 +72,11 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 		default:
 			resp, err := stream.Recv()
 			if err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 
 			if err := b.dispatchEvent(resp.GetPayload(), fn); err != nil {
-				return errors.Wrap(err)
+				return apperrors.Wrap(err)
 			}
 		}
 	}
@@ -95,7 +95,7 @@ func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 
 	payload, err := json.Marshal(o)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	b.logger.Debug(ctx, "[EventBus] Push: %s %s\n", event.Type, payload)
@@ -104,7 +104,7 @@ func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 		Topic:   event.Type,
 		Payload: payload,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -133,7 +133,7 @@ func (b *eventBus) dispatchEvent(payload []byte, fn eventbus.EventHandler) error
 
 	var o dto
 	if err := json.Unmarshal(payload, &o); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	if o.RequestMetadata != nil {

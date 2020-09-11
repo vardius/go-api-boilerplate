@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/dgrijalva/jwt-go"
 
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 type Authenticator interface {
@@ -28,7 +28,7 @@ func (a secretAuthenticator) Sign(token *jwt.Token) (string, error) {
 func (a secretAuthenticator) Verify(token string, claims jwt.Claims) (err error) {
 	accessToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("failed to decode token, invalid signing method")
+			return nil, apperrors.New("failed to decode token, invalid signing method")
 		}
 		return a.secretKey, nil
 	})
@@ -37,7 +37,7 @@ func (a secretAuthenticator) Verify(token string, claims jwt.Claims) (err error)
 	}
 
 	if !accessToken.Valid {
-		return errors.New("token is not valid, could not parse claims")
+		return apperrors.New("token is not valid, could not parse claims")
 	}
 
 	return nil

@@ -12,7 +12,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
@@ -25,29 +25,33 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 		e := user.WasRegisteredWithGoogle{}
 
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 		defer tx.Rollback()
 
 		if err := repository.Add(ctx, e); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		if err := tx.Commit(); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
+		var scopes []string
+		for _, scope := range oauth2.AllScopes {
+			scopes = append(scopes, string(scope))
+		}
 		if _, err := authClient.CreateClient(ctx, &proto.CreateClientRequest{
 			UserID: e.ID.String(),
 			Domain: config.Env.App.Domain,
-			Scopes: oauth2.AllScopes,
+			Scopes: scopes,
 		}); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil

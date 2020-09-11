@@ -2,6 +2,7 @@ import React, {useRef} from "react";
 import {defineMessages, useIntl} from "react-intl";
 import {
   Button,
+  Center,
   Drawer,
   DrawerBody,
   DrawerCloseButton,
@@ -37,8 +38,10 @@ const LoginDrawerButton = () => {
         <DrawerOverlay/>
         <DrawerContent>
           <DrawerCloseButton border="none"/>
-          <DrawerBody display="flex">
-            <LoginForm onSuccess={onClose}/>
+          <DrawerBody>
+            <Center minHeight="100vh">
+              <LoginForm onSuccess={onClose}/>
+            </Center>
           </DrawerBody>
         </DrawerContent>
       </Drawer>

@@ -11,7 +11,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 )
 
@@ -25,7 +25,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		accessToken := r.FormValue("accessToken")
 		profileData, err := getProfile(accessToken, apiURL)
 		if err != nil {
-			appErr := errors.Wrap(err)
+			appErr := apperrors.Wrap(err)
 
 			response.MustJSONError(r.Context(), w, appErr)
 			return
@@ -33,18 +33,18 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 
 		emailData := requestBody{}
 		if err := json.Unmarshal(profileData, &emailData); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
 		c, err := user.NewCommandFromPayload(commandName, profileData)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
 		if err := cb.Publish(r.Context(), c); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
@@ -53,18 +53,18 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 		// persisted (see: SaveAndAcknowledge method)
 		i, err := identityProvider.GetByUserEmail(r.Context(), emailData.Email, config.Env.App.Domain)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
-		token, err := tokenProvider.RetrievePasswordCredentialsToken(r.Context(), i.ClientID.String(), i.ClientSecret, emailData.Email, []string{"all"})
+		token, err := tokenProvider.RetrievePasswordCredentialsToken(r.Context(), i.ClientID.String(), i.ClientSecret.String(), emailData.Email, oauth2.AllScopes)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return
 		}
 
 		if err := response.JSON(r.Context(), w, http.StatusOK, token); err != nil {
-			response.MustJSONError(r.Context(), w, errors.Wrap(err))
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 		}
 	}
 
@@ -80,7 +80,7 @@ func getProfile(accessToken, apiURL string) ([]byte, error) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return body, errors.Wrap(err)
+		return body, apperrors.Wrap(err)
 	}
 
 	return body, nil

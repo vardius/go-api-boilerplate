@@ -12,7 +12,7 @@ import (
 
 	authdomain "github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
@@ -102,7 +102,7 @@ func (t *Token) Create(
 		Refresh:  refresh,
 		Scope:    scope,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -113,7 +113,7 @@ func (t *Token) Remove(ctx context.Context) error {
 	if _, err := t.trackChange(ctx, WasRemoved{
 		ID: t.id,
 	}); err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Even
 
 	event, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
 	if err != nil {
-		return event, errors.Wrap(err)
+		return event, apperrors.Wrap(err)
 	}
 
 	meta := authdomain.EventMetadata{}
@@ -136,7 +136,7 @@ func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Even
 	}
 	if !meta.IsEmpty() {
 		if err := event.WithMetadata(meta); err != nil {
-			return event, errors.Wrap(err)
+			return event, apperrors.Wrap(err)
 		}
 	}
 

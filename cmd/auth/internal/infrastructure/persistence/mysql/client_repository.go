@@ -7,7 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	systemErrors "errors"
+	"errors"
 	"fmt"
 
 	"gopkg.in/oauth2.v4"
@@ -15,7 +15,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 type clientRepository struct {
@@ -24,8 +24,9 @@ type clientRepository struct {
 
 func (r *clientRepository) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
 	c, err := r.Get(ctx, id)
+
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	return c, nil
@@ -38,14 +39,15 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 	var client Client
 
 	err := row.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.RedirectURL, &scope)
+
 	switch {
-	case systemErrors.Is(err, sql.ErrNoRows):
-		return nil, errors.Wrap(fmt.Errorf("%w: Client (id:%s) not found: %s", application.ErrNotFound, id, err))
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, apperrors.Wrap(fmt.Errorf("%w: Client (id:%s) not found: %s", application.ErrNotFound, id, err))
 	case err != nil:
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	default:
 		if err := json.Unmarshal(scope, &client.Scopes); err != nil {
-			return nil, errors.Wrap(err)
+			return nil, apperrors.Wrap(err)
 		}
 		return client, nil
 	}
@@ -61,7 +63,7 @@ func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, l
 		offset,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 	defer rows.Close()
 
@@ -71,17 +73,17 @@ func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, l
 		var scope json.RawMessage
 		var client Client
 		if err := rows.Scan(&client.ID, &client.UserID, &client.Secret, &client.Domain, &client.RedirectURL, &scope); err != nil {
-			return nil, errors.Wrap(err)
+			return nil, apperrors.Wrap(err)
 		}
 		if err := json.Unmarshal(scope, &client.Scopes); err != nil {
-			return nil, errors.Wrap(err)
+			return nil, apperrors.Wrap(err)
 		}
 
 		clients = append(clients, client)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, errors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	return clients, nil
@@ -97,7 +99,7 @@ func (r *clientRepository) CountByUserID(ctx context.Context, userID string) (in
 		config.Env.App.Domain,
 	)
 	if err := row.Scan(&total); err != nil {
-		return 0, errors.Wrap(err)
+		return 0, apperrors.Wrap(err)
 	}
 
 	return total, nil
@@ -115,27 +117,27 @@ func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error 
 
 	scope, err := json.Marshal(c.GetScopes())
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, user_id, secret, domain, redirect_url, scope) VALUES (?,?,?,?,?,?)`)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, client.ID, client.UserID, client.Secret, client.Domain, client.RedirectURL, scope)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New("Did not add client")
+		return apperrors.New("Did not add client")
 	}
 
 	return nil
@@ -144,22 +146,22 @@ func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error 
 func (r *clientRepository) Delete(ctx context.Context, id string) error {
 	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM clients WHERE id=?`)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 	defer stmt.Close()
 
 	result, err := stmt.ExecContext(ctx, id)
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err)
+		return apperrors.Wrap(err)
 	}
 
 	if rows != 1 {
-		return errors.New("Did not delete client")
+		return apperrors.New("Did not delete client")
 	}
 
 	return nil

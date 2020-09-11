@@ -7,9 +7,9 @@
     "pl"
   ],
   "dependencies": {
-    "@chakra-ui/core": "^1.0.0-next.6",
-    "@chakra-ui/theme": "^1.0.0-next.6",
-    "@chakra-ui/theme-tools": "^1.0.0-next.6",
+    "@chakra-ui/core": "^1.0.0-rc.3",
+    "@chakra-ui/theme": "^1.0.0-rc.3",
+    "@chakra-ui/theme-tools": "^1.0.0-rc.3",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",

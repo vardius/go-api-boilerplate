@@ -9,7 +9,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -25,12 +25,12 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	case RemoveAuthToken:
 		command := Remove{}
 		if err := unmarshalPayload(payload, &command); err != nil {
-			return command, errors.Wrap(err)
+			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	default:
-		return nil, errors.New("Invalid command contract")
+		return nil, apperrors.Wrap(fmt.Errorf("invalid command contract: %s", contract))
 	}
 }
 
@@ -49,28 +49,28 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(Remove)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		i, hasIdentity := identity.FromContext(ctx)
 		if !hasIdentity {
-			return errors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(application.ErrUnauthorized)
 		}
 
 		token, err := repository.Get(ctx, c.ID)
 		if err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 		if i.UserID.String() != token.userID.String() {
-			return errors.Wrap(application.ErrForbidden)
+			return apperrors.Wrap(application.ErrForbidden)
 		}
 
 		if err := token.Remove(ctx); err != nil {
-			return errors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil
@@ -99,20 +99,20 @@ func OnCreate(repository Repository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(Create)
 		if !ok {
-			return errors.New("invalid command")
+			return apperrors.New("invalid command")
 		}
 
 		i, hasIdentity := identity.FromContext(ctx)
 		if !hasIdentity {
-			return errors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(application.ErrUnauthorized)
 		}
 		if i.UserID.String() != c.UserID.String() {
-			return errors.Wrap(application.ErrForbidden)
+			return apperrors.Wrap(application.ErrForbidden)
 		}
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			return errors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
 		}
 
 		token := New()
@@ -126,11 +126,11 @@ func OnCreate(repository Repository) commandbus.CommandHandler {
 			c.Access,
 			c.Refresh,
 		); err != nil {
-			return errors.Wrap(fmt.Errorf("%w: Error when creating new token: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Error when creating new token: %s", application.ErrInternal, err))
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {
-			return errors.Wrap(err)
+			return apperrors.Wrap(err)
 		}
 
 		return nil

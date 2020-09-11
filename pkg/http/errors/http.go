@@ -1,10 +1,12 @@
 package errors
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
+	mtd "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 type HttpError struct {
@@ -13,7 +15,7 @@ type HttpError struct {
 	RequestID string `json:"request_id,omitempty"`
 }
 
-func NewHttpError(err error) *HttpError {
+func NewHttpError(ctx context.Context, err error) *HttpError {
 	code := http.StatusInternalServerError
 
 	switch {
@@ -33,8 +35,15 @@ func NewHttpError(err error) *HttpError {
 		code = http.StatusInternalServerError
 	}
 
-	return &HttpError{
+	httpError := &HttpError{
 		Code:    code,
 		Message: http.StatusText(code),
 	}
+
+	if m, ok := mtd.FromContext(ctx); ok {
+		httpError.RequestID = m.TraceID
+		m.Err = err
+	}
+
+	return httpError
 }

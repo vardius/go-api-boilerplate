@@ -12,7 +12,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	grpcerrors "github.com/vardius/go-api-boilerplate/pkg/grpc/errors"
 )
 
@@ -35,11 +35,11 @@ func NewServer(cb commandbus.CommandBus, r persistence.UserRepository) proto.Use
 func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
 	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
 	if err != nil {
-		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
+		return nil, grpcerrors.NewGRPCError(apperrors.Wrap(err))
 	}
 
 	if err := s.commandBus.Publish(ctx, c); err != nil {
-		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
+		return nil, grpcerrors.NewGRPCError(apperrors.Wrap(err))
 	}
 
 	return new(empty.Empty), nil
@@ -49,7 +49,7 @@ func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchComma
 func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*proto.User, error) {
 	u, err := s.userRepository.Get(ctx, r.GetId())
 	if err != nil {
-		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
+		return nil, grpcerrors.NewGRPCError(apperrors.Wrap(err))
 	}
 
 	return &proto.User{
@@ -63,7 +63,7 @@ func (s *userServer) GetUser(ctx context.Context, r *proto.GetUserRequest) (*pro
 // ListUsers implements proto.UserServiceServer interface
 func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*proto.ListUserResponse, error) {
 	if r.GetPage() < 1 || r.GetLimit() < 1 {
-		return nil, grpcerrors.NewGRPCError(errors.New("Invalid page or limit value. Please provide values greater then 1"))
+		return nil, grpcerrors.NewGRPCError(apperrors.New("Invalid page or limit value. Please provide values greater then 1"))
 	}
 
 	var users []persistence.User
@@ -71,7 +71,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 
 	totalUsers, err := s.userRepository.Count(ctx)
 	if err != nil {
-		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
+		return nil, grpcerrors.NewGRPCError(apperrors.Wrap(err))
 	}
 
 	offset := (r.GetPage() * r.GetLimit()) - r.GetLimit()
@@ -87,7 +87,7 @@ func (s *userServer) ListUsers(ctx context.Context, r *proto.ListUserRequest) (*
 
 	users, err = s.userRepository.FindAll(ctx, r.GetLimit(), offset)
 	if err != nil {
-		return nil, grpcerrors.NewGRPCError(errors.Wrap(err))
+		return nil, grpcerrors.NewGRPCError(apperrors.Wrap(err))
 	}
 
 	list = make([]*proto.User, len(users))

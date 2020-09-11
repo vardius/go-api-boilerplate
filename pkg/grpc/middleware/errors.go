@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // TransformStreamIncomingError transforms incoming error into app error
@@ -24,7 +24,7 @@ import (
 func TransformStreamIncomingError() grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		if err := handler(srv, ss); err != nil {
-			return errors.Wrap(appError(err))
+			return apperrors.Wrap(appError(err))
 		}
 
 		return nil
@@ -44,7 +44,7 @@ func TransformUnaryIncomingError() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {
-			return resp, errors.Wrap(appError(err))
+			return resp, apperrors.Wrap(appError(err))
 		}
 
 		return resp, nil

@@ -19,7 +19,8 @@ type Metadata struct {
 	Now        time.Time `json:"-"`
 	TraceID    string    `json:"trace_id,omitempty"`
 	IPAddress  net.IP    `json:"ip_address,omitempty"`
-	StatusCode int       `json:"statusCode,omitempty"`
+	StatusCode int       `json:"http_status,omitempty"`
+	Err        error     `json:"-"`
 }
 
 func New() *Metadata {

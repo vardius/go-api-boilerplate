@@ -13,7 +13,7 @@ import (
 	"gopkg.in/oauth2.v4/utils/uuid"
 
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
-	"github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 // JWTAccessClaims jwt claims
@@ -46,14 +46,18 @@ type JWTAccess struct {
 
 // Token based on the UUID generated token
 func (a *JWTAccess) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
-	userID, err := id.Parse(data.TokenInfo.GetUserID())
-	if err != nil {
-		return "", "", errors.Wrap(err)
+	var userID id.UUID
+	if data.UserID != "" {
+		userUUID, err := id.Parse(data.UserID)
+		if err != nil {
+			return "", "", apperrors.Wrap(err)
+		}
+		userID = userUUID
 	}
 
 	clientID, err := id.Parse(data.Client.GetID())
 	if err != nil {
-		return "", "", errors.Wrap(err)
+		return "", "", apperrors.Wrap(err)
 	}
 
 	var expiresAt int64
@@ -77,7 +81,7 @@ func (a *JWTAccess) Token(ctx context.Context, data *oauth2.GenerateBasic, isGen
 
 	access, err := a.authenticator.Sign(token)
 	if err != nil {
-		return "", "", errors.Wrap(err)
+		return "", "", apperrors.Wrap(err)
 	}
 	refresh := ""
 

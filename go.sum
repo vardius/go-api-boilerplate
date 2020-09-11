@@ -167,12 +167,10 @@ github.com/valyala/fasthttp v1.16.0/go.mod h1:YOKImeEosDdBPnxc0gy7INqi3m1zK6A+xl
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
 github.com/vardius/gocontainer v1.0.3 h1:SD6GFnW/k0q1n4o7gLWie2kH1iBYNyKJl5hu9P3pQGQ=
 github.com/vardius/gocontainer v1.0.3/go.mod h1:9H+u2t/TmBGPbBGAvp74jKMxJ0yE9flVP4GGlyOkX8E=
-github.com/vardius/gollback v1.1.0 h1:vBvtYRcYDMvMcQUJsiHvzxPR5Gb+kGbikYaubkF9R0s=
-github.com/vardius/gollback v1.1.0/go.mod h1:MeIopn8KzLR11VlCuds97h/g0FwgnjloNolBsyTl0OM=
 github.com/vardius/golog v1.1.1 h1:BsQDbgzKWkUzZbeOQ/xJMkqFOKLTQyjOVlyNCqIbWug=
 github.com/vardius/golog v1.1.1/go.mod h1:mqo2VxWBUb0syu3GDSU1JOnHsY4IjyBcPfTzGE4bMqU=
-github.com/vardius/gorouter/v4 v4.4.7 h1:rwy9/Z21OWlJQ+8xI9UCsSl4x8fCdM/KdCCBlVto+uY=
-github.com/vardius/gorouter/v4 v4.4.7/go.mod h1:HUZmv8K/yhBG1WHDlIRSWo3WPjK1MYyOFDXSyC8wehg=
+github.com/vardius/gorouter/v4 v4.5.1 h1:G4z0s/UFobopcA9zQFGqBBYFxG0PFk/w7x3ZVktXLEw=
+github.com/vardius/gorouter/v4 v4.5.1/go.mod h1:HUZmv8K/yhBG1WHDlIRSWo3WPjK1MYyOFDXSyC8wehg=
 github.com/vardius/message-bus v1.1.4 h1:qJnTHJ8AvhbVndSMlCYbnHhxFX180Vf25okxe4pKSaU=
 github.com/vardius/message-bus v1.1.4/go.mod h1:6xladCV2lMkUAE4bzzS85qKOiB5miV7aBVRafiTJGqw=
 github.com/vardius/pubsub/v2 v2.0.0 h1:Qap+eCkCmf0W6u30YZvDfx6kSVt7X40jVOkr1SVFAfk=
