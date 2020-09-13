@@ -1,13 +1,19 @@
 package middleware
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 
 	"github.com/vardius/gorouter/v4"
 
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/request"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	md "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
+
+const InternalRequestMetadataKey = "m"
 
 // responseWriter is a minimal wrapper for http.ResponseWriter that allows the
 // written HTTP statusCode to be captured for metadata.
@@ -37,20 +43,33 @@ func (rw *responseWriter) WriteHeader(statusCode int) {
 func WithMetadata() gorouter.MiddlewareFunc {
 	m := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			// set the context with the required values to
-			// process the request.
-			mtd := md.New()
 
-			mtd.RemoteAddr = r.RemoteAddr
-			mtd.UserAgent = r.UserAgent()
-			mtd.Referer = r.Referer()
-			if ip, err := request.IpAddress(r); err == nil {
-				mtd.IPAddress = ip
+			var mtd md.Metadata
+			if m := r.URL.Query().Get(InternalRequestMetadataKey); m != "" {
+				data, err := base64.RawURLEncoding.DecodeString(m)
+				if err != nil {
+					response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+				}
+
+				if err := json.Unmarshal(data, &mtd); err != nil {
+					response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+				}
+			} else {
+				// set the context with the required values to
+				// process the request.
+				mtd := md.New()
+
+				mtd.RemoteAddr = r.RemoteAddr
+				mtd.UserAgent = r.UserAgent()
+				mtd.Referer = r.Referer()
+				if ip, err := request.IpAddress(r); err == nil {
+					mtd.IPAddress = ip
+				}
 			}
 
-			ctx := md.ContextWithMetadata(r.Context(), mtd)
+			ctx := md.ContextWithMetadata(r.Context(), &mtd)
 
-			next.ServeHTTP(wrapResponseWriter(w, mtd), r.WithContext(ctx))
+			next.ServeHTTP(wrapResponseWriter(w, &mtd), r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)

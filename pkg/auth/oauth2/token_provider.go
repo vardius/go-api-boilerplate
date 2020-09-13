@@ -2,11 +2,16 @@ package oauth2
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"golang.org/x/oauth2"
 
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/http/middleware"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 var AllScopes = []Scope{ScopeAll}
@@ -34,13 +39,23 @@ func (a *credentialsProvider) RetrievePasswordCredentialsToken(ctx context.Conte
 		return nil, apperrors.Wrap(fmt.Errorf("insufficent scope: %v", scopes))
 	}
 
+	meta := url.Values{}
+	if m, ok := metadata.FromContext(ctx); ok {
+		data, err := json.Marshal(m)
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+
+		meta.Set(middleware.InternalRequestMetadataKey, base64.RawURLEncoding.EncodeToString(data))
+	}
+
 	config := oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Endpoint: oauth2.Endpoint{
 			AuthStyle: oauth2.AuthStyleInHeader,
 			AuthURL:   fmt.Sprintf("http://%s:%d/v1/authorize", a.host, a.port),
-			TokenURL:  fmt.Sprintf("http://%s:%d/v1/token", a.host, a.port),
+			TokenURL:  fmt.Sprintf("http://%s:%d/v1/token?%s", a.host, a.port, meta.Encode()),
 		},
 	}
 
