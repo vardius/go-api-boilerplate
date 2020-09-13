@@ -44,7 +44,7 @@ func WithMetadata() gorouter.MiddlewareFunc {
 	m := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
-			var mtd md.Metadata
+			var mtd *md.Metadata
 			if m := r.URL.Query().Get(InternalRequestMetadataKey); m != "" {
 				data, err := base64.RawURLEncoding.DecodeString(m)
 				if err != nil {
@@ -57,7 +57,7 @@ func WithMetadata() gorouter.MiddlewareFunc {
 			} else {
 				// set the context with the required values to
 				// process the request.
-				mtd := md.New()
+				mtd = md.New()
 
 				mtd.RemoteAddr = r.RemoteAddr
 				mtd.UserAgent = r.UserAgent()
@@ -67,9 +67,9 @@ func WithMetadata() gorouter.MiddlewareFunc {
 				}
 			}
 
-			ctx := md.ContextWithMetadata(r.Context(), &mtd)
+			ctx := md.ContextWithMetadata(r.Context(), mtd)
 
-			next.ServeHTTP(wrapResponseWriter(w, &mtd), r.WithContext(ctx))
+			next.ServeHTTP(wrapResponseWriter(w, mtd), r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)
