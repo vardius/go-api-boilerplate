@@ -23,7 +23,7 @@ func NewIdentityProvider(db *sql.DB) *identityProvider {
 	}
 }
 
-func (p *identityProvider) GetByUserID(ctx context.Context, userID, clientID uuid.UUID) (identity.Identity, error) {
+func (p *identityProvider) GetByUserID(ctx context.Context, userID, clientID uuid.UUID) (*identity.Identity, error) {
 	var i identity.Identity
 
 	row := p.db.QueryRowContext(ctx, `
@@ -38,10 +38,10 @@ LIMIT 1
 	err := row.Scan(&i.ClientID, &i.ClientSecret, &i.ClientDomain, &i.UserID, &i.UserEmail)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return i, apperrors.Wrap(fmt.Errorf("%w: credentials not found: %s", application.ErrNotFound, err))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: credentials not found: %s", application.ErrNotFound, err))
 	case err != nil:
-		return i, apperrors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
-	return i, nil
+	return &i, nil
 }

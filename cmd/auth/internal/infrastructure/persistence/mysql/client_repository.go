@@ -49,7 +49,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 		if err := json.Unmarshal(scope, &client.Scopes); err != nil {
 			return nil, apperrors.Wrap(err)
 		}
-		return client, nil
+		return &client, nil
 	}
 }
 
@@ -79,7 +79,7 @@ func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, l
 			return nil, apperrors.Wrap(err)
 		}
 
-		clients = append(clients, client)
+		clients = append(clients, &client)
 	}
 
 	if err := rows.Err(); err != nil {

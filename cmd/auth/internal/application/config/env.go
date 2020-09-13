@@ -18,7 +18,7 @@ type environment struct {
 		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
 		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
 		Secret              string        `env:"AUTH_SECRET"               envDefault:"secret"`
-		AuthorizeURL        string        `env:"AUTH_AUTHORIZE_URL"`
+		AuthorizeURL        string        `env:"AUTH_AUTHORIZE_URL"        envDefault:"http://localhost:3000/authorize"`
 	}
 	OAuth struct {
 		InitTimeout time.Duration `env:"OAUTH_INIT_TIMEOUT" envDefault:"15s"`
@@ -31,7 +31,7 @@ type environment struct {
 		Host string `env:"HOST"      envDefault:"0.0.0.0"`
 		Port int    `env:"HTTP_PORT" envDefault:"3000"`
 		// Origins should follow format: scheme "://" host [ ":" port ]
-		Origins []string `env:"HTTP_ORIGINS" envSeparator:"|" envDefault:"http://localhost:3000|http://0.0.0.0:3000|http://127.0.0.1:3000"`
+		Origins []string `env:"HTTP_ORIGINS" envSeparator:"|" envDefault:"*"`
 
 		ReadTimeout  time.Duration `env:"HTTP_SERVER_READ_TIMEOUT"     envDefault:"5s"`
 		WriteTimeout time.Duration `env:"HTTP_SERVER_WRITE_TIMEOUT"    envDefault:"10s"`

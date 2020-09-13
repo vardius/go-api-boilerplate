@@ -7,9 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// NullIdentity represents empty Identity
-var NullIdentity Identity
-
 // Role type
 type Role uint8
 
@@ -37,32 +34,26 @@ type Identity struct {
 }
 
 // WithToken returns copy of an identity with given oauth2 token
-func (i Identity) WithToken(token string) Identity {
+func (i *Identity) WithToken(token string) {
 	i.Token = token
-
-	return i
 }
 
 // WithRole adds role to identity roles
-func (i Identity) WithRole(role Role) Identity {
+func (i *Identity) WithRole(role Role) {
 	i.Roles |= role
-
-	return i
 }
 
 // RemoveRole removes role from identity
-func (i Identity) RemoveRole(role Role) Identity {
+func (i *Identity) RemoveRole(role Role) {
 	i.Roles = i.Roles &^ role
-
-	return i
 }
 
 // HasRole returns true if identity has give role
-func (i Identity) HasRole(role Role) bool { return i.Roles&role != 0 }
+func (i *Identity) HasRole(role Role) bool { return i.Roles&role != 0 }
 
 // New returns a new Identity
-func New(userID, clientID, clientSecret uuid.UUID, userEmail, token string) Identity {
-	return Identity{
+func New(userID, clientID, clientSecret uuid.UUID, userEmail, token string) *Identity {
+	return &Identity{
 		Token:        token,
 		UserID:       userID,
 		UserEmail:    userEmail,

@@ -61,7 +61,7 @@ const LoginForm = (props: Props) => {
   const intl = useIntl();
   const location = useLocation();
   const toast = useToast();
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("users");
   const [user, setUser] = useUser();
   const [, logout] = useAuthToken();
   const [email, setEmail] = useState("");
@@ -76,7 +76,7 @@ const LoginForm = (props: Props) => {
       let redirectPath = (from.pathname || '');
       redirectPath += (from.search || '');
       redirectPath += (from.hash || '');
-      if (redirectPath === "/") {
+      if (!redirectPath || redirectPath === "/") {
         redirectPath = null;
       }
 
@@ -84,7 +84,7 @@ const LoginForm = (props: Props) => {
 
       try {
         return await fetchJSON(
-          "/users/v1/dispatch/user/request-user-access-token",
+          "/dispatch/user/request-user-access-token",
           "POST",
           null,
           body
@@ -92,7 +92,7 @@ const LoginForm = (props: Props) => {
       } catch (err) {
         if (err instanceof NotFoundHttpError) {
           return await fetchJSON(
-            "/users/v1/dispatch/user/register-user-with-email",
+            "/dispatch/user/register-user-with-email",
             "POST",
             null,
             body

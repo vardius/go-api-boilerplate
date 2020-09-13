@@ -8,7 +8,7 @@ const page = 1
 const limit = 999
 
 function AuthTokenList() {
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("auth");
 
   const [user] = useUser();
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +20,7 @@ function AuthTokenList() {
         return null;
       }
 
-      return await fetchJSON(`/auth/v1/users/${user.id}/tokens`, "GET", new URLSearchParams({
+      return await fetchJSON(`/users/${user.id}/tokens`, "GET", new URLSearchParams({
         page: String(page),
         limit: String(limit),
       }));
@@ -71,10 +71,10 @@ function AuthTokenList() {
 
   return (
     <Box>
-      {tokens.map(({id, access_token, user_agent}) => <AuthToken
+      {tokens.map(({id, access, user_agent}) => <AuthToken
         key={id}
         id={id}
-        authToken={access_token}
+        authToken={access}
         title={user_agent || id}
         onRemove={handleRemoveToken}
       />)}

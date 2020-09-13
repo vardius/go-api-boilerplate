@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -24,7 +25,7 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	switch contract {
 	case RemoveAuthToken:
 		command := Remove{}
-		if err := unmarshalPayload(payload, &command); err != nil {
+		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
@@ -67,66 +68,6 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 
 		if err := token.Remove(ctx); err != nil {
 			return apperrors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
-		}
-
-		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		return nil
-	}
-
-	return fn
-}
-
-// Create command
-type Create struct {
-	ClientID uuid.UUID `json:"client_id"`
-	UserID   uuid.UUID `json:"user_id"`
-	Code     string    `json:"code"`
-	Scope    string    `json:"scope"`
-	Access   string    `json:"access"`
-	Refresh  string    `json:"refresh"`
-}
-
-// GetName returns command name
-func (c Create) GetName() string {
-	return fmt.Sprintf("%T", c)
-}
-
-// OnCreate creates command handler
-func OnCreate(repository Repository) commandbus.CommandHandler {
-	fn := func(ctx context.Context, command domain.Command) error {
-		c, ok := command.(Create)
-		if !ok {
-			return apperrors.New("invalid command")
-		}
-
-		i, hasIdentity := identity.FromContext(ctx)
-		if !hasIdentity {
-			return apperrors.Wrap(application.ErrUnauthorized)
-		}
-		if i.UserID.String() != c.UserID.String() {
-			return apperrors.Wrap(application.ErrForbidden)
-		}
-
-		id, err := uuid.NewRandom()
-		if err != nil {
-			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
-		}
-
-		token := New()
-		if err := token.Create(
-			ctx,
-			id,
-			c.ClientID,
-			c.UserID,
-			c.Code,
-			c.Scope,
-			c.Access,
-			c.Refresh,
-		); err != nil {
-			return apperrors.Wrap(fmt.Errorf("%w: Error when creating new token: %s", application.ErrInternal, err))
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {

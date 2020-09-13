@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -43,14 +44,14 @@ func FromHistory(events []domain.Event) Client {
 		switch domainEvent.Type {
 		case (WasCreated{}).GetType():
 			wasCreated := WasCreated{}
-			if err := unmarshalPayload(domainEvent.Payload, &wasCreated); err != nil {
+			if err := json.Unmarshal(domainEvent.Payload, &wasCreated); err != nil {
 				log.Panicf("Error while trying to unmarshal client event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasCreated
 		case (WasRemoved{}).GetType():
 			wasRemoved := WasRemoved{}
-			if err := unmarshalPayload(domainEvent.Payload, &wasRemoved); err != nil {
+			if err := json.Unmarshal(domainEvent.Payload, &wasRemoved); err != nil {
 				log.Panicf("Error while trying to unmarshal client event %s. %s", domainEvent.Type, err)
 			}
 
@@ -126,10 +127,12 @@ func (c *Client) trackChange(ctx context.Context, e domain.RawEvent) (domain.Eve
 
 	meta := authdomain.EventMetadata{}
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
-		meta.Identity = &i
+		meta.Identity = i
 	}
 	if m, ok := metadata.FromContext(ctx); ok {
 		meta.IPAddress = m.IPAddress
+		meta.UserAgent = m.UserAgent
+		meta.Referer = m.Referer
 	}
 	if !meta.IsEmpty() {
 		if err := event.WithMetadata(meta); err != nil {

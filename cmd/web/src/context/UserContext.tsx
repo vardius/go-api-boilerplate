@@ -16,12 +16,12 @@ export interface Props {
 const UserContextProvider = (props: Props) => {
   const [user, setUser] = React.useState(null as user);
   const [authToken, logout] = useAuthToken();
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("users");
   const [isLoading, setIsLoading] = useState(!!authToken);
 
   const fetchMe = useCallback(async (): Promise<user> => {
     try {
-      const json = await fetchJSON(`/users/v1/me`, "GET");
+      const json = await fetchJSON(`/me`, "GET");
 
       return json as User;
     } catch (err) {

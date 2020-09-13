@@ -5,10 +5,12 @@ package token
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/google/uuid"
+	"gopkg.in/oauth2.v4"
 
 	authdomain "github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
@@ -43,14 +45,14 @@ func FromHistory(events []domain.Event) Token {
 		switch domainEvent.Type {
 		case (WasCreated{}).GetType():
 			wasCreated := WasCreated{}
-			if err := unmarshalPayload(domainEvent.Payload, &wasCreated); err != nil {
+			if err := json.Unmarshal(domainEvent.Payload, &wasCreated); err != nil {
 				log.Panicf("Error while trying to unmarshal token event %s. %s", domainEvent.Type, err)
 			}
 
 			e = wasCreated
 		case (WasRemoved{}).GetType():
 			wasRemoved := WasRemoved{}
-			if err := unmarshalPayload(domainEvent.Payload, &wasRemoved); err != nil {
+			if err := json.Unmarshal(domainEvent.Payload, &wasRemoved); err != nil {
 				log.Panicf("Error while trying to unmarshal token event %s. %s", domainEvent.Type, err)
 			}
 
@@ -87,20 +89,21 @@ func (t *Token) Create(
 	id uuid.UUID,
 	clientID uuid.UUID,
 	userID uuid.UUID,
-	code string,
-	scope string,
-	access string,
-	refresh string,
+	info oauth2.TokenInfo,
+	userAgent string,
 
 ) error {
+	data, err := json.Marshal(info)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
 	if _, err := t.trackChange(ctx, WasCreated{
-		ID:       id,
-		ClientID: clientID,
-		UserID:   userID,
-		Code:     code,
-		Access:   access,
-		Refresh:  refresh,
-		Scope:    scope,
+		ID:        id,
+		ClientID:  clientID,
+		UserID:    userID,
+		Data:      data,
+		UserAgent: userAgent,
 	}); err != nil {
 		return apperrors.Wrap(err)
 	}
@@ -129,10 +132,12 @@ func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Even
 
 	meta := authdomain.EventMetadata{}
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
-		meta.Identity = &i
+		meta.Identity = i
 	}
 	if m, ok := metadata.FromContext(ctx); ok {
 		meta.IPAddress = m.IPAddress
+		meta.UserAgent = m.UserAgent
+		meta.Referer = m.Referer
 	}
 	if !meta.IsEmpty() {
 		if err := event.WithMetadata(meta); err != nil {

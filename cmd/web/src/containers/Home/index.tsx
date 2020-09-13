@@ -15,7 +15,7 @@ const messages = defineMessages({
 
 function Home() {
   const intl = useIntl();
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("users");
 
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
@@ -25,7 +25,7 @@ function Home() {
 
   const fetchUsers = useCallback(
     async ({page, limit}: { page: number; limit: number }) => {
-      return await fetchJSON("/users/v1", "GET", new URLSearchParams({
+      return await fetchJSON("/", "GET", new URLSearchParams({
         page: String(page),
         limit: String(limit),
       }));

@@ -4,51 +4,44 @@ Package mysql holds view model repositories
 package mysql
 
 import (
+	"encoding/json"
+	"time"
+
+	"gopkg.in/oauth2.v4"
+	"gopkg.in/oauth2.v4/models"
+
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
 // Token model
 type Token struct {
-	ID       string           `json:"id"`
-	ClientID string           `json:"client_d,omitempty"`
-	UserID   string           `json:"user_id,omitempty"`
-	Scope    string           `json:"scope"`
-	Access   string           `json:"access_token"`
-	Refresh  string           `json:"refresh_token"`
-	Code     mysql.NullString `json:"code"`
+	ID        string           `json:"id"`
+	ClientID  string           `json:"-"`
+	UserID    string           `json:"-"`
+	Access    string           `json:"access"`
+	Refresh   mysql.NullString `json:"refresh,omitempty"`
+	Code      mysql.NullString `json:"-"`
+	UserAgent mysql.NullString `json:"user_agent,omitempty"`
+	ExpiredAt time.Time        `json:"-"`
+	Data      json.RawMessage  `json:"-"`
 }
 
-// GetID the id
-func (t Token) GetID() string {
+func (t *Token) GetID() string {
 	return t.ID
 }
 
-// GetClientID the client id
-func (t Token) GetClientID() string {
-	return t.ClientID
+func (t *Token) GetUserAgent() string {
+	return t.UserAgent.String
 }
 
-// GetUserID the user id
-func (t Token) GetUserID() string {
-	return t.UserID
+func (t *Token) GetData() json.RawMessage {
+	return t.Data
 }
 
-// GetAccess access Token
-func (t Token) GetAccess() string {
-	return t.Access
-}
-
-// GetRefresh refresh Token
-func (t Token) GetRefresh() string {
-	return t.Refresh
-}
-
-// GetScope get scope of authorization
-func (t Token) GetScope() string {
-	return t.Scope
-}
-
-// GetCode authorization code
-func (t Token) GetCode() string {
-	return t.Code.String
+func (t *Token) TokenInfo() (oauth2.TokenInfo, error) {
+	var tm models.Token
+	if err := json.Unmarshal(t.Data, &tm); err != nil {
+		return &tm, err
+	}
+	return &tm, nil
 }

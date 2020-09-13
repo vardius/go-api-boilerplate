@@ -11,7 +11,7 @@ func TestContext(t *testing.T) {
 	identity := Identity{
 		UserID: uuid.New(),
 	}
-	ctx := ContextWithIdentity(context.Background(), identity)
+	ctx := ContextWithIdentity(context.Background(), &identity)
 	identityFromContext, ok := FromContext(ctx)
 	if ok && identity.UserID == identityFromContext.UserID {
 		return

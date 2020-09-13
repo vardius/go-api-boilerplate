@@ -41,9 +41,9 @@ func NewRouter(
 		httpmiddleware.Logger(logger),
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),
-		authenticator.FromHeader("Restricted"),
-		authenticator.FromQuery("authToken"),
-		authenticator.FromCookie("at"),
+		authenticator.FromHeader("Restricted", logger),
+		authenticator.FromQuery("authToken", logger),
+		authenticator.FromCookie("at", logger),
 		httpmiddleware.CORS(
 			[]string{config.Env.App.Domain},
 			config.Env.HTTP.Origins,
@@ -56,7 +56,9 @@ func NewRouter(
 	router.NotFound(response.NotFound())
 	router.NotAllowed(response.NotAllowed())
 
-	router.POST("/authorize", handlers.BuildAuthorizeHandler(server))
+	authorizeHandler := handlers.BuildAuthorizeHandler(server)
+	router.GET("/authorize", authorizeHandler)
+	router.POST("/authorize", authorizeHandler)
 	router.POST("/token", handlers.BuildTokenHandler(server))
 
 	router.POST("/dispatch/client/{command}", handlers.BuildClientCommandDispatchHandler(commandBus))
@@ -64,7 +66,7 @@ func NewRouter(
 
 	router.GET("/clients", handlers.BuildListClientsHandler(clientRepository))
 	router.GET("/clients/{clientID}", handlers.BuildGetClientHandler(clientRepository))
-	router.GET("/clients/{clientID}/tokens", handlers.BuildListTokensHandler(tokenRepository))
+	router.GET("/clients/{clientID}/tokens", handlers.BuildListTokensHandler(tokenRepository, clientRepository))
 	router.GET("/users/{userID}/tokens", handlers.BuildListUserAuthTokensHandler(tokenRepository))
 
 	// middleware applies to whole subtrees

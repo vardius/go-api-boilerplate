@@ -77,7 +77,10 @@ func main() {
 
   // your __CLIENT_REDIRECT_URL__
   http.HandleFunc("/oauth2", func(w http.ResponseWriter, r *http.Request) {
-    r.ParseForm()
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Failed to parse request", http.StatusBadRequest)
+			return
+		}
     state := r.Form.Get("state")
     if state != "xyz" {
       http.Error(w, "State invalid", http.StatusBadRequest)
@@ -99,8 +102,8 @@ func main() {
     e.Encode(token)
   })
 
-  log.Println("Client is running at 3001 port.Please open http://localhost:3001")
-  log.Fatal(http.ListenAndServe(":3001", nil))
+  log.Println("Client is running at 3000 port.Please open http://localhost:3000")
+  log.Fatal(http.ListenAndServe(":3000", nil))
 }
 `;
 
@@ -170,7 +173,7 @@ interface Props {
 const ClientCredentials = (props: Props) => {
   const intl = useIntl();
   const toast = useToast();
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("auth");
 
   const [isLoading, setIsLoading] = useState(false);
   const [isTokensLoading, setIsTokensLoading] = useState(false);
@@ -178,14 +181,35 @@ const ClientCredentials = (props: Props) => {
   const [showTokens, setShowTokens] = React.useState(false)
   const [showSnippet, setShowSnippet] = React.useState(false)
 
+  const clientID = props.clientID;
+  const onRemove = props.onRemove;
+
   const fetchAuthTokens = useCallback(
     async ({page, limit}: { page: number; limit: number }) => {
-      return await fetchJSON(`/auth/v1/clients/${props.clientID}/tokens`, "GET", new URLSearchParams({
+      return await fetchJSON(`/clients/${clientID}/tokens`, "GET", new URLSearchParams({
         page: String(page),
         limit: String(limit),
       }));
     },
-    [fetchJSON, showTokens]
+    [fetchJSON, clientID]
+  );
+
+  const remove = useCallback(
+    async (data: object) => {
+      const body = JSON.stringify(data);
+
+      await fetchJSON(
+        "/dispatch/client/remove-client-credentials",
+        "POST",
+        null,
+        body
+      );
+
+      if (onRemove) {
+        onRemove();
+      }
+    },
+    [fetchJSON, onRemove]
   );
 
   useEffect(() => {
@@ -222,24 +246,6 @@ const ClientCredentials = (props: Props) => {
 
   const handleToggleTokens = () => setShowTokens(!showTokens)
   const handleToggleSnippet = () => setShowSnippet(!showSnippet)
-
-  const remove = useCallback(
-    async (data: object) => {
-      const body = JSON.stringify(data);
-
-      await fetchJSON(
-        "/auth/v1/dispatch/client/remove-client-credentials",
-        "POST",
-        null,
-        body
-      );
-
-      if (props.onRemove) {
-        props.onRemove();
-      }
-    },
-    [fetchJSON]
-  );
 
   const handleRemove = async () => {
     setIsLoading(true);
@@ -314,7 +320,7 @@ const ClientCredentials = (props: Props) => {
         {isTokensLoading ? (
           <CircularProgress/>
         ) : (
-          tokens.map(({id, access_token}) => <AuthToken key={id} id={id} authToken={access_token} title={id}/>)
+          tokens.map(({id, access}) => <AuthToken key={id} id={id} authToken={access} title={id}/>)
         )}
       </Collapse>
       <Collapse isOpen={showSnippet}>

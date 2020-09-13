@@ -51,7 +51,7 @@ export interface Props {
 
 const CreateClientForm = (props: Props) => {
   const intl = useIntl();
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("auth");
 
   const [domain, setDomain] = useState("");
   const [redirectURL, setRedirectURL] = useState("");
@@ -64,7 +64,7 @@ const CreateClientForm = (props: Props) => {
       const body = JSON.stringify(data);
 
       return await fetchJSON(
-        "/auth/v1/dispatch/client/create-client-credentials",
+        "/dispatch/client/create-client-credentials",
         "POST",
         null,
         body

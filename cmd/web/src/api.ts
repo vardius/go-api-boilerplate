@@ -1,14 +1,14 @@
-import {API_URL} from "src/constants";
 import {AuthToken} from "src/types";
 import HttpError, {AccessDeniedHttpError, NotFoundHttpError, UnauthorizedHttpError,} from "src/errors";
 
-export const fetchJSON = (authToken?: AuthToken) => async (
+export const fetchJSON = (base: string, authToken?: AuthToken) => async (
   path: string,
   method: string,
   params?: URLSearchParams | null,
   body?: string
 ): Promise<any> => {
-  const url = new URL(decodeURIComponent(path), API_URL);
+  const baseURL = new URL(decodeURIComponent(base));
+  const url = new URL(decodeURIComponent(baseURL.pathname + path), base);
 
   if (params) {
     params.forEach((v: string, k: string) => {

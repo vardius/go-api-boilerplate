@@ -13,11 +13,11 @@ import (
 )
 
 type TokenAuthorizer interface {
-	Auth(ctx context.Context, token string) (identity.Identity, error)
+	Auth(ctx context.Context, token string) (*identity.Identity, error)
 }
 
 type IdentityProvider interface {
-	GetByUserID(ctx context.Context, userID, clientID uuid.UUID) (identity.Identity, error)
+	GetByUserID(ctx context.Context, userID, clientID uuid.UUID) (*identity.Identity, error)
 }
 
 type jwtAuthorizer struct {
@@ -34,12 +34,12 @@ func NewJWTTokenAuthorizer(authClient proto.AuthenticationServiceClient, claimsP
 	}
 }
 
-func (a *jwtAuthorizer) Auth(ctx context.Context, token string) (identity.Identity, error) {
+func (a *jwtAuthorizer) Auth(ctx context.Context, token string) (*identity.Identity, error) {
 	resp, err := a.authClient.ValidationBearerToken(ctx, &proto.ValidationBearerTokenRequest{
 		Token: token,
 	})
 	if err != nil {
-		return identity.NullIdentity, apperrors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	c, err := a.claimsProvider.FromJWT(token)
@@ -72,24 +72,25 @@ func (a *jwtAuthorizer) Auth(ctx context.Context, token string) (identity.Identi
 			}
 		}
 
-		return identity.NullIdentity, apperrors.Wrap(fmt.Errorf("could not verify token %s: %w", token, err))
+		return nil, apperrors.Wrap(fmt.Errorf("could not verify token %s: %w", token, err))
 	}
 
 	if c.ClientID.String() != resp.ClientID {
-		return identity.NullIdentity, apperrors.Wrap(fmt.Errorf("could not verify token credentials clientID: %s != %s", token, err))
+		return nil, apperrors.Wrap(fmt.Errorf("could not verify token credentials clientID: %s != %s", token, err))
 	}
 
 	if c.UserID.String() != resp.UserID {
-		return identity.NullIdentity, apperrors.Wrap(fmt.Errorf("could not verify token credentials userID: %s != %s", token, err))
+		return nil, apperrors.Wrap(fmt.Errorf("could not verify token credentials userID: %s != %s", token, err))
 	}
 
 	i, err := a.identityAuthorizer.GetByUserID(ctx, c.UserID, c.ClientID)
 	if err != nil {
-		return identity.NullIdentity, apperrors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
 
 	// @TODO: store role in users table
-	return i.WithRole(identity.RoleUser).
-			WithToken(token),
-		nil
+	i.WithRole(identity.RoleUser)
+	i.WithToken(token)
+
+	return i, nil
 }

@@ -20,6 +20,9 @@ type Metadata struct {
 	TraceID    string    `json:"trace_id,omitempty"`
 	IPAddress  net.IP    `json:"ip_address,omitempty"`
 	StatusCode int       `json:"http_status,omitempty"`
+	UserAgent  string    `json:"http_user_agent,omitempty"`
+	RemoteAddr string    `json:"http_remote_addr,omitempty"`
+	Referer    string    `json:"http_referer,omitempty"`
 	Err        error     `json:"-"`
 }
 

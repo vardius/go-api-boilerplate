@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -33,35 +34,35 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	switch contract {
 	case RegisterUserWithEmail:
 		command := RegisterWithEmail{}
-		if err := unmarshalPayload(payload, &command); err != nil {
+		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RegisterUserWithGoogle:
 		command := RegisterWithGoogle{}
-		if err := unmarshalPayload(payload, &command); err != nil {
+		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RegisterUserWithFacebook:
 		command := RegisterWithFacebook{}
-		if err := unmarshalPayload(payload, &command); err != nil {
+		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case ChangeUserEmailAddress:
 		command := ChangeEmailAddress{}
-		if err := unmarshalPayload(payload, &command); err != nil {
+		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RequestUserAccessToken:
 		command := RequestAccessToken{}
-		if err := unmarshalPayload(payload, &command); err != nil {
+		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 

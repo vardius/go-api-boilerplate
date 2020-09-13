@@ -31,7 +31,7 @@ const messages = defineMessages({
 
 function Authorize() {
   const intl = useIntl();
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("auth");
   const query = useQuery();
   const [user] = useUser();
   const [error, setError] = useState("");
@@ -43,7 +43,7 @@ function Authorize() {
   const scope = query.get('scope');
 
   const fetchClient = useCallback(async (): Promise<Client> => {
-    const json = await fetchJSON(`/auth/v1/clients/${clientID}`, "GET");
+    const json = await fetchJSON(`/clients/${clientID}`, "GET");
 
     return json as Client;
   }, [fetchJSON, clientID]);
@@ -54,7 +54,7 @@ function Authorize() {
         return null;
       }
 
-      const response = await fetchJSON(`/auth/v1/authorize`, "POST", query);
+      const response = await fetchJSON(`/authorize`, "POST", query);
 
       window.location.assign(response.location);
     },

@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Get version
         id: vars
-        run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Docker login
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Get version
         id: vars
-        run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Docker login
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Get version
         id: vars
-        run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Docker login
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
       - name: Build image

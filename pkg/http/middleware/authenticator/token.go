@@ -6,41 +6,34 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // TokenAuthFunc returns Identity from token
-type TokenAuthFunc func(ctx context.Context, token string) (identity.Identity, error)
+type TokenAuthFunc func(ctx context.Context, token string) (*identity.Identity, error)
 
 // TokenAuthenticator authorize by token
 // and adds Identity to request's Context
 type TokenAuthenticator interface {
 	// FromHeader authorize by the token provided in the request's Authorization header
-	FromHeader(realm string) func(next http.Handler) http.Handler
+	FromHeader(realm string, logger *log.Logger) func(next http.Handler) http.Handler
 	// FromQuery authorize by the token provided in the request's query parameter
-	FromQuery(name string) func(next http.Handler) http.Handler
+	FromQuery(name string, logger *log.Logger) func(next http.Handler) http.Handler
 	// FromCookie authorize by the token provided in the request's cookie
-	FromCookie(name string) func(next http.Handler) http.Handler
+	FromCookie(name string, logger *log.Logger) func(next http.Handler) http.Handler
 }
 
 type tokenAuth struct {
 	afn TokenAuthFunc
 }
 
-func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromHeader(realm string, logger *log.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.Header.Get("Authorization")
 			if token == "" {
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			// Already authenticated
-			if _, ok := identity.FromContext(r.Context()); ok {
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -50,8 +43,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 				if err != nil {
 					w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
 
-					response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, apperrors.Wrap(err)))
-					return
+					logger.Warning(r.Context(), "[HTTP] failed to authenticate from header: %v", apperrors.Wrap(err))
 				}
 
 				next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
@@ -65,7 +57,7 @@ func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handle
 	}
 }
 
-func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromQuery(name string, logger *log.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.URL.Query().Get(name)
@@ -76,8 +68,7 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 
 			i, err := a.afn(r.Context(), token)
 			if err != nil {
-				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, apperrors.Wrap(err)))
-				return
+				logger.Warning(r.Context(), "[HTTP] failed to authenticate from query: %v", apperrors.Wrap(err))
 			}
 
 			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
@@ -87,7 +78,7 @@ func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler 
 	}
 }
 
-func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromCookie(name string, logger *log.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(name)
@@ -98,8 +89,7 @@ func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler
 
 			i, err := a.afn(r.Context(), cookie.Value)
 			if err != nil {
-				response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %s", application.ErrUnauthorized, apperrors.Wrap(err)))
-				return
+				logger.Warning(r.Context(), "[HTTP] failed to authenticate from cookie: %v", apperrors.Wrap(err))
 			}
 
 			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))

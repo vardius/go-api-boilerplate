@@ -40,13 +40,9 @@ func TestWithToken(t *testing.T) {
 	identity := Identity{
 		Token: "b",
 	}
-	newIdentity := identity.WithToken(token)
+	identity.WithToken(token)
 
-	if identity.Token == token {
-		t.Error("Identity copy has overridden original instance")
-	}
-
-	if newIdentity.Token != token {
+	if identity.Token != token {
 		t.Errorf("Identity Token does not match, given: %s | expected %s", identity.Token, token)
 	}
 }

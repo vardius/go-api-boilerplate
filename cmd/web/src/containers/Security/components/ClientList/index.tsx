@@ -9,7 +9,7 @@ const page = 1;
 const limit = 999;
 
 function ClientList() {
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("auth");
 
   const [user] = useUser();
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +21,7 @@ function ClientList() {
         return null;
       }
 
-      return await fetchJSON(`/auth/v1/clients`, "GET", new URLSearchParams({
+      return await fetchJSON(`/clients`, "GET", new URLSearchParams({
         page: String(page),
         limit: String(limit),
       }));
@@ -61,7 +61,7 @@ function ClientList() {
     }
   }, [user, fetchClients]);
 
-  if (!user || isLoading || clients.length === 0) {
+  if (!user || isLoading) {
     return null;
   }
 

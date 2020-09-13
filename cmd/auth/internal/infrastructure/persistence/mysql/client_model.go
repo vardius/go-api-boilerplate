@@ -3,6 +3,11 @@ Package mysql holds view model repositories
 */
 package mysql
 
+import (
+	"gopkg.in/oauth2.v4"
+	"gopkg.in/oauth2.v4/models"
+)
+
 // Client model
 type Client struct {
 	ID          string   `json:"id"`
@@ -13,32 +18,35 @@ type Client struct {
 	Scopes      []string `json:"scopes"`
 }
 
-// GetID client id
-func (c Client) GetID() string {
+func (c *Client) GetID() string {
 	return c.ID
 }
 
-// GetSecret client domain
-func (c Client) GetSecret() string {
-	return c.Secret
-}
-
-// GetDomain client domain
-func (c Client) GetDomain() string {
-	return c.Domain
-}
-
-// GetUserID user id
-func (c Client) GetUserID() string {
+func (c *Client) GetUserID() string {
 	return c.UserID
 }
 
-// RedirectURL user id
-func (c Client) GetRedirectURL() string {
+func (c *Client) GetSecret() string {
+	return c.Secret
+}
+
+func (c *Client) GetDomain() string {
+	return c.Domain
+}
+
+func (c *Client) GetRedirectURL() string {
 	return c.RedirectURL
 }
 
-// Scopes user id
-func (c Client) GetScopes() []string {
+func (c *Client) GetScopes() []string {
 	return c.Scopes
+}
+
+func (c *Client) ClientInfo() (oauth2.ClientInfo, error) {
+	return &models.Client{
+		ID:     c.ID,
+		Secret: c.Secret,
+		Domain: c.Domain,
+		UserID: c.UserID,
+	}, nil
 }

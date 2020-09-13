@@ -116,9 +116,9 @@ func main() {
 	)
 	app := application.New(logger)
 
-	if err := commandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(tokenRepository)); err != nil {
-		panic(err)
-	}
+	// if err := commandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(tokenRepository)); err != nil {
+	// 	panic(err)
+	// }
 	if err := commandBus.Subscribe(ctx, (token.Remove{}).GetName(), token.OnRemove(tokenRepository)); err != nil {
 		panic(err)
 	}

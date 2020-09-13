@@ -1,0 +1,21 @@
+{
+  "id": "ac0bb85f-d934-4f6e-89bd-67103dd43cc1",
+  "data": {
+    "Code": "",
+    "Scope": "all",
+    "Access": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiI1YjQ3NjJmMC0wMGM0LTRlOTYtOTYwZC03YzU5OGYwODA3MTUiLCJzdWIiOiI1NTU4MWFiZi0yZWRhLTRiMzItYTAwMS1hZDFhMDdmODIwOGIiLCJ1c2VyX2lkIjoiNTU1ODFhYmYtMmVkYS00YjMyLWEwMDEtYWQxYTA3ZjgyMDhiIiwiY2xpZW50X2lkIjoiNWI0NzYyZjAtMDBjNC00ZTk2LTk2MGQtN2M1OThmMDgwNzE1In0.JvFkQ94uO7KYJkwsj5QDnwBgEwQyIe0NGTQw0fRDlREvrjlUYJVY-wW-43hWkN0_E-h9AiJPIbAAvdo1rAEJ7A",
+    "UserID": "55581abf-2eda-4b32-a001-ad1a07f8208b",
+    "Refresh": "",
+    "ClientID": "5b4762f0-00c4-4e96-960d-7c598f080715",
+    "RedirectURI": "",
+    "CodeCreateAt": "0001-01-01T00:00:00Z",
+    "CodeExpiresIn": 0,
+    "AccessCreateAt": "2020-09-13T04:23:33.453707066Z",
+    "AccessExpiresIn": 0,
+    "RefreshCreateAt": "0001-01-01T00:00:00Z",
+    "RefreshExpiresIn": 0
+  },
+  "user_id": "55581abf-2eda-4b32-a001-ad1a07f8208b",
+  "client_id": "5b4762f0-00c4-4e96-960d-7c598f080715",
+  "user_agent": "Go-http-client/1.1"
+}

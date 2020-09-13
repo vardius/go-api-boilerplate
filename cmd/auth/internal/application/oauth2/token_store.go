@@ -6,13 +6,13 @@ import (
 
 	"github.com/google/uuid"
 	"gopkg.in/oauth2.v4"
-	oauth2models "gopkg.in/oauth2.v4/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // NewTokenStore create a token store instance
@@ -50,8 +50,13 @@ func (ts *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 		return apperrors.Wrap(err)
 	}
 
+	var userAgent string
+	if m, ok := metadata.FromContext(ctx); ok {
+		userAgent = m.UserAgent
+	}
+
 	t := token.New()
-	if err := t.Create(ctx, id, clientID, userID, info.GetCode(), info.GetScope(), info.GetAccess(), info.GetRefresh()); err != nil {
+	if err := t.Create(ctx, id, clientID, userID, info, userAgent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -99,7 +104,7 @@ func (ts *TokenStore) GetByCode(ctx context.Context, code string) (oauth2.TokenI
 		return nil, apperrors.Wrap(err)
 	}
 
-	info, err := ts.toTokenInfo(t)
+	info, err := t.TokenInfo()
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
@@ -114,7 +119,7 @@ func (ts *TokenStore) GetByAccess(ctx context.Context, access string) (oauth2.To
 		return nil, apperrors.Wrap(err)
 	}
 
-	info, err := ts.toTokenInfo(t)
+	info, err := t.TokenInfo()
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
@@ -129,25 +134,12 @@ func (ts *TokenStore) GetByRefresh(ctx context.Context, refresh string) (oauth2.
 		return nil, apperrors.Wrap(err)
 	}
 
-	info, err := ts.toTokenInfo(t)
+	info, err := t.TokenInfo()
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 
 	return info, nil
-}
-
-func (ts *TokenStore) toTokenInfo(token persistence.Token) (oauth2.TokenInfo, error) {
-	info := oauth2models.Token{
-		ClientID: token.GetClientID(),
-		UserID:   token.GetUserID(),
-		Access:   token.GetAccess(),
-		Refresh:  token.GetRefresh(),
-		Scope:    token.GetScope(),
-		Code:     token.GetCode(),
-	}
-
-	return &info, nil
 }
 
 func (ts *TokenStore) remove(ctx context.Context, model persistence.Token) error {

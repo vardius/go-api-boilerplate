@@ -27,7 +27,7 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 		UserEmail: "test@emai.com",
 		Roles:     identity.RoleAdmin,
 	}
-	ctx := identity.ContextWithIdentity(req.Context(), i)
+	ctx := identity.ContextWithIdentity(req.Context(), &i)
 
 	h.ServeHTTP(w, req.WithContext(ctx))
 }
@@ -50,7 +50,7 @@ func TestGrantAccessFor(t *testing.T) {
 		UserEmail: "test@emai.com",
 		Roles:     identity.RoleUser,
 	}
-	ctx := identity.ContextWithIdentity(req.Context(), i)
+	ctx := identity.ContextWithIdentity(req.Context(), &i)
 
 	h.ServeHTTP(w, req.WithContext(ctx))
 

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -26,14 +27,14 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	switch contract {
 	case CreateClientCredentials:
 		command := Create{}
-		if err := unmarshalPayload(payload, &command); err != nil {
+		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RemoveClientCredentials:
 		command := Remove{}
-		if err := unmarshalPayload(payload, &command); err != nil {
+		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 

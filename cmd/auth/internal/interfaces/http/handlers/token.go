@@ -60,7 +60,7 @@ func BuildTokenCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 }
 
 // BuildListTokensHandler lists auth tokens by client and user IDs
-func BuildListTokensHandler(repository persistence.TokenRepository) http.Handler {
+func BuildListTokensHandler(repository persistence.TokenRepository, clientRepository persistence.ClientRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		params, ok := context.Parameters(r.Context())
 		if !ok {
@@ -69,6 +69,22 @@ func BuildListTokensHandler(repository persistence.TokenRepository) http.Handler
 		}
 
 		clientID := params.Value("clientID")
+
+		i, hasIdentity := identity.FromContext(r.Context())
+		if !hasIdentity {
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrUnauthorized))
+		}
+
+		c, err := clientRepository.Get(r.Context(), clientID)
+		if err != nil {
+			response.MustJSONError(r.Context(), w, err)
+			return
+		}
+		if c.GetUserID() != i.UserID.String() {
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrForbidden))
+			return
+		}
+
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
 		limitInt, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
 		page := int32(math.Max(float64(pageInt), 1))

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
-
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
@@ -124,7 +122,7 @@ func (ns NullString) UnmarshalJSON(b []byte) error {
 }
 
 // NullTime is an alias for mysql.NullTime data type
-type NullTime struct{ mysql.NullTime }
+type NullTime struct{ sql.NullTime }
 
 // MarshalJSON for NullTime
 func (nt NullTime) MarshalJSON() ([]byte, error) {

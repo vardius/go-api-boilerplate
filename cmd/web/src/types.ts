@@ -18,7 +18,8 @@ export interface Client {
 
 export interface Token {
   id: string;
-  access_token: string;
+  access: string;
+  refresh?: string;
   user_agent?: string;
 }
 

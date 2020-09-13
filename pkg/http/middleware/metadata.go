@@ -41,6 +41,9 @@ func WithMetadata() gorouter.MiddlewareFunc {
 			// process the request.
 			mtd := md.New()
 
+			mtd.RemoteAddr = r.RemoteAddr
+			mtd.UserAgent = r.UserAgent()
+			mtd.Referer = r.Referer()
 			if ip, err := request.IpAddress(r); err == nil {
 				mtd.IPAddress = ip
 			}

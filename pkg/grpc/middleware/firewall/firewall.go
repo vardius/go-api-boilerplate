@@ -26,8 +26,7 @@ const mdIdentityKey = "identity"
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(AppendIdentityToOutgoingUnaryContext()))
 func AppendIdentityToOutgoingUnaryContext() grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		i, ok := identity.FromContext(ctx)
-		if ok {
+		if i, ok := identity.FromContext(ctx); ok {
 			jsn, err := json.Marshal(i)
 			if err != nil {
 				return err
@@ -47,8 +46,7 @@ func AppendIdentityToOutgoingUnaryContext() grpc.UnaryClientInterceptor {
 // conn, err := grpc.Dial("localhost:5000", grpc.WithStreamInterceptor(AppendIdentityToOutgoingStreamContext()))
 func AppendIdentityToOutgoingStreamContext() grpc.StreamClientInterceptor {
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-		i, ok := identity.FromContext(ctx)
-		if ok {
+		if i, ok := identity.FromContext(ctx); ok {
 			jsn, err := json.Marshal(i)
 			if err != nil {
 				return nil, err
@@ -73,8 +71,8 @@ func AppendIdentityToOutgoingStreamContext() grpc.StreamClientInterceptor {
 func SetIdentityFromStreamRequest() grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
-			var i identity.Identity
 			if values := md.Get(mdIdentityKey); len(values) > 0 {
+				var i identity.Identity
 				if err := json.Unmarshal([]byte(values[0]), &i); err != nil {
 					return err
 				}
@@ -100,13 +98,13 @@ func SetIdentityFromStreamRequest() grpc.StreamServerInterceptor {
 func SetIdentityFromUnaryRequest() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			var i identity.Identity
 			if values := md.Get(mdIdentityKey); len(values) > 0 {
+				var i identity.Identity
 				if err := json.Unmarshal([]byte(values[0]), &i); err != nil {
 					return nil, err
 				}
 
-				ctx = identity.ContextWithIdentity(ctx, i)
+				ctx = identity.ContextWithIdentity(ctx, &i)
 			}
 		}
 

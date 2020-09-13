@@ -28,26 +28,28 @@ const messages = defineMessages({
 const AuthToken = (props: Props) => {
   const intl = useIntl();
   const toast = useToast();
-  const fetchJSON = useApi();
+  const fetchJSON = useApi("auth");
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const onRemove = props.onRemove;
 
   const remove = useCallback(
     async (data: object) => {
       const body = JSON.stringify(data);
 
       await fetchJSON(
-        "/auth/v1/dispatch/token/remove-auth-token",
+        "/dispatch/token/remove-auth-token",
         "POST",
         null,
         body
       );
 
-      if (props.onRemove) {
-        props.onRemove();
+      if (onRemove) {
+        onRemove();
       }
     },
-    [fetchJSON]
+    [fetchJSON, onRemove]
   );
 
   const handleRemove = async () => {
