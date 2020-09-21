@@ -2,6 +2,11 @@ dependencies:
   - name: microservice
     version: 0.1.0
     repository: "file://../microservice"
+    alias: web
+    condition: web.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
     alias: auth
     condition: auth.enabled
   - name: microservice
@@ -16,7 +21,7 @@ dependencies:
     condition: maildev.enabled
   # External charts: https://github.com/helm/charts/blob/master/stable
   - name: cert-manager
-    version: v0.15.1
+    version: v0.15.2
     repository: https://charts.jetstack.io # `helm repo add jetstack https://charts.jetstack.io`
     condition: cert-manager.enabled
   - name: nginx-ingress
