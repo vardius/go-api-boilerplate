@@ -1,5 +1,5 @@
 {{ if or (not (hasKey .Values.issuer "enabled")) (.Values.issuer.enabled | default false) }}
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: {{ .Values.issuer.kind }}
 metadata:
   name: {{ .Values.issuer.name }}
@@ -13,29 +13,24 @@ metadata:
 spec:
   {{- if .Values.issuer.selfSigned }}
   selfSigned: {}
-  {{- else -}}
+  {{- end -}}
+  {{- if .Values.issuer.ca }}
+  ca:
+    secretName: {{ .Values.issuer.secretName }}
+  {{- end -}}
+  {{- if .Values.issuer.acme }}
   acme:
-    server: {{ .Values.issuer.server }}
     email: {{ .Values.issuer.email }}
+    server: {{ .Values.issuer.server }}
     privateKeySecretRef:
       name: {{ .Values.issuer.secretName }}
-    {{- if .Values.issuer.http01 }}
-    http01: {}
+    {{- with .Values.issuer.externalAccountBinding  }}
+    externalAccountBinding:
+      {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.issuer.dns01 }}
-    dns01:
-      providers:
-        - name: route53
-          route53:
-          region: {{ .region }}
-          {{- if .accessKeyID  }}
-          accessKeyID: {{ .accessKeyID  }}
-          {{- end }}
-          {{- if .secretAccessKey }}
-          secretAccessKeySecretRef:
-            name:  {{ .secretAccessKey.Name }}
-            key:  {{ .secretAccessKey.Secret }}
-          {{- end }}
+    {{- with .Values.issuer.solvers  }}
+    solvers:
+      {{ toYaml . | indent 8 }}
     {{- end }}
   {{- end }}
 {{- end }}

@@ -17,8 +17,6 @@ import (
 )
 
 const (
-	// RequestUserAccessToken command bus contract
-	RequestUserAccessToken = "request-user-access-token"
 	// ChangeUserEmailAddress command bus contract
 	ChangeUserEmailAddress = "change-user-email-address"
 	// RegisterUserWithEmail command bus contract
@@ -60,71 +58,9 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 		}
 
 		return command, nil
-	case RequestUserAccessToken:
-		command := RequestAccessToken{}
-		if err := json.Unmarshal(payload, &command); err != nil {
-			return command, apperrors.Wrap(err)
-		}
-
-		return command, nil
 	default:
 		return nil, apperrors.Wrap(fmt.Errorf("invalid command contract: %s", contract))
 	}
-}
-
-// RequestAccessToken command
-type RequestAccessToken struct {
-	Email        EmailAddress `json:"email"`
-	RedirectPath string       `json:"redirect_path,omitempty"`
-}
-
-// GetName returns command name
-func (c RequestAccessToken) GetName() string {
-	return fmt.Sprintf("%T", c)
-}
-
-// OnRequestAccessToken creates command handler
-func OnRequestAccessToken(repository Repository, db *sql.DB) commandbus.CommandHandler {
-	fn := func(ctx context.Context, command domain.Command) error {
-		c, ok := command.(RequestAccessToken)
-		if !ok {
-			return apperrors.New("invalid command")
-		}
-
-		var id string
-		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE email_address=? LIMIT 1`, c.Email.String())
-		if err := row.Scan(&id); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
-			}
-			return apperrors.Wrap(err)
-		}
-		if id == "" {
-			return application.ErrNotFound
-		}
-
-		userID, err := uuid.Parse(id)
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		u, err := repository.Get(ctx, userID)
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		if err := u.RequestAccessToken(ctx); err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		return nil
-	}
-
-	return fn
 }
 
 // ChangeEmailAddress command
@@ -195,25 +131,37 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 			return apperrors.New("invalid command")
 		}
 
-		var totalUsers int32
-
-		row := db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM users WHERE email_address=?`, c.Email.String())
-		if err := row.Scan(&totalUsers); err != nil {
+		var userID string
+		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE email_address=?`, c.Email.String())
+		if err := row.Scan(&userID); err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return apperrors.Wrap(err)
 		}
 
-		if totalUsers != 0 {
-			return apperrors.Wrap(application.ErrInvalid)
-		}
+		var u User
+		if userID != "" {
+			id, err := uuid.Parse(userID)
+			if err != nil {
+				return apperrors.Wrap(err)
+			}
 
-		id, err := uuid.NewRandom()
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
+			u, err = repository.Get(ctx, id)
+			if err != nil {
+				return apperrors.Wrap(err)
+			}
 
-		u := New()
-		if err := u.RegisterWithEmail(ctx, id, c.Email); err != nil {
-			return apperrors.Wrap(err)
+			if err := u.RequestAccessToken(ctx); err != nil {
+				return apperrors.Wrap(err)
+			}
+		} else {
+			id, err := uuid.NewRandom()
+			if err != nil {
+				return apperrors.Wrap(err)
+			}
+
+			u = New()
+			if err := u.RegisterWithEmail(ctx, id, c.Email); err != nil {
+				return apperrors.Wrap(err)
+			}
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {

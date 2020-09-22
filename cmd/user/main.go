@@ -138,9 +138,6 @@ func main() {
 	if err := commandBus.Subscribe(ctx, (user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(userRepository, mysqlConnection)); err != nil {
 		panic(err)
 	}
-	if err := commandBus.Subscribe(ctx, (user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(userRepository, mysqlConnection)); err != nil {
-		panic(err)
-	}
 
 	if err := eventBus.Subscribe(ctx, (user.WasRegisteredWithEmail{}).GetType(), eventhandler.WhenUserWasRegisteredWithEmail(mysqlConnection, userPersistenceRepository, tokenProvider, grpAuthClient)); err != nil {
 		panic(err)

@@ -21,6 +21,10 @@ spec:
         app.kubernetes.io/name: {{ include "microservice.name" $ }}
         app.kubernetes.io/part-of: {{ $.Release.Name }}
     spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{.Values.imagePullSecrets }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

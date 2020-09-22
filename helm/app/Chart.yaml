@@ -1,5 +1,58 @@
-apiVersion: v1
-appVersion: "1.0"
-description: A Helm chart for Kubernetes
+apiVersion: v2
 name: app
+description: Example setup of helm chart deployment for go-api-boilerplate
+# A chart can be either an 'application' or a 'library' chart.
+#
+# Application charts are a collection of templates that can be packaged into versioned archives
+# to be deployed.
+#
+# Library charts provide useful utilities or functions for the chart developer. They're included as
+# a dependency of application charts to inject those utilities and functions into the rendering
+# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+type: application
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
 version: 0.1.0
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application.
+appVersion: 1.0.0
+kubeVersion: ">= 1.15.0"
+dependencies:
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: web
+    condition: web.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: auth
+    condition: auth.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: user
+    condition: user.enabled
+  - name: microservice
+    version: 0.1.0
+    repository: "file://../microservice"
+    alias: maildev
+    condition: maildev.enabled
+  # External charts: https://github.com/helm/charts/blob/master/stable
+  - name: cert-manager
+    version: v1.0.1
+    repository: https://charts.jetstack.io # `helm repo add jetstack https://charts.jetstack.io`
+    condition: cert-manager.enabled
+  - name: nginx-ingress
+    version: 1.39.1
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: nginx-ingress.enabled
+  - name: mysql
+    version: 1.6.4
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: mysql.enabled
+  # for bare-metal kubernetes cluster
+  - name: metallb
+    version: 0.1.21
+    repository: https://charts.bitnami.com/bitnami
+    condition: metallb.enabled

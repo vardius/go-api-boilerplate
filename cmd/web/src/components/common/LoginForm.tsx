@@ -14,7 +14,6 @@ import {
   useToast,
 } from "@chakra-ui/core";
 import {useApi, useAuthToken, useUser} from "src/hooks";
-import {NotFoundHttpError} from "src/errors";
 import SubmitMessage from "./SubmitMessage";
 
 const messages = defineMessages({
@@ -82,23 +81,12 @@ const LoginForm = (props: Props) => {
 
       const body = JSON.stringify({email, redirect_path: redirectPath});
 
-      try {
-        return await fetchJSON(
-          "/dispatch/user/request-user-access-token",
-          "POST",
-          null,
-          body
-        );
-      } catch (err) {
-        if (err instanceof NotFoundHttpError) {
-          return await fetchJSON(
-            "/dispatch/user/register-user-with-email",
-            "POST",
-            null,
-            body
-          );
-        }
-      }
+      return await fetchJSON(
+        "/dispatch/user/register-user-with-email",
+        "POST",
+        null,
+        body
+      );
     },
     [fetchJSON, from]
   );

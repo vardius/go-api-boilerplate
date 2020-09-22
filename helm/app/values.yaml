@@ -43,6 +43,12 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
   hosts:
+    - host: go-api-boilerplate.local
+      paths:
+        - path: /(|$)(.*)
+          backend:
+            serviceName: go-api-boilerplate-web
+            servicePort: 3000
     - host: api.go-api-boilerplate.local
       paths:
         - path: /auth(/|$)(.*)
@@ -72,7 +78,8 @@ nginx-ingress:
 
 cert-manager:
   # https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/#new-installcrds-addition
-  installCRDs: true #@ FIXME change to false if `Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists.`
+  # @TODO: $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.1/cert-manager.crds.yaml
+  installCRDs: false #@ FIXME change to false if `Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists.`
   ingressShim:
     defaultIssuerName: selfsigned #letsencrypt
     defaultIssuerKind: Issuer
@@ -86,15 +93,20 @@ cert-manager:
     - --cluster-resource-namespace=go-api-boilerplate
 
 issuer:
-  name: selfsigned
   kind: Issuer
-  selfSigned: true
-  # name: letsencrypt
-  # kind: Issuer
-  # server: https://acme-v02.api.letsencrypt.org/directory
-  # email: example@example.com
-  # secretName: go-api-boilerplate-tls
-  # http01: true
+#  name: selfsigned
+#  selfSigned: true
+  name: ca
+  ca: true
+  secretName: ca-key-pair
+#  name: letsencrypt
+#  server: https://acme-v02.api.letsencrypt.org/directory
+#  email: example@example.com
+#  secretName: go-api-boilerplate-tls
+#  solvers:
+#   - http01:
+#     ingress:
+#       class: nginx
 
 mysql:
   existingSecret: mysql-secret
@@ -148,6 +160,9 @@ web:
 
 auth:
   nameOverride: auth
+# TODO: if you want your k8sto pull images from private registry
+# kubectl create secret generic regcred --from-file=.dockerconfigjson=.docker/config.json --type=kubernetes.io/dockerconfigjson --namespace=go-api-boilerplate
+#  imagePullSecrets: regcred
   image:
     repository: go-api-boilerplate-auth
     tag: latest
@@ -176,14 +191,12 @@ auth:
         - 'up'
   envFromSecretRefs:
     - auth-secret
-    - user-secret
   envFromConfigMapRefs:
     - app-config
     - http-config
     - grpc-config
     - mysql-config
     - auth-config
-    # - aws-config
   env:
     - name: MYSQL_PASS
       valueFrom:
@@ -204,6 +217,7 @@ auth:
 
 user:
   nameOverride: user
+#  imagePullSecrets: regcred
   image:
     repository: go-api-boilerplate-user
     tag: latest
@@ -273,8 +287,6 @@ secrets:
     type: Opaque
     data:
       USER_SECRET: a1lpYm51WlA0b1FFNUVMRDYyN21EaVFyaFB6VmxGT1M= # @FIXME: change secret value (remember its base64 encoded here)
-      USER_CLIENT_ID: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # @FIXME: change 0798173e-614c-4f78-996b-e9e63e01ed20 (its base64 encoded here)
-      USER_CLIENT_SECRET: MDc5ODE3M2UtNjE0Yy00Zjc4LTk5NmItZTllNjNlMDFlZDIw # @FIXME: change 0798173e-614c-4f78-996b-e9e63e01ed20 (its base64 encoded here)
   - name: mail-secret
     type: Opaque
     data:
@@ -284,6 +296,11 @@ secrets:
     type: Opaque
     data:
       csrf: ""
+  - name: ca-key-pair
+    type: Opaque
+    data:
+      tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMrVENDQWVHZ0F3SUJBZ0lKQUtQR3dLRGwvNUhuTUEwR0NTcUdTSWIzRFFFQkN3VUFNQk14RVRBUEJnTlYKQkFNTUNHcHZjMmgyWVc1c01CNFhEVEU1TURneU1qRTJNRFUxT0ZvWERUSTVNRGd4T1RFMk1EVTFPRm93RXpFUgpNQThHQTFVRUF3d0lhbTl6YUhaaGJtd3dnZ0VpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElCRHdBd2dnRUtBb0lCCkFRQ3doU0IvcVc2L2tMYjJ6cHUrRUp2RDl3SEZhcStRQS8wSkgvTGxseW83ekFGeCtISHErQ09BYmsrQzhCNHQKL0hVRXNuczVSTDA5Q1orWDRqNnBiSkZkS2R1UHhYdTVaVllua3hZcFVEVTd5ZzdPU0tTWnpUbklaNzIzc01zMApSNmpZbi9Ecmo0eFhNSkVmSFVEcVllU1dsWnIzcWkxRUZhMGM3ZlZEeEgrNHh0WnROTkZPakg3YzZEL3ZXa0lnCldRVXhpd3Vzc2U2S01PV2pEbnYvNFZyamVsMlFnVVlVYkhDeWVaSG1jdGkrSzBMV0Nmby9SZzZQdWx3cmJEa2gKam1PZ1l0MzBwZGhYME9aa0F1a2xmVURIZnA4YmpiQ29JMnRhWUFCQTZBS2pLc08zNUxBRVU3OUNMMW1MVkh1WgpBQ0k1VWppamEzVlBXVkhTd21KUEp5dXhBZ01CQUFHalVEQk9NQjBHQTFVZERnUVdCQlFtbDVkVEFaaXhGS2hqCjkzd3VjUldoYW8vdFFqQWZCZ05WSFNNRUdEQVdnQlFtbDVkVEFaaXhGS2hqOTN3dWNSV2hhby90UWpBTUJnTlYKSFJNRUJUQURBUUgvTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFCK2tsa1JOSlVLQkxYOHlZa3l1VTJSSGNCdgpHaG1tRGpKSXNPSkhac29ZWGRMbEcxcFpORmpqUGFPTDh2aDQ0Vmw5OFJoRVpCSHNMVDFLTWJwMXN1NkNxajByClVHMWtwUkJlZitJT01UNE1VN3ZSSUNpN1VPbFJMcDFXcDBGOGxhM2hQT2NSYjJ5T2ZGcVhYeVpXWGY0dDBCNDUKdEhpK1pDTkhCOUZ4alNSeWNiR1lWaytUS3B2aEphU1lOTUdKM2R4REthUDcrRHgzWGNLNnNBbklBa2h5SThhagpOVSttdzgvdG1Sa1A0SW4va1hBUitSaTBxVW1Iai92d3ZuazRLbTdaVXkxRllIOERNZVM1TmtzbisvdUhsUnhSClY3RG5uMDM5VFJtZ0tiQXFONzJnS05MbzVjWit5L1lxREFZSFlybjk4U1FUOUpEZ3RJL0svQVRwVzhkWAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+      tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBc0lVZ2Y2bHV2NUMyOXM2YnZoQ2J3L2NCeFdxdmtBUDlDUi95NVpjcU84d0JjZmh4CjZ2Z2pnRzVQZ3ZBZUxmeDFCTEo3T1VTOVBRbWZsK0krcVd5UlhTbmJqOFY3dVdWV0o1TVdLVkExTzhvT3praWsKbWMwNXlHZTl0N0RMTkVlbzJKL3c2NCtNVnpDUkh4MUE2bUhrbHBXYTk2b3RSQld0SE8zMVE4Ui91TWJXYlRUUgpUb3grM09nLzcxcENJRmtGTVlzTHJMSHVpakRsb3c1Ny8rRmE0M3Bka0lGR0ZHeHdzbm1SNW5MWXZpdEMxZ242ClAwWU9qN3BjSzJ3NUlZNWpvR0xkOUtYWVY5RG1aQUxwSlgxQXgzNmZHNDJ3cUNOcldtQUFRT2dDb3lyRHQrU3cKQkZPL1FpOVppMVI3bVFBaU9WSTRvMnQxVDFsUjBzSmlUeWNyc1FJREFRQUJBb0lCQUNFTkhET3JGdGg1a1RpUApJT3dxa2UvVVhSbUl5MHlNNHFFRndXWXBzcmUxa0FPMkFDWjl4YS96ZDZITnNlanNYMEM4NW9PbmtrTk9mUHBrClcxVS94Y3dLM1ZpRElwSnBIZ09VNzg1V2ZWRXZtU3dZdi9Fb1V3eHFHRVMvcnB5Z1drWU5WSC9XeGZGQlg3clMKc0dmeVltbXJvM09DQXEyLzNVVVFiUjcrT09md3kzSHdUdTBRdW5FSnBFbWU2RXdzdWIwZzhTTGp2cEpjSHZTbQpPQlNKSXJyL1RjcFRITjVPc1h1Vm5FTlVqV3BBUmRQT1NrRFZHbWtCbnkyaVZURElST3NGbmV1RUZ1NitXOWpqCmhlb1hNN2czbkE0NmlLenUzR0YwRWhLOFkzWjRmeE42NERkbWNBWnphaU1vMFJVaktWTFVqbVlQSEUxWWZVK3AKMkNYb3dNRUNnWUVBMTgyaU52UEkwVVlWaUh5blhKclNzd1YrcTlTRStvVi90U2ZSUUNGU2xsV0d3KzYyblRiVwpvNXpoL1RDQW9VTVNSbUFPZ0xKWU1LZUZ1SWdvTEoxN1pvWjN0U1czTlVtMmRpT0lPSHorcTQxQzM5MDRrUzM5CjkrYkFtVmtaSFA5VktLOEMraS9tek5mSkdHZEJadGIweWtTM2t3OUIxTHdnT3o3MDhFeXFSQ2tDZ1lFQTBXWlAKbzF2MThnV2tMK2FnUDFvOE13eDRPZlpTN3dKY3E0Z0xnUWhjYS9pSkttY0x0RFN4cUJHckJ4UVo0WTIyazlzdQpzTFVrNEJobGlVM29iUUJNaUdtMGtITHVBSEFRNmJvdWZBMUJwZjN2VFdHSkhSRjRMeFJsNzc2akw4UXI4VnpxClpURVBtY0R0T0hpYjdwb2I1Z2IzSDhiVGhYeUhmdGZxRW55alhFa0NnWUVBdk9DdDZZclZhTlQrWThjMmRFYk4Kd3dJOExBaUZtdjdkRjZFUjlCODJPWDRCeGR0WTJhRDFtNTNqN2NaVnpzNzFYOE1TN25FcDN1dkFqaElkbDI3KwpZbTJ1dUUyYVhIbDN5VTZ3RzBETFpUcnVIU0Z5TVI4ZithbHRTTXBDd0s1NXluSGpHVFp6dXpYaVBBbWpwRzdmCk1XbVRncE1IK3puc3UrNE9VNFBHUW9FQ2dZQWNqdUdKbS84YzlOd0JsR2lDZTJIK2JGTHhSTURteStHcm16QkcKZHNkMENqOWF3eGI3aXJ3MytjRGpoRUJMWExKcjA5YTRUdHdxbStrdElxenlRTG92V0l0QnNBcjVrRThlTVVBcAp0djBmRUZUVXJ0cXVWaldYNWlaSTNpMFBWS2ZSa1NSK2pJUmVLY3V3aWZKcVJpWkw1dU5KT0NxYzUvRHF3Yk93CnRjTHAwUUtCZ0VwdEw1SU10Sk5EQnBXbllmN0F5QVBhc0RWRE9aTEhNUGRpL2dvNitjSmdpUmtMYWt3eUpjV3IKU25QSG1TbFE0aEluNGMrNW1lbHBDWFdJaklLRCtjcTlxT2xmQmRtaWtYb2RVQ2pqWUJjNnVGQ1QrNWRkMWM4RwpiUkJQOUNtWk9GL0hOcHN0MEgxenhNd1crUHk5Q2VnR3hhZ0ZCekxzVW84N0xWR2h0VFFZCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
 
 configMaps:
   - name: app-config
@@ -309,8 +326,8 @@ configMaps:
     data:
       HOST: '0.0.0.0'
       COMMAND_BUS_BUFFER: '100'
-      AUTH_AUTHORIZE_URL: 'https://go-api-boilerplate.local/authorize'
       USER_HOST: 'go-api-boilerplate-user'
+      AUTH_AUTHORIZE_URL: 'https://go-api-boilerplate.local/authorize'
       OAUTH_INIT_TIMEOUT: '15s'     # wait 15 sec for oauth server to initialize
       GRPC_SERVER_MIN_TIME: '5m'    # if a client pings more than once every 5 minutes (default), terminate the connection
       GRPC_SERVER_TIME: '2h'        # ping the client if it is idle for 2 hours (default) to ensure the connection is still active
@@ -335,7 +352,3 @@ configMaps:
       MYSQL_CONN_MAX_LIFETIME: '5m' #  sets the maximum amount of time a connection may be reused
       MYSQL_MAX_IDLE_CONNS: '0'     # sets the maximum number of connections in the idle
       MYSQL_MAX_OPEN_CONNS: '5'     # sets the maximum number of connections in the idle
-      # - name: aws-config
-      #   data:
-      # AWS_REGION: 'us-east-1'
-      # AWS_ENDPOINT: 'http://go-api-boilerplate-localstack:4569'
