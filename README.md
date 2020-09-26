@@ -25,6 +25,7 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
     - [Build release](#build-release)
         - [Local image](#local-image)
         - [GitHub Package Registry](#github-package-registry)
+        - [Private Registry](#private-registry)
     - [Install Cert Manager](#install-cert-manager)
     - [Deploy release](#build-release)
   - [Dashboard](#dashboard)
@@ -132,6 +133,19 @@ Replace image details in [values.yaml](helm/app/values.yaml)
     pullPolicy: IfNotPresent
 ```
 repeat for all services and `migrate` init containers.
+#### Private Registry
+If you want your k8sto [Pull an Image from a Private Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) on your k8 machine login to docker:
+```sh
+docker login
+```
+Then create a secret in `go-api-boilerplate` namespace as follows:
+```sh
+kubectl create secret generic regcred --from-file=.dockerconfigjson=.docker/config.json --type=kubernetes.io/dockerconfigjson --namespace=go-api-boilerplate
+```
+Set `imagePullSecrets` in your [values.yaml](helm/app/values.yaml) file (simply look for all occurrences and uncomment).
+```diff
++  imagePullSecrets: regcred
+```
 ### Install [Cert Manager](https://github.com/vardius/go-api-boilerplate/wiki/3.3.-Cert-manager)
 ```sh
 helm repo add jetstack https://charts.jetstack.io
