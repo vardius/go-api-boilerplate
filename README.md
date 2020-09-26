@@ -38,13 +38,13 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 
 📖 ABOUT
 ==================================================
-The main purpose of this project is to provide boilerplate project setup using using best practices, DDD, CQRS, ES, gRPC. Featuring kubernetes for both development and production environments. Allowing to work with environment reflecting production one, allowing to reduce any misconfigurations.
+The main purpose of this project is to provide boilerplate project setup using best practices, DDD, CQRS, ES, gRPC. Featuring kubernetes for both development and production environments. Allowing to work with environment reflecting production one, allowing to reduce any misconfigurations.
 
 This is mono-repository of many services such as authentication or user domain. Each service has it own code base with exception of shared packages to simplify things for this boilerplate. Services communicate witch each other using gRPC. Each service might expose HTTP API for external communication or/and gRPC.
 
 This project setup should reduce the time spent on environment configuration for the whole kubernetes cluster and/or each of microservice. Extracting each of services to own repository or keeping it as mono-repo should be a matter of preference.
 
-*Please look for comments like `@TODO` and `@FIXME` to better understand thing than need attention.*
+*Please look for comments like `@TODO` and `@FIXME` to better understand things than need attention.*
 
 ### Web UI example (React)
 This boilerplate includes simple Web UI to demonstrate example interaction with API.
