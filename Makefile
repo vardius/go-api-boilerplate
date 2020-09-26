@@ -15,6 +15,9 @@ help:
 version: ## Show version
 	@echo $(VERSION) \(git commit: $(GIT_COMMIT)\)
 
+workflow-generate: ## Generate github workflows from templates
+	cd .github && sh workflows.sh
+
 # HTTPS TASK
 key: ## [HTTP] Generate key
 	openssl genrsa -out server.key 2048

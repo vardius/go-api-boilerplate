@@ -51,8 +51,3 @@ dependencies:
     version: 1.6.4
     repository: https://kubernetes-charts.storage.googleapis.com/
     condition: mysql.enabled
-  # for bare-metal kubernetes cluster
-  - name: metallb
-    version: 0.1.21
-    repository: https://charts.bitnami.com/bitnami
-    condition: metallb.enabled

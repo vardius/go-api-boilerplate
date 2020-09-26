@@ -1,0 +1,31 @@
+name: user - Publish Docker image to GitHub Package Registry
+on:
+  push:
+    tags:
+      - 'v**\+user'
+jobs:
+  publish-user:
+    env:
+      IMAGE_NAME: user
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy Files
+        uses: actions/checkout@v2
+      - name: Get version without prefix
+        id: tmp
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/v}
+      - name: Remove version cmd suffix
+        id: vars
+        run: echo ::set-output name=tag::${TAG%+user}
+        env:
+          TAG: ${{steps.tmp.outputs.tag}}
+      - name: Docker login
+        run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
+      - name: Build image
+        run:  make docker-build BIN=$IMAGE_NAME
+      - name: Tag image
+        run:  make docker-tag BIN=$IMAGE_NAME REGISTRY=docker.pkg.github.com/$GITHUB_REPOSITORY VERSION=${{ steps.vars.outputs.tag }}
+      - name: Publish image
+        run: |
+          docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/$IMAGE_NAME:latest"
+          docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/$IMAGE_NAME:${{ steps.vars.outputs.tag }}"

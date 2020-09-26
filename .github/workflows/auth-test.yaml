@@ -1,0 +1,34 @@
+name: auth - Test
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'cmd/auth/**'
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'cmd/auth/**'
+jobs:
+  test-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy Files
+        uses: actions/checkout@v2
+      - name: Print Go version
+        run: go version
+      - name: Add and install dependencies
+        run: |-
+          cd cmd/auth
+          go get ./...
+      - name: Examine source code
+        run: |-
+          cd cmd/auth
+          go vet ./...
+      - name: Run tests
+        run: |-
+          cd cmd/auth
+          go test ./... -v -race -cover -tags=docker

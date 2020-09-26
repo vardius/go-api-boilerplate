@@ -154,6 +154,12 @@ func main() {
 	if err := eventBus.Subscribe(ctx, (user.AccessTokenWasRequested{}).GetType(), eventhandler.WhenUserAccessTokenWasRequested(tokenProvider, identityProvider)); err != nil {
 		panic(err)
 	}
+	if err := eventBus.Subscribe(ctx, (user.ConnectedWithGoogle{}).GetType(), eventhandler.WhenUserConnectedWithGoogle(mysqlConnection, userPersistenceRepository)); err != nil {
+		panic(err)
+	}
+	if err := eventBus.Subscribe(ctx, (user.ConnectedWithFacebook{}).GetType(), eventhandler.WhenUserConnectedWithFacebook(mysqlConnection, userPersistenceRepository)); err != nil {
+		panic(err)
+	}
 
 	app.AddAdapters(
 		userhttp.NewAdapter(

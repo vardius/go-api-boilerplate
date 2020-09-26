@@ -254,7 +254,6 @@ user:
     - grpc-config
     - mysql-config
     - user-config
-    # - aws-config
   env:
     - name: MYSQL_PASS
       valueFrom:

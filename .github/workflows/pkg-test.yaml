@@ -1,0 +1,34 @@
+name: pkg - Test
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'pkg/**'
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'pkg/**'
+jobs:
+  test-pkg:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy Files
+        uses: actions/checkout@v2
+      - name: Print Go version
+        run: go version
+      - name: Add and install dependencies
+        run: |-
+          cd cmd/pkg
+          go get ./...
+      - name: Examine source code
+        run: |-
+          cd cmd/pkg
+          go vet ./...
+      - name: Run tests
+        run: |-
+          cd cmd/pkg
+          go test ./... -v -race -cover -tags=docker
