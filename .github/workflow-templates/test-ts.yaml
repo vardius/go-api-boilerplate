@@ -1,21 +1,19 @@
-name: web - Test
+name: {{CMD}} - Test
 on:
   push:
     branches:
       - master
       - develop
     paths:
-      - 'cmd/web/**'
-      - 'pkg/**'
+      - 'cmd/{{CMD}}/**'
   pull_request:
     branches:
       - master
       - develop
     paths:
-      - 'cmd/web/**'
-      - 'pkg/**'
+      - 'cmd/{{CMD}}/**'
 jobs:
-  test-web:
+  test-{{CMD}}:
     runs-on: ubuntu-latest
     steps:
       - name: Copy Files
@@ -26,9 +24,9 @@ jobs:
         run: yarn -v
       - name: Install dependencies
         run: |-
-          cd cmd/web
+          cd cmd/{{CMD}}
           yarn
       - name: Run tests
         run: |-
-          cd cmd/web
+          cd cmd/{{CMD}}
           yarn test

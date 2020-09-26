@@ -1,0 +1,32 @@
+name: web - Test
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'cmd/web/**'
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'cmd/web/**'
+jobs:
+  test-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy Files
+        uses: actions/checkout@v2
+      - name: Print Node version
+        run: node -v
+      - name: Print yarn version
+        run: yarn -v
+      - name: Install dependencies
+        run: |-
+          cd cmd/web
+          yarn
+      - name: Run tests
+        run: |-
+          cd cmd/web
+          yarn test
