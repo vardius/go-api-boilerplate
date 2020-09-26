@@ -129,8 +129,7 @@ Replace image details in [values.yaml](helm/app/values.yaml)
 +    repository: docker.pkg.github.com/vardius/go-api-boilerplate/user
 -    tag: latest
 +    tag: 1.0.0
--    pullPolicy: IfNotPresent
-+    pullPolicy: IfNotPresent
+    pullPolicy: IfNotPresent
 ```
 repeat for all services and `migrate` init containers.
 ### Install [Cert Manager](https://github.com/vardius/go-api-boilerplate/wiki/3.3.-Cert-manager)
