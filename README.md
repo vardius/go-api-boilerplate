@@ -23,6 +23,8 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
 - [Example](#example)
   - [Quick start](#quick-start)
     - [Build release](#build-release)
+        - [Local image](#local-image)
+        - [GitHub Package Registry](#github-package-registry)
     - [Install Cert Manager](#install-cert-manager)
     - [Deploy release](#build-release)
   - [Dashboard](#dashboard)
@@ -88,15 +90,49 @@ Worth getting to know packages used in this boilerplate:
 ==================================================
 ## Quick start
 
-### [localhost alias](https://github.com/vardius/go-api-boilerplate/wiki/3.-Configuration#localhost-alias)
-
+### Localhost alias
+Edit `/etc/hosts` to add localhost alias
+```bash
+➜  go-api-boilerplate git:(master) cat /etc/hosts
+##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting.  Do not change this entry.
+##
+127.0.0.1 go-api-boilerplate.local api.go-api-boilerplate.local maildev.go-api-boilerplate.local mysql.go-api-boilerplate.local
+```
 ### Build release
+#### Local image
 ```sh
 make docker-build BIN=auth
 make docker-build BIN=migrate
 make docker-build BIN=user
 make docker-build BIN=web
 ```
+#### GitHub Package Registry
+Creating tag with metadata will trigger [github workflow](https://github.com/vardius/go-api-boilerplate/actions) and publish docker image to GitHub Package Registry.
+
+Tag `v1.0.0+user` will trigger build for `user` service releasing `1.0.0` docker image tag.
+you can create release for all services in `cmd` directory.
+```sh
+v1.0.0+auth
+v1.0.0+user
+v1.0.0+web
+v1.0.0+migrate
+```
+
+Replace image details in [values.yaml](helm/app/values.yaml)
+```diff
+  image:
+-    repository: go-api-boilerplate-user
++    repository: docker.pkg.github.com/vardius/go-api-boilerplate/user
+-    tag: latest
++    tag: 1.0.0
+-    pullPolicy: IfNotPresent
++    pullPolicy: IfNotPresent
+```
+repeat for all services and `migrate` init containers.
 ### Install [Cert Manager](https://github.com/vardius/go-api-boilerplate/wiki/3.3.-Cert-manager)
 ```sh
 helm repo add jetstack https://charts.jetstack.io
@@ -108,8 +144,6 @@ make helm-dependencies
 ```sh
 make helm-install
 ```
-
-## [Dashboard](https://github.com/vardius/go-api-boilerplate/wiki/2.1.-Dashboard)
 
 ## Domain
 ### Dispatching command
