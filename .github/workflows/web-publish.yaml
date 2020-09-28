@@ -21,7 +21,5 @@ jobs:
           TAG: ${{steps.tmp.outputs.tag}}
       - name: Docker login
         run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
-      - name: Build image
-        run:  make docker-build BIN=$IMAGE_NAME
-      - name: Publish image
-        run: make docker-publish BIN=$IMAGE_NAME REGISTRY=docker.pkg.github.com/$GITHUB_REPOSITORY VERSION=${{ steps.vars.outputs.tag }}
+      - name: Release images
+        run: make docker-release BIN=$IMAGE_NAME REGISTRY=docker.pkg.github.com/$GITHUB_REPOSITORY VERSION=${{ steps.vars.outputs.tag }}

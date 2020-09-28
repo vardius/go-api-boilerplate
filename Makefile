@@ -43,7 +43,7 @@ docker-publish: docker-tag-latest docker-tag-version docker-publish-latest docke
 
 docker-publish-latest:
 	@echo 'publish latest to $(REGISTRY)'
-	docker push $(REGISTRY)/$(BIN):latest
+	docker push $(REGISTRY)/go-api-boilerplate-$(BIN):latest
 
 docker-publish-version:
 	@echo 'publish $(VERSION) to $(REGISTRY)'
