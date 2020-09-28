@@ -39,7 +39,7 @@ docker-stop: ## [DOCKER] Stop docker container. Example: `make docker-stop BIN=u
 docker-rm: docker-stop ## [DOCKER] Stop and then remove docker container. Example: `make docker-rm BIN=user`
 	docker rm go-api-boilerplate-$(BIN)
 
-docker-publish: aws-repo-login docker-publish-latest docker-publish-version ## [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
+docker-publish: docker-publish-latest docker-publish-version ## [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
 
 docker-publish-latest: docker-tag-latest
 	@echo 'publish latest to $(REGISTRY)'
@@ -47,17 +47,17 @@ docker-publish-latest: docker-tag-latest
 
 docker-publish-version: docker-tag-version
 	@echo 'publish $(VERSION) to $(REGISTRY)'
-	docker push $(REGISTRY)/$(BIN):$(VERSION)
+	docker push $(REGISTRY)/go-api-boilerplate-$(BIN):$(VERSION)
 
 docker-tag: docker-tag-latest docker-tag-version ## [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
 
 docker-tag-latest:
 	@echo 'create tag latest'
-	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/$(BIN):latest
+	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/go-api-boilerplate-$(BIN):latest
 
 docker-tag-version:
 	@echo 'create tag $(VERSION)'
-	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/$(BIN):$(VERSION)
+	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/go-api-boilerplate-$(BIN):$(VERSION)
 
 docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 
