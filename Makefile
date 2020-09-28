@@ -39,7 +39,7 @@ docker-stop: ## [DOCKER] Stop docker container. Example: `make docker-stop BIN=u
 docker-rm: docker-stop ## [DOCKER] Stop and then remove docker container. Example: `make docker-rm BIN=user`
 	docker rm go-api-boilerplate-$(BIN)
 
-docker-publish: docker-publish-latest docker-publish-version ## [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
+docker-publish: docker-tag-latest docker-tag-version docker-publish-latest docker-publish-version ## [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
 
 docker-publish-latest: docker-tag-latest
 	@echo 'publish latest to $(REGISTRY)'
