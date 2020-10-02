@@ -254,6 +254,7 @@ user:
     - grpc-config
     - mysql-config
     - user-config
+    - mail-config
   env:
     - name: MYSQL_PASS
       valueFrom:
@@ -341,8 +342,7 @@ configMaps:
       HOST: '0.0.0.0'
       COMMAND_BUS_BUFFER: '100'
       AUTH_HOST: 'go-api-boilerplate-auth'
-      MAILER_HOST: 'go-api-boilerplate-maildev' # @FIXME use real smtp service
-      MAILER_PORT: '1025'
+      USER_BASE_URL: 'https://api.go-api-boilerplate.local/users'
       GRPC_SERVER_MIN_TIME: '5m'    # if a client pings more than once every 5 minutes (default), terminate the connection
       GRPC_SERVER_TIME: '2h'        # ping the client if it is idle for 2 hours (default) to ensure the connection is still active
       GRPC_SERVER_TIMEOUT: '20s'    # wait 20 second (default) for the ping ack before assuming the connection is dead
@@ -351,3 +351,7 @@ configMaps:
       MYSQL_CONN_MAX_LIFETIME: '5m' #  sets the maximum amount of time a connection may be reused
       MYSQL_MAX_IDLE_CONNS: '0'     # sets the maximum number of connections in the idle
       MYSQL_MAX_OPEN_CONNS: '5'     # sets the maximum number of connections in the idle
+  - name: mail-config
+    data:
+      MAILER_HOST: 'go-api-boilerplate-maildev' # @FIXME use real smtp service
+      MAILER_PORT: '1025'

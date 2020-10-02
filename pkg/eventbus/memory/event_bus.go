@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/vardius/golog"
 	messagebus "github.com/vardius/message-bus"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
@@ -13,15 +14,14 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // New creates memory event bus
-func New(maxConcurrentCalls int, log *log.Logger) eventbus.EventBus {
+func New(maxConcurrentCalls int, logger golog.Logger) eventbus.EventBus {
 	return &eventBus{
 		messageBus: messagebus.New(maxConcurrentCalls),
-		logger:     log,
+		logger:     logger,
 		handlers:   make(map[string]map[reflect.Value]eventHandler),
 	}
 }
@@ -30,7 +30,7 @@ type eventHandler func(ctx context.Context, event domain.Event, out chan<- error
 
 type eventBus struct {
 	messageBus messagebus.MessageBus
-	logger     *log.Logger
+	logger     golog.Logger
 	mtx        sync.RWMutex
 	handlers   map[string]map[reflect.Value]eventHandler
 }

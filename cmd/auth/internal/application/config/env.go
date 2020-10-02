@@ -13,12 +13,11 @@ var Env *environment
 
 type environment struct {
 	App struct {
-		Domain              string        `env:"APP_DOMAIN"                envDefault:"http://localhost:3000"`
-		Environment         string        `env:"APP_ENV"                   envDefault:"development"`
-		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
-		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
-		Secret              string        `env:"AUTH_SECRET"               envDefault:"secret"`
-		AuthorizeURL        string        `env:"AUTH_AUTHORIZE_URL"        envDefault:"http://localhost:3000/authorize"`
+		Domain          string        `env:"APP_DOMAIN"                envDefault:"http://localhost:3000"`
+		Environment     string        `env:"APP_ENV"                   envDefault:"development"`
+		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
+		Secret          string        `env:"AUTH_SECRET"               envDefault:"secret"`
+		AuthorizeURL    string        `env:"AUTH_AUTHORIZE_URL"        envDefault:"http://localhost:3000/authorize"`
 	}
 	OAuth struct {
 		InitTimeout time.Duration `env:"OAUTH_INIT_TIMEOUT" envDefault:"15s"`
@@ -59,10 +58,10 @@ type environment struct {
 		MaxOpenConns    int           `env:"MYSQL_MAX_OPEN_CONNS"    envDefault:"5"`  // sets the maximum number of connections in the idle
 	}
 	CommandBus struct {
-		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
+		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"100"`
 	}
 	EventBus struct {
-		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
+		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"100"`
 	}
 }
 

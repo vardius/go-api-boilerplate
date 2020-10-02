@@ -4,10 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/vardius/golog"
 	"google.golang.org/grpc"
 	healthproto "google.golang.org/grpc/health/grpc_health_v1"
-
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // LogOutgoingUnaryRequest logs client request
@@ -15,7 +14,7 @@ import (
 // https://godoc.org/google.golang.org/grpc#WithUnaryInterceptor
 //
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(LogOutgoingUnaryRequest()))
-func LogOutgoingUnaryRequest(logger *log.Logger) grpc.UnaryClientInterceptor {
+func LogOutgoingUnaryRequest(logger golog.Logger) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		// Skip health check requests
 		if _, ok := req.(*healthproto.HealthCheckRequest); ok {
@@ -42,7 +41,7 @@ func LogOutgoingUnaryRequest(logger *log.Logger) grpc.UnaryClientInterceptor {
 // https://godoc.org/google.golang.org/grpc#WithStreamInterceptor
 //
 // conn, err := grpc.Dial("localhost:5000", grpc.WithStreamInterceptor(LogOutgoingStreamRequest()))
-func LogOutgoingStreamRequest(logger *log.Logger) grpc.StreamClientInterceptor {
+func LogOutgoingStreamRequest(logger golog.Logger) grpc.StreamClientInterceptor {
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 		now := time.Now()
 
@@ -69,7 +68,7 @@ func LogOutgoingStreamRequest(logger *log.Logger) grpc.StreamClientInterceptor {
 // }
 // s := grpc.NewServer(opts...)
 // pb.LogStreamRequest(s, &server{})
-func LogStreamRequest(logger *log.Logger) grpc.StreamServerInterceptor {
+func LogStreamRequest(logger golog.Logger) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		now := time.Now()
 
@@ -95,7 +94,7 @@ func LogStreamRequest(logger *log.Logger) grpc.StreamServerInterceptor {
 // }
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
-func LogUnaryRequest(logger *log.Logger) grpc.UnaryServerInterceptor {
+func LogUnaryRequest(logger golog.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// Skip health check requests
 		if _, ok := req.(*healthproto.HealthCheckRequest); ok {

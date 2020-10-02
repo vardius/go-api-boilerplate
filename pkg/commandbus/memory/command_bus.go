@@ -4,23 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/vardius/golog"
 	messagebus "github.com/vardius/message-bus"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // New creates in memory command bus
-func New(maxConcurrentCalls int, logger *log.Logger) commandbus.CommandBus {
+func New(maxConcurrentCalls int, logger golog.Logger) commandbus.CommandBus {
 	return &commandBus{messagebus.New(maxConcurrentCalls), logger}
 }
 
 type commandBus struct {
 	messageBus messagebus.MessageBus
-	logger     *log.Logger
+	logger     golog.Logger
 }
 
 func (bus *commandBus) Publish(ctx context.Context, command domain.Command) error {

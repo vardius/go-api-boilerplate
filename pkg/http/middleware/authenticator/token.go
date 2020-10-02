@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/vardius/golog"
+
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // TokenAuthFunc returns Identity from token
@@ -18,18 +19,18 @@ type TokenAuthFunc func(ctx context.Context, token string) (*identity.Identity, 
 // and adds Identity to request's Context
 type TokenAuthenticator interface {
 	// FromHeader authorize by the token provided in the request's Authorization header
-	FromHeader(realm string, logger *log.Logger) func(next http.Handler) http.Handler
+	FromHeader(realm string, logger golog.Logger) func(next http.Handler) http.Handler
 	// FromQuery authorize by the token provided in the request's query parameter
-	FromQuery(name string, logger *log.Logger) func(next http.Handler) http.Handler
+	FromQuery(name string, logger golog.Logger) func(next http.Handler) http.Handler
 	// FromCookie authorize by the token provided in the request's cookie
-	FromCookie(name string, logger *log.Logger) func(next http.Handler) http.Handler
+	FromCookie(name string, logger golog.Logger) func(next http.Handler) http.Handler
 }
 
 type tokenAuth struct {
 	afn TokenAuthFunc
 }
 
-func (a *tokenAuth) FromHeader(realm string, logger *log.Logger) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromHeader(realm string, logger golog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.Header.Get("Authorization")
@@ -57,7 +58,7 @@ func (a *tokenAuth) FromHeader(realm string, logger *log.Logger) func(next http.
 	}
 }
 
-func (a *tokenAuth) FromQuery(name string, logger *log.Logger) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromQuery(name string, logger golog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.URL.Query().Get(name)
@@ -78,7 +79,7 @@ func (a *tokenAuth) FromQuery(name string, logger *log.Logger) func(next http.Ha
 	}
 }
 
-func (a *tokenAuth) FromCookie(name string, logger *log.Logger) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromCookie(name string, logger golog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(name)

@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
 
@@ -36,7 +35,7 @@ func New() User {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func FromHistory(events []domain.Event) User {
+func FromHistory(events []domain.Event) (User, error) {
 	u := New()
 
 	for _, domainEvent := range events {
@@ -46,61 +45,64 @@ func FromHistory(events []domain.Event) User {
 		case (AccessTokenWasRequested{}).GetType():
 			accessTokenWasRequested := AccessTokenWasRequested{}
 			if err := json.Unmarshal(domainEvent.Payload, &accessTokenWasRequested); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
+				return u, apperrors.Wrap(err)
 			}
 
 			e = accessTokenWasRequested
 		case (EmailAddressWasChanged{}).GetType():
 			emailAddressWasChanged := EmailAddressWasChanged{}
 			if err := json.Unmarshal(domainEvent.Payload, &emailAddressWasChanged); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
+				return u, apperrors.Wrap(err)
 			}
 
 			e = emailAddressWasChanged
 		case (WasRegisteredWithEmail{}).GetType():
 			wasRegisteredWithEmail := WasRegisteredWithEmail{}
 			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithEmail); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
+				return u, apperrors.Wrap(err)
 			}
 
 			e = wasRegisteredWithEmail
 		case (WasRegisteredWithFacebook{}).GetType():
 			wasRegisteredWithFacebook := WasRegisteredWithFacebook{}
 			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithFacebook); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
+				return u, apperrors.Wrap(err)
 			}
 
 			e = wasRegisteredWithFacebook
 		case (ConnectedWithFacebook{}).GetType():
 			connectedWithFacebook := ConnectedWithFacebook{}
 			if err := json.Unmarshal(domainEvent.Payload, &connectedWithFacebook); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
+				return u, apperrors.Wrap(err)
 			}
 
 			e = connectedWithFacebook
 		case (WasRegisteredWithGoogle{}).GetType():
 			wasRegisteredWithGoogle := WasRegisteredWithGoogle{}
 			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithGoogle); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
+				return u, apperrors.Wrap(err)
 			}
 
 			e = wasRegisteredWithGoogle
 		case (ConnectedWithGoogle{}).GetType():
 			connectedWithGoogle := ConnectedWithGoogle{}
 			if err := json.Unmarshal(domainEvent.Payload, &connectedWithGoogle); err != nil {
-				log.Panicf("Error while trying to unmarshal user event %s. %s", domainEvent.Type, err)
+				return u, apperrors.Wrap(err)
 			}
 
 			e = connectedWithGoogle
 		default:
-			log.Panicf("Unhandled user event %s", domainEvent.Type)
+			return u, apperrors.Wrap(fmt.Errorf("unhandled user event %s", domainEvent.Type))
 		}
 
-		u.transition(e)
+		if err := u.transition(e); err != nil {
+			return u, apperrors.Wrap(err)
+		}
+
 		u.version++
 	}
 
-	return u
+	return u, nil
 }
 
 // ID returns aggregate root id
@@ -209,7 +211,9 @@ func (u *User) RequestAccessToken(ctx context.Context) error {
 }
 
 func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
-	u.transition(e)
+	if err := u.transition(e); err != nil {
+		return domain.Event{}, apperrors.Wrap(err)
+	}
 
 	event, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
 	if err != nil {
@@ -236,7 +240,7 @@ func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event
 	return event, nil
 }
 
-func (u *User) transition(e domain.RawEvent) {
+func (u *User) transition(e domain.RawEvent) error {
 	switch e := e.(type) {
 	case WasRegisteredWithEmail:
 		u.id = e.ID
@@ -250,4 +254,6 @@ func (u *User) transition(e domain.RawEvent) {
 	case EmailAddressWasChanged:
 		u.email = e.Email
 	}
+
+	return nil
 }

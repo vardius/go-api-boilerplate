@@ -13,11 +13,11 @@ var Env *environment
 
 type environment struct {
 	App struct {
-		Domain              string        `env:"APP_DOMAIN"                envDefault:"http://localhost:3000"`
-		Environment         string        `env:"APP_ENV"                   envDefault:"development"`
-		ShutdownTimeout     time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
-		EventHandlerTimeout time.Duration `env:"APP_EVENT_HANDLER_TIMEOUT" envDefault:"120s"`
-		Secret              string        `env:"USER_SECRET"               envDefault:"secret"`
+		Domain          string        `env:"APP_DOMAIN"                envDefault:"https://go-api-boilerplate.local"`
+		Environment     string        `env:"APP_ENV"                   envDefault:"development"`
+		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
+		Secret          string        `env:"USER_SECRET"               envDefault:"secret"`
+		ApiBaseURL      string        `env:"USER_BASE_URL"             envDefault:"https://api.go-api-boilerplate.local/users"`
 	}
 	Debug struct {
 		Host string `env:"DEBUG_HOST" envDefault:"0.0.0.0"`
@@ -64,11 +64,19 @@ type environment struct {
 		Host   string `env:"AUTH_HOST" envDefault:"0.0.0.0"` // Auth service host
 		Secret string `env:"AUTH_SECRET"                envDefault:"secret"`
 	}
+	Facebook struct {
+		ClientID     string `env:"FACEBOOK_CLIENT_ID"`
+		ClientSecret string `env:"FACEBOOK_CLIENT_SECRET"`
+	}
+	Google struct {
+		ClientID     string `env:"GOOGLE_CLIENT_ID"`
+		ClientSecret string `env:"GOOGLE_CLIENT_SECRET"`
+	}
 	CommandBus struct {
-		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
+		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"100"`
 	}
 	EventBus struct {
-		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"0"`
+		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"100"`
 	}
 }
 

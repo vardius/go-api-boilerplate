@@ -5,11 +5,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vardius/golog"
 	"github.com/vardius/gorouter/v4"
 	"golang.org/x/time/rate"
 
 	"github.com/vardius/go-api-boilerplate/pkg/http/request"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 type visitor struct {
@@ -65,7 +65,7 @@ func (l *rateLimiter) cleanup(frequency time.Duration) {
 
 // RateLimit returns a new HTTP middleware that allows request per visitor (IP)
 // up to rate r and permits bursts of at most b tokens.
-func RateLimit(logger *log.Logger, r rate.Limit, b int, frequency time.Duration) gorouter.MiddlewareFunc {
+func RateLimit(logger golog.Logger, r rate.Limit, b int, frequency time.Duration) gorouter.MiddlewareFunc {
 	var rl *rateLimiter
 	if r != rate.Inf {
 		rl = &rateLimiter{

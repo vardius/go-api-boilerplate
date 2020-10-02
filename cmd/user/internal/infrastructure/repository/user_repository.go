@@ -67,5 +67,5 @@ func (r *userRepository) Get(ctx context.Context, id uuid.UUID) (user.User, erro
 		return user.User{}, application.ErrNotFound
 	}
 
-	return user.FromHistory(events), nil
+	return user.FromHistory(events)
 }

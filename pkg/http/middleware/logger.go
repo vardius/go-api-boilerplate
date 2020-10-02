@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/vardius/golog"
 	"github.com/vardius/gorouter/v4"
 
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 	mtd "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // Logger wraps http.Handler with a logger middleware
-func Logger(logger *log.Logger) gorouter.MiddlewareFunc {
+func Logger(logger golog.Logger) gorouter.MiddlewareFunc {
 	m := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			now := time.Now()

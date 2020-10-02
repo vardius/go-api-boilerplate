@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
 	"gopkg.in/oauth2.v4"
@@ -36,7 +35,7 @@ func New() Token {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func FromHistory(events []domain.Event) Token {
+func FromHistory(events []domain.Event) (Token, error) {
 	t := New()
 
 	for _, domainEvent := range events {
@@ -46,26 +45,29 @@ func FromHistory(events []domain.Event) Token {
 		case (WasCreated{}).GetType():
 			wasCreated := WasCreated{}
 			if err := json.Unmarshal(domainEvent.Payload, &wasCreated); err != nil {
-				log.Panicf("Error while trying to unmarshal token event %s. %s", domainEvent.Type, err)
+				return t, apperrors.Wrap(err)
 			}
 
 			e = wasCreated
 		case (WasRemoved{}).GetType():
 			wasRemoved := WasRemoved{}
 			if err := json.Unmarshal(domainEvent.Payload, &wasRemoved); err != nil {
-				log.Panicf("Error while trying to unmarshal token event %s. %s", domainEvent.Type, err)
+				return t, apperrors.Wrap(err)
 			}
 
 			e = wasRemoved
 		default:
-			log.Panicf("Unhandled token event %s", domainEvent.Type)
+			return t, apperrors.Wrap(fmt.Errorf("unhandled token event %s", domainEvent.Type))
 		}
 
-		t.transition(e)
+		if err := t.transition(e); err != nil {
+			return t, apperrors.Wrap(err)
+		}
+
 		t.version++
 	}
 
-	return t
+	return t, nil
 }
 
 // ID returns aggregate root id
@@ -123,7 +125,9 @@ func (t *Token) Remove(ctx context.Context) error {
 }
 
 func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
-	t.transition(e)
+	if err := t.transition(e); err != nil {
+		return domain.Event{}, apperrors.Wrap(err)
+	}
 
 	event, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
 	if err != nil {
@@ -150,10 +154,12 @@ func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Even
 	return event, nil
 }
 
-func (t *Token) transition(e domain.RawEvent) {
+func (t *Token) transition(e domain.RawEvent) error {
 	switch e := e.(type) {
 	case WasCreated:
 		t.id = e.ID
 		t.userID = e.UserID
 	}
+
+	return nil
 }

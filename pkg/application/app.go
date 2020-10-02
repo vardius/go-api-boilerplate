@@ -5,9 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/vardius/golog"
 	"github.com/vardius/shutdown"
-
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // Adapter interface
@@ -21,11 +20,11 @@ type App struct {
 	adapters        []Adapter
 	shutdownTimeout time.Duration
 
-	logger *log.Logger
+	logger golog.Logger
 }
 
 // New provides new service application
-func New(logger *log.Logger) *App {
+func New(logger golog.Logger) *App {
 	return &App{
 		shutdownTimeout: 5 * time.Second, // Default shutdown timeout
 		logger:          logger,

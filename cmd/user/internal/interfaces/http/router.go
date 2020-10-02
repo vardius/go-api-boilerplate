@@ -2,10 +2,15 @@ package http
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/vardius/golog"
 	"github.com/vardius/gorouter/v4"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/facebook"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
@@ -14,24 +19,23 @@ import (
 	userpersistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
+	pkgauth "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	httpmiddleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
 	httpauthenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
 // NewRouter provides new router
-func NewRouter(logger *log.Logger,
+func NewRouter(logger golog.Logger,
 	tokenAuthorizer auth.TokenAuthorizer,
 	repository userpersistence.UserRepository,
 	commandBus commandbus.CommandBus,
-	tokenProvider oauth2.TokenProvider,
+	tokenProvider pkgauth.TokenProvider,
 	mysqlConnection *sql.DB,
 	identityProvider appidentity.Provider,
 	grpcConnectionMap map[string]*grpc.ClientConn,
@@ -63,9 +67,27 @@ func NewRouter(logger *log.Logger,
 	router.GET("/", handlers.BuildListUserHandler(repository))
 	router.GET("/me", handlers.BuildMeHandler(repository))
 	router.GET("/{id}", handlers.BuildGetUserHandler(repository))
-	router.POST("/google/callback", handlers.BuildSocialAuthHandler(googleAPIURL, commandBus, user.RegisterUserWithGoogle, tokenProvider, identityProvider))
-	router.POST("/facebook/callback", handlers.BuildSocialAuthHandler(facebookAPIURL, commandBus, user.RegisterUserWithFacebook, tokenProvider, identityProvider))
 	router.POST("/dispatch/user/{command}", handlers.BuildUserCommandDispatchHandler(commandBus))
+
+	var googleOauthConfig = &oauth2.Config{
+		RedirectURL:  fmt.Sprintf("%s/v1/google/callback", config.Env.App.ApiBaseURL),
+		ClientID:     config.Env.Google.ClientID,
+		ClientSecret: config.Env.Google.ClientSecret,
+		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
+		Endpoint:     google.Endpoint,
+	}
+	router.POST("/google", handlers.BuildSocialAuthHandler(googleOauthConfig))
+	router.POST("/google/callback", handlers.BuildAuthCallbackHandler(googleOauthConfig, googleAPIURL, commandBus, user.RegisterUserWithGoogle, tokenProvider, identityProvider))
+
+	var facebookOauthConfig = &oauth2.Config{
+		RedirectURL:  fmt.Sprintf("%s/v1/facebook/callback", config.Env.App.ApiBaseURL),
+		ClientID:     config.Env.Google.ClientID,
+		ClientSecret: config.Env.Google.ClientSecret,
+		Scopes:       []string{"public_profile"},
+		Endpoint:     facebook.Endpoint,
+	}
+	router.POST("/facebook", handlers.BuildSocialAuthHandler(facebookOauthConfig))
+	router.POST("/facebook/callback", handlers.BuildAuthCallbackHandler(facebookOauthConfig, facebookAPIURL, commandBus, user.RegisterUserWithGoogle, tokenProvider, identityProvider))
 
 	router.USE(http.MethodGet, "/me", httpmiddleware.GrantAccessFor(identity.RoleUser))
 	router.USE(http.MethodPost, "/dispatch/"+user.ChangeUserEmailAddress, httpmiddleware.GrantAccessFor(identity.RoleUser))

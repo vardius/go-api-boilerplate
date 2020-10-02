@@ -1,15 +1,22 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
+
+	"golang.org/x/oauth2"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
+	auth "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
@@ -19,11 +26,46 @@ type requestBody struct {
 	Email string `json:"email"`
 }
 
+const authCookieName = "oauthstate"
+
 // BuildSocialAuthHandler wraps user gRPC client with http.Handler
-func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName string, tokenProvider oauth2.TokenProvider, identityProvider appidentity.Provider) http.Handler {
+func BuildSocialAuthHandler(config *oauth2.Config) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		accessToken := r.FormValue("accessToken")
-		profileData, err := getProfile(accessToken, apiURL)
+		expiration := time.Now().Add(365 * 24 * time.Hour)
+
+		b := make([]byte, 16)
+		if _, err := io.ReadFull(rand.Reader, b); err != nil {
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+			return
+		}
+
+		state := base64.URLEncoding.EncodeToString(b)
+
+		cookie := http.Cookie{Name: authCookieName, Value: state, Expires: expiration}
+		http.SetCookie(w, &cookie)
+
+		http.Redirect(w, r, config.AuthCodeURL(state), http.StatusTemporaryRedirect)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+// BuildAuthCallbackHandler wraps user gRPC client with http.Handler
+func BuildAuthCallbackHandler(authConfig *oauth2.Config, apiURL string, cb commandbus.CommandBus, commandName string, tokenProvider auth.TokenProvider, identityProvider appidentity.Provider) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		oauthState, _ := r.Cookie(authCookieName)
+		if r.FormValue("state") != oauthState.Value {
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(fmt.Errorf("invalid oauth state")))
+			return
+		}
+
+		oauthToken, err := authConfig.Exchange(r.Context(), r.FormValue("code"))
+		if err != nil {
+			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+			return
+		}
+
+		profileData, err := getProfile(oauthToken.AccessToken, apiURL)
 		if err != nil {
 			appErr := apperrors.Wrap(err)
 
@@ -57,7 +99,7 @@ func BuildSocialAuthHandler(apiURL string, cb commandbus.CommandBus, commandName
 			return
 		}
 
-		token, err := tokenProvider.RetrievePasswordCredentialsToken(r.Context(), i.ClientID.String(), i.ClientSecret.String(), emailData.Email, oauth2.AllScopes)
+		token, err := tokenProvider.RetrievePasswordCredentialsToken(r.Context(), i.ClientID.String(), i.ClientSecret.String(), emailData.Email, auth.AllScopes)
 		if err != nil {
 			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return

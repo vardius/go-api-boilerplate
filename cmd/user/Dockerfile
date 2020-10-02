@@ -37,4 +37,5 @@ RUN go build \
 
 FROM scratch
 COPY --from=buildenv /go/bin/app /go/bin/app
+COPY --from=buildenv /etc/ssl/certs /etc/ssl/certs
 ENTRYPOINT ["/go/bin/app"]

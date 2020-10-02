@@ -62,7 +62,7 @@ func (r *tokenRepository) Get(ctx context.Context, id uuid.UUID) (token.Token, e
 		return token.Token{}, application.ErrNotFound
 	}
 
-	return token.FromHistory(events), nil
+	return token.FromHistory(events)
 }
 
 // NewTokenRepository creates new token event sourced repository

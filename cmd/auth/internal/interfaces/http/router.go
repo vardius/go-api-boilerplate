@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/vardius/golog"
 	"github.com/vardius/gorouter/v4"
 	"google.golang.org/grpc"
 	"gopkg.in/oauth2.v4/server"
@@ -18,12 +19,11 @@ import (
 	httpauthenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // NewRouter provides new router
 func NewRouter(
-	logger *log.Logger,
+	logger golog.Logger,
 	tokenAuthorizer auth.TokenAuthorizer,
 	server *server.Server,
 	commandBus commandbus.CommandBus,

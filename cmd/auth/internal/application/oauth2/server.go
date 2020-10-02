@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vardius/golog"
 	"gopkg.in/oauth2.v4"
 	oauth2errors "gopkg.in/oauth2.v4/errors"
 	oauth2server "gopkg.in/oauth2.v4/server"
@@ -17,7 +18,6 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 var (
@@ -28,7 +28,7 @@ var (
 // InitServer initialize the oauth2 server instance
 func InitServer(
 	manager oauth2.Manager,
-	logger *log.Logger,
+	logger golog.Logger,
 	userRepository persistence.UserRepository,
 	clientRepository persistence.ClientRepository,
 	secretKey string,

@@ -7,17 +7,17 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vardius/golog"
 	pubsubproto "github.com/vardius/pubsub/v2/proto"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 // New creates pubsub event bus
-func New(handlerTimeout time.Duration, pubsub pubsubproto.PubSubClient, log *log.Logger) eventbus.EventBus {
+func New(handlerTimeout time.Duration, pubsub pubsubproto.PubSubClient, log golog.Logger) eventbus.EventBus {
 	return &eventBus{
 		handlerTimeout:      handlerTimeout,
 		pubsub:              pubsub,
@@ -37,7 +37,7 @@ type dto struct {
 type eventBus struct {
 	handlerTimeout time.Duration
 	pubsub         pubsubproto.PubSubClient
-	logger         *log.Logger
+	logger         golog.Logger
 
 	mtx                 sync.RWMutex
 	unsubscribeChannels map[reflect.Value]chan struct{}

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/vardius/golog"
+
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // CredentialsAuthFunc returns Identity from username and password combination
@@ -17,14 +18,14 @@ type CredentialsAuthFunc func(username, password string) (identity.Identity, err
 type CredentialsAuthenticator interface {
 	// FromBasicAuth authorize by the username and password provided in the request's
 	// Authorization header, if the request uses HTTP Basic Authentication.
-	FromBasicAuth(name string, logger *log.Logger) func(next http.Handler) http.Handler
+	FromBasicAuth(name string, logger golog.Logger) func(next http.Handler) http.Handler
 }
 
 type credentialsAuth struct {
 	afn CredentialsAuthFunc
 }
 
-func (a *credentialsAuth) FromBasicAuth(realm string, logger *log.Logger) func(next http.Handler) http.Handler {
+func (a *credentialsAuth) FromBasicAuth(realm string, logger golog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			username, password, hasAuth := r.BasicAuth()

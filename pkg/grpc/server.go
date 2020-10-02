@@ -6,6 +6,7 @@ import (
 
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	"github.com/vardius/golog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware"
 	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware/firewall"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // ServerConfig provides values for gRPC server configuration
@@ -24,7 +24,7 @@ type ServerConfig struct {
 }
 
 // NewServer provides new grpc server
-func NewServer(cfg ServerConfig, logger *log.Logger, unaryInterceptors []grpc.UnaryServerInterceptor, streamInterceptors []grpc.StreamServerInterceptor) *grpc.Server {
+func NewServer(cfg ServerConfig, logger golog.Logger, unaryInterceptors []grpc.UnaryServerInterceptor, streamInterceptors []grpc.StreamServerInterceptor) *grpc.Server {
 	opts := []grpcrecovery.Option{
 		grpcrecovery.WithRecoveryHandlerContext(func(ctx context.Context, rec interface{}) (err error) {
 			logger.Critical(ctx, "[gRPC|Server] Recovered in %v", rec)

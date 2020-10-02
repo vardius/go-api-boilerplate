@@ -62,7 +62,7 @@ func (r *clientRepository) Get(ctx context.Context, id uuid.UUID) (client.Client
 		return client.Client{}, application.ErrNotFound
 	}
 
-	return client.FromHistory(events), nil
+	return client.FromHistory(events)
 }
 
 // NewClientRepository creates new client event sourced repository

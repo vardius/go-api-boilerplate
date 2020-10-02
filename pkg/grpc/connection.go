@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/vardius/golog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware"
 	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware/firewall"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 // ConnectionConfig provides values for gRPC connection configuration
@@ -21,7 +21,7 @@ type ConnectionConfig struct {
 }
 
 // NewConnection provides new grpc connection
-func NewConnection(ctx context.Context, host string, port int, cfg ConnectionConfig, logger *log.Logger) *grpc.ClientConn {
+func NewConnection(ctx context.Context, host string, port int, cfg ConnectionConfig, logger golog.Logger) *grpc.ClientConn {
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
