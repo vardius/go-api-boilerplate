@@ -22,13 +22,13 @@ jobs:
         run: go version
       - name: Add and install dependencies
         run: |-
-          cd cmd/pkg
+          cd pkg
           go get ./...
       - name: Examine source code
         run: |-
-          cd cmd/pkg
+          cd pkg
           go vet ./...
       - name: Run tests
         run: |-
-          cd cmd/pkg
+          cd pkg
           go test ./... -v -race -cover -tags=docker
