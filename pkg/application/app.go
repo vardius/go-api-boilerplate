@@ -43,34 +43,6 @@ func (app *App) WithShutdownTimeout(timeout time.Duration) {
 
 // Run runs the service application
 func (app *App) Run(ctx context.Context) {
-	stop := func() {
-		ctxWithTimeout, cancel := context.WithTimeout(ctx, app.shutdownTimeout)
-		defer cancel()
-
-		app.logger.Info(ctxWithTimeout, "shutting down...")
-
-		errCh := make(chan error, len(app.adapters))
-
-		for _, adapter := range app.adapters {
-			go func(adapter Adapter) {
-				errCh <- adapter.Stop(ctxWithTimeout)
-			}(adapter)
-		}
-
-		for i := 0; i < len(app.adapters); i++ {
-			if err := <-errCh; err != nil {
-				// calling Goexit terminates that goroutine without returning (previous defers would not run)
-				go func(err error) {
-					app.logger.Critical(ctxWithTimeout, "shutdown error: %v", err)
-					os.Exit(1)
-				}(err)
-				return
-			}
-		}
-
-		app.logger.Info(ctxWithTimeout, "gracefully stopped")
-	}
-
 	for _, adapter := range app.adapters {
 		go func(adapter Adapter) {
 			if err := adapter.Start(ctx); err != nil {
@@ -80,5 +52,33 @@ func (app *App) Run(ctx context.Context) {
 		}(adapter)
 	}
 
-	shutdown.GracefulStop(stop)
+	shutdown.GracefulStop(func() { app.stop(ctx) })
+}
+
+func (app *App) stop(ctx context.Context) {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, app.shutdownTimeout)
+	defer cancel()
+
+	app.logger.Info(ctxWithTimeout, "shutting down...")
+
+	errCh := make(chan error, len(app.adapters))
+
+	for _, adapter := range app.adapters {
+		go func(adapter Adapter) {
+			errCh <- adapter.Stop(ctxWithTimeout)
+		}(adapter)
+	}
+
+	for i := 0; i < len(app.adapters); i++ {
+		if err := <-errCh; err != nil {
+			// calling Goexit terminates that goroutine without returning (previous defers would not run)
+			go func(err error) {
+				app.logger.Critical(ctxWithTimeout, "shutdown error: %v", err)
+				os.Exit(1)
+			}(err)
+			return
+		}
+	}
+
+	app.logger.Info(ctxWithTimeout, "gracefully stopped")
 }
