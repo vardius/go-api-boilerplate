@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/gocontainer"
 	"google.golang.org/grpc"
-	grpchealth "google.golang.org/grpc/health"
 
 	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
@@ -20,6 +20,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/repository"
 	usergrpc "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/grpc"
 	userhttp "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http"
+	userproto "github.com/vardius/go-api-boilerplate/cmd/user/proto"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	oauth2util "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
@@ -28,6 +29,7 @@ import (
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
+	httputils "github.com/vardius/go-api-boilerplate/pkg/http"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
@@ -104,7 +106,6 @@ func main() {
 	eventBus := eventbus.New(config.Env.EventBus.QueueSize, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
-	grpcHealthServer := grpchealth.NewServer()
 	grpcUserServer := usergrpc.NewServer(commandBus, userPersistenceRepository)
 	grpAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
 	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.Auth.Secret))
@@ -161,16 +162,22 @@ func main() {
 		panic(err)
 	}
 
+	userproto.RegisterUserServiceServer(grpcServer, grpcUserServer)
+
 	app.AddAdapters(
-		userhttp.NewAdapter(
-			fmt.Sprintf("%s:%d", config.Env.HTTP.Host, config.Env.HTTP.Port),
-			router,
+		httputils.NewAdapter(
+			&http.Server{
+				Addr:         fmt.Sprintf("%s:%d", config.Env.HTTP.Host, config.Env.HTTP.Port),
+				ReadTimeout:  config.Env.HTTP.ReadTimeout,
+				WriteTimeout: config.Env.HTTP.WriteTimeout,
+				IdleTimeout:  config.Env.HTTP.IdleTimeout, // limits server-side the amount of time a Keep-Alive connection will be kept idle before being reused
+				Handler:      router,
+			},
 		),
-		usergrpc.NewAdapter(
+		grpcutils.NewAdapter(
+			"user",
 			fmt.Sprintf("%s:%d", config.Env.GRPC.Host, config.Env.GRPC.Port),
 			grpcServer,
-			grpcHealthServer,
-			grpcUserServer,
 		),
 	)
 

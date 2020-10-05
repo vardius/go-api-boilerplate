@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/gocontainer"
 	"google.golang.org/grpc"
-	grpchealth "google.golang.org/grpc/health"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
@@ -29,6 +29,7 @@ import (
 	eventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	eventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
+	httputils "github.com/vardius/go-api-boilerplate/pkg/http"
 	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
@@ -96,7 +97,6 @@ func main() {
 	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.App.Secret))
 	manager := oauth2.NewManager(tokenStore, clientPersistenceRepository, authenticator)
 	oauth2Server := oauth2.InitServer(manager, logger, userPersistenceRepository, clientPersistenceRepository, config.Env.App.Secret, config.Env.OAuth.InitTimeout)
-	grpcHealthServer := grpchealth.NewServer()
 	grpcAuthServer := authgrpc.NewServer(oauth2Server, clientRepository, authenticator)
 	grpAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
 	claimsProvider := auth.NewClaimsProvider(authenticator)
@@ -142,16 +142,22 @@ func main() {
 		panic(err)
 	}
 
+	authproto.RegisterAuthenticationServiceServer(grpcServer, grpcAuthServer)
+
 	app.AddAdapters(
-		authhttp.NewAdapter(
-			fmt.Sprintf("%s:%d", config.Env.HTTP.Host, config.Env.HTTP.Port),
-			router,
+		httputils.NewAdapter(
+			&http.Server{
+				Addr:         fmt.Sprintf("%s:%d", config.Env.HTTP.Host, config.Env.HTTP.Port),
+				ReadTimeout:  config.Env.HTTP.ReadTimeout,
+				WriteTimeout: config.Env.HTTP.WriteTimeout,
+				IdleTimeout:  config.Env.HTTP.IdleTimeout, // limits server-side the amount of time a Keep-Alive connection will be kept idle before being reused
+				Handler:      router,
+			},
 		),
-		authgrpc.NewAdapter(
+		grpcutils.NewAdapter(
+			"auth",
 			fmt.Sprintf("%s:%d", config.Env.GRPC.Host, config.Env.GRPC.Port),
 			grpcServer,
-			grpcHealthServer,
-			grpcAuthServer,
 		),
 	)
 
