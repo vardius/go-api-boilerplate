@@ -34,7 +34,7 @@ func New() Client {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func FromHistory(events []domain.Event) (Client, error) {
+func FromHistory(ctx context.Context, events []domain.Event) (Client, error) {
 	c := New()
 
 	for _, domainEvent := range events {
@@ -59,11 +59,9 @@ func FromHistory(events []domain.Event) (Client, error) {
 			return c, apperrors.Wrap(fmt.Errorf("unhandled client event %s", domainEvent.Type))
 		}
 
-		if err := c.transition(e); err != nil {
+		if _, err := c.trackChange(ctx, e); err != nil {
 			return c, apperrors.Wrap(err)
 		}
-
-		c.version++
 	}
 
 	return c, nil
@@ -145,6 +143,7 @@ func (c *Client) trackChange(ctx context.Context, e domain.RawEvent) (domain.Eve
 	}
 
 	c.changes = append(c.changes, event)
+	c.version++
 
 	return event, nil
 }

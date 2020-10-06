@@ -6,6 +6,7 @@ package eventstore
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -80,6 +81,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 	var (
 		eventId  string
 		streamID string
+		metadata sql.NullString
 	)
 	err := row.Scan(
 		&eventId,
@@ -89,7 +91,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 		&event.StreamVersion,
 		&event.OccurredAt,
 		&event.Payload,
-		&event.Metadata,
+		&metadata,
 	)
 
 	switch {
@@ -101,6 +103,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 
 	event.ID = uuid.MustParse(eventId)
 	event.StreamID = uuid.MustParse(streamID)
+	event.Metadata = json.RawMessage(metadata.String)
 
 	return event, nil
 }
@@ -124,6 +127,7 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 			event    domain.Event
 			id       string
 			streamID string
+			metadata sql.NullString
 		)
 		if err := rows.Scan(
 			&id,
@@ -133,13 +137,14 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 			&event.StreamVersion,
 			&event.OccurredAt,
 			&event.Payload,
-			&event.Metadata,
+			&metadata,
 		); err != nil {
 			return nil, apperrors.Wrap(err)
 		}
 
 		event.ID = uuid.MustParse(id)
 		event.StreamID = uuid.MustParse(streamID)
+		event.Metadata = json.RawMessage(metadata.String)
 
 		events = append(events, event)
 	}

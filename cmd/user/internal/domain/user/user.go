@@ -35,7 +35,7 @@ func New() User {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func FromHistory(events []domain.Event) (User, error) {
+func FromHistory(ctx context.Context, events []domain.Event) (User, error) {
 	u := New()
 
 	for _, domainEvent := range events {
@@ -95,11 +95,9 @@ func FromHistory(events []domain.Event) (User, error) {
 			return u, apperrors.Wrap(fmt.Errorf("unhandled user event %s", domainEvent.Type))
 		}
 
-		if err := u.transition(e); err != nil {
+		if _, err := u.trackChange(ctx, e); err != nil {
 			return u, apperrors.Wrap(err)
 		}
-
-		u.version++
 	}
 
 	return u, nil
@@ -236,6 +234,7 @@ func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event
 	}
 
 	u.changes = append(u.changes, event)
+	u.version++
 
 	return event, nil
 }

@@ -35,7 +35,7 @@ func New() Token {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func FromHistory(events []domain.Event) (Token, error) {
+func FromHistory(ctx context.Context, events []domain.Event) (Token, error) {
 	t := New()
 
 	for _, domainEvent := range events {
@@ -60,11 +60,9 @@ func FromHistory(events []domain.Event) (Token, error) {
 			return t, apperrors.Wrap(fmt.Errorf("unhandled token event %s", domainEvent.Type))
 		}
 
-		if err := t.transition(e); err != nil {
+		if _, err := t.trackChange(ctx, e); err != nil {
 			return t, apperrors.Wrap(err)
 		}
-
-		t.version++
 	}
 
 	return t, nil
@@ -150,6 +148,7 @@ func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Even
 	}
 
 	t.changes = append(t.changes, event)
+	t.version++
 
 	return event, nil
 }
