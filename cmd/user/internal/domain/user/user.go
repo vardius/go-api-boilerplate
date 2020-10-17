@@ -99,7 +99,6 @@ func FromHistory(ctx context.Context, events []domain.Event) (User, error) {
 			return u, apperrors.Wrap(err)
 		}
 
-		u.changes = append(u.changes, domainEvent)
 		u.version++
 	}
 
