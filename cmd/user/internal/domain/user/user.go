@@ -95,9 +95,12 @@ func FromHistory(ctx context.Context, events []domain.Event) (User, error) {
 			return u, apperrors.Wrap(fmt.Errorf("unhandled user event %s", domainEvent.Type))
 		}
 
-		if _, err := u.trackChange(ctx, e); err != nil {
+		if err := u.transition(e); err != nil {
 			return u, apperrors.Wrap(err)
 		}
+
+		u.changes = append(u.changes, domainEvent)
+		u.version++
 	}
 
 	return u, nil
@@ -120,10 +123,21 @@ func (u User) Changes() []domain.Event {
 
 // RegisterWithEmail alters current user state and append changes to aggregate root
 func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailAddress) error {
-	if _, err := u.trackChange(ctx, WasRegisteredWithEmail{
+	e := WasRegisteredWithEmail{
 		ID:    id,
 		Email: email,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -132,12 +146,23 @@ func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailA
 
 // RegisterWithGoogle alters current user state and append changes to aggregate root
 func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email EmailAddress, googleID, accessToken string) error {
-	if _, err := u.trackChange(ctx, WasRegisteredWithGoogle{
+	e := WasRegisteredWithGoogle{
 		ID:          id,
 		Email:       email,
 		GoogleID:    googleID,
 		AccessToken: accessToken,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -146,11 +171,22 @@ func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email Email
 
 // ConnectWithGoogle alters current user state and append changes to aggregate root
 func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken string) error {
-	if _, err := u.trackChange(ctx, ConnectedWithGoogle{
+	e := ConnectedWithGoogle{
 		ID:          u.id,
 		GoogleID:    googleID,
 		AccessToken: accessToken,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -159,12 +195,23 @@ func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken stri
 
 // RegisterWithFacebook alters current user state and append changes to aggregate root
 func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email EmailAddress, facebookID, accessToken string) error {
-	if _, err := u.trackChange(ctx, WasRegisteredWithFacebook{
+	e := WasRegisteredWithFacebook{
 		ID:          id,
 		Email:       email,
 		FacebookID:  facebookID,
 		AccessToken: accessToken,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -173,11 +220,22 @@ func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email Ema
 
 // ConnectWithFacebook alters current user state and append changes to aggregate root
 func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken string) error {
-	if _, err := u.trackChange(ctx, ConnectedWithFacebook{
+	e := ConnectedWithFacebook{
 		ID:          u.id,
 		FacebookID:  facebookID,
 		AccessToken: accessToken,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -186,10 +244,21 @@ func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken 
 
 // ChangeEmailAddress alters current user state and append changes to aggregate root
 func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error {
-	if _, err := u.trackChange(ctx, EmailAddressWasChanged{
+	e := EmailAddressWasChanged{
 		ID:    u.id,
 		Email: email,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -198,26 +267,28 @@ func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error
 
 // RequestAccessToken dispatches AccessTokenWasRequested event
 func (u *User) RequestAccessToken(ctx context.Context) error {
-	if _, err := u.trackChange(ctx, AccessTokenWasRequested{
+	e := AccessTokenWasRequested{
 		ID:    u.id,
 		Email: u.email,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
 	return nil
 }
 
-func (u *User) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
-	if err := u.transition(e); err != nil {
-		return domain.Event{}, apperrors.Wrap(err)
-	}
-
-	event, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
-	if err != nil {
-		return event, apperrors.Wrap(err)
-	}
-
+func (u *User) trackChange(ctx context.Context, event domain.Event) (domain.Event, error) {
 	meta := userdomain.EventMetadata{}
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
 		meta.Identity = i

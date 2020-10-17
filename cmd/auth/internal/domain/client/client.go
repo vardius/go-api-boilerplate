@@ -59,9 +59,12 @@ func FromHistory(ctx context.Context, events []domain.Event) (Client, error) {
 			return c, apperrors.Wrap(fmt.Errorf("unhandled client event %s", domainEvent.Type))
 		}
 
-		if _, err := c.trackChange(ctx, e); err != nil {
+		if err := c.transition(e); err != nil {
 			return c, apperrors.Wrap(err)
 		}
+
+		c.changes = append(c.changes, domainEvent)
+		c.version++
 	}
 
 	return c, nil
@@ -88,18 +91,29 @@ func (c *Client) Create(
 	clientID uuid.UUID,
 	clientSecret uuid.UUID,
 	userID uuid.UUID,
-	domain string,
+	domainName string,
 	redirectURL string,
 	scopes ...string,
 ) error {
-	if _, err := c.trackChange(ctx, WasCreated{
+	e := WasCreated{
 		ID:          clientID,
 		Secret:      clientSecret,
 		UserID:      userID,
-		Domain:      domain,
+		Domain:      domainName,
 		RedirectURL: redirectURL,
 		Scopes:      scopes,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := c.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := c.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -108,25 +122,27 @@ func (c *Client) Create(
 
 // Remove alters current client state and append changes to aggregate root
 func (c *Client) Remove(ctx context.Context) error {
-	if _, err := c.trackChange(ctx, WasRemoved{
+	e := WasRemoved{
 		ID: c.id,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := c.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := c.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
 	return nil
 }
 
-func (c *Client) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
-	if err := c.transition(e); err != nil {
-		return domain.Event{}, apperrors.Wrap(err)
-	}
-
-	event, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
-	if err != nil {
-		return event, apperrors.Wrap(err)
-	}
-
+func (c *Client) trackChange(ctx context.Context, event domain.Event) (domain.Event, error) {
 	meta := authdomain.EventMetadata{}
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
 		meta.Identity = i

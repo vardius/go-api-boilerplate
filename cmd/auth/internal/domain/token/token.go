@@ -60,9 +60,12 @@ func FromHistory(ctx context.Context, events []domain.Event) (Token, error) {
 			return t, apperrors.Wrap(fmt.Errorf("unhandled token event %s", domainEvent.Type))
 		}
 
-		if _, err := t.trackChange(ctx, e); err != nil {
+		if err := t.transition(e); err != nil {
 			return t, apperrors.Wrap(err)
 		}
+
+		t.changes = append(t.changes, domainEvent)
+		t.version++
 	}
 
 	return t, nil
@@ -98,13 +101,24 @@ func (t *Token) Create(
 		return apperrors.Wrap(err)
 	}
 
-	if _, err := t.trackChange(ctx, WasCreated{
+	e := WasCreated{
 		ID:        id,
 		ClientID:  clientID,
 		UserID:    userID,
 		Data:      data,
 		UserAgent: userAgent,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := t.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if _, err := t.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -113,25 +127,26 @@ func (t *Token) Create(
 
 // Remove alters current token state and append changes to aggregate root
 func (t *Token) Remove(ctx context.Context) error {
-	if _, err := t.trackChange(ctx, WasRemoved{
+	e := WasRemoved{
 		ID: t.id,
-	}); err != nil {
+	}
+
+	domainEvent, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
+	if err != nil {
+		return apperrors.Wrap(err)
+	}
+
+	if err := t.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+	if _, err := t.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
 	return nil
 }
 
-func (t *Token) trackChange(ctx context.Context, e domain.RawEvent) (domain.Event, error) {
-	if err := t.transition(e); err != nil {
-		return domain.Event{}, apperrors.Wrap(err)
-	}
-
-	event, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
-	if err != nil {
-		return event, apperrors.Wrap(err)
-	}
-
+func (t *Token) trackChange(ctx context.Context, event domain.Event) (domain.Event, error) {
 	meta := authdomain.EventMetadata{}
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
 		meta.Identity = i
