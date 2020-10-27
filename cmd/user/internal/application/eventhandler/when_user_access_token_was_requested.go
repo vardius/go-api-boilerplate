@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/mailer"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
@@ -27,7 +26,7 @@ func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider, identit
 			return apperrors.Wrap(err)
 		}
 
-		i, err := identityProvider.GetByUserEmail(ctx, e.Email.String(), config.Env.App.Domain)
+		i, err := identityProvider.GetByUserEmail(ctx, e.Email.String())
 		if err != nil {
 			return apperrors.Wrap(err)
 		}

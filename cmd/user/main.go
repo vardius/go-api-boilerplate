@@ -105,13 +105,14 @@ func main() {
 	eventStore := eventstore.New(mysqlConnection)
 	eventBus := eventbus.New(config.Env.EventBus.QueueSize, logger)
 	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
+	clientPersistenceRepository := persistence.NewClientRepository(mysqlConnection)
 	userRepository := repository.NewUserRepository(eventStore, eventBus)
 	grpcUserServer := usergrpc.NewServer(commandBus, userPersistenceRepository)
 	grpAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
 	authenticator := auth.NewSecretAuthenticator([]byte(config.Env.Auth.Secret))
 	tokenProvider := oauth2util.NewCredentialsAuthenticator(config.Env.Auth.Host, config.Env.HTTP.Port, config.Env.Auth.Secret)
 	claimsProvider := auth.NewClaimsProvider(authenticator)
-	identityProvider := identity.NewIdentityProvider(mysqlConnection)
+	identityProvider := identity.NewIdentityProvider(clientPersistenceRepository, userPersistenceRepository)
 	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, identityProvider)
 	router := userhttp.NewRouter(
 		logger,

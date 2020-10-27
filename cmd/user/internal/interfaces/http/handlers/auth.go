@@ -13,7 +13,6 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	auth "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
@@ -93,7 +92,7 @@ func BuildAuthCallbackHandler(authConfig *oauth2.Config, apiURL string, cb comma
 		// We can do that because command handler acknowledges events when persisting
 		// aggregate root so we know that event handlers have executed and data was
 		// persisted (see: SaveAndAcknowledge method)
-		i, err := identityProvider.GetByUserEmail(r.Context(), emailData.Email, config.Env.App.Domain)
+		i, err := identityProvider.GetByUserEmail(r.Context(), emailData.Email)
 		if err != nil {
 			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return

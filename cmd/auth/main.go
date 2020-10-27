@@ -100,7 +100,7 @@ func main() {
 	grpcAuthServer := authgrpc.NewServer(oauth2Server, clientRepository, authenticator)
 	grpAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
 	claimsProvider := auth.NewClaimsProvider(authenticator)
-	identityProvider := identity.NewIdentityProvider(mysqlConnection)
+	identityProvider := identity.NewIdentityProvider(clientPersistenceRepository, userPersistenceRepository)
 	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, identityProvider)
 	router := authhttp.NewRouter(
 		logger,

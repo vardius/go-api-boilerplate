@@ -65,6 +65,22 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 	}
 }
 
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (persistence.User, error) {
+	row := r.db.QueryRowContext(ctx, `SELECT id, email_address, facebook_id, google_id FROM users WHERE email_address=? LIMIT 1`, email)
+
+	user := User{}
+
+	err := row.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+	case err != nil:
+		return nil, apperrors.Wrap(err)
+	default:
+		return user, nil
+	}
+}
+
 func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 	user := User{
 		ID:    u.GetID(),

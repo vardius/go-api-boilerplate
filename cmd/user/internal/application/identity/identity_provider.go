@@ -2,73 +2,86 @@ package identity
 
 import (
 	"context"
-	"database/sql"
-	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
 
-	"github.com/vardius/go-api-boilerplate/pkg/application"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 type Provider interface {
-	GetByUserEmail(ctx context.Context, userEmail, domain string) (*identity.Identity, error)
+	GetByUserEmail(ctx context.Context, userEmail string) (*identity.Identity, error)
 }
 
 type identityProvider struct {
-	db *sql.DB
+	clientRepository persistence.ClientRepository
+	userRepository   persistence.UserRepository
 }
 
-func NewIdentityProvider(db *sql.DB) *identityProvider {
+func NewIdentityProvider(clientRepository persistence.ClientRepository, userRepository persistence.UserRepository) *identityProvider {
 	return &identityProvider{
-		db: db,
+		clientRepository: clientRepository,
+		userRepository:   userRepository,
 	}
 }
 
-func (p *identityProvider) GetByUserEmail(ctx context.Context, userEmail, domain string) (*identity.Identity, error) {
-	var i identity.Identity
-
-	row := p.db.QueryRowContext(ctx, `
-SELECT c.id, c.secret, u.id, u.email_address
-FROM clients AS c
-  INNER JOIN users AS u ON u.id = c.user_id
-WHERE u.email_address = ?
-  AND c.domain = ?
-LIMIT 1
-`, userEmail, domain)
-
-	err := row.Scan(&i.ClientID, &i.ClientSecret, &i.UserID, &i.UserEmail)
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		return nil, apperrors.Wrap(fmt.Errorf("%w: credentials not found: %s", application.ErrNotFound, err))
-	case err != nil:
+func (p *identityProvider) GetByUserEmail(ctx context.Context, userEmail string) (*identity.Identity, error) {
+	u, err := p.userRepository.GetByEmail(ctx, userEmail)
+	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 
-	return &i, nil
+	// We can do that because its our internal client, should have one entry per user
+	c, err := p.clientRepository.GetByUserDomain(ctx, u.GetID(), config.Env.App.Domain)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	clientID, err := uuid.Parse(c.GetID())
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	clientSecret, err := uuid.Parse(c.GetSecret())
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	userID, err := uuid.Parse(u.GetID())
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	return &identity.Identity{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		ClientDomain: c.GetDomain(),
+		UserID:       userID,
+		UserEmail:    userEmail,
+	}, nil
 }
 
 func (p *identityProvider) GetByUserID(ctx context.Context, userID, clientID uuid.UUID) (*identity.Identity, error) {
-	var i identity.Identity
-
-	row := p.db.QueryRowContext(ctx, `
-SELECT c.id, c.secret, c.domain, u.id, u.email_address
-FROM clients AS c
-  INNER JOIN users AS u ON u.id = c.user_id
-WHERE c.id = ?
-  AND c.user_id = ?
-LIMIT 1
-`, clientID, userID)
-
-	err := row.Scan(&i.ClientID, &i.ClientSecret, &i.ClientDomain, &i.UserID, &i.UserEmail)
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		return nil, apperrors.Wrap(fmt.Errorf("%w: credentials not found: %s", application.ErrNotFound, err))
-	case err != nil:
+	c, err := p.clientRepository.Get(ctx, clientID.String())
+	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 
-	return &i, nil
+	u, err := p.userRepository.Get(ctx, userID.String())
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	clientSecret, err := uuid.Parse(c.GetSecret())
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	return &identity.Identity{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		ClientDomain: c.GetDomain(),
+		UserID:       userID,
+		UserEmail:    u.GetEmail(),
+	}, nil
 }

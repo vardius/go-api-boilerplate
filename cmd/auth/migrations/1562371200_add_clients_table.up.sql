@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `clients`
     `scope`        JSON         NOT NULL,
     PRIMARY KEY (`distinct_id`),
     UNIQUE KEY `id` (`id`),
-    INDEX `i_user_id` (`user_id`)
+    INDEX `i_user_id_domain` (`user_id`, `domain`)
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
