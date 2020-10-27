@@ -19,7 +19,7 @@ func WhenTokenWasRemoved(db *sql.DB, repository persistence.TokenRepository) eve
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := token.WasRemoved{}
+		var e token.WasRemoved
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)
 		}

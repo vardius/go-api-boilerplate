@@ -34,7 +34,7 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 	var users []persistence.User
 
 	for rows.Next() {
-		user := User{}
+		var user User
 		if err := rows.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID); err != nil {
 			return nil, apperrors.Wrap(err)
 		}
@@ -52,7 +52,7 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT id, email_address, facebook_id, google_id FROM users WHERE id=? LIMIT 1`, id)
 
-	user := User{}
+	var user User
 
 	err := row.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
 	switch {
@@ -68,7 +68,7 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (persistence.User, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT id, email_address, facebook_id, google_id FROM users WHERE email_address=? LIMIT 1`, email)
 
-	user := User{}
+	var user User
 
 	err := row.Scan(&user.ID, &user.Email, &user.FacebookID, &user.GoogleID)
 	switch {

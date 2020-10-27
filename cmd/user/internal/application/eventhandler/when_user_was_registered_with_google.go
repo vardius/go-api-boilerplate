@@ -22,8 +22,7 @@ func WhenUserWasRegisteredWithGoogle(db *sql.DB, repository persistence.UserRepo
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := user.WasRegisteredWithGoogle{}
-
+		var e user.WasRegisteredWithGoogle
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)
 		}

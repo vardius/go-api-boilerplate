@@ -72,7 +72,7 @@ func BuildAuthCallbackHandler(authConfig *oauth2.Config, apiURL string, cb comma
 			return
 		}
 
-		emailData := requestBody{}
+		var emailData requestBody
 		if err := json.Unmarshal(profileData, &emailData); err != nil {
 			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 			return

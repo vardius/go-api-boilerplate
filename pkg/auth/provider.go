@@ -15,7 +15,7 @@ type provider struct {
 }
 
 func (p *provider) FromJWT(jwt string) (Claims, error) {
-	c := Claims{}
+	var c Claims
 	if err := p.authenticator.Verify(jwt, &c); err != nil {
 		return c, err
 	}

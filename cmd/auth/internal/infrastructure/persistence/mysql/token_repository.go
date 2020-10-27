@@ -134,7 +134,7 @@ func (r *tokenRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (r *tokenRepository) getTokenFromRow(row *sql.Row) (persistence.Token, error) {
-	token := Token{}
+	var token Token
 	err := row.Scan(
 		&token.ID,
 		&token.ClientID,
@@ -172,7 +172,7 @@ func (r *tokenRepository) FindAllByClientID(ctx context.Context, clientID string
 	var tokens []persistence.Token
 
 	for rows.Next() {
-		token := Token{}
+		var token Token
 		if err := rows.Scan(
 			&token.ID,
 			&token.ClientID,

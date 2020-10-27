@@ -19,7 +19,7 @@ func WhenUserConnectedWithGoogle(db *sql.DB, repository persistence.UserReposito
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := user.ConnectedWithGoogle{}
+		var e user.ConnectedWithGoogle
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)
 		}

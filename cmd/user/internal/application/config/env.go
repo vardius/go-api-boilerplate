@@ -81,42 +81,44 @@ type environment struct {
 }
 
 func init() {
-	Env = &environment{}
+	var e environment
 
-	if err := env.Parse(&Env.App); err != nil {
+	if err := env.Parse(&e.App); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.Debug); err != nil {
+	if err := env.Parse(&e.Debug); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.Mailer); err != nil {
+	if err := env.Parse(&e.Mailer); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.HTTP); err != nil {
+	if err := env.Parse(&e.HTTP); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.GRPC); err != nil {
+	if err := env.Parse(&e.GRPC); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.MYSQL); err != nil {
+	if err := env.Parse(&e.MYSQL); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.Auth); err != nil {
+	if err := env.Parse(&e.Auth); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.CommandBus); err != nil {
+	if err := env.Parse(&e.CommandBus); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.EventBus); err != nil {
+	if err := env.Parse(&e.EventBus); err != nil {
 		panic(err)
 	}
 
-	if Env.CommandBus.QueueSize == 0 {
-		Env.CommandBus.QueueSize = runtime.NumCPU()
+	if e.CommandBus.QueueSize == 0 {
+		e.CommandBus.QueueSize = runtime.NumCPU()
 	}
-	if Env.EventBus.QueueSize == 0 {
-		Env.EventBus.QueueSize = runtime.NumCPU()
+	if e.EventBus.QueueSize == 0 {
+		e.EventBus.QueueSize = runtime.NumCPU()
 	}
+
+	Env = &e
 
 	log.Printf("ENV: %v", Env)
 }

@@ -43,14 +43,14 @@ func FromHistory(ctx context.Context, events []domain.Event) (Token, error) {
 
 		switch domainEvent.Type {
 		case (WasCreated{}).GetType():
-			wasCreated := WasCreated{}
+			var wasCreated WasCreated
 			if err := json.Unmarshal(domainEvent.Payload, &wasCreated); err != nil {
 				return t, apperrors.Wrap(err)
 			}
 
 			e = wasCreated
 		case (WasRemoved{}).GetType():
-			wasRemoved := WasRemoved{}
+			var wasRemoved WasRemoved
 			if err := json.Unmarshal(domainEvent.Payload, &wasRemoved); err != nil {
 				return t, apperrors.Wrap(err)
 			}
@@ -146,7 +146,7 @@ func (t *Token) Remove(ctx context.Context) error {
 }
 
 func (t *Token) trackChange(ctx context.Context, event domain.Event) (domain.Event, error) {
-	meta := authdomain.EventMetadata{}
+	var meta authdomain.EventMetadata
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
 		meta.Identity = i
 	}

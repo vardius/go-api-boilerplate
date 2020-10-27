@@ -19,7 +19,7 @@ func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepos
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := user.EmailAddressWasChanged{}
+		var e user.EmailAddressWasChanged
 
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)

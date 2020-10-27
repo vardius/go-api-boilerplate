@@ -31,28 +31,28 @@ const (
 func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
 	switch contract {
 	case RegisterUserWithEmail:
-		command := RegisterWithEmail{}
+		var command RegisterWithEmail
 		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RegisterUserWithGoogle:
-		command := RegisterWithGoogle{}
+		var command RegisterWithGoogle
 		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case RegisterUserWithFacebook:
-		command := RegisterWithFacebook{}
+		var command RegisterWithFacebook
 		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
 
 		return command, nil
 	case ChangeUserEmailAddress:
-		command := ChangeEmailAddress{}
+		var command ChangeEmailAddress
 		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}

@@ -39,7 +39,7 @@ func (a *credentialsProvider) RetrievePasswordCredentialsToken(ctx context.Conte
 		return nil, apperrors.Wrap(fmt.Errorf("insufficent scope: %v", scopes))
 	}
 
-	meta := url.Values{}
+	var meta url.Values
 	if m, ok := metadata.FromContext(ctx); ok {
 		data, err := json.Marshal(m)
 		if err != nil {
