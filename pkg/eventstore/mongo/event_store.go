@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -87,7 +88,7 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 	filter := bson.M{}
 	findOptions := options.FindOptions{
 		Sort: bson.D{
-			{"occurred_at", 1},
+			primitive.E{Key: "occurred_at", Value: 1},
 		},
 	}
 
@@ -117,7 +118,7 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 	}
 	findOptions := options.FindOptions{
 		Sort: bson.D{
-			{"occurred_at", 1},
+			primitive.E{Key: "occurred_at", Value: 1},
 		},
 	}
 
