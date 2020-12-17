@@ -20,6 +20,8 @@ const (
 // is to avid plain auth error if !server.TLS { return "", nil, errors.New("unencrypted connection") }
 type unencryptedAuth struct {
 	smtp.Auth
+
+	cfg *config.Config
 }
 
 func (a unencryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
@@ -28,14 +30,14 @@ func (a unencryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) 
 	return a.Auth.Start(&s)
 }
 
-func SendLoginEmail(ctx context.Context, subject, to string, authToken, redirectPath string) error {
+func SendLoginEmail(ctx context.Context, cfg *config.Config, subject, to string, authToken, redirectPath string) error {
 	var template bytes.Buffer
 	if err := email.Login.Execute(&template, struct {
 		Title    string
 		LoginURL string
 	}{
 		Title: "Login to go-api-boilerplate",
-		LoginURL: fmt.Sprintf("%s?%s", config.Env.App.Domain, url.Values{
+		LoginURL: fmt.Sprintf("%s?%s", cfg.App.Domain, url.Values{
 			"r":         []string{redirectPath},
 			"authToken": []string{authToken},
 		}.Encode()),
@@ -43,10 +45,10 @@ func SendLoginEmail(ctx context.Context, subject, to string, authToken, redirect
 		return apperrors.Wrap(err)
 	}
 
-	return sendHTMLEmail(subject, FROM, []string{to}, template.Bytes())
+	return sendHTMLEmail(cfg, subject, FROM, []string{to}, template.Bytes())
 }
 
-func sendHTMLEmail(subject, from string, to []string, body []byte) error {
+func sendHTMLEmail(cfg *config.Config, subject, from string, to []string, body []byte) error {
 	if from == "" {
 		from = FROM
 	}
@@ -55,8 +57,8 @@ func sendHTMLEmail(subject, from string, to []string, body []byte) error {
 	source := []byte(fmt.Sprintf("Subject: %s\n%s\n\n", subject, mime))
 
 	return smtp.SendMail(
-		fmt.Sprintf("%s:%d", config.Env.Mailer.Host, config.Env.Mailer.Port),
-		unencryptedAuth{smtp.PlainAuth("", config.Env.Mailer.User, config.Env.Mailer.Password, config.Env.Mailer.Host)},
+		fmt.Sprintf("%s:%d", cfg.Mailer.Host, cfg.Mailer.Port),
+		unencryptedAuth{cfg: cfg, Auth: smtp.PlainAuth("", cfg.Mailer.User, cfg.Mailer.Password, cfg.Mailer.Host)},
 		from,
 		to,
 		append(source, body...),

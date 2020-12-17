@@ -1,17 +1,13 @@
 package config
 
 import (
-	"log"
 	"runtime"
 	"time"
 
 	"github.com/caarlos0/env/v6"
 )
 
-// Env stores environment values
-var Env *environment
-
-type environment struct {
+type Config struct {
 	App struct {
 		Domain          string        `env:"APP_DOMAIN"                envDefault:"http://localhost:3000"`
 		Environment     string        `env:"APP_ENV"                   envDefault:"development"`
@@ -65,40 +61,40 @@ type environment struct {
 	}
 }
 
-func init() {
-	Env = &environment{}
+func FromEnv() *Config {
+	c := Config{}
 
-	if err := env.Parse(&Env.App); err != nil {
+	if err := env.Parse(&c.App); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.OAuth); err != nil {
+	if err := env.Parse(&c.OAuth); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.Debug); err != nil {
+	if err := env.Parse(&c.Debug); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.HTTP); err != nil {
+	if err := env.Parse(&c.HTTP); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.GRPC); err != nil {
+	if err := env.Parse(&c.GRPC); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.MYSQL); err != nil {
+	if err := env.Parse(&c.MYSQL); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.CommandBus); err != nil {
+	if err := env.Parse(&c.CommandBus); err != nil {
 		panic(err)
 	}
-	if err := env.Parse(&Env.EventBus); err != nil {
+	if err := env.Parse(&c.EventBus); err != nil {
 		panic(err)
-	}
-
-	if Env.CommandBus.QueueSize == 0 {
-		Env.CommandBus.QueueSize = runtime.NumCPU()
-	}
-	if Env.EventBus.QueueSize == 0 {
-		Env.EventBus.QueueSize = runtime.NumCPU()
 	}
 
-	log.Printf("ENV: %v", Env)
+	if c.CommandBus.QueueSize == 0 {
+		c.CommandBus.QueueSize = runtime.NumCPU()
+	}
+	if c.EventBus.QueueSize == 0 {
+		c.EventBus.QueueSize = runtime.NumCPU()
+	}
+
+	return &c
 }

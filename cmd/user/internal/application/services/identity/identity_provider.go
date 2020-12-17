@@ -16,12 +16,14 @@ type Provider interface {
 }
 
 type identityProvider struct {
+	cfg              *config.Config
 	clientRepository persistence.ClientRepository
 	userRepository   persistence.UserRepository
 }
 
-func NewIdentityProvider(clientRepository persistence.ClientRepository, userRepository persistence.UserRepository) *identityProvider {
+func NewIdentityProvider(cfg *config.Config, clientRepository persistence.ClientRepository, userRepository persistence.UserRepository) *identityProvider {
 	return &identityProvider{
+		cfg:              cfg,
 		clientRepository: clientRepository,
 		userRepository:   userRepository,
 	}
@@ -34,7 +36,7 @@ func (p *identityProvider) GetByUserEmail(ctx context.Context, userEmail string)
 	}
 
 	// We can do that because its our internal client, should have one entry per user
-	c, err := p.clientRepository.GetByUserDomain(ctx, u.GetID(), config.Env.App.Domain)
+	c, err := p.clientRepository.GetByUserDomain(ctx, u.GetID(), p.cfg.App.Domain)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}

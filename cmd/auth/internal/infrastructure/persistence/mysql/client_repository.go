@@ -19,7 +19,8 @@ import (
 )
 
 type clientRepository struct {
-	db *sql.DB
+	cfg *config.Config
+	db  *sql.DB
 }
 
 func (r *clientRepository) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
@@ -58,7 +59,7 @@ func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, l
 		ctx,
 		`SELECT id, user_id, secret, domain, redirect_url, scope  FROM clients WHERE user_id=? AND domain!=? ORDER BY distinct_id DESC LIMIT ? OFFSET ?`,
 		userID,
-		config.Env.App.Domain,
+		r.cfg.App.Domain,
 		limit,
 		offset,
 	)
@@ -96,7 +97,7 @@ func (r *clientRepository) CountByUserID(ctx context.Context, userID string) (in
 		ctx,
 		`SELECT COUNT(distinct_id) FROM clients WHERE user_id=? AND domain!=?`,
 		userID,
-		config.Env.App.Domain,
+		r.cfg.App.Domain,
 	)
 	if err := row.Scan(&total); err != nil {
 		return 0, apperrors.Wrap(err)
@@ -168,6 +169,6 @@ func (r *clientRepository) Delete(ctx context.Context, id string) error {
 }
 
 // NewClientRepository returns mysql view model repository for client
-func NewClientRepository(db *sql.DB) persistence.ClientRepository {
-	return &clientRepository{db}
+func NewClientRepository(cfg *config.Config, db *sql.DB) persistence.ClientRepository {
+	return &clientRepository{cfg: cfg, db: db}
 }

@@ -8,24 +8,21 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/mailer"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
-	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 )
 
-// WhenUserWasRegisteredWithEmail handles event
-func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepository, tokenProvider oauth2.TokenProvider, authClient proto.AuthenticationServiceClient) eventbus.EventHandler {
+// WhenUserWasRegisteredWithGoogle handles event
+func WhenUserWasRegisteredWithGoogle(cfg *config.Config, db *sql.DB, repository persistence.UserRepository, authClient proto.AuthenticationServiceClient) eventbus.EventHandler {
 	fn := func(parentCtx context.Context, event domain.Event) error {
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := user.WasRegisteredWithEmail{}
-
+		var e user.WasRegisteredWithGoogle
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)
 		}
@@ -48,24 +45,12 @@ func WhenUserWasRegisteredWithEmail(db *sql.DB, repository persistence.UserRepos
 		for _, scope := range oauth2.AllScopes {
 			scopes = append(scopes, string(scope))
 		}
-		clientResp, err := authClient.CreateClient(ctx, &proto.CreateClientRequest{
+		if _, err := authClient.CreateClient(ctx, &proto.CreateClientRequest{
 			UserID: e.ID.String(),
-			Domain: config.Env.App.Domain,
+			Domain: cfg.App.Domain,
 			Scopes: scopes,
-		})
-		if err != nil {
+		}); err != nil {
 			return apperrors.Wrap(err)
-		}
-
-		token, err := tokenProvider.RetrievePasswordCredentialsToken(ctx, clientResp.ClientID, clientResp.ClientSecret, string(e.Email), oauth2.AllScopes)
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		if executioncontext.Has(ctx, executioncontext.LIVE) {
-			if err := mailer.SendLoginEmail(ctx, "WhenUserWasRegisteredWithEmail", string(e.Email), token.AccessToken, e.RedirectPath); err != nil {
-				return apperrors.Wrap(err)
-			}
 		}
 
 		return nil

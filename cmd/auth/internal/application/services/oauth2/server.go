@@ -27,6 +27,7 @@ var (
 
 // InitServer initialize the oauth2 server instance
 func InitServer(
+	cfg *config.Config,
 	manager oauth2.Manager,
 	logger golog.Logger,
 	userRepository persistence.UserRepository,
@@ -73,7 +74,7 @@ func InitServer(
 					}
 				}
 
-				http.Redirect(w, r, fmt.Sprintf("%s?%s", config.Env.App.AuthorizeURL, r.Form.Encode()), http.StatusFound)
+				http.Redirect(w, r, fmt.Sprintf("%s?%s", cfg.App.AuthorizeURL, r.Form.Encode()), http.StatusFound)
 
 				return "", nil
 			}

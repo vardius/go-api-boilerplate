@@ -17,7 +17,7 @@ import (
 )
 
 // WhenUserWasRegisteredWithFacebook handles event
-func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRepository, authClient proto.AuthenticationServiceClient) eventbus.EventHandler {
+func WhenUserWasRegisteredWithFacebook(cfg *config.Config, db *sql.DB, repository persistence.UserRepository, authClient proto.AuthenticationServiceClient) eventbus.EventHandler {
 	fn := func(parentCtx context.Context, event domain.Event) error {
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
@@ -48,7 +48,7 @@ func WhenUserWasRegisteredWithFacebook(db *sql.DB, repository persistence.UserRe
 		}
 		if _, err := authClient.CreateClient(ctx, &proto.CreateClientRequest{
 			UserID: e.ID.String(),
-			Domain: config.Env.App.Domain,
+			Domain: cfg.App.Domain,
 			Scopes: scopes,
 		}); err != nil {
 			return apperrors.Wrap(err)

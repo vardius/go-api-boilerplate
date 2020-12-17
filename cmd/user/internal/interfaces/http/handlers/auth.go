@@ -13,7 +13,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/identity"
+	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/services/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	auth "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"

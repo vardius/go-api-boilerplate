@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
-	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/identity"
+	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/services/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	userpersistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
@@ -31,7 +31,9 @@ const googleAPIURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 const facebookAPIURL = "https://graph.facebook.com/me"
 
 // NewRouter provides new router
-func NewRouter(logger golog.Logger,
+func NewRouter(
+	cfg *config.Config,
+	logger golog.Logger,
 	tokenAuthorizer auth.TokenAuthorizer,
 	repository userpersistence.UserRepository,
 	commandBus commandbus.CommandBus,
@@ -53,9 +55,9 @@ func NewRouter(logger golog.Logger,
 		authenticator.FromQuery("authToken", logger),
 		authenticator.FromCookie("at", logger),
 		httpmiddleware.CORS(
-			[]string{config.Env.App.Domain},
-			config.Env.HTTP.Origins,
-			config.Env.App.Environment == "development",
+			[]string{cfg.App.Domain},
+			cfg.HTTP.Origins,
+			cfg.App.Environment == "development",
 		),
 		httpmiddleware.LimitRequestBody(int64(10<<20)),          // 10 MB is a lot of text.
 		httpmiddleware.RateLimit(logger, 10, 10, 3*time.Minute), // 5 of requests per second with bursts of at most 10 requests
@@ -70,9 +72,9 @@ func NewRouter(logger golog.Logger,
 	router.POST("/dispatch/user/{command}", handlers.BuildUserCommandDispatchHandler(commandBus))
 
 	var googleOauthConfig = &oauth2.Config{
-		RedirectURL:  fmt.Sprintf("%s/v1/google/callback", config.Env.App.ApiBaseURL),
-		ClientID:     config.Env.Google.ClientID,
-		ClientSecret: config.Env.Google.ClientSecret,
+		RedirectURL:  fmt.Sprintf("%s/v1/google/callback", cfg.App.ApiBaseURL),
+		ClientID:     cfg.Google.ClientID,
+		ClientSecret: cfg.Google.ClientSecret,
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
 		Endpoint:     google.Endpoint,
 	}
@@ -80,9 +82,9 @@ func NewRouter(logger golog.Logger,
 	router.POST("/google/callback", handlers.BuildAuthCallbackHandler(googleOauthConfig, googleAPIURL, commandBus, user.RegisterUserWithGoogle, tokenProvider, identityProvider))
 
 	var facebookOauthConfig = &oauth2.Config{
-		RedirectURL:  fmt.Sprintf("%s/v1/facebook/callback", config.Env.App.ApiBaseURL),
-		ClientID:     config.Env.Google.ClientID,
-		ClientSecret: config.Env.Google.ClientSecret,
+		RedirectURL:  fmt.Sprintf("%s/v1/facebook/callback", cfg.App.ApiBaseURL),
+		ClientID:     cfg.Google.ClientID,
+		ClientSecret: cfg.Google.ClientSecret,
 		Scopes:       []string{"public_profile"},
 		Endpoint:     facebook.Endpoint,
 	}

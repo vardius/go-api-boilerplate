@@ -23,6 +23,7 @@ import (
 
 // NewRouter provides new router
 func NewRouter(
+	cfg *config.Config,
 	logger golog.Logger,
 	tokenAuthorizer auth.TokenAuthorizer,
 	server *server.Server,
@@ -45,9 +46,9 @@ func NewRouter(
 		authenticator.FromQuery("authToken", logger),
 		authenticator.FromCookie("at", logger),
 		httpmiddleware.CORS(
-			[]string{config.Env.App.Domain},
-			config.Env.HTTP.Origins,
-			config.Env.App.Environment == "development",
+			[]string{cfg.App.Domain},
+			cfg.HTTP.Origins,
+			cfg.App.Environment == "development",
 		),
 		httpmiddleware.LimitRequestBody(int64(10<<20)),          // 10 MB is a lot of text.
 		httpmiddleware.RateLimit(logger, 10, 10, 3*time.Minute), // 5 of requests per second with bursts of at most 10 requests

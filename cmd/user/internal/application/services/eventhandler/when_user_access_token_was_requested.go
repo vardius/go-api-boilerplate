@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/identity"
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/mailer"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
+	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/services/identity"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/services/mailer"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
@@ -16,7 +17,7 @@ import (
 )
 
 // WhenUserAccessTokenWasRequested handles event
-func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider, identityProvider appidentity.Provider) eventbus.EventHandler {
+func WhenUserAccessTokenWasRequested(cfg *config.Config, tokenProvider oauth2.TokenProvider, identityProvider appidentity.Provider) eventbus.EventHandler {
 	fn := func(parentCtx context.Context, event domain.Event) error {
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
@@ -37,7 +38,7 @@ func WhenUserAccessTokenWasRequested(tokenProvider oauth2.TokenProvider, identit
 		}
 
 		if executioncontext.Has(ctx, executioncontext.LIVE) {
-			if err := mailer.SendLoginEmail(ctx, "WhenUserAccessTokenWasRequested", string(e.Email), token.AccessToken, e.RedirectPath); err != nil {
+			if err := mailer.SendLoginEmail(ctx, cfg, "WhenUserAccessTokenWasRequested", string(e.Email), token.AccessToken, e.RedirectPath); err != nil {
 				return apperrors.Wrap(err)
 			}
 		}
