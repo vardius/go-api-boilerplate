@@ -62,7 +62,7 @@ type Config struct {
 }
 
 func FromEnv() *Config {
-	c := Config{}
+	var c Config
 
 	if err := env.Parse(&c.App); err != nil {
 		panic(err)
