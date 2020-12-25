@@ -18,7 +18,7 @@ import (
 	auth "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	httpjson "github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 )
 
 type requestBody struct {
@@ -29,13 +29,12 @@ const authCookieName = "oauthstate"
 
 // BuildSocialAuthHandler wraps user gRPC client with http.Handler
 func BuildSocialAuthHandler(config *oauth2.Config) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		expiration := time.Now().Add(365 * 24 * time.Hour)
 
 		b := make([]byte, 16)
 		if _, err := io.ReadFull(rand.Reader, b); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		state := base64.URLEncoding.EncodeToString(b)
@@ -44,49 +43,43 @@ func BuildSocialAuthHandler(config *oauth2.Config) http.Handler {
 		http.SetCookie(w, &cookie)
 
 		http.Redirect(w, r, config.AuthCodeURL(state), http.StatusTemporaryRedirect)
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }
 
 // BuildAuthCallbackHandler wraps user gRPC client with http.Handler
 func BuildAuthCallbackHandler(authConfig *oauth2.Config, apiURL string, cb commandbus.CommandBus, commandName string, tokenProvider auth.TokenProvider, identityProvider appidentity.Provider) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		oauthState, _ := r.Cookie(authCookieName)
 		if r.FormValue("state") != oauthState.Value {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(fmt.Errorf("invalid oauth state")))
-			return
+			return apperrors.Wrap(fmt.Errorf("invalid oauth state"))
 		}
 
 		oauthToken, err := authConfig.Exchange(r.Context(), r.FormValue("code"))
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		profileData, err := getProfile(oauthToken.AccessToken, apiURL)
 		if err != nil {
-			appErr := apperrors.Wrap(err)
-
-			response.MustJSONError(r.Context(), w, appErr)
-			return
+			return apperrors.Wrap(err)
 		}
 
 		var emailData requestBody
 		if err := json.Unmarshal(profileData, &emailData); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		c, err := user.NewCommandFromPayload(commandName, profileData)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		if err := cb.Publish(r.Context(), c); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		// We can do that because command handler acknowledges events when persisting
@@ -94,22 +87,22 @@ func BuildAuthCallbackHandler(authConfig *oauth2.Config, apiURL string, cb comma
 		// persisted (see: SaveAndAcknowledge method)
 		i, err := identityProvider.GetByUserEmail(r.Context(), emailData.Email)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		token, err := tokenProvider.RetrievePasswordCredentialsToken(r.Context(), i.ClientID.String(), i.ClientSecret.String(), emailData.Email, auth.AllScopes)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
-		if err := response.JSON(r.Context(), w, http.StatusOK, token); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		if err := httpjson.JSON(r.Context(), w, http.StatusOK, token); err != nil {
+			return apperrors.Wrap(err)
 		}
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }
 
 func getProfile(accessToken, apiURL string) ([]byte, error) {

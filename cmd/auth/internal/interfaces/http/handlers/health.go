@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	httpjson "github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 
 	"google.golang.org/grpc"
 
@@ -24,25 +24,21 @@ func BuildLivenessHandler() http.Handler {
 
 // BuildReadinessHandler provides readiness handler
 func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		if err := db.PingContext(r.Context()); err != nil {
-			appErr := apperrors.Wrap(err)
-
-			response.MustJSONError(r.Context(), w, appErr)
-			return
+			return apperrors.Wrap(err)
 		}
 
 		for name, conn := range connMap {
 			if !grpcutils.IsConnectionServing(r.Context(), name, conn) {
-				appErr := apperrors.New(fmt.Sprintf("gRPC connection %s is not serving", name))
-
-				response.MustJSONError(r.Context(), w, appErr)
-				return
+				return apperrors.New(fmt.Sprintf("gRPC connection %s is not serving", name))
 			}
 		}
 
 		w.WriteHeader(http.StatusNoContent)
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }

@@ -1,4 +1,4 @@
-package response_test
+package json_test
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 )
 
 func ExampleJSON() {
@@ -15,7 +15,7 @@ func ExampleJSON() {
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := response.JSON(r.Context(), w, http.StatusOK, example{"John"}); err != nil {
+		if err := json.JSON(r.Context(), w, http.StatusOK, example{"John"}); err != nil {
 			panic(err)
 		}
 	})
@@ -33,7 +33,7 @@ func ExampleJSON() {
 
 func ExampleJSON_second() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := response.JSON(r.Context(), w, http.StatusOK, nil); err != nil {
+		if err := json.JSON(r.Context(), w, http.StatusOK, nil); err != nil {
 			panic(err)
 		}
 	})
@@ -55,7 +55,7 @@ func ExampleMustJSON() {
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response.MustJSON(r.Context(), w, http.StatusOK, example{"John"})
+		json.MustJSON(r.Context(), w, http.StatusOK, example{"John"})
 	})
 
 	w := httptest.NewRecorder()
@@ -71,7 +71,7 @@ func ExampleMustJSON() {
 
 func ExampleMustJSON_second() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response.MustJSON(r.Context(), w, http.StatusOK, nil)
+		json.MustJSON(r.Context(), w, http.StatusOK, nil)
 	})
 
 	w := httptest.NewRecorder()
@@ -89,7 +89,7 @@ func ExampleJSONError() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appErr := apperrors.New("response error")
 
-		if err := response.JSONError(r.Context(), w, appErr); err != nil {
+		if err := json.JSONError(r.Context(), w, appErr); err != nil {
 			panic(err)
 		}
 	})
@@ -109,7 +109,7 @@ func ExampleMustJSONError() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appErr := apperrors.New("response error")
 
-		response.MustJSONError(r.Context(), w, appErr)
+		json.MustJSONError(r.Context(), w, appErr)
 	})
 
 	w := httptest.NewRecorder()

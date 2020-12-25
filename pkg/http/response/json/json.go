@@ -1,7 +1,7 @@
 /*
 Package response provides helpers and utils for working with HTTP response
 */
-package response
+package json
 
 import (
 	"context"
@@ -10,7 +10,17 @@ import (
 	"net/http"
 
 	httperrors "github.com/vardius/go-api-boilerplate/pkg/http/errors"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response"
 )
+
+type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
+
+// ServeHTTP calls f(w, r) and handles error
+func (f HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := f(w, r); err != nil {
+		MustJSONError(r.Context(), w, err)
+	}
+}
 
 // JSON returns data as json response
 func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload interface{}) error {
@@ -34,7 +44,7 @@ func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload in
 		return err
 	}
 
-	Flush(w)
+	response.Flush(w)
 
 	return nil
 }
@@ -49,27 +59,27 @@ func MustJSON(ctx context.Context, w http.ResponseWriter, statusCode int, payloa
 }
 
 func NotFound() http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		httpError := &httperrors.HttpError{
 			Code:    http.StatusNotFound,
 			Message: fmt.Sprintf("Route %s", http.StatusText(http.StatusNotFound)),
 		}
 
-		_ = JSON(r.Context(), w, httpError.Code, httpError)
+		return JSON(r.Context(), w, httpError.Code, httpError)
 	}
 
-	return http.HandlerFunc(fn)
+	return HandlerFunc(fn)
 }
 
 func NotAllowed() http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		httpError := &httperrors.HttpError{
 			Code:    http.StatusMethodNotAllowed,
 			Message: http.StatusText(http.StatusMethodNotAllowed),
 		}
 
-		_ = JSON(r.Context(), w, httpError.Code, httpError)
+		return JSON(r.Context(), w, httpError.Code, httpError)
 	}
 
-	return http.HandlerFunc(fn)
+	return HandlerFunc(fn)
 }

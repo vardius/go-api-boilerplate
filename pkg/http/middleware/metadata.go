@@ -9,7 +9,7 @@ import (
 
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/http/request"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	json2 "github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 	md "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
@@ -48,11 +48,11 @@ func WithMetadata() gorouter.MiddlewareFunc {
 			if m := r.URL.Query().Get(InternalRequestMetadataKey); m != "" {
 				data, err := base64.RawURLEncoding.DecodeString(m)
 				if err != nil {
-					response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+					json2.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 				}
 
 				if err := json.Unmarshal(data, &mtd); err != nil {
-					response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+					json2.MustJSONError(r.Context(), w, apperrors.Wrap(err))
 				}
 			} else {
 				// set the context with the required values to

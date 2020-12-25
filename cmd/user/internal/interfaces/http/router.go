@@ -23,7 +23,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	httpmiddleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
 	httpauthenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
@@ -63,8 +63,8 @@ func NewRouter(
 		httpmiddleware.RateLimit(logger, 10, 10, 3*time.Minute), // 5 of requests per second with bursts of at most 10 requests
 		httpmiddleware.Metrics(),
 	)
-	router.NotFound(response.NotFound())
-	router.NotAllowed(response.NotAllowed())
+	router.NotFound(json.NotFound())
+	router.NotAllowed(json.NotAllowed())
 
 	router.GET("/", handlers.BuildListUserHandler(repository))
 	router.GET("/me", handlers.BuildMeHandler(repository))
@@ -95,8 +95,8 @@ func NewRouter(
 	router.USE(http.MethodPost, "/dispatch/"+user.ChangeUserEmailAddress, httpmiddleware.GrantAccessFor(identity.RoleUser))
 
 	mainRouter := gorouter.New()
-	mainRouter.NotFound(response.NotFound())
-	mainRouter.NotAllowed(response.NotAllowed())
+	mainRouter.NotFound(json.NotFound())
+	mainRouter.NotAllowed(json.NotAllowed())
 
 	// We do not want to apply middleware for this handlers
 	// Liveness probes are to indicate that your application is running

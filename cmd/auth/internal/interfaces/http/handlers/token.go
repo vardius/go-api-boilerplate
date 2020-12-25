@@ -13,76 +13,70 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	httpjson "github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 // BuildTokenCommandDispatchHandler dispatches domain command
 func BuildTokenCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		var e error
 
 		if r.Body == nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrInvalid))
-			return
+			return apperrors.Wrap(application.ErrInvalid)
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrInvalid))
-			return
+			return apperrors.Wrap(application.ErrInvalid)
 		}
 
 		defer r.Body.Close()
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(e))
-			return
+			return apperrors.Wrap(e)
 		}
 
 		c, e := token.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(e))
-			return
+			return apperrors.Wrap(e)
 		}
 
 		if err := cb.Publish(r.Context(), c); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
-		if err := response.JSON(r.Context(), w, http.StatusCreated, nil); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		if err := httpjson.JSON(r.Context(), w, http.StatusCreated, nil); err != nil {
+			return apperrors.Wrap(err)
 		}
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }
 
 // BuildListTokensHandler lists auth tokens by client and user IDs
 func BuildListTokensHandler(repository persistence.TokenRepository, clientRepository persistence.ClientRepository) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrInvalid))
-			return
+			return apperrors.Wrap(application.ErrInvalid)
 		}
 
 		clientID := params.Value("clientID")
 
 		i, hasIdentity := identity.FromContext(r.Context())
 		if !hasIdentity {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrUnauthorized))
+			return apperrors.Wrap(application.ErrUnauthorized)
 		}
 
 		c, err := clientRepository.Get(r.Context(), clientID)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, err)
-			return
+			return err
 		}
 		if c.GetUserID() != i.UserID.String() {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrForbidden))
-			return
+			return apperrors.Wrap(application.ErrForbidden)
 		}
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
@@ -92,8 +86,7 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 
 		totalUsers, err := repository.CountByClientID(r.Context(), clientID)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		offset := (page * limit) - limit
@@ -110,32 +103,33 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 		}
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
-			if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-				response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+			if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
+				return apperrors.Wrap(err)
 			}
-			return
+			return nil
 		}
 
 		paginatedList.Tokens, err = repository.FindAllByClientID(r.Context(), clientID, limit, offset)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
-		if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
+			return apperrors.Wrap(err)
 		}
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }
 
 // BuildListUserAuthTokensHandler lists auth tokens by client and user IDs
 func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		i, hasIdentity := identity.FromContext(r.Context())
 		if !hasIdentity {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(application.ErrUnauthorized))
+			return apperrors.Wrap(application.ErrUnauthorized)
 		}
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
@@ -145,8 +139,7 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 
 		totalUsers, err := repository.CountByClientID(r.Context(), i.ClientID.String())
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		offset := (page * limit) - limit
@@ -163,22 +156,23 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 		}
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
-			if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-				response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+			if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
+				return apperrors.Wrap(err)
 			}
-			return
+			return nil
 		}
 
 		paginatedList.AuthTokens, err = repository.FindAllByClientID(r.Context(), i.ClientID.String(), limit, offset)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
-		if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
+			return apperrors.Wrap(err)
 		}
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }

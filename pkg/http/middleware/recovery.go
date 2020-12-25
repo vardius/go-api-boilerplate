@@ -10,7 +10,7 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	"github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 )
 
 // Recover middleware recovers from panic
@@ -23,7 +23,7 @@ func Recover(logger golog.Logger) gorouter.MiddlewareFunc {
 
 					appErr := apperrors.Wrap(fmt.Errorf("%w: recovered from panic", application.ErrInternal))
 
-					if err := response.JSONError(r.Context(), w, appErr); err != nil {
+					if err := json.JSONError(r.Context(), w, appErr); err != nil {
 						logger.Critical(r.Context(), "[HTTP] Errors while sending response after panic %v", err)
 					}
 				}

@@ -14,97 +14,95 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
-	"github.com/vardius/go-api-boilerplate/pkg/http/response"
+	httpjson "github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 // BuildUserCommandDispatchHandler
 func BuildUserCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		var e error
 
 		if r.Body == nil {
-			response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %v", application.ErrInvalid, ErrEmptyRequestBody))
-			return
+			return fmt.Errorf("%w: %v", application.ErrInvalid, ErrEmptyRequestBody)
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.MustJSONError(r.Context(), w, fmt.Errorf("%w: %v", application.ErrInvalid, ErrInvalidURLParams))
-			return
+			return fmt.Errorf("%w: %v", application.ErrInvalid, ErrInvalidURLParams)
 		}
 
 		defer r.Body.Close()
 		body, e := ioutil.ReadAll(r.Body)
 		if e != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(e))
-			return
+			return apperrors.Wrap(e)
 		}
 
 		c, e := user.NewCommandFromPayload(params.Value("command"), body)
 		if e != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(e))
-			return
+			return apperrors.Wrap(e)
 		}
 
 		if err := cb.Publish(r.Context(), c); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
-		if err := response.JSON(r.Context(), w, http.StatusCreated, nil); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		if err := httpjson.JSON(r.Context(), w, http.StatusCreated, nil); err != nil {
+			return apperrors.Wrap(err)
 		}
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }
 
 // BuildMeHandler
 func BuildMeHandler(repository persistence.UserRepository) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		i, _ := identity.FromContext(r.Context())
 
 		u, err := repository.Get(r.Context(), i.UserID.String())
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
-		if err := response.JSON(r.Context(), w, http.StatusOK, u); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		if err := httpjson.JSON(r.Context(), w, http.StatusOK, u); err != nil {
+			return apperrors.Wrap(err)
 		}
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }
 
 // BuildGetUserHandler
 func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			response.MustJSONError(r.Context(), w, ErrInvalidURLParams)
-			return
+			return ErrInvalidURLParams
 		}
 
 		u, err := repository.Get(r.Context(), params.Value("id"))
 		if err != nil {
-			response.MustJSONError(r.Context(), w, err)
-			return
+			return apperrors.Wrap(err)
 		}
 
-		if err := response.JSON(r.Context(), w, http.StatusOK, u); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		if err := httpjson.JSON(r.Context(), w, http.StatusOK, u); err != nil {
+			return apperrors.Wrap(err)
 		}
+
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }
 
 // BuildListUserHandler
 func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) error {
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
 		limitInt, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
 		page := int32(math.Max(float64(pageInt), 1))
@@ -112,8 +110,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 
 		totalUsers, err := repository.Count(r.Context())
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
 		offset := (page * limit) - limit
@@ -130,22 +127,22 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		}
 
 		if totalUsers < 1 || offset > (totalUsers-1) {
-			if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-				response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+			if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
+				return apperrors.Wrap(err)
 			}
-			return
+			return nil
 		}
 
 		paginatedList.Users, err = repository.FindAll(r.Context(), limit, offset)
 		if err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
-			return
+			return apperrors.Wrap(err)
 		}
 
-		if err := response.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-			response.MustJSONError(r.Context(), w, apperrors.Wrap(err))
+		if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
+			return apperrors.Wrap(err)
 		}
+		return nil
 	}
 
-	return http.HandlerFunc(fn)
+	return httpjson.HandlerFunc(fn)
 }
