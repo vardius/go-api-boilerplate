@@ -26,18 +26,16 @@ const (
 func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
 	switch contract {
 	case CreateClientCredentials:
-		command := Create{}
+		var command Create
 		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
-
 		return command, nil
 	case RemoveClientCredentials:
-		command := Remove{}
+		var command Remove
 		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
-
 		return command, nil
 	default:
 		return nil, apperrors.Wrap(fmt.Errorf("invalid command contract: %s", contract))

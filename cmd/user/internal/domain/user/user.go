@@ -43,53 +43,46 @@ func FromHistory(ctx context.Context, events []domain.Event) (User, error) {
 
 		switch domainEvent.Type {
 		case (AccessTokenWasRequested{}).GetType():
-			accessTokenWasRequested := AccessTokenWasRequested{}
+			var accessTokenWasRequested AccessTokenWasRequested
 			if err := json.Unmarshal(domainEvent.Payload, &accessTokenWasRequested); err != nil {
 				return u, apperrors.Wrap(err)
 			}
-
 			e = accessTokenWasRequested
 		case (EmailAddressWasChanged{}).GetType():
-			emailAddressWasChanged := EmailAddressWasChanged{}
+			var emailAddressWasChanged EmailAddressWasChanged
 			if err := json.Unmarshal(domainEvent.Payload, &emailAddressWasChanged); err != nil {
 				return u, apperrors.Wrap(err)
 			}
-
 			e = emailAddressWasChanged
 		case (WasRegisteredWithEmail{}).GetType():
-			wasRegisteredWithEmail := WasRegisteredWithEmail{}
+			var wasRegisteredWithEmail WasRegisteredWithEmail
 			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithEmail); err != nil {
 				return u, apperrors.Wrap(err)
 			}
-
 			e = wasRegisteredWithEmail
 		case (WasRegisteredWithFacebook{}).GetType():
-			wasRegisteredWithFacebook := WasRegisteredWithFacebook{}
+			var wasRegisteredWithFacebook WasRegisteredWithFacebook
 			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithFacebook); err != nil {
 				return u, apperrors.Wrap(err)
 			}
-
 			e = wasRegisteredWithFacebook
 		case (ConnectedWithFacebook{}).GetType():
-			connectedWithFacebook := ConnectedWithFacebook{}
+			var connectedWithFacebook ConnectedWithFacebook
 			if err := json.Unmarshal(domainEvent.Payload, &connectedWithFacebook); err != nil {
 				return u, apperrors.Wrap(err)
 			}
-
 			e = connectedWithFacebook
 		case (WasRegisteredWithGoogle{}).GetType():
-			wasRegisteredWithGoogle := WasRegisteredWithGoogle{}
+			var wasRegisteredWithGoogle WasRegisteredWithGoogle
 			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithGoogle); err != nil {
 				return u, apperrors.Wrap(err)
 			}
-
 			e = wasRegisteredWithGoogle
 		case (ConnectedWithGoogle{}).GetType():
-			connectedWithGoogle := ConnectedWithGoogle{}
+			var connectedWithGoogle ConnectedWithGoogle
 			if err := json.Unmarshal(domainEvent.Payload, &connectedWithGoogle); err != nil {
 				return u, apperrors.Wrap(err)
 			}
-
 			e = connectedWithGoogle
 		default:
 			return u, apperrors.Wrap(fmt.Errorf("unhandled user event %s", domainEvent.Type))
@@ -288,7 +281,7 @@ func (u *User) RequestAccessToken(ctx context.Context) error {
 }
 
 func (u *User) trackChange(ctx context.Context, event domain.Event) (domain.Event, error) {
-	meta := userdomain.EventMetadata{}
+	var meta userdomain.EventMetadata
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
 		meta.Identity = i
 	}

@@ -47,7 +47,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 		buffer = append(buffer, upsert)
 	}
 
-	opts := options.BulkWriteOptions{}
+	opts := options.BulkWrite()
 	opts.SetOrdered(true)
 
 	const chunkSize = 500
@@ -59,7 +59,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 			end = len(buffer)
 		}
 
-		if _, err := s.collection.BulkWrite(ctx, buffer[i:end], &opts); err != nil {
+		if _, err := s.collection.BulkWrite(ctx, buffer[i:end], opts); err != nil {
 			return err
 		}
 	}

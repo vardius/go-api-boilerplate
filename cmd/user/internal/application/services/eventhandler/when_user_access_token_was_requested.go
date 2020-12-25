@@ -22,7 +22,7 @@ func WhenUserAccessTokenWasRequested(cfg *config.Config, tokenProvider oauth2.To
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := user.WasRegisteredWithEmail{}
+		var e user.WasRegisteredWithEmail
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)
 		}

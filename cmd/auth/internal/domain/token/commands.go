@@ -24,11 +24,10 @@ const (
 func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
 	switch contract {
 	case RemoveAuthToken:
-		command := Remove{}
+		var command Remove
 		if err := json.Unmarshal(payload, &command); err != nil {
 			return command, apperrors.Wrap(err)
 		}
-
 		return command, nil
 	default:
 		return nil, apperrors.Wrap(fmt.Errorf("invalid command contract: %s", contract))

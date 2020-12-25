@@ -22,8 +22,7 @@ func WhenUserWasRegisteredWithFacebook(cfg *config.Config, db *sql.DB, repositor
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := user.WasRegisteredWithFacebook{}
-
+		var e user.WasRegisteredWithFacebook
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)
 		}

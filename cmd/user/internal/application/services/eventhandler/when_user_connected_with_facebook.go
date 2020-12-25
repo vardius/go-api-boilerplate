@@ -19,7 +19,7 @@ func WhenUserConnectedWithFacebook(db *sql.DB, repository persistence.UserReposi
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := user.ConnectedWithFacebook{}
+		var e user.ConnectedWithFacebook
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)
 		}
