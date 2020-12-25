@@ -21,8 +21,6 @@ import (
 // BuildUserCommandDispatchHandler
 func BuildUserCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
-		var e error
-
 		if r.Body == nil {
 			return fmt.Errorf("%w: %v", application.ErrInvalid, ErrEmptyRequestBody)
 		}
@@ -33,14 +31,14 @@ func BuildUserCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		}
 
 		defer r.Body.Close()
-		body, e := ioutil.ReadAll(r.Body)
-		if e != nil {
-			return apperrors.Wrap(e)
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return apperrors.Wrap(err)
 		}
 
-		c, e := user.NewCommandFromPayload(params.Value("command"), body)
-		if e != nil {
-			return apperrors.Wrap(e)
+		c, err := user.NewCommandFromPayload(params.Value("command"), body)
+		if err != nil {
+			return apperrors.Wrap(err)
 		}
 
 		if err := cb.Publish(r.Context(), c); err != nil {

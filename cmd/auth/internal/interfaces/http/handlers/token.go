@@ -20,8 +20,6 @@ import (
 // BuildTokenCommandDispatchHandler dispatches domain command
 func BuildTokenCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
-		var e error
-
 		if r.Body == nil {
 			return apperrors.Wrap(application.ErrInvalid)
 		}
@@ -32,14 +30,14 @@ func BuildTokenCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		}
 
 		defer r.Body.Close()
-		body, e := ioutil.ReadAll(r.Body)
-		if e != nil {
-			return apperrors.Wrap(e)
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return apperrors.Wrap(err)
 		}
 
-		c, e := token.NewCommandFromPayload(params.Value("command"), body)
-		if e != nil {
-			return apperrors.Wrap(e)
+		c, err := token.NewCommandFromPayload(params.Value("command"), body)
+		if err != nil {
+			return apperrors.Wrap(err)
 		}
 
 		if err := cb.Publish(r.Context(), c); err != nil {
