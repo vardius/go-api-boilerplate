@@ -46,7 +46,6 @@ func NewRouter(
 		authenticator.FromQuery("authToken", logger),
 		authenticator.FromCookie("at", logger),
 		httpmiddleware.CORS(
-			[]string{cfg.App.Domain},
 			cfg.HTTP.Origins,
 			cfg.App.Environment == "development",
 		),
@@ -71,9 +70,9 @@ func NewRouter(
 	router.GET("/users/{userID}/tokens", handlers.BuildListUserAuthTokensHandler(tokenRepository))
 
 	// middleware applies to whole subtrees
-	router.USE(http.MethodGet, "/users", httpmiddleware.GrantAccessFor(identity.RoleUser))
-	router.USE(http.MethodGet, "/clients", httpmiddleware.GrantAccessFor(identity.RoleUser))
-	router.USE(http.MethodPost, "/dispatch", httpmiddleware.GrantAccessFor(identity.RoleUser))
+	router.USE(http.MethodGet, "/users", httpmiddleware.GrantAccessFor(identity.PermissionTokenRead))
+	router.USE(http.MethodGet, "/clients", httpmiddleware.GrantAccessFor(identity.PermissionClientRead))
+	router.USE(http.MethodPost, "/dispatch", httpmiddleware.GrantAccessFor(identity.PermissionClientWrite))
 
 	mainRouter := gorouter.New()
 	mainRouter.NotFound(json.NotFound())

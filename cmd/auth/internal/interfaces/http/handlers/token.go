@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/vardius/gorouter/v4/context"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
@@ -71,7 +72,7 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 
 		c, err := clientRepository.Get(r.Context(), clientID)
 		if err != nil {
-			return err
+			return apperrors.Wrap(err)
 		}
 		if c.GetUserID() != i.UserID.String() {
 			return apperrors.Wrap(application.ErrForbidden)
@@ -135,7 +136,7 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 		page := int32(math.Max(float64(pageInt), 1))
 		limit := int32(math.Max(float64(limitInt), 20))
 
-		totalUsers, err := repository.CountByClientID(r.Context(), i.ClientID.String())
+		totalUsers, err := repository.CountByClientID(r.Context(), uuid.Nil.String())
 		if err != nil {
 			return apperrors.Wrap(err)
 		}

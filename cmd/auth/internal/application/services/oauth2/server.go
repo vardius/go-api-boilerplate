@@ -15,7 +15,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -30,16 +29,13 @@ func InitServer(
 	cfg *config.Config,
 	manager oauth2.Manager,
 	logger golog.Logger,
-	userRepository persistence.UserRepository,
 	clientRepository persistence.ClientRepository,
-	secretKey string,
 	timeout time.Duration,
 ) *oauth2server.Server {
 	onceServer.Do(func() {
 		srv = oauth2server.NewDefaultServer(manager)
 
 		srv.SetAllowedGrantType(
-			oauth2.PasswordCredentials,
 			oauth2.Refreshing,
 			oauth2.ClientCredentials, // Example usage of client credentials
 			// https://github.com/go-oauth2/oauth2/blob/b46cf9f1db6551beb549ad1afe69826b3b2f1abf/example/client/client.go#L112-L128
@@ -48,23 +44,6 @@ func InitServer(
 		)
 		srv.SetClientInfoHandler(oauth2server.ClientBasicHandler)
 
-		srv.SetPasswordAuthorizationHandler(func(email, password string) (string, error) {
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-
-			// we allow password grant only within our system, due to email passwordless authentication
-			// password value here should contain secretKey
-			if password != secretKey {
-				return "", apperrors.Wrap(fmt.Errorf("%w: Invalid client, user password does not match secret key", application.ErrUnauthorized))
-			}
-
-			user, err := userRepository.GetByEmail(ctx, email)
-			if err != nil {
-				return "", apperrors.Wrap(err)
-			}
-
-			return user.GetID(), nil
-		})
 		srv.SetUserAuthorizationHandler(func(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 			i, isAuthorized := identity.FromContext(r.Context())
 			if !isAuthorized {

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/access"
 )
 
 // AccessTokenWasRequested event
@@ -61,12 +63,18 @@ func (e WasRegisteredWithEmail) GetGoogleID() string {
 	return ""
 }
 
+// GetRole
+func (e WasRegisteredWithEmail) GetRole() access.Role {
+	return access.RoleUser
+}
+
 // WasRegisteredWithFacebook event
 type WasRegisteredWithFacebook struct {
-	ID          uuid.UUID    `json:"id"`
-	Email       EmailAddress `json:"email"`
-	FacebookID  string       `json:"facebook_id"`
-	AccessToken string       `json:"access_token"`
+	ID           uuid.UUID    `json:"id"`
+	Email        EmailAddress `json:"email"`
+	FacebookID   string       `json:"facebook_id"`
+	AccessToken  string       `json:"access_token"`
+	RedirectPath string       `json:"redirect_path,omitempty"`
 }
 
 // GetType returns event type
@@ -94,11 +102,17 @@ func (e WasRegisteredWithFacebook) GetGoogleID() string {
 	return ""
 }
 
+// GetRole
+func (e WasRegisteredWithFacebook) GetRole() access.Role {
+	return access.RoleUser
+}
+
 // ConnectedWithFacebook event
 type ConnectedWithFacebook struct {
-	ID          uuid.UUID `json:"id"`
-	FacebookID  string    `json:"facebook_id"`
-	AccessToken string    `json:"access_token"`
+	ID           uuid.UUID `json:"id"`
+	FacebookID   string    `json:"facebook_id"`
+	AccessToken  string    `json:"access_token"`
+	RedirectPath string    `json:"redirect_path,omitempty"`
 }
 
 // GetType returns event type
@@ -108,10 +122,11 @@ func (e ConnectedWithFacebook) GetType() string {
 
 // WasRegisteredWithGoogle event
 type WasRegisteredWithGoogle struct {
-	ID          uuid.UUID    `json:"id"`
-	Email       EmailAddress `json:"email"`
-	GoogleID    string       `json:"google_id"`
-	AccessToken string       `json:"access_token"`
+	ID           uuid.UUID    `json:"id"`
+	Email        EmailAddress `json:"email"`
+	GoogleID     string       `json:"google_id"`
+	AccessToken  string       `json:"access_token"`
+	RedirectPath string       `json:"redirect_path,omitempty"`
 }
 
 // GetType returns event type
@@ -139,11 +154,17 @@ func (e WasRegisteredWithGoogle) GetGoogleID() string {
 	return e.GoogleID
 }
 
+// GetRole
+func (e WasRegisteredWithGoogle) GetRole() access.Role {
+	return access.RoleUser
+}
+
 // ConnectedWithGoogle event
 type ConnectedWithGoogle struct {
-	ID          uuid.UUID `json:"id"`
-	GoogleID    string    `json:"google_id"`
-	AccessToken string    `json:"access_token"`
+	ID           uuid.UUID `json:"id"`
+	GoogleID     string    `json:"google_id"`
+	AccessToken  string    `json:"access_token"`
+	RedirectPath string    `json:"redirect_path,omitempty"`
 }
 
 // GetType returns event type

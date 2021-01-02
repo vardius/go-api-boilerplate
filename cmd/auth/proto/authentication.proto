@@ -6,10 +6,13 @@ option java_outer_classname = "AuthProto";
 
 package proto;
 
+import "google/protobuf/empty.proto";
+
 // AuthenticationService handles auth token verification
 service AuthenticationService {
-  rpc ValidationBearerToken (ValidationBearerTokenRequest) returns (ValidationBearerTokenResponse);
-  rpc CreateClient (CreateClientRequest) returns (CreateClientResponse);
+  rpc ValidationBearerToken (ValidationBearerTokenRequest) returns (google.protobuf.Empty);
+  rpc DispatchClientCommand (DispatchAuthCommandRequest) returns (google.protobuf.Empty);
+  rpc DispatchTokenCommand (DispatchAuthCommandRequest) returns (google.protobuf.Empty);
 }
 
 // ValidationBearerTokenRequest validates auth token
@@ -17,27 +20,8 @@ message ValidationBearerTokenRequest {
   string token = 1;
 }
 
-// ValidationBearerTokenResponse return auth token information after successful verification
-message ValidationBearerTokenResponse {
-  string clientID = 1;
-  string userID = 2;
-  string scope = 3;
-}
-
-// CreateClientRequest creates client credentials
-message CreateClientRequest {
-  string userID = 1;
-  string domain = 2;
-  string redirectURL = 3;
-  repeated string scopes = 4;
-}
-
-// CreateClientResponse new client credentials
-message CreateClientResponse {
-  string clientID = 1;
-  string clientSecret = 2;
-  string userID = 3;
-  string domain = 4;
-  string redirectURL = 5;
-  repeated string scopes = 6;
+// DispatchAuthCommandRequest is passed when dispatching
+message DispatchAuthCommandRequest {
+  string name = 1;
+  bytes payload = 2;
 }

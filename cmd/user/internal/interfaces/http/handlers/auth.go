@@ -13,9 +13,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/services/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	auth "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	httpjson "github.com/vardius/go-api-boilerplate/pkg/http/response/json"
@@ -51,7 +49,7 @@ func BuildSocialAuthHandler(config *oauth2.Config) http.Handler {
 }
 
 // BuildAuthCallbackHandler wraps user gRPC client with http.Handler
-func BuildAuthCallbackHandler(authConfig *oauth2.Config, apiURL string, cb commandbus.CommandBus, commandName string, tokenProvider auth.TokenProvider, identityProvider appidentity.Provider) http.Handler {
+func BuildAuthCallbackHandler(authConfig *oauth2.Config, apiURL string, cb commandbus.CommandBus, commandName string) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
 		oauthState, _ := r.Cookie(authCookieName)
 		if r.FormValue("state") != oauthState.Value {
@@ -82,22 +80,7 @@ func BuildAuthCallbackHandler(authConfig *oauth2.Config, apiURL string, cb comma
 			return apperrors.Wrap(err)
 		}
 
-		// We can do that because command handler acknowledges events when persisting
-		// aggregate root so we know that event handlers have executed and data was
-		// persisted (see: SaveAndAcknowledge method)
-		i, err := identityProvider.GetByUserEmail(r.Context(), emailData.Email)
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		token, err := tokenProvider.RetrievePasswordCredentialsToken(r.Context(), i.ClientID.String(), i.ClientSecret.String(), emailData.Email, auth.AllScopes)
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		if err := httpjson.JSON(r.Context(), w, http.StatusOK, token); err != nil {
-			return apperrors.Wrap(err)
-		}
+		w.WriteHeader(http.StatusNoContent)
 
 		return nil
 	}

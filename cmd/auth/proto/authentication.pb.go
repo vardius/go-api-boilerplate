@@ -10,6 +10,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	math "math"
 )
 
@@ -64,211 +65,57 @@ func (m *ValidationBearerTokenRequest) GetToken() string {
 	return ""
 }
 
-// ValidationBearerTokenResponse return auth token information after successful verification
-type ValidationBearerTokenResponse struct {
-	ClientID             string   `protobuf:"bytes,1,opt,name=clientID,proto3" json:"clientID,omitempty"`
-	UserID               string   `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
-	Scope                string   `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
+// DispatchAuthCommandRequest is passed when dispatching
+type DispatchAuthCommandRequest struct {
+	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Payload              []byte   `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ValidationBearerTokenResponse) Reset()         { *m = ValidationBearerTokenResponse{} }
-func (m *ValidationBearerTokenResponse) String() string { return proto.CompactTextString(m) }
-func (*ValidationBearerTokenResponse) ProtoMessage()    {}
-func (*ValidationBearerTokenResponse) Descriptor() ([]byte, []int) {
+func (m *DispatchAuthCommandRequest) Reset()         { *m = DispatchAuthCommandRequest{} }
+func (m *DispatchAuthCommandRequest) String() string { return proto.CompactTextString(m) }
+func (*DispatchAuthCommandRequest) ProtoMessage()    {}
+func (*DispatchAuthCommandRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_d0dbc99083440df2, []int{1}
 }
 
-func (m *ValidationBearerTokenResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ValidationBearerTokenResponse.Unmarshal(m, b)
+func (m *DispatchAuthCommandRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DispatchAuthCommandRequest.Unmarshal(m, b)
 }
-func (m *ValidationBearerTokenResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ValidationBearerTokenResponse.Marshal(b, m, deterministic)
+func (m *DispatchAuthCommandRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DispatchAuthCommandRequest.Marshal(b, m, deterministic)
 }
-func (m *ValidationBearerTokenResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ValidationBearerTokenResponse.Merge(m, src)
+func (m *DispatchAuthCommandRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DispatchAuthCommandRequest.Merge(m, src)
 }
-func (m *ValidationBearerTokenResponse) XXX_Size() int {
-	return xxx_messageInfo_ValidationBearerTokenResponse.Size(m)
+func (m *DispatchAuthCommandRequest) XXX_Size() int {
+	return xxx_messageInfo_DispatchAuthCommandRequest.Size(m)
 }
-func (m *ValidationBearerTokenResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ValidationBearerTokenResponse.DiscardUnknown(m)
+func (m *DispatchAuthCommandRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DispatchAuthCommandRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ValidationBearerTokenResponse proto.InternalMessageInfo
+var xxx_messageInfo_DispatchAuthCommandRequest proto.InternalMessageInfo
 
-func (m *ValidationBearerTokenResponse) GetClientID() string {
+func (m *DispatchAuthCommandRequest) GetName() string {
 	if m != nil {
-		return m.ClientID
+		return m.Name
 	}
 	return ""
 }
 
-func (m *ValidationBearerTokenResponse) GetUserID() string {
+func (m *DispatchAuthCommandRequest) GetPayload() []byte {
 	if m != nil {
-		return m.UserID
-	}
-	return ""
-}
-
-func (m *ValidationBearerTokenResponse) GetScope() string {
-	if m != nil {
-		return m.Scope
-	}
-	return ""
-}
-
-// CreateClientRequest creates client credentials
-type CreateClientRequest struct {
-	UserID               string   `protobuf:"bytes,1,opt,name=userID,proto3" json:"userID,omitempty"`
-	Domain               string   `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	RedirectURL          string   `protobuf:"bytes,3,opt,name=redirectURL,proto3" json:"redirectURL,omitempty"`
-	Scopes               []string `protobuf:"bytes,4,rep,name=scopes,proto3" json:"scopes,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CreateClientRequest) Reset()         { *m = CreateClientRequest{} }
-func (m *CreateClientRequest) String() string { return proto.CompactTextString(m) }
-func (*CreateClientRequest) ProtoMessage()    {}
-func (*CreateClientRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0dbc99083440df2, []int{2}
-}
-
-func (m *CreateClientRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateClientRequest.Unmarshal(m, b)
-}
-func (m *CreateClientRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateClientRequest.Marshal(b, m, deterministic)
-}
-func (m *CreateClientRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateClientRequest.Merge(m, src)
-}
-func (m *CreateClientRequest) XXX_Size() int {
-	return xxx_messageInfo_CreateClientRequest.Size(m)
-}
-func (m *CreateClientRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateClientRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateClientRequest proto.InternalMessageInfo
-
-func (m *CreateClientRequest) GetUserID() string {
-	if m != nil {
-		return m.UserID
-	}
-	return ""
-}
-
-func (m *CreateClientRequest) GetDomain() string {
-	if m != nil {
-		return m.Domain
-	}
-	return ""
-}
-
-func (m *CreateClientRequest) GetRedirectURL() string {
-	if m != nil {
-		return m.RedirectURL
-	}
-	return ""
-}
-
-func (m *CreateClientRequest) GetScopes() []string {
-	if m != nil {
-		return m.Scopes
-	}
-	return nil
-}
-
-// CreateClientResponse new client credentials
-type CreateClientResponse struct {
-	ClientID             string   `protobuf:"bytes,1,opt,name=clientID,proto3" json:"clientID,omitempty"`
-	ClientSecret         string   `protobuf:"bytes,2,opt,name=clientSecret,proto3" json:"clientSecret,omitempty"`
-	UserID               string   `protobuf:"bytes,3,opt,name=userID,proto3" json:"userID,omitempty"`
-	Domain               string   `protobuf:"bytes,4,opt,name=domain,proto3" json:"domain,omitempty"`
-	RedirectURL          string   `protobuf:"bytes,5,opt,name=redirectURL,proto3" json:"redirectURL,omitempty"`
-	Scopes               []string `protobuf:"bytes,6,rep,name=scopes,proto3" json:"scopes,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CreateClientResponse) Reset()         { *m = CreateClientResponse{} }
-func (m *CreateClientResponse) String() string { return proto.CompactTextString(m) }
-func (*CreateClientResponse) ProtoMessage()    {}
-func (*CreateClientResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0dbc99083440df2, []int{3}
-}
-
-func (m *CreateClientResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateClientResponse.Unmarshal(m, b)
-}
-func (m *CreateClientResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateClientResponse.Marshal(b, m, deterministic)
-}
-func (m *CreateClientResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateClientResponse.Merge(m, src)
-}
-func (m *CreateClientResponse) XXX_Size() int {
-	return xxx_messageInfo_CreateClientResponse.Size(m)
-}
-func (m *CreateClientResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateClientResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateClientResponse proto.InternalMessageInfo
-
-func (m *CreateClientResponse) GetClientID() string {
-	if m != nil {
-		return m.ClientID
-	}
-	return ""
-}
-
-func (m *CreateClientResponse) GetClientSecret() string {
-	if m != nil {
-		return m.ClientSecret
-	}
-	return ""
-}
-
-func (m *CreateClientResponse) GetUserID() string {
-	if m != nil {
-		return m.UserID
-	}
-	return ""
-}
-
-func (m *CreateClientResponse) GetDomain() string {
-	if m != nil {
-		return m.Domain
-	}
-	return ""
-}
-
-func (m *CreateClientResponse) GetRedirectURL() string {
-	if m != nil {
-		return m.RedirectURL
-	}
-	return ""
-}
-
-func (m *CreateClientResponse) GetScopes() []string {
-	if m != nil {
-		return m.Scopes
+		return m.Payload
 	}
 	return nil
 }
 
 func init() {
 	proto.RegisterType((*ValidationBearerTokenRequest)(nil), "proto.ValidationBearerTokenRequest")
-	proto.RegisterType((*ValidationBearerTokenResponse)(nil), "proto.ValidationBearerTokenResponse")
-	proto.RegisterType((*CreateClientRequest)(nil), "proto.CreateClientRequest")
-	proto.RegisterType((*CreateClientResponse)(nil), "proto.CreateClientResponse")
+	proto.RegisterType((*DispatchAuthCommandRequest)(nil), "proto.DispatchAuthCommandRequest")
 }
 
 func init() {
@@ -276,28 +123,25 @@ func init() {
 }
 
 var fileDescriptor_d0dbc99083440df2 = []byte{
-	// 334 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x52, 0xcd, 0x4e, 0xf3, 0x30,
-	0x10, 0x54, 0xbe, 0xb6, 0xd1, 0xd7, 0xa5, 0x27, 0xd3, 0x56, 0x51, 0x00, 0xa9, 0x0a, 0x3d, 0x70,
-	0xca, 0x01, 0x78, 0x01, 0xda, 0x4a, 0xa8, 0x12, 0x87, 0xaa, 0x05, 0xee, 0xae, 0xb3, 0x02, 0x8b,
-	0x12, 0x1b, 0xdb, 0xe5, 0xca, 0xab, 0x71, 0xe0, 0xc1, 0x90, 0x7f, 0x0a, 0x89, 0xd4, 0x46, 0x9c,
-	0x92, 0xf1, 0x7a, 0x66, 0x77, 0xbc, 0x03, 0x7d, 0xba, 0x35, 0xcf, 0x58, 0x1a, 0xce, 0xa8, 0xe1,
-	0xa2, 0xcc, 0xa5, 0x12, 0x46, 0x90, 0x8e, 0xfb, 0x64, 0xd7, 0x70, 0xfa, 0x48, 0x37, 0xbc, 0x70,
-	0xa5, 0x09, 0x52, 0x85, 0xea, 0x5e, 0xbc, 0x60, 0xb9, 0xc4, 0xb7, 0x2d, 0x6a, 0x43, 0xfa, 0xd0,
-	0x31, 0x16, 0x27, 0xd1, 0x28, 0xba, 0xe8, 0x2e, 0x3d, 0xc8, 0x38, 0x9c, 0x1d, 0x60, 0x69, 0x29,
-	0x4a, 0x8d, 0x24, 0x85, 0xff, 0x6c, 0xc3, 0xb1, 0x34, 0xf3, 0x59, 0x60, 0xfe, 0x60, 0x32, 0x84,
-	0x78, 0xab, 0x51, 0xcd, 0x67, 0xc9, 0x3f, 0x57, 0x09, 0xc8, 0xb6, 0xd2, 0x4c, 0x48, 0x4c, 0x5a,
-	0xbe, 0x95, 0x03, 0xd9, 0x07, 0x1c, 0x4f, 0x15, 0x52, 0x83, 0x53, 0xc7, 0xdf, 0xcd, 0xf5, 0x2b,
-	0x12, 0xd5, 0x44, 0x86, 0x10, 0x17, 0xe2, 0x95, 0xf2, 0x72, 0x27, 0xee, 0x11, 0x19, 0xc1, 0x91,
-	0xc2, 0x82, 0x2b, 0x64, 0xe6, 0x61, 0x79, 0x17, 0x5a, 0x54, 0x8f, 0x2c, 0xd3, 0x75, 0xd4, 0x49,
-	0x7b, 0xd4, 0xb2, 0x4c, 0x8f, 0xb2, 0xcf, 0x08, 0xfa, 0xf5, 0x09, 0xfe, 0xe0, 0x31, 0x83, 0x9e,
-	0xff, 0x5f, 0x21, 0x53, 0x68, 0xc2, 0x30, 0xb5, 0xb3, 0x8a, 0x85, 0xd6, 0x01, 0x0b, 0xed, 0x26,
-	0x0b, 0x9d, 0x26, 0x0b, 0x71, 0xd5, 0xc2, 0xe5, 0x57, 0x04, 0x83, 0x9b, 0x5a, 0x08, 0x56, 0xa8,
-	0xde, 0x39, 0x43, 0xb2, 0x86, 0xc1, 0xde, 0x45, 0x92, 0x73, 0x1f, 0x93, 0xbc, 0x29, 0x1c, 0xe9,
-	0xb8, 0xf9, 0x52, 0x78, 0xa7, 0x5b, 0xe8, 0x55, 0xdf, 0x8f, 0xa4, 0x81, 0xb5, 0x67, 0xad, 0xe9,
-	0xc9, 0xde, 0x9a, 0x17, 0x9a, 0x8c, 0x61, 0xc0, 0xa8, 0xa6, 0x05, 0x4a, 0x2a, 0x71, 0x93, 0x3f,
-	0x29, 0xc9, 0x72, 0x9b, 0xed, 0x49, 0xd7, 0x9a, 0x5b, 0x58, 0xe2, 0x22, 0x5a, 0xc7, 0x4e, 0xe1,
-	0xea, 0x3b, 0x00, 0x00, 0xff, 0xff, 0x6a, 0x0b, 0x28, 0x2c, 0xf7, 0x02, 0x00, 0x00,
+	// 278 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x91, 0xb1, 0x4e, 0xf3, 0x30,
+	0x14, 0x85, 0x95, 0xea, 0xef, 0x8f, 0x6a, 0x31, 0x59, 0x09, 0x8a, 0x02, 0x43, 0x29, 0x4b, 0x59,
+	0x5c, 0x09, 0x78, 0x81, 0xa6, 0xb0, 0x30, 0x95, 0x50, 0xb1, 0xdf, 0x24, 0x97, 0xc4, 0xc2, 0xb1,
+	0x8d, 0x7b, 0x83, 0xd4, 0xf7, 0xe0, 0x81, 0x51, 0x9c, 0x64, 0x40, 0xa2, 0x2c, 0x4c, 0xf6, 0x91,
+	0xfc, 0x1d, 0x7d, 0x47, 0x66, 0x21, 0xb4, 0x54, 0xa3, 0x26, 0x59, 0x00, 0x49, 0xa3, 0x85, 0x75,
+	0x86, 0x0c, 0x9f, 0xfa, 0x23, 0x39, 0xaf, 0x8c, 0xa9, 0x14, 0xae, 0x7c, 0xca, 0xdb, 0xd7, 0x15,
+	0x36, 0x96, 0x0e, 0xfd, 0x9b, 0xc5, 0x1d, 0xbb, 0x78, 0x01, 0x25, 0x4b, 0xcf, 0xa5, 0x08, 0x0e,
+	0xdd, 0xce, 0xbc, 0xa1, 0xce, 0xf0, 0xbd, 0xc5, 0x3d, 0xf1, 0x90, 0x4d, 0xa9, 0xcb, 0x71, 0x30,
+	0x0f, 0x96, 0xb3, 0xac, 0x0f, 0x8b, 0x47, 0x96, 0xdc, 0xcb, 0xbd, 0x05, 0x2a, 0xea, 0x75, 0x4b,
+	0xf5, 0xc6, 0x34, 0x0d, 0xe8, 0x72, 0x64, 0x38, 0xfb, 0xa7, 0xa1, 0xc1, 0x01, 0xf1, 0x77, 0x1e,
+	0xb3, 0x13, 0x0b, 0x07, 0x65, 0xa0, 0x8c, 0x27, 0xf3, 0x60, 0x79, 0x9a, 0x8d, 0xf1, 0xe6, 0x73,
+	0xc2, 0xa2, 0xf5, 0x37, 0xfd, 0x67, 0x74, 0x1f, 0xb2, 0x40, 0xbe, 0x63, 0xd1, 0x8f, 0x6e, 0xfc,
+	0xaa, 0x97, 0x17, 0xbf, 0x99, 0x27, 0x67, 0xa2, 0xdf, 0x2d, 0xc6, 0xdd, 0xe2, 0xa1, 0xdb, 0xcd,
+	0x33, 0x16, 0x8d, 0xee, 0x1b, 0x25, 0x51, 0xd3, 0x60, 0xcf, 0x2f, 0x87, 0xd6, 0xe3, 0xcb, 0x8e,
+	0x76, 0x3e, 0xb1, 0x70, 0xa4, 0xbc, 0xc3, 0xdf, 0x2b, 0xd3, 0x6b, 0x96, 0x54, 0x06, 0xac, 0xcc,
+	0x8d, 0x54, 0xe8, 0xac, 0x02, 0x42, 0x51, 0x39, 0x5b, 0x88, 0xee, 0xab, 0xd3, 0x59, 0xd7, 0xb4,
+	0xed, 0x88, 0x6d, 0x90, 0xff, 0xf7, 0xe8, 0xed, 0x57, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe8, 0x6a,
+	0xb9, 0x32, 0x06, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -312,8 +156,9 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AuthenticationServiceClient interface {
-	ValidationBearerToken(ctx context.Context, in *ValidationBearerTokenRequest, opts ...grpc.CallOption) (*ValidationBearerTokenResponse, error)
-	CreateClient(ctx context.Context, in *CreateClientRequest, opts ...grpc.CallOption) (*CreateClientResponse, error)
+	ValidationBearerToken(ctx context.Context, in *ValidationBearerTokenRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DispatchClientCommand(ctx context.Context, in *DispatchAuthCommandRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DispatchTokenCommand(ctx context.Context, in *DispatchAuthCommandRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type authenticationServiceClient struct {
@@ -324,8 +169,8 @@ func NewAuthenticationServiceClient(cc grpc.ClientConnInterface) AuthenticationS
 	return &authenticationServiceClient{cc}
 }
 
-func (c *authenticationServiceClient) ValidationBearerToken(ctx context.Context, in *ValidationBearerTokenRequest, opts ...grpc.CallOption) (*ValidationBearerTokenResponse, error) {
-	out := new(ValidationBearerTokenResponse)
+func (c *authenticationServiceClient) ValidationBearerToken(ctx context.Context, in *ValidationBearerTokenRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/proto.AuthenticationService/ValidationBearerToken", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -333,9 +178,18 @@ func (c *authenticationServiceClient) ValidationBearerToken(ctx context.Context,
 	return out, nil
 }
 
-func (c *authenticationServiceClient) CreateClient(ctx context.Context, in *CreateClientRequest, opts ...grpc.CallOption) (*CreateClientResponse, error) {
-	out := new(CreateClientResponse)
-	err := c.cc.Invoke(ctx, "/proto.AuthenticationService/CreateClient", in, out, opts...)
+func (c *authenticationServiceClient) DispatchClientCommand(ctx context.Context, in *DispatchAuthCommandRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/proto.AuthenticationService/DispatchClientCommand", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authenticationServiceClient) DispatchTokenCommand(ctx context.Context, in *DispatchAuthCommandRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/proto.AuthenticationService/DispatchTokenCommand", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -344,19 +198,23 @@ func (c *authenticationServiceClient) CreateClient(ctx context.Context, in *Crea
 
 // AuthenticationServiceServer is the server API for AuthenticationService service.
 type AuthenticationServiceServer interface {
-	ValidationBearerToken(context.Context, *ValidationBearerTokenRequest) (*ValidationBearerTokenResponse, error)
-	CreateClient(context.Context, *CreateClientRequest) (*CreateClientResponse, error)
+	ValidationBearerToken(context.Context, *ValidationBearerTokenRequest) (*emptypb.Empty, error)
+	DispatchClientCommand(context.Context, *DispatchAuthCommandRequest) (*emptypb.Empty, error)
+	DispatchTokenCommand(context.Context, *DispatchAuthCommandRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedAuthenticationServiceServer can be embedded to have forward compatible implementations.
 type UnimplementedAuthenticationServiceServer struct {
 }
 
-func (*UnimplementedAuthenticationServiceServer) ValidationBearerToken(ctx context.Context, req *ValidationBearerTokenRequest) (*ValidationBearerTokenResponse, error) {
+func (*UnimplementedAuthenticationServiceServer) ValidationBearerToken(ctx context.Context, req *ValidationBearerTokenRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidationBearerToken not implemented")
 }
-func (*UnimplementedAuthenticationServiceServer) CreateClient(ctx context.Context, req *CreateClientRequest) (*CreateClientResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateClient not implemented")
+func (*UnimplementedAuthenticationServiceServer) DispatchClientCommand(ctx context.Context, req *DispatchAuthCommandRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DispatchClientCommand not implemented")
+}
+func (*UnimplementedAuthenticationServiceServer) DispatchTokenCommand(ctx context.Context, req *DispatchAuthCommandRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DispatchTokenCommand not implemented")
 }
 
 func RegisterAuthenticationServiceServer(s *grpc.Server, srv AuthenticationServiceServer) {
@@ -381,20 +239,38 @@ func _AuthenticationService_ValidationBearerToken_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthenticationService_CreateClient_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateClientRequest)
+func _AuthenticationService_DispatchClientCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DispatchAuthCommandRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthenticationServiceServer).CreateClient(ctx, in)
+		return srv.(AuthenticationServiceServer).DispatchClientCommand(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.AuthenticationService/CreateClient",
+		FullMethod: "/proto.AuthenticationService/DispatchClientCommand",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationServiceServer).CreateClient(ctx, req.(*CreateClientRequest))
+		return srv.(AuthenticationServiceServer).DispatchClientCommand(ctx, req.(*DispatchAuthCommandRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthenticationService_DispatchTokenCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DispatchAuthCommandRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).DispatchTokenCommand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.AuthenticationService/DispatchTokenCommand",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).DispatchTokenCommand(ctx, req.(*DispatchAuthCommandRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -408,8 +284,12 @@ var _AuthenticationService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _AuthenticationService_ValidationBearerToken_Handler,
 		},
 		{
-			MethodName: "CreateClient",
-			Handler:    _AuthenticationService_CreateClient_Handler,
+			MethodName: "DispatchClientCommand",
+			Handler:    _AuthenticationService_DispatchClientCommand_Handler,
+		},
+		{
+			MethodName: "DispatchTokenCommand",
+			Handler:    _AuthenticationService_DispatchTokenCommand_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

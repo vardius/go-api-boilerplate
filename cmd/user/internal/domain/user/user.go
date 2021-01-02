@@ -120,12 +120,12 @@ func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailA
 		Email: email,
 	}
 
-	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
-	if err != nil {
+	if err := u.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
-	if err := u.transition(e); err != nil {
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -137,20 +137,21 @@ func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailA
 }
 
 // RegisterWithGoogle alters current user state and append changes to aggregate root
-func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email EmailAddress, googleID, accessToken string) error {
+func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email EmailAddress, googleID, accessToken, redirectPath string) error {
 	e := WasRegisteredWithGoogle{
-		ID:          id,
-		Email:       email,
-		GoogleID:    googleID,
-		AccessToken: accessToken,
+		ID:           id,
+		Email:        email,
+		GoogleID:     googleID,
+		AccessToken:  accessToken,
+		RedirectPath: redirectPath,
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
 	}
 
 	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
 	if err != nil {
-		return apperrors.Wrap(err)
-	}
-
-	if err := u.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -162,19 +163,20 @@ func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email Email
 }
 
 // ConnectWithGoogle alters current user state and append changes to aggregate root
-func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken string) error {
+func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken, redirectPath string) error {
 	e := ConnectedWithGoogle{
-		ID:          u.id,
-		GoogleID:    googleID,
-		AccessToken: accessToken,
+		ID:           u.id,
+		GoogleID:     googleID,
+		AccessToken:  accessToken,
+		RedirectPath: redirectPath,
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
 	}
 
 	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
 	if err != nil {
-		return apperrors.Wrap(err)
-	}
-
-	if err := u.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -186,20 +188,21 @@ func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken stri
 }
 
 // RegisterWithFacebook alters current user state and append changes to aggregate root
-func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email EmailAddress, facebookID, accessToken string) error {
+func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email EmailAddress, facebookID, accessToken, redirectPath string) error {
 	e := WasRegisteredWithFacebook{
-		ID:          id,
-		Email:       email,
-		FacebookID:  facebookID,
-		AccessToken: accessToken,
+		ID:           id,
+		Email:        email,
+		FacebookID:   facebookID,
+		AccessToken:  accessToken,
+		RedirectPath: redirectPath,
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
 	}
 
 	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
 	if err != nil {
-		return apperrors.Wrap(err)
-	}
-
-	if err := u.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -211,19 +214,20 @@ func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email Ema
 }
 
 // ConnectWithFacebook alters current user state and append changes to aggregate root
-func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken string) error {
+func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken, redirectPath string) error {
 	e := ConnectedWithFacebook{
-		ID:          u.id,
-		FacebookID:  facebookID,
-		AccessToken: accessToken,
+		ID:           u.id,
+		FacebookID:   facebookID,
+		AccessToken:  accessToken,
+		RedirectPath: redirectPath,
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
 	}
 
 	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
 	if err != nil {
-		return apperrors.Wrap(err)
-	}
-
-	if err := u.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -241,12 +245,12 @@ func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error
 		Email: email,
 	}
 
-	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
-	if err != nil {
+	if err := u.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
-	if err := u.transition(e); err != nil {
+	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
+	if err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -258,18 +262,19 @@ func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error
 }
 
 // RequestAccessToken dispatches AccessTokenWasRequested event
-func (u *User) RequestAccessToken(ctx context.Context) error {
+func (u *User) RequestAccessToken(ctx context.Context, redirectPath string) error {
 	e := AccessTokenWasRequested{
-		ID:    u.id,
-		Email: u.email,
+		ID:           u.id,
+		Email:        u.email,
+		RedirectPath: redirectPath,
+	}
+
+	if err := u.transition(e); err != nil {
+		return apperrors.Wrap(err)
 	}
 
 	domainEvent, err := domain.NewEventFromRawEvent(u.id, StreamName, u.version, e)
 	if err != nil {
-		return apperrors.Wrap(err)
-	}
-
-	if err := u.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 

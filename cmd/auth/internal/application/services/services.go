@@ -10,7 +10,6 @@ import (
 	"gopkg.in/oauth2.v4"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/identity"
 	appoauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/oauth2"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
@@ -21,6 +20,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	memorycommandbus "github.com/vardius/go-api-boilerplate/pkg/commandbus/memory"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	memoryeventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	mysqleventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
@@ -37,7 +37,6 @@ type ServiceContainer struct {
 	AuthConn                    *grpc.ClientConn
 	TokenRepository             token.Repository
 	ClientRepository            client.Repository
-	UserPersistenceRepository   authpersistence.UserRepository
 	TokenPersistenceRepository  authpersistence.TokenRepository
 	ClientPersistenceRepository authpersistence.ClientRepository
 	Authenticator               auth.Authenticator
@@ -72,20 +71,27 @@ func NewServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceConta
 		},
 		logger,
 	)
-	eventStore := mysqleventstore.New(mysqlConnection)
+	eventStore, err := mysqleventstore.New(ctx, "auth_events", mysqlConnection)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
 	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize, logger)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
-	userPersistenceRepository := persistence.NewUserRepository(mysqlConnection)
-	tokenPersistenceRepository := persistence.NewTokenRepository(mysqlConnection)
-	clientPersistenceRepository := persistence.NewClientRepository(cfg, mysqlConnection)
+	tokenPersistenceRepository, err := persistence.NewTokenRepository(ctx, mysqlConnection)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	clientPersistenceRepository, err := persistence.NewClientRepository(ctx, cfg, mysqlConnection)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
 	tokenStore := appoauth2.NewTokenStore(tokenPersistenceRepository, tokenRepository)
 	authenticator := auth.NewSecretAuthenticator([]byte(cfg.App.Secret))
-	manager := appoauth2.NewManager(tokenStore, clientPersistenceRepository, authenticator)
 	grpAuthClient := authproto.NewAuthenticationServiceClient(grpcAuthConn)
 	claimsProvider := auth.NewClaimsProvider(authenticator)
-	identityProvider := identity.NewIdentityProvider(clientPersistenceRepository, userPersistenceRepository)
-	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, identityProvider)
+	manager := appoauth2.NewManager(tokenStore, clientPersistenceRepository, authenticator, clientPersistenceRepository)
+	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, authenticator)
 
 	return &ServiceContainer{
 		SQL:                         mysqlConnection,
@@ -98,7 +104,6 @@ func NewServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceConta
 		TokenAuthorizer:             tokenAuthorizer,
 		TokenRepository:             tokenRepository,
 		ClientRepository:            clientRepository,
-		UserPersistenceRepository:   userPersistenceRepository,
 		TokenPersistenceRepository:  tokenPersistenceRepository,
 		ClientPersistenceRepository: clientPersistenceRepository,
 	}, nil

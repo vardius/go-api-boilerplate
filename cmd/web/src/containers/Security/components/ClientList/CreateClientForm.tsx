@@ -64,7 +64,7 @@ const CreateClientForm = (props: Props) => {
       const body = JSON.stringify(data);
 
       return await fetchJSON(
-        "/dispatch/client/create-client-credentials",
+        "/dispatch/client/client-create-credentials",
         "POST",
         null,
         body

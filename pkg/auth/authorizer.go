@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -16,29 +16,22 @@ type TokenAuthorizer interface {
 	Auth(ctx context.Context, token string) (*identity.Identity, error)
 }
 
-type IdentityProvider interface {
-	GetByUserID(ctx context.Context, userID, clientID uuid.UUID) (*identity.Identity, error)
-}
-
 type jwtAuthorizer struct {
-	claimsProvider     ClaimsProvider
-	identityAuthorizer IdentityProvider
-	authClient         proto.AuthenticationServiceClient
+	claimsProvider ClaimsProvider
+	authenticator  Authenticator
+	authClient     proto.AuthenticationServiceClient
 }
 
-func NewJWTTokenAuthorizer(authClient proto.AuthenticationServiceClient, claimsProvider ClaimsProvider, identityAuthorizer IdentityProvider) TokenAuthorizer {
+func NewJWTTokenAuthorizer(authClient proto.AuthenticationServiceClient, claimsProvider ClaimsProvider, authenticator Authenticator) TokenAuthorizer {
 	return &jwtAuthorizer{
-		claimsProvider:     claimsProvider,
-		identityAuthorizer: identityAuthorizer,
-		authClient:         authClient,
+		claimsProvider: claimsProvider,
+		authenticator:  authenticator,
+		authClient:     authClient,
 	}
 }
 
 func (a *jwtAuthorizer) Auth(ctx context.Context, token string) (*identity.Identity, error) {
-	resp, err := a.authClient.ValidationBearerToken(ctx, &proto.ValidationBearerTokenRequest{
-		Token: token,
-	})
-	if err != nil {
+	if err := a.authenticator.Verify(token, &Claims{}); err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 
@@ -75,22 +68,17 @@ func (a *jwtAuthorizer) Auth(ctx context.Context, token string) (*identity.Ident
 		return nil, apperrors.Wrap(fmt.Errorf("could not verify token %s: %w", token, err))
 	}
 
-	if c.ClientID.String() != resp.ClientID {
-		return nil, apperrors.Wrap(fmt.Errorf("could not verify token credentials clientID: %s != %s", token, err))
+	if c.Identity == nil {
+		return nil, apperrors.Wrap(fmt.Errorf("could not verify token credentials, identity: %w", application.ErrUnauthorized))
 	}
 
-	if c.UserID.String() != resp.UserID {
-		return nil, apperrors.Wrap(fmt.Errorf("could not verify token credentials userID: %s != %s", token, err))
-	}
-
-	i, err := a.identityAuthorizer.GetByUserID(ctx, c.UserID, c.ClientID)
-	if err != nil {
+	if _, err := a.authClient.ValidationBearerToken(ctx, &proto.ValidationBearerTokenRequest{
+		Token: token,
+	}); err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 
-	// @TODO: store role in users table
-	i.WithRole(identity.RoleUser)
-	i.WithToken(token)
+	c.Identity.Token = token
 
-	return i, nil
+	return c.Identity, nil
 }

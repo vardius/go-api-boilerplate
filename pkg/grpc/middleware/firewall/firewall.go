@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ErrInvalidRole = status.Errorf(codes.PermissionDenied, "Invalid role")
+	ErrInvalidPermission = status.Errorf(codes.PermissionDenied, "Invalid permission")
 )
 
 const mdIdentityKey = "identity"
@@ -112,7 +112,7 @@ func SetIdentityFromUnaryRequest() grpc.UnaryServerInterceptor {
 	}
 }
 
-// GrantAccessForStreamRequest returns error if Identity not set within context or user does not have required role
+// GrantAccessForStreamRequest returns error if Identity not set within context or user does not have required permission
 //
 // 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
 //
@@ -121,18 +121,18 @@ func SetIdentityFromUnaryRequest() grpc.UnaryServerInterceptor {
 // }
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
-func GrantAccessForStreamRequest(role identity.Role) grpc.StreamServerInterceptor {
+func GrantAccessForStreamRequest(permission identity.Permission) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		i, ok := identity.FromContext(ss.Context())
-		if ok && i.HasRole(role) {
+		if ok && i.Permission.Has(permission) {
 			return handler(srv, ss)
 		}
 
-		return apperrors.Wrap(ErrInvalidRole)
+		return apperrors.Wrap(ErrInvalidPermission)
 	}
 }
 
-// CheckAccessForUnaryRequest returns error if Identity not set within context or user does not have required role
+// CheckAccessForUnaryRequest returns error if Identity not set within context or user does not have required permission
 //
 // 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
 //
@@ -141,13 +141,13 @@ func GrantAccessForStreamRequest(role identity.Role) grpc.StreamServerIntercepto
 // }
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
-func GrantAccessForUnaryRequest(role identity.Role) grpc.UnaryServerInterceptor {
+func GrantAccessForUnaryRequest(permission identity.Permission) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		i, ok := identity.FromContext(ctx)
-		if ok && i.HasRole(role) {
+		if ok && i.Permission.Has(permission) {
 			return handler(ctx, req)
 		}
 
-		return nil, apperrors.Wrap(ErrInvalidRole)
+		return nil, apperrors.Wrap(ErrInvalidPermission)
 	}
 }

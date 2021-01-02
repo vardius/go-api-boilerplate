@@ -162,7 +162,7 @@ make helm-install
 ### Dispatching command
 Send example JSON via POST request
 ```sh
-curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/register-user-with-email --insecure
+curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/user/user-register-with-email --insecure
 ```
 ## View
 ### Public routes
@@ -181,7 +181,7 @@ Access protected route using auth token [https://api.go-api-boilerplate.local/us
 ```
 Request access token for user
 ```sh
-curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/request-user-access-token --insecure
+curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/user/user-request-access-token --insecure
 ```
 Get your access token from mail catcher [https://maildev.go-api-boilerplate.local](https://maildev.go-api-boilerplate.local).
 

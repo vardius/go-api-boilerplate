@@ -14,12 +14,10 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
-	appidentity "github.com/vardius/go-api-boilerplate/cmd/user/internal/application/services/identity"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	userpersistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http/handlers"
 	"github.com/vardius/go-api-boilerplate/pkg/auth"
-	pkgauth "github.com/vardius/go-api-boilerplate/pkg/auth/oauth2"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	httpmiddleware "github.com/vardius/go-api-boilerplate/pkg/http/middleware"
 	httpauthenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
@@ -37,9 +35,7 @@ func NewRouter(
 	tokenAuthorizer auth.TokenAuthorizer,
 	repository userpersistence.UserRepository,
 	commandBus commandbus.CommandBus,
-	tokenProvider pkgauth.TokenProvider,
 	mysqlConnection *sql.DB,
-	identityProvider appidentity.Provider,
 	grpcConnectionMap map[string]*grpc.ClientConn,
 ) http.Handler {
 	authenticator := httpauthenticator.NewToken(tokenAuthorizer.Auth)
@@ -55,7 +51,6 @@ func NewRouter(
 		authenticator.FromQuery("authToken", logger),
 		authenticator.FromCookie("at", logger),
 		httpmiddleware.CORS(
-			[]string{cfg.App.Domain},
 			cfg.HTTP.Origins,
 			cfg.App.Environment == "development",
 		),
@@ -79,7 +74,7 @@ func NewRouter(
 		Endpoint:     google.Endpoint,
 	}
 	router.POST("/google", handlers.BuildSocialAuthHandler(googleOauthConfig))
-	router.POST("/google/callback", handlers.BuildAuthCallbackHandler(googleOauthConfig, googleAPIURL, commandBus, user.RegisterUserWithGoogle, tokenProvider, identityProvider))
+	router.POST("/google/callback", handlers.BuildAuthCallbackHandler(googleOauthConfig, googleAPIURL, commandBus, user.RegisterUserWithGoogle))
 
 	var facebookOauthConfig = &oauth2.Config{
 		RedirectURL:  fmt.Sprintf("%s/v1/facebook/callback", cfg.App.ApiBaseURL),
@@ -89,10 +84,10 @@ func NewRouter(
 		Endpoint:     facebook.Endpoint,
 	}
 	router.POST("/facebook", handlers.BuildSocialAuthHandler(facebookOauthConfig))
-	router.POST("/facebook/callback", handlers.BuildAuthCallbackHandler(facebookOauthConfig, facebookAPIURL, commandBus, user.RegisterUserWithGoogle, tokenProvider, identityProvider))
+	router.POST("/facebook/callback", handlers.BuildAuthCallbackHandler(facebookOauthConfig, facebookAPIURL, commandBus, user.RegisterUserWithGoogle))
 
-	router.USE(http.MethodGet, "/me", httpmiddleware.GrantAccessFor(identity.RoleUser))
-	router.USE(http.MethodPost, "/dispatch/"+user.ChangeUserEmailAddress, httpmiddleware.GrantAccessFor(identity.RoleUser))
+	router.USE(http.MethodGet, "/me", httpmiddleware.GrantAccessFor(identity.PermissionUserRead))
+	router.USE(http.MethodPost, "/dispatch/"+user.ChangeUserEmailAddress, httpmiddleware.GrantAccessFor(identity.PermissionUserWrite))
 
 	mainRouter := gorouter.New()
 	mainRouter.NotFound(json.NotFound())

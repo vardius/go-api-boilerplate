@@ -6,21 +6,20 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
-// WhenUserEmailAddressWasChanged handles event
-func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepository) eventbus.EventHandler {
+// WhenClientWasRemoved handles event
+func WhenClientWasRemoved(db *sql.DB, repository persistence.ClientRepository) eventbus.EventHandler {
 	fn := func(parentCtx context.Context, event domain.Event) error {
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		var e user.EmailAddressWasChanged
-
+		var e client.WasRemoved
 		if err := json.Unmarshal(event.Payload, &e); err != nil {
 			return apperrors.Wrap(err)
 		}
@@ -31,7 +30,7 @@ func WhenUserEmailAddressWasChanged(db *sql.DB, repository persistence.UserRepos
 		}
 		defer tx.Rollback()
 
-		if err := repository.UpdateEmail(ctx, e.ID.String(), string(e.Email)); err != nil {
+		if err := repository.Delete(ctx, e.ID.String()); err != nil {
 			return apperrors.Wrap(err)
 		}
 

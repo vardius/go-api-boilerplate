@@ -17,8 +17,39 @@ import (
 	baseeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore"
 )
 
+const createTableSQLFormat = `
+CREATE TABLE IF NOT EXISTS %s
+(
+    distinct_id    INT          NOT NULL AUTO_INCREMENT,
+    event_id       CHAR(36)     NOT NULL,
+    event_type     VARCHAR(255) NOT NULL,
+    stream_id      CHAR(36)     NOT NULL,
+    stream_name    VARCHAR(255) NOT NULL,
+    stream_version INT          NOT NULL,
+    occurred_at    DATETIME     NOT NULL,
+    payload        JSON         NOT NULL,
+    metadata       JSON DEFAULT NULL,
+    PRIMARY KEY (distinct_id),
+    UNIQUE KEY u_event_id (event_id),
+    INDEX i_stream_id_stream_name_event_type (stream_id, stream_name, event_type)
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    COLLATE = utf8_bin;
+`
+
 type eventStore struct {
-	db *sql.DB
+	tableName string
+	db        *sql.DB
+}
+
+// New creates in mysql event store
+func New(ctx context.Context, tableName string, db *sql.DB) (baseeventstore.EventStore, error) {
+	if _, err := db.ExecContext(ctx, fmt.Sprintf(createTableSQLFormat, tableName)); err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	return &eventStore{tableName: tableName, db: db}, nil
 }
 
 func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
@@ -27,7 +58,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 		return nil
 	}
 
-	query := "INSERT INTO events (event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata) VALUES "
+	query := "INSERT INTO " + s.tableName + " (event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata) VALUES "
 	values := make([]interface{}, 0, lenEvents*7)
 
 	if lenEvents > 1 {
@@ -73,7 +104,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 }
 
 func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error) {
-	query := `SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata FROM events WHERE event_id=? LIMIT 1`
+	query := "SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata FROM " + s.tableName + " WHERE event_id=? LIMIT 1"
 	row := s.db.QueryRowContext(ctx, query, id.String())
 
 	var event domain.Event
@@ -113,7 +144,7 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 }
 
 func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
-	query := `SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata FROM events WHERE stream_id=? AND stream_name=? ORDER BY distinct_id ASC`
+	query := "SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata FROM " + s.tableName + " WHERE stream_id=? AND stream_name=? ORDER BY distinct_id ASC"
 	rows, err := s.db.QueryContext(ctx, query, streamID.String(), streamName)
 	if err != nil {
 		return nil, apperrors.Wrap(fmt.Errorf("%w: %s (%s, %s)", err, query, streamID.String(), streamName))
@@ -154,9 +185,4 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 	}
 
 	return events, nil
-}
-
-// New creates in mysql event store
-func New(db *sql.DB) baseeventstore.EventStore {
-	return &eventStore{db}
 }

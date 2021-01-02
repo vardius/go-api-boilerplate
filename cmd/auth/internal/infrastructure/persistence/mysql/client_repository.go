@@ -18,9 +18,37 @@ import (
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
+const createClientTableSQL = `
+CREATE TABLE IF NOT EXISTS auth_clients
+(
+    distinct_id  INT          NOT NULL AUTO_INCREMENT,
+    id           CHAR(36)     NOT NULL,
+    user_id      CHAR(36)     NOT NULL,
+    secret       VARCHAR(255) NOT NULL,
+    domain       VARCHAR(255) NOT NULL,
+    redirect_url TEXT         NOT NULL,
+    scope        JSON         NOT NULL,
+    PRIMARY KEY (distinct_id),
+    UNIQUE KEY id (id),
+    INDEX i_user_id (user_id)
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    COLLATE = utf8_bin;
+`
+
 type clientRepository struct {
 	cfg *config.Config
 	db  *sql.DB
+}
+
+// NewClientRepository returns mysql view model repository for client
+func NewClientRepository(ctx context.Context, cfg *config.Config, db *sql.DB) (persistence.ClientRepository, error) {
+	if _, err := db.ExecContext(ctx, createClientTableSQL); err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	return &clientRepository{cfg: cfg, db: db}, nil
 }
 
 func (r *clientRepository) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
@@ -34,7 +62,7 @@ func (r *clientRepository) GetByID(ctx context.Context, id string) (oauth2.Clien
 }
 
 func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Client, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, user_id, secret, domain, redirect_url, scope FROM clients WHERE id=? LIMIT 1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, user_id, secret, domain, redirect_url, scope FROM auth_clients WHERE id=? LIMIT 1`, id)
 
 	var scope json.RawMessage
 	var client Client
@@ -57,7 +85,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, limit, offset int32) ([]persistence.Client, error) {
 	rows, err := r.db.QueryContext(
 		ctx,
-		`SELECT id, user_id, secret, domain, redirect_url, scope  FROM clients WHERE user_id=? AND domain!=? ORDER BY distinct_id DESC LIMIT ? OFFSET ?`,
+		`SELECT id, user_id, secret, domain, redirect_url, scope  FROM auth_clients WHERE user_id=? AND domain!=? ORDER BY distinct_id DESC LIMIT ? OFFSET ?`,
 		userID,
 		r.cfg.App.Domain,
 		limit,
@@ -95,7 +123,7 @@ func (r *clientRepository) CountByUserID(ctx context.Context, userID string) (in
 
 	row := r.db.QueryRowContext(
 		ctx,
-		`SELECT COUNT(distinct_id) FROM clients WHERE user_id=? AND domain!=?`,
+		`SELECT COUNT(distinct_id) FROM auth_clients WHERE user_id=? AND domain!=?`,
 		userID,
 		r.cfg.App.Domain,
 	)
@@ -121,7 +149,7 @@ func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error 
 		return apperrors.Wrap(err)
 	}
 
-	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO clients (id, user_id, secret, domain, redirect_url, scope) VALUES (?,?,?,?,?,?)`)
+	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_clients (id, user_id, secret, domain, redirect_url, scope) VALUES (?,?,?,?,?,?)`)
 	if err != nil {
 		return apperrors.Wrap(err)
 	}
@@ -145,7 +173,7 @@ func (r *clientRepository) Add(ctx context.Context, c persistence.Client) error 
 }
 
 func (r *clientRepository) Delete(ctx context.Context, id string) error {
-	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM clients WHERE id=?`)
+	stmt, err := r.db.PrepareContext(ctx, `DELETE FROM auth_clients WHERE id=?`)
 	if err != nil {
 		return apperrors.Wrap(err)
 	}
@@ -166,9 +194,4 @@ func (r *clientRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
-}
-
-// NewClientRepository returns mysql view model repository for client
-func NewClientRepository(cfg *config.Config, db *sql.DB) persistence.ClientRepository {
-	return &clientRepository{cfg: cfg, db: db}
 }

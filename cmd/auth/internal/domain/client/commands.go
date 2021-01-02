@@ -17,9 +17,9 @@ import (
 
 const (
 	// CreateClientCredentials command bus contract
-	CreateClientCredentials = "create-client-credentials"
+	CreateClientCredentials = "client-create-credentials"
 	// RemoveClientCredentials command bus contract
-	RemoveClientCredentials = "remove-client-credentials"
+	RemoveClientCredentials = "client-remove-credentials"
 )
 
 // NewCommandFromPayload builds command by contract from json payload

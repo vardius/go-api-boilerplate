@@ -199,7 +199,7 @@ const ClientCredentials = (props: Props) => {
       const body = JSON.stringify(data);
 
       await fetchJSON(
-        "/dispatch/client/remove-client-credentials",
+        "/dispatch/client/client-remove-credentials",
         "POST",
         null,
         body

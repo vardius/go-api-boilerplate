@@ -60,7 +60,7 @@ func (ts *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 		return apperrors.Wrap(err)
 	}
 
-	if err := ts.eventSourcedRepository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), t); err != nil {
+	if err := ts.eventSourcedRepository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), t); err != nil {
 		return apperrors.Wrap(err)
 	}
 

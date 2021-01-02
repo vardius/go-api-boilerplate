@@ -30,7 +30,7 @@ func (a unencryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) 
 	return a.Auth.Start(&s)
 }
 
-func SendLoginEmail(ctx context.Context, cfg *config.Config, subject, to string, authToken, redirectPath string) error {
+func SendLoginEmail(ctx context.Context, cfg *config.Config, to string, authToken, redirectPath string) error {
 	var template bytes.Buffer
 	if err := email.Login.Execute(&template, struct {
 		Title    string
@@ -45,7 +45,7 @@ func SendLoginEmail(ctx context.Context, cfg *config.Config, subject, to string,
 		return apperrors.Wrap(err)
 	}
 
-	return sendHTMLEmail(cfg, subject, FROM, []string{to}, template.Bytes())
+	return sendHTMLEmail(cfg, "Login to go-api-boilerplate", FROM, []string{to}, template.Bytes())
 }
 
 func sendHTMLEmail(cfg *config.Config, subject, from string, to []string, body []byte) error {

@@ -117,7 +117,7 @@ func (s *eventStore) query(params *dynamodb.QueryInput) ([]domain.Event, error) 
 
 	es := make([]domain.Event, len(resp.Items))
 	for i, item := range resp.Items {
-		var e domain.Event
+		e := domain.Event{}
 		if err := dynamodbattribute.UnmarshalMap(item, &e); err != nil {
 			return nil, fmt.Errorf("unmarshal events failed: %w", err)
 		}

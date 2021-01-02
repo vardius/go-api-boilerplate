@@ -14,7 +14,7 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Error("Should not get access here")
 	})
-	h := GrantAccessFor(identity.RoleUser)(handler)
+	h := GrantAccessFor(identity.PermissionUserRead)(handler)
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -23,9 +23,8 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 	}
 
 	i := identity.Identity{
-		UserID:    uuid.New(),
-		UserEmail: "test@emai.com",
-		Roles:     identity.RoleAdmin,
+		UserID:     uuid.New(),
+		Permission: identity.PermissionUserRead,
 	}
 	ctx := identity.ContextWithIdentity(req.Context(), &i)
 
@@ -37,7 +36,7 @@ func TestGrantAccessFor(t *testing.T) {
 	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		served = true
 	})
-	h := GrantAccessFor(identity.RoleUser)(handler)
+	h := GrantAccessFor(identity.PermissionUserRead)(handler)
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/x", nil)
@@ -46,9 +45,8 @@ func TestGrantAccessFor(t *testing.T) {
 	}
 
 	i := identity.Identity{
-		UserID:    uuid.New(),
-		UserEmail: "test@emai.com",
-		Roles:     identity.RoleUser,
+		UserID:     uuid.New(),
+		Permission: identity.PermissionUserRead,
 	}
 	ctx := identity.ContextWithIdentity(req.Context(), &i)
 

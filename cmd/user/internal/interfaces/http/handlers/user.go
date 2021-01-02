@@ -80,7 +80,7 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			return ErrInvalidURLParams
+			return apperrors.Wrap(ErrInvalidURLParams)
 		}
 
 		u, err := repository.Get(r.Context(), params.Value("id"))
@@ -139,6 +139,7 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 		if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
 			return apperrors.Wrap(err)
 		}
+
 		return nil
 	}
 

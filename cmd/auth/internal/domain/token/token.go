@@ -108,12 +108,12 @@ func (t *Token) Create(
 		UserAgent: userAgent,
 	}
 
-	domainEvent, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
-	if err != nil {
+	if err := t.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
-	if err := t.transition(e); err != nil {
+	domainEvent, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
+	if err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -130,14 +130,15 @@ func (t *Token) Remove(ctx context.Context) error {
 		ID: t.id,
 	}
 
+	if err := t.transition(e); err != nil {
+		return apperrors.Wrap(err)
+	}
+
 	domainEvent, err := domain.NewEventFromRawEvent(t.id, StreamName, t.version, e)
 	if err != nil {
 		return apperrors.Wrap(err)
 	}
 
-	if err := t.transition(e); err != nil {
-		return apperrors.Wrap(err)
-	}
 	if _, err := t.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}

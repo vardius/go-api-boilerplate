@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/eventhandler"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/oauth2"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
@@ -58,8 +58,8 @@ func main() {
 		nil,
 	)
 
-	oauth2Server := oauth2.InitServer(cfg, container.OAuth2Manager, container.Logger, container.UserPersistenceRepository, container.ClientPersistenceRepository, cfg.App.Secret, cfg.OAuth.InitTimeout)
-	grpcAuthServer := authgrpc.NewServer(oauth2Server, container.ClientRepository, container.Authenticator)
+	oauth2Server := oauth2.InitServer(cfg, container.OAuth2Manager, container.Logger, container.ClientPersistenceRepository, cfg.OAuth.InitTimeout)
+	grpcAuthServer := authgrpc.NewServer(oauth2Server, container.CommandBus)
 
 	router := authhttp.NewRouter(
 		cfg,
@@ -75,9 +75,9 @@ func main() {
 		container.ClientPersistenceRepository,
 	)
 
-	// if err := container.CommandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(container.TokenRepository)); err != nil {
-	// 	panic(err)
-	// }
+	if err := container.CommandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(container.TokenRepository)); err != nil {
+		panic(err)
+	}
 	if err := container.CommandBus.Subscribe(ctx, (token.Remove{}).GetName(), token.OnRemove(container.TokenRepository)); err != nil {
 		panic(err)
 	}

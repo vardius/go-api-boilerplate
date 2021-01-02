@@ -22,7 +22,7 @@ var (
 
 // CORS replies to request with cors header and handles preflight request
 // it is enhancement to improve middleware usability instead of wrapping every handler
-func CORS(defaultDomains, allowedOrigins []string, debug bool) gorouter.MiddlewareFunc {
+func CORS(allowedOrigins []string, debug bool) gorouter.MiddlewareFunc {
 	defaultCors := httpcors.New(httpcors.Options{
 		AllowCredentials: true,
 		AllowedOrigins:   allowedOrigins,
@@ -34,15 +34,7 @@ func CORS(defaultDomains, allowedOrigins []string, debug bool) gorouter.Middlewa
 	m := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if i, isAuthorized := identity.FromContext(r.Context()); isAuthorized {
-				var isDefault bool
-				for _, domain := range defaultDomains {
-					if i.ClientDomain == domain {
-						isDefault = true
-						break
-					}
-				}
-
-				if !isDefault {
+				if i.ClientDomain != "" {
 					cors := httpcors.New(httpcors.Options{
 						AllowCredentials: true,
 						AllowedOrigins:   []string{i.ClientDomain},
@@ -52,6 +44,8 @@ func CORS(defaultDomains, allowedOrigins []string, debug bool) gorouter.Middlewa
 					})
 
 					cors.Handler(next).ServeHTTP(w, r)
+
+					return
 				}
 			}
 

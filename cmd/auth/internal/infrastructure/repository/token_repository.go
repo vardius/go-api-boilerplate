@@ -35,22 +35,6 @@ func (r *tokenRepository) Save(ctx context.Context, u token.Token) error {
 	return nil
 }
 
-// Save current token changes to event store and publish each event with an event bus
-// blocks until event handlers are finished
-func (r *tokenRepository) SaveAndAcknowledge(ctx context.Context, u token.Token) error {
-	if err := r.eventStore.Store(ctx, u.Changes()); err != nil {
-		return apperrors.Wrap(err)
-	}
-
-	for _, event := range u.Changes() {
-		if err := r.eventBus.PublishAndAcknowledge(ctx, event); err != nil {
-			return apperrors.Wrap(err)
-		}
-	}
-
-	return nil
-}
-
 // Get token with current state applied
 func (r *tokenRepository) Get(ctx context.Context, id uuid.UUID) (token.Token, error) {
 	events, err := r.eventStore.GetStream(ctx, id, token.StreamName)

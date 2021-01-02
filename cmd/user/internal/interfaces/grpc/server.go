@@ -31,8 +31,8 @@ func NewServer(cb commandbus.CommandBus, r persistence.UserRepository) proto.Use
 	return s
 }
 
-// DispatchCommand implements proto.UserServiceServer interface
-func (s *userServer) DispatchCommand(ctx context.Context, r *proto.DispatchCommandRequest) (*empty.Empty, error) {
+// DispatchUserCommand implements proto.UserServiceServer interface
+func (s *userServer) DispatchUserCommand(ctx context.Context, r *proto.DispatchUserCommandRequest) (*empty.Empty, error) {
 	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
 	if err != nil {
 		return nil, grpcerrors.NewGRPCError(apperrors.Wrap(err))

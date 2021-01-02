@@ -82,7 +82,7 @@ const LoginForm = (props: Props) => {
       const body = JSON.stringify({email, redirect_path: redirectPath});
 
       return await fetchJSON(
-        "/dispatch/user/register-user-with-email",
+        "/dispatch/user/user-register-with-email",
         "POST",
         null,
         body

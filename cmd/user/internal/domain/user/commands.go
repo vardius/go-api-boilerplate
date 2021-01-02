@@ -2,13 +2,13 @@ package user
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
@@ -18,13 +18,15 @@ import (
 
 const (
 	// ChangeUserEmailAddress command bus contract
-	ChangeUserEmailAddress = "change-user-email-address"
+	ChangeUserEmailAddress = "user-change-email-address"
+	// RequestUserAccessToken command bus contract
+	RequestUserAccessToken = "user-request-access-token"
 	// RegisterUserWithEmail command bus contract
-	RegisterUserWithEmail = "register-user-with-email"
+	RegisterUserWithEmail = "user-register-with-email"
 	// RegisterUserWithFacebook command bus contract
-	RegisterUserWithFacebook = "register-user-with-facebook"
+	RegisterUserWithFacebook = "user-register-with-facebook"
 	// RegisterUserWithGoogle command bus contract
-	RegisterUserWithGoogle = "register-user-with-google"
+	RegisterUserWithGoogle = "user-register-with-google"
 )
 
 // NewCommandFromPayload builds command by contract from json payload
@@ -58,6 +60,13 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 		}
 
 		return command, nil
+	case RequestUserAccessToken:
+		var command RequestAccessToken
+		if err := json.Unmarshal(payload, &command); err != nil {
+			return command, apperrors.Wrap(err)
+		}
+
+		return command, nil
 	default:
 		return nil, apperrors.Wrap(fmt.Errorf("invalid command contract: %s", contract))
 	}
@@ -75,22 +84,17 @@ func (c ChangeEmailAddress) GetName() string {
 }
 
 // OnChangeEmailAddress creates command handler
-func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandHandler {
+func OnChangeEmailAddress(repository Repository, userRepository persistence.UserRepository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(ChangeEmailAddress)
 		if !ok {
 			return apperrors.New("invalid command")
 		}
 
-		var totalUsers int32
-
-		row := db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM users WHERE email_address=?`, c.Email.String())
-		if err := row.Scan(&totalUsers); err != nil {
+		if _, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, application.ErrNotFound) {
 			return apperrors.Wrap(err)
-		}
-
-		if totalUsers != 0 {
-			return apperrors.Wrap(application.ErrInvalid)
+		} else if err == nil {
+			return apperrors.Wrap(fmt.Errorf("%w: user with this email address is already registered", application.ErrInvalid))
 		}
 
 		u, err := repository.Get(ctx, c.ID)
@@ -99,6 +103,44 @@ func OnChangeEmailAddress(repository Repository, db *sql.DB) commandbus.CommandH
 		}
 
 		if err := u.ChangeEmailAddress(ctx, c.Email); err != nil {
+			return apperrors.Wrap(err)
+		}
+
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
+			return apperrors.Wrap(err)
+		}
+
+		return nil
+	}
+
+	return fn
+}
+
+// RequestAccessToken command
+type RequestAccessToken struct {
+	ID           uuid.UUID `json:"id"`
+	RedirectPath string    `json:"redirect_path,omitempty"`
+}
+
+// GetName returns command name
+func (c RequestAccessToken) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
+// OnRequestAccessToken creates command handler
+func OnRequestAccessToken(repository Repository) commandbus.CommandHandler {
+	fn := func(ctx context.Context, command domain.Command) error {
+		c, ok := command.(RequestAccessToken)
+		if !ok {
+			return apperrors.New("invalid command")
+		}
+
+		u, err := repository.Get(ctx, c.ID)
+		if err != nil {
+			return apperrors.Wrap(err)
+		}
+
+		if err := u.RequestAccessToken(ctx, c.RedirectPath); err != nil {
 			return apperrors.Wrap(err)
 		}
 
@@ -124,22 +166,21 @@ func (c RegisterWithEmail) GetName() string {
 }
 
 // OnRegisterWithEmail creates command handler
-func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHandler {
+func OnRegisterWithEmail(repository Repository, userRepository persistence.UserRepository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(RegisterWithEmail)
 		if !ok {
 			return apperrors.New("invalid command")
 		}
 
-		var userID string
-		row := db.QueryRowContext(ctx, `SELECT id FROM users WHERE email_address=?`, c.Email.String())
-		if err := row.Scan(&userID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		user, err := userRepository.GetByEmail(ctx, c.Email.String())
+		if err != nil && !errors.Is(err, application.ErrNotFound) {
 			return apperrors.Wrap(err)
 		}
 
 		var u User
-		if userID != "" {
-			id, err := uuid.Parse(userID)
+		if err == nil {
+			id, err := uuid.Parse(user.GetID())
 			if err != nil {
 				return apperrors.Wrap(err)
 			}
@@ -149,7 +190,7 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 				return apperrors.Wrap(err)
 			}
 
-			if err := u.RequestAccessToken(ctx); err != nil {
+			if err := u.RequestAccessToken(ctx, c.RedirectPath); err != nil {
 				return apperrors.Wrap(err)
 			}
 		} else {
@@ -176,9 +217,10 @@ func OnRegisterWithEmail(repository Repository, db *sql.DB) commandbus.CommandHa
 
 // RegisterWithFacebook command
 type RegisterWithFacebook struct {
-	Email       EmailAddress `json:"email"`
-	FacebookID  string       `json:"facebook_id"`
-	AccessToken string       `json:"access_token"`
+	Email        EmailAddress `json:"email"`
+	FacebookID   string       `json:"facebook_id"`
+	AccessToken  string       `json:"access_token"`
+	RedirectPath string       `json:"redirect_path,omitempty"`
 }
 
 // GetName returns command name
@@ -187,53 +229,69 @@ func (c RegisterWithFacebook) GetName() string {
 }
 
 // OnRegisterWithFacebook creates command handler
-func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.CommandHandler {
+func OnRegisterWithFacebook(repository Repository, userRepository persistence.UserRepository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(RegisterWithFacebook)
 		if !ok {
 			return apperrors.New("invalid command")
 		}
 
-		var id, emailAddress, facebookID string
-
-		row := db.QueryRowContext(ctx, `SELECT id, email_address, facebook_id FROM users WHERE email_address=? OR facebook_id=? LIMIT 1`, c.Email.String(), c.FacebookID)
-		if err := row.Scan(&id, &emailAddress, &facebookID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		var user User
+		if u, err := userRepository.GetByFacebookID(ctx, c.FacebookID); err != nil && !errors.Is(err, application.ErrNotFound) {
 			return apperrors.Wrap(err)
-		}
+		} else if err == nil {
+			if u.GetEmail() != c.Email.String() {
+				return apperrors.Wrap(fmt.Errorf("%w: facebook account connected to another user", application.ErrInvalid))
+			}
 
-		if facebookID == c.FacebookID {
-			return apperrors.Wrap(application.ErrInvalid)
-		}
-
-		var u User
-		if emailAddress == string(c.Email) {
-			userID, err := uuid.Parse(id)
+			id, err := uuid.Parse(u.GetID())
 			if err != nil {
 				return apperrors.Wrap(err)
 			}
 
-			u, err := repository.Get(ctx, userID)
+			user, err = repository.Get(ctx, id)
 			if err != nil {
 				return apperrors.Wrap(err)
 			}
 
-			if err := u.ConnectWithFacebook(ctx, c.FacebookID, c.AccessToken); err != nil {
+			if err := user.RequestAccessToken(ctx, c.RedirectPath); err != nil {
 				return apperrors.Wrap(err)
 			}
 		} else {
-			id, err := uuid.NewRandom()
-			if err != nil {
+			if u, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, application.ErrNotFound) {
 				return apperrors.Wrap(err)
-			}
+			} else if err == nil {
+				if u.GetFacebookID() != "" && u.GetFacebookID() != c.FacebookID {
+					return apperrors.Wrap(fmt.Errorf("%w: user connected to another facebook account", application.ErrInvalid))
+				}
 
-			u = New()
+				userID, err := uuid.Parse(u.GetID())
+				if err != nil {
+					return apperrors.Wrap(err)
+				}
 
-			if err := u.RegisterWithFacebook(ctx, id, c.Email, c.FacebookID, c.AccessToken); err != nil {
-				return apperrors.Wrap(err)
+				user, err = repository.Get(ctx, userID)
+				if err != nil {
+					return apperrors.Wrap(err)
+				}
+
+				if err := user.ConnectWithFacebook(ctx, c.FacebookID, c.AccessToken, c.RedirectPath); err != nil {
+					return apperrors.Wrap(err)
+				}
+			} else {
+				id, err := uuid.NewRandom()
+				if err != nil {
+					return apperrors.Wrap(err)
+				}
+
+				user = New()
+				if err := user.RegisterWithFacebook(ctx, id, c.Email, c.FacebookID, c.AccessToken, c.RedirectPath); err != nil {
+					return apperrors.Wrap(err)
+				}
 			}
 		}
 
-		if err := repository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), user); err != nil {
 			return apperrors.Wrap(err)
 		}
 
@@ -245,9 +303,10 @@ func OnRegisterWithFacebook(repository Repository, db *sql.DB) commandbus.Comman
 
 // RegisterWithGoogle command
 type RegisterWithGoogle struct {
-	Email       EmailAddress `json:"email"`
-	GoogleID    string       `json:"google_id"`
-	AccessToken string       `json:"access_token"`
+	Email        EmailAddress `json:"email"`
+	GoogleID     string       `json:"google_id"`
+	AccessToken  string       `json:"access_token"`
+	RedirectPath string       `json:"redirect_path,omitempty"`
 }
 
 // GetName returns command name
@@ -256,52 +315,69 @@ func (c RegisterWithGoogle) GetName() string {
 }
 
 // OnRegisterWithGoogle creates command handler
-func OnRegisterWithGoogle(repository Repository, db *sql.DB) commandbus.CommandHandler {
+func OnRegisterWithGoogle(repository Repository, userRepository persistence.UserRepository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		c, ok := command.(RegisterWithGoogle)
 		if !ok {
 			return apperrors.New("invalid command")
 		}
 
-		var id, emailAddress, googleID string
-
-		row := db.QueryRowContext(ctx, `SELECT id, email_address, google_id FROM users WHERE email_address=? OR google_id=? LIMIT 1`, c.Email.String(), c.GoogleID)
-		if err := row.Scan(&id, &emailAddress, &googleID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		var user User
+		if u, err := userRepository.GetByGoogleID(ctx, c.GoogleID); err != nil && !errors.Is(err, application.ErrNotFound) {
 			return apperrors.Wrap(err)
-		}
+		} else if err == nil {
+			if u.GetEmail() != c.Email.String() {
+				return apperrors.Wrap(fmt.Errorf("%w: google account connected to another user", application.ErrInvalid))
+			}
 
-		if googleID == c.GoogleID {
-			return apperrors.Wrap(application.ErrInvalid)
-		}
-
-		var u User
-		if emailAddress == string(c.Email) {
-			userID, err := uuid.Parse(id)
+			id, err := uuid.Parse(u.GetID())
 			if err != nil {
 				return apperrors.Wrap(err)
 			}
 
-			u, err := repository.Get(ctx, userID)
+			user, err = repository.Get(ctx, id)
 			if err != nil {
 				return apperrors.Wrap(err)
 			}
 
-			if err := u.ConnectWithGoogle(ctx, c.GoogleID, c.AccessToken); err != nil {
+			if err := user.RequestAccessToken(ctx, c.RedirectPath); err != nil {
 				return apperrors.Wrap(err)
 			}
 		} else {
-			id, err := uuid.NewRandom()
-			if err != nil {
+			if u, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, application.ErrNotFound) {
 				return apperrors.Wrap(err)
-			}
+			} else if err == nil {
+				if u.GetGoogleID() != "" && u.GetGoogleID() != c.GoogleID {
+					return apperrors.Wrap(fmt.Errorf("%w: user connected to another google account", application.ErrInvalid))
+				}
 
-			u = New()
-			if err := u.RegisterWithGoogle(ctx, id, c.Email, c.GoogleID, c.AccessToken); err != nil {
-				return apperrors.Wrap(err)
+				userID, err := uuid.Parse(u.GetID())
+				if err != nil {
+					return apperrors.Wrap(err)
+				}
+
+				user, err = repository.Get(ctx, userID)
+				if err != nil {
+					return apperrors.Wrap(err)
+				}
+
+				if err := user.ConnectWithGoogle(ctx, c.GoogleID, c.AccessToken, c.RedirectPath); err != nil {
+					return apperrors.Wrap(err)
+				}
+			} else {
+				id, err := uuid.NewRandom()
+				if err != nil {
+					return apperrors.Wrap(err)
+				}
+
+				user = New()
+				if err := user.RegisterWithGoogle(ctx, id, c.Email, c.GoogleID, c.AccessToken, c.RedirectPath); err != nil {
+					return apperrors.Wrap(err)
+				}
 			}
 		}
 
-		if err := repository.SaveAndAcknowledge(executioncontext.WithFlag(ctx, executioncontext.LIVE), u); err != nil {
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), user); err != nil {
 			return apperrors.Wrap(err)
 		}
 

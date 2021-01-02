@@ -4,25 +4,34 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
+	"gopkg.in/oauth2.v4/models"
 
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/access"
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
 const (
+	// CreateAuthToken command bus contract
+	CreateAuthToken = "token-create"
 	// RemoveAuthToken command bus contract
-	RemoveAuthToken = "remove-auth-token"
+	RemoveAuthToken = "token-remove"
 )
 
 // NewCommandFromPayload builds command by contract from json payload
 func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
 	switch contract {
+	case CreateAuthToken:
+		var command Create
+		return command, nil
 	case RemoveAuthToken:
 		var command Remove
 		if err := json.Unmarshal(payload, &command); err != nil {
@@ -34,9 +43,57 @@ func NewCommandFromPayload(contract string, payload []byte) (domain.Command, err
 	}
 }
 
+// Create command, creates access token for user
+type Create struct{}
+
+// GetName returns command name
+func (c Create) GetName() string {
+	return fmt.Sprintf("%T", c)
+}
+
+// OnCreate creates command handler
+func OnCreate(repository Repository) commandbus.CommandHandler {
+	fn := func(ctx context.Context, command domain.Command) error {
+		i, hasIdentity := identity.FromContext(ctx)
+		if !hasIdentity {
+			return apperrors.Wrap(application.ErrUnauthorized)
+		}
+
+		id, err := uuid.NewRandom()
+		if err != nil {
+			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
+		}
+
+		var userAgent string
+		if m, ok := metadata.FromContext(ctx); ok {
+			userAgent = m.UserAgent
+		}
+
+		token := New()
+		if err := token.Create(ctx, id, uuid.Nil, i.UserID, &models.Token{
+			ClientID:        uuid.Nil.String(),
+			UserID:          i.UserID.String(),
+			Scope:           string(access.ScopeAll),
+			Access:          i.Token,
+			AccessCreateAt:  time.Now(),
+			AccessExpiresIn: 365 * 24 * time.Hour,
+		}, userAgent); err != nil {
+			return apperrors.Wrap(fmt.Errorf("%w: Error when creating token: %s", application.ErrInternal, err))
+		}
+
+		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {
+			return apperrors.Wrap(err)
+		}
+
+		return nil
+	}
+
+	return fn
+}
+
 // Remove command
 type Remove struct {
-	ID uuid.UUID
+	ID uuid.UUID `json:"id"`
 }
 
 // GetName returns command name

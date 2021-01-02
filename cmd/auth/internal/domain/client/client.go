@@ -103,12 +103,12 @@ func (c *Client) Create(
 		Scopes:      scopes,
 	}
 
-	domainEvent, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
-	if err != nil {
+	if err := c.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
-	if err := c.transition(e); err != nil {
+	domainEvent, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
+	if err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -125,12 +125,12 @@ func (c *Client) Remove(ctx context.Context) error {
 		ID: c.id,
 	}
 
-	domainEvent, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
-	if err != nil {
+	if err := c.transition(e); err != nil {
 		return apperrors.Wrap(err)
 	}
 
-	if err := c.transition(e); err != nil {
+	domainEvent, err := domain.NewEventFromRawEvent(c.id, StreamName, c.version, e)
+	if err != nil {
 		return apperrors.Wrap(err)
 	}
 
