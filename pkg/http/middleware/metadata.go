@@ -62,6 +62,7 @@ func WithMetadata() gorouter.MiddlewareFunc {
 				mtd.RemoteAddr = r.RemoteAddr
 				mtd.UserAgent = r.UserAgent()
 				mtd.Referer = r.Referer()
+				mtd.StatusCode = http.StatusOK // default status code returned by net/http package, will be overridden by WriteHeader calls
 				if ip, err := request.IpAddress(r); err == nil {
 					mtd.IPAddress = ip
 				}
