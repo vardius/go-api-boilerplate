@@ -29,6 +29,6 @@ func TestNew(t *testing.T) {
 		t.Errorf("Identity Token does not match, given: %s | expected %s", identity.Token, token)
 	}
 	if !identity.Permission.Has(PermissionUserRead) {
-		t.Errorf("Identity permissions do not match, given: %s | expected %s", identity.Permission, PermissionUserRead)
+		t.Errorf("Identity permissions do not match, given: %d | expected %d", identity.Permission, PermissionUserRead)
 	}
 }
