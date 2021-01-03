@@ -24,7 +24,7 @@ func TestDoNotGrantAccessFor(t *testing.T) {
 
 	i := identity.Identity{
 		UserID:     uuid.New(),
-		Permission: identity.PermissionUserRead,
+		Permission: identity.PermissionUserWrite,
 	}
 	ctx := identity.ContextWithIdentity(req.Context(), &i)
 

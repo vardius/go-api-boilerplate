@@ -22,7 +22,7 @@ func GrantAccessFor(permission identity.Permission) func(next http.Handler) http
 				return
 			}
 			if !i.Permission.Has(permission) {
-				json.MustJSONError(r.Context(), w, apperrors.Wrap(fmt.Errorf("%w: (%d) missing permission %s", application.ErrForbidden, i.Permission, permission)))
+				json.MustJSONError(r.Context(), w, apperrors.Wrap(fmt.Errorf("%w: (%d) missing permission %d", application.ErrForbidden, i.Permission, permission)))
 				return
 			}
 

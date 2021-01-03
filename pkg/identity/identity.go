@@ -36,13 +36,3 @@ const (
 	PermissionClientRead
 	PermissionTokenRead
 )
-
-func (p Permission) String() string {
-	return [...]string{
-		"PermissionUserRead",
-		"PermissionUserWrite",
-		"PermissionClientWrite",
-		"PermissionClientRead",
-		"PermissionTokenRead",
-	}[p>>1]
-}

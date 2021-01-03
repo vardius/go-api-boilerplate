@@ -3,18 +3,14 @@ package firewall
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 
+	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
-)
-
-var (
-	ErrInvalidPermission = status.Errorf(codes.PermissionDenied, "Invalid permission")
 )
 
 const mdIdentityKey = "identity"
@@ -117,18 +113,21 @@ func SetIdentityFromUnaryRequest() grpc.UnaryServerInterceptor {
 // 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
 //
 // opts := []grpc.ServerOption{
-// 	grpc.StreamInterceptor(GrantAccessForStreamRequest("admin")),
+// 	grpc.StreamInterceptor(GrantAccessForStreamRequest(identity.PermissionUserRead)),
 // }
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func GrantAccessForStreamRequest(permission identity.Permission) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		i, ok := identity.FromContext(ss.Context())
-		if ok && i.Permission.Has(permission) {
-			return handler(srv, ss)
+		if !ok {
+			return apperrors.Wrap(fmt.Errorf("%w: missing identity", application.ErrUnauthorized))
+		}
+		if !i.Permission.Has(permission) {
+			return apperrors.Wrap(fmt.Errorf("%w: (%d) missing permission: %d", application.ErrForbidden, i.Permission, permission))
 		}
 
-		return apperrors.Wrap(ErrInvalidPermission)
+		return handler(srv, ss)
 	}
 }
 
@@ -137,17 +136,20 @@ func GrantAccessForStreamRequest(permission identity.Permission) grpc.StreamServ
 // 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
 //
 // opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(CheckAccessForUnaryRequest("admin")),
+// 	grpc.UnaryInterceptor(CheckAccessForUnaryRequest(identity.PermissionUserRead)),
 // }
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func GrantAccessForUnaryRequest(permission identity.Permission) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		i, ok := identity.FromContext(ctx)
-		if ok && i.Permission.Has(permission) {
-			return handler(ctx, req)
+		if !ok {
+			return nil, apperrors.Wrap(fmt.Errorf("%w: missing identity", application.ErrUnauthorized))
+		}
+		if !i.Permission.Has(permission) {
+			return nil, apperrors.Wrap(fmt.Errorf("%w: (%d) missing permission: %d", application.ErrForbidden, i.Permission, permission))
 		}
 
-		return nil, apperrors.Wrap(ErrInvalidPermission)
+		return handler(ctx, req)
 	}
 }
