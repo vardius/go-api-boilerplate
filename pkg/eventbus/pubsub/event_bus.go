@@ -52,7 +52,7 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 		return apperrors.Wrap(err)
 	}
 
-	b.logger.Info(stream.Context(), "[EventBus] Subscribe: %s\n", eventType)
+	b.logger.Info(stream.Context(), "[EventBus] Subscribe: %s", eventType)
 
 	rv := reflect.ValueOf(fn)
 	unsubscribeCh := make(chan struct{}, 1)
@@ -96,7 +96,7 @@ func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 		return apperrors.Wrap(err)
 	}
 
-	b.logger.Debug(ctx, "[EventBus] Publish: %s %s\n", event.Type, payload)
+	b.logger.Debug(ctx, "[EventBus] Publish: %s %s", event.Type, payload)
 
 	if _, err := b.pubsub.Publish(ctx, &pubsubproto.PublishRequest{
 		Topic:   event.Type,
@@ -121,7 +121,7 @@ func (b *eventBus) Unsubscribe(ctx context.Context, eventType string, fn eventbu
 		ch <- struct{}{}
 	}
 	b.mtx.RUnlock()
-	b.logger.Info(ctx, "[EventBus] Unsubscribe: %s\n", eventType)
+	b.logger.Info(ctx, "[EventBus] Unsubscribe: %s", eventType)
 	return nil
 }
 
@@ -138,7 +138,7 @@ func (b *eventBus) dispatchEvent(payload []byte, fn eventbus.EventHandler) error
 		ctx = metadata.ContextWithMetadata(ctx, o.RequestMetadata)
 	}
 
-	b.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s\n", o.Event.Type, o.Event.Payload)
+	b.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s", o.Event.Type, o.Event.Payload)
 
 	return fn(ctx, o.Event)
 }

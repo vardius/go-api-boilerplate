@@ -56,7 +56,7 @@ func (b *eventBus) Publish(parentCtx context.Context, event domain.Event) error 
 	}
 
 	go func() {
-		b.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v\n", event.Type, event)
+		b.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v", event.Type, event)
 		b.messageBus.Publish(event.Type, ctx, event, out)
 	}()
 
@@ -77,7 +77,7 @@ func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain
 	flags := executioncontext.FromContext(parentCtx)
 	ctx := executioncontext.WithFlag(context.Background(), flags)
 
-	b.logger.Debug(parentCtx, "[EventBus] PublishAndAcknowledge: %s %+v\n", event.Type, event)
+	b.logger.Debug(parentCtx, "[EventBus] PublishAndAcknowledge: %s %+v", event.Type, event)
 	b.messageBus.Publish(event.Type, ctx, event, out)
 
 	var errs []error
@@ -102,7 +102,7 @@ func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain
 }
 
 func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
-	b.logger.Info(ctx, "[EventBus] Subscribe: %s\n", eventType)
+	b.logger.Info(ctx, "[EventBus] Subscribe: %s", eventType)
 
 	handler := func(ctx context.Context, event domain.Event, out chan<- error) {
 		b.logger.Debug(ctx, "[EventHandler] %s: %s", eventType, event.Payload)
@@ -130,7 +130,7 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 }
 
 func (b *eventBus) Unsubscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
-	b.logger.Info(ctx, "[EventBus] Unsubscribe: %s\n", eventType)
+	b.logger.Info(ctx, "[EventBus] Unsubscribe: %s", eventType)
 
 	rv := reflect.ValueOf(fn)
 

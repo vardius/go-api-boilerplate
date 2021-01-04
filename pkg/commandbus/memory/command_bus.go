@@ -27,7 +27,7 @@ func (bus *commandBus) Publish(ctx context.Context, command domain.Command) erro
 	out := make(chan error, 1)
 	defer close(out)
 
-	bus.logger.Debug(ctx, "[CommandBus] Publish: %s %+v\n", command.GetName(), command)
+	bus.logger.Debug(ctx, "[CommandBus] Publish: %s %+v", command.GetName(), command)
 	bus.messageBus.Publish(command.GetName(), ctx, command, out)
 
 	ctxDoneCh := ctx.Done()
@@ -43,7 +43,7 @@ func (bus *commandBus) Publish(ctx context.Context, command domain.Command) erro
 }
 
 func (bus *commandBus) Subscribe(ctx context.Context, commandName string, fn commandbus.CommandHandler) error {
-	bus.logger.Info(nil, "[CommandBus] Subscribe: %s\n", commandName)
+	bus.logger.Info(nil, "[CommandBus] Subscribe: %s", commandName)
 
 	// unsubscribe all other handlers
 	bus.messageBus.Close(commandName)
@@ -54,7 +54,7 @@ func (bus *commandBus) Subscribe(ctx context.Context, commandName string, fn com
 }
 
 func (bus *commandBus) Unsubscribe(ctx context.Context, commandName string) error {
-	bus.logger.Info(nil, "[CommandBus] Unsubscribe: %s\n", commandName)
+	bus.logger.Info(nil, "[CommandBus] Unsubscribe: %s", commandName)
 	bus.messageBus.Close(commandName)
 
 	return nil

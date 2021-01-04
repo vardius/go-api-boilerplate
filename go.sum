@@ -223,6 +223,8 @@ github.com/vardius/gocontainer v1.0.3 h1:SD6GFnW/k0q1n4o7gLWie2kH1iBYNyKJl5hu9P3
 github.com/vardius/gocontainer v1.0.3/go.mod h1:9H+u2t/TmBGPbBGAvp74jKMxJ0yE9flVP4GGlyOkX8E=
 github.com/vardius/golog v1.1.1 h1:BsQDbgzKWkUzZbeOQ/xJMkqFOKLTQyjOVlyNCqIbWug=
 github.com/vardius/golog v1.1.1/go.mod h1:mqo2VxWBUb0syu3GDSU1JOnHsY4IjyBcPfTzGE4bMqU=
+github.com/vardius/golog v1.1.2 h1:YkVxY6gqnPjL6/YrzWL4Hhoets29lk+ZT4T9XS5OfDE=
+github.com/vardius/golog v1.1.2/go.mod h1:mqo2VxWBUb0syu3GDSU1JOnHsY4IjyBcPfTzGE4bMqU=
 github.com/vardius/gorouter/v4 v4.5.1 h1:G4z0s/UFobopcA9zQFGqBBYFxG0PFk/w7x3ZVktXLEw=
 github.com/vardius/gorouter/v4 v4.5.1/go.mod h1:HUZmv8K/yhBG1WHDlIRSWo3WPjK1MYyOFDXSyC8wehg=
 github.com/vardius/message-bus v1.1.4 h1:qJnTHJ8AvhbVndSMlCYbnHhxFX180Vf25okxe4pKSaU=
