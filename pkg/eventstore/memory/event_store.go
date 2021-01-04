@@ -5,6 +5,7 @@ package eventstore
 
 import (
 	"context"
+	"sort"
 	"sync"
 
 	"github.com/google/uuid"
@@ -51,6 +52,9 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 	for _, val := range s.events {
 		es = append(es, val)
 	}
+	sort.SliceStable(es, func(i, j int) bool {
+		return es[i].OccurredAt.Before(es[j].OccurredAt)
+	})
 	return es, nil
 }
 
@@ -63,6 +67,9 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 			e = append(e, val)
 		}
 	}
+	sort.SliceStable(e, func(i, j int) bool {
+		return e[i].OccurredAt.Before(e[j].OccurredAt)
+	})
 	return e, nil
 }
 
