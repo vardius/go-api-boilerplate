@@ -2,13 +2,19 @@
 package errors
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/vardius/trace"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
+)
+
+var (
+	DefaultMessageSeparator    = ": "
+	DefaultStackTraceSeparator = "\n"
+	ErrorFormat                = "%s\n%s"
 )
 
 // New returns new app error that formats as the given text.
@@ -40,40 +46,48 @@ type AppError struct {
 
 // Error returns the string representation of the error message.
 func (e *AppError) Error() string {
-	stack, _ := e.StackTrace()
-	return stack
+	msg := strings.Join(e.messages(), DefaultMessageSeparator)
+	stackTrace := strings.Join(e.StackTrace(), DefaultStackTraceSeparator)
+
+	return fmt.Sprintf(ErrorFormat, msg, stackTrace)
 }
 
 func (e *AppError) Unwrap() error {
 	return e.err
 }
 
-// StackTrace returns the string representation of the error stack trace,
-// includeTrace appends caller pcs frames to each error message if possible.
-func (e *AppError) StackTrace() (string, error) {
-	var buf bytes.Buffer
+// StackTrace returns the string slice of the error stack traces
+func (e *AppError) StackTrace() []string {
+	var stack []string
 
 	if e.trace != "" {
-		if _, err := fmt.Fprintf(&buf, "\t%s\n", e.trace); err != nil {
-			return "", err
-		}
+		stack = append(stack, e.trace)
 	}
 
 	if e.err == nil {
-		return buf.String(), nil
+		return stack
 	}
 
 	var next *AppError
 	if errors.As(e.err, &next) {
-		stackTrace, err := next.StackTrace()
-		if err != nil {
-			return "", err
-		}
-
-		buf.WriteString(stackTrace)
-	} else {
-		return fmt.Sprintf("%s:\n%s", e.err, buf.String()), nil
+		return append(stack, next.StackTrace()...)
 	}
 
-	return buf.String(), nil
+	return stack
+}
+
+// messages returns the string slice of the error messages
+func (e *AppError) messages() []string {
+	var messages []string
+	if e.err == nil {
+		return messages
+	}
+
+	if next, ok := e.err.(*AppError); ok {
+		messages = append(messages, next.messages()...)
+	} else {
+		messages = append(messages, e.err.Error())
+	}
+
+	return messages
 }
