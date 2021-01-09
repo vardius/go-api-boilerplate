@@ -14,8 +14,8 @@ func ExampleNew() {
 	fmt.Printf("%s", err)
 
 	// Output:
-	// example:
-	// 	/home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:12
+	// example
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:12
 }
 
 func ExampleWrap() {
@@ -25,24 +25,39 @@ func ExampleWrap() {
 	fmt.Printf("%s", err)
 
 	// Output:
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:23
-	// example:
-	// 	/home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:22
+	// example
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:23
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:22
 }
 
 func ExampleWrap_second() {
-	subErr := apperrors.Wrap(fmt.Errorf("test"))
-	err := apperrors.Wrap(subErr)
+	originalErr := fmt.Errorf("original")
+	wrappedErr := apperrors.Wrap(originalErr)
 
-	deeper := apperrors.Wrap(fmt.Errorf("test: %w", err))
-	all := apperrors.Wrap(deeper)
+	err := fmt.Errorf("test2: %w", wrappedErr)
 
-	fmt.Printf("%s", all)
+	fmt.Printf("%s", err)
 
 	// Output:
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:38
-	// 	/home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:37
-	// 	/home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:35
-	// test:
-	// 	/home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:34
+	// test2: original
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:35
+}
+
+func ExampleWrap_third() {
+	subErr := apperrors.Wrap(fmt.Errorf("first"))
+	err := apperrors.Wrap(subErr)
+
+	deeper := apperrors.Wrap(fmt.Errorf("second: %w", err))
+	all := apperrors.Wrap(deeper)
+
+	fmt.Printf("%s\n\n", all)
+
+	// Output:
+	// second: first
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:48
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:47
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:51
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:50
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:48
+	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:47
 }
