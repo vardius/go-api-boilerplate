@@ -5,7 +5,7 @@ package errors_test
 import (
 	"fmt"
 
-	apperrors "github.com/vardius/go-api-boilerplate/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
 func ExampleNew() {
