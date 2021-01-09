@@ -5,7 +5,7 @@ package errors_test
 import (
 	"fmt"
 
-	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
+	apperrors "github.com/vardius/go-api-boilerplate/go-api-boilerplate/pkg/errors"
 )
 
 func ExampleNew() {
@@ -15,7 +15,7 @@ func ExampleNew() {
 
 	// Output:
 	// example
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:12
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:12
 }
 
 func ExampleWrap() {
@@ -26,8 +26,8 @@ func ExampleWrap() {
 
 	// Output:
 	// example
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:23
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:22
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:23
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:22
 }
 
 func ExampleWrap_second() {
@@ -40,7 +40,7 @@ func ExampleWrap_second() {
 
 	// Output:
 	// test2: original
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:35
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:35
 }
 
 func ExampleWrap_third() {
@@ -54,10 +54,10 @@ func ExampleWrap_third() {
 
 	// Output:
 	// second: first
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:48
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:47
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:51
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:50
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:48
-	// /home/runner/work/go-api-boilerplate/pkg/errors/example_test.go:47
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:48
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:47
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:51
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:50
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:48
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:47
 }
