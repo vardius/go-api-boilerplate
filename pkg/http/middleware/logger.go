@@ -1,14 +1,12 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 	"time"
 
 	"github.com/vardius/golog"
 	"github.com/vardius/gorouter/v4"
 
-	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	mtd "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
@@ -30,14 +28,9 @@ func Logger(logger golog.Logger) gorouter.MiddlewareFunc {
 			var stackTrace string
 			if m, ok := mtd.FromContext(r.Context()); ok {
 				statusCode = m.StatusCode
-
+				statusCode = m.StatusCode
 				if m.Err != nil {
-					var appErr *apperrors.AppError
-					if errors.As(m.Err, &appErr) {
-						stackTrace, _ = appErr.StackTrace()
-					} else {
-						stackTrace = m.Err.Error()
-					}
+					stackTrace = m.Err.Error()
 				}
 			}
 
