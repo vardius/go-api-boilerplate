@@ -1,5 +1,5 @@
 /*
-Package grpc provides user grpc server
+Package grpc provides auth grpc server
 */
 package grpc
 
