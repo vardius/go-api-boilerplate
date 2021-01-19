@@ -26,8 +26,8 @@ func ExampleWrap() {
 
 	// Output:
 	// example
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:23
 	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:22
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:23
 }
 
 func ExampleWrap_second() {
@@ -44,20 +44,20 @@ func ExampleWrap_second() {
 }
 
 func ExampleWrap_third() {
-	subErr := apperrors.Wrap(fmt.Errorf("first"))
-	err := apperrors.Wrap(subErr)
+	first := apperrors.Wrap(fmt.Errorf("first"))
+	wrapped := apperrors.Wrap(first)
 
-	deeper := apperrors.Wrap(fmt.Errorf("second: %w", err))
-	all := apperrors.Wrap(deeper)
+	second := apperrors.Wrap(fmt.Errorf("second: %w", wrapped))
+	third := apperrors.Wrap(fmt.Errorf("third: %w", second))
+	err := apperrors.Wrap(third)
 
-	fmt.Printf("%s\n\n", all)
+	fmt.Printf("%s\n\n", err)
 
 	// Output:
-	// second: first
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:48
+	// third: second: first
 	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:47
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:51
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:48
 	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:50
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:48
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:47
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:51
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:52
 }

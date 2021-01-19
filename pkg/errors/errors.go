@@ -3,19 +3,15 @@ package errors
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/vardius/trace"
+	"golang.org/x/xerrors"
 
 	"github.com/vardius/go-api-boilerplate/pkg/application"
 )
 
-var (
-	DefaultMessageSeparator    = ": "
-	DefaultStackTraceSeparator = "\n"
-	ErrorFormat                = "%s\n%s"
-)
+var DefaultSeparator = "\n"
 
 // New returns new app error that formats as the given text.
 func New(message string) error {
@@ -46,10 +42,11 @@ type AppError struct {
 
 // Error returns the string representation of the error message.
 func (e *AppError) Error() string {
-	msg := strings.Join(e.messages(), DefaultMessageSeparator)
-	stackTrace := strings.Join(e.StackTrace(), DefaultStackTraceSeparator)
-
-	return fmt.Sprintf(ErrorFormat, msg, stackTrace)
+	messages := e.messages()
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+	return strings.Join(messages, DefaultSeparator)
 }
 
 func (e *AppError) Unwrap() error {
@@ -79,15 +76,21 @@ func (e *AppError) StackTrace() []string {
 // messages returns the string slice of the error messages
 func (e *AppError) messages() []string {
 	var messages []string
-	if e.err == nil {
-		return messages
-	}
 
-	if next, ok := e.err.(*AppError); ok {
-		messages = append(messages, next.messages()...)
-	} else {
-		messages = append(messages, e.err.Error())
-	}
+	var err error = e
+	for {
+		if v, ok := err.(*AppError); ok {
+			if v.trace != "" {
+				messages = append(messages, v.trace)
+			}
+		} else {
+			return append(messages, err.Error())
+		}
 
-	return messages
+		u, ok := err.(xerrors.Wrapper)
+		if !ok {
+			return messages
+		}
+		err = u.Unwrap()
+	}
 }
