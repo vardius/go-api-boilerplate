@@ -140,3 +140,34 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 
 	return result, nil
 }
+
+func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UUID, streamName, eventType string) ([]domain.Event, error) {
+	filter := bson.M{
+		"stream_id":   streamID.String(),
+		"stream_name": streamName,
+		"type":        eventType,
+	}
+	findOptions := options.FindOptions{
+		Sort: bson.D{
+			primitive.E{Key: "occurred_at", Value: 1},
+		},
+	}
+
+	cur, err := s.collection.Find(ctx, filter, &findOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query events: %w", err)
+	}
+	defer cur.Close(ctx)
+
+	var result []domain.Event
+	for cur.Next(ctx) {
+		var event domain.Event
+		if err := cur.Decode(&event); err != nil {
+			return nil, fmt.Errorf("failed to decode event: %w", err)
+		}
+
+		result = append(result, event)
+	}
+
+	return result, nil
+}
