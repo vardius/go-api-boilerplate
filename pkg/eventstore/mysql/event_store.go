@@ -144,7 +144,7 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 }
 
 func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
-	query := "SELECT event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata FROM " + s.tableName + " WHERE stream_id=? AND stream_name=? ORDER BY distinct_id ASC"
+	query := "SELECT event_id, event_type, stream_name, stream_version, occurred_at, payload, metadata FROM " + s.tableName + " WHERE stream_id=? AND stream_name=? ORDER BY distinct_id ASC"
 	rows, err := s.db.QueryContext(ctx, query, streamID.String(), streamName)
 	if err != nil {
 		return nil, apperrors.Wrap(fmt.Errorf("%w: %s (%s, %s)", err, query, streamID.String(), streamName))
@@ -157,13 +157,11 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 		var (
 			event    domain.Event
 			id       string
-			streamID string
 			metadata sql.NullString
 		)
 		if err := rows.Scan(
 			&id,
 			&event.Type,
-			&streamID,
 			&event.StreamName,
 			&event.StreamVersion,
 			&event.OccurredAt,
@@ -174,7 +172,49 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 		}
 
 		event.ID = uuid.MustParse(id)
-		event.StreamID = uuid.MustParse(streamID)
+		event.StreamID = streamID
+		event.Metadata = json.RawMessage(metadata.String)
+
+		events = append(events, event)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	return events, nil
+}
+
+func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UUID, streamName, eventType string) ([]domain.Event, error) {
+	query := "SELECT event_id, stream_name, stream_version, occurred_at, payload, metadata FROM " + s.tableName + " WHERE stream_id=? AND stream_name=? AND event_type=? ORDER BY distinct_id ASC"
+	rows, err := s.db.QueryContext(ctx, query, streamID.String(), streamName, eventType)
+	if err != nil {
+		return nil, apperrors.Wrap(fmt.Errorf("%w: %s (%s, %s)", err, query, streamID.String(), streamName))
+	}
+	defer rows.Close()
+
+	var events []domain.Event
+
+	for rows.Next() {
+		var (
+			event    domain.Event
+			id       string
+			metadata sql.NullString
+		)
+		if err := rows.Scan(
+			&id,
+			&event.StreamName,
+			&event.StreamVersion,
+			&event.OccurredAt,
+			&event.Payload,
+			&metadata,
+		); err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+
+		event.ID = uuid.MustParse(id)
+		event.StreamID = streamID
+		event.Type = eventType
 		event.Metadata = json.RawMessage(metadata.String)
 
 		events = append(events, event)

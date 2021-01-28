@@ -90,9 +90,30 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String(s.tableName),
-		KeyConditionExpression: aws.String("metadata.streamID = :streamID"),
+		KeyConditionExpression: aws.String("stream_id = :stream_id AND stream_name = :stream_name"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":streamID": {S: aws.String(streamID.String())},
+			":stream_id":   {S: aws.String(streamID.String())},
+			":stream_name": {S: aws.String(streamName)},
+		},
+		ConsistentRead: aws.Bool(true),
+	}
+
+	es, err := s.query(params)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	return es, nil
+}
+
+func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UUID, streamName, eventType string) ([]domain.Event, error) {
+	params := &dynamodb.QueryInput{
+		TableName:              aws.String(s.tableName),
+		KeyConditionExpression: aws.String("stream_id = :stream_id AND stream_name = :stream_name AND type = :event_type"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":stream_id":   {S: aws.String(streamID.String())},
+			":stream_name": {S: aws.String(streamName)},
+			":event_type":  {S: aws.String(eventType)},
 		},
 		ConsistentRead: aws.Bool(true),
 	}
