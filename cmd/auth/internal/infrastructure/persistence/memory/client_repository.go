@@ -12,13 +12,13 @@ import (
 )
 
 type clientRepository struct {
-	cfg config.Config
+	cfg *config.Config
 	sync.RWMutex
 	clients map[string]persistence.Client
 }
 
 // NewClientRepository returns memory view model repository for client
-func NewClientRepository(cfg config.Config) persistence.ClientRepository {
+func NewClientRepository(cfg *config.Config) persistence.ClientRepository {
 	return &clientRepository{cfg: cfg, clients: make(map[string]persistence.Client)}
 }
 

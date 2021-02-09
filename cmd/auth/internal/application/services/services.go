@@ -20,7 +20,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 )
 
-type containerFactory func(ctx context.Context, cfg config.Config) (*ServiceContainer, error)
+type containerFactory func(ctx context.Context, cfg *config.Config) (*ServiceContainer, error)
 
 // NewServiceContainer creates new container
 var NewServiceContainer containerFactory

@@ -24,7 +24,7 @@ func init() {
 	NewServiceContainer = newMYSQLServiceContainer
 }
 
-func newMYSQLServiceContainer(ctx context.Context, cfg config.Config) (*ServiceContainer, error) {
+func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
 	logger := log.New(cfg.App.Environment)
 	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
 	mysqlConnection := mysql.NewConnection(

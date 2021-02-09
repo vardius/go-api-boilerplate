@@ -21,7 +21,7 @@ func init() {
 	NewServiceContainer = newMemoryServiceContainer
 }
 
-func newMemoryServiceContainer(ctx context.Context, cfg config.Config) (*ServiceContainer, error) {
+func newMemoryServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
 	logger := log.New(cfg.App.Environment)
 	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
 	grpcAuthConn := grpcutils.NewConnection(

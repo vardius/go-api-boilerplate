@@ -38,12 +38,12 @@ CREATE TABLE IF NOT EXISTS auth_clients
 `
 
 type clientRepository struct {
-	cfg config.Config
+	cfg *config.Config
 	db  *sql.DB
 }
 
 // NewClientRepository returns mysql view model repository for client
-func NewClientRepository(ctx context.Context, cfg config.Config, db *sql.DB) (persistence.ClientRepository, error) {
+func NewClientRepository(ctx context.Context, cfg *config.Config, db *sql.DB) (persistence.ClientRepository, error) {
 	if _, err := db.ExecContext(ctx, createClientTableSQL); err != nil {
 		return nil, apperrors.Wrap(err)
 	}
