@@ -18,7 +18,7 @@ type Token interface {
 	TokenInfo() (oauth2.TokenInfo, error)
 }
 
-// TokenRepository allows to get/save current state of token to mysql storage
+// TokenRepository allows to get/save current state of token to memory storage
 type TokenRepository interface {
 	Get(ctx context.Context, id string) (Token, error)
 	GetByCode(ctx context.Context, code string) (Token, error)

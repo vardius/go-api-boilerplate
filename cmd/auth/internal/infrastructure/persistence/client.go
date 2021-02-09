@@ -19,7 +19,7 @@ type Client interface {
 	GetScopes() []string
 }
 
-// ClientRepository allows to get/save current state of user to mysql storage
+// ClientRepository allows to get/save current state of user to memory storage
 type ClientRepository interface {
 	Get(ctx context.Context, id string) (Client, error)
 	Add(ctx context.Context, client Client) error
