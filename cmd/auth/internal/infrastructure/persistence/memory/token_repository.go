@@ -30,6 +30,9 @@ func (r *tokenRepository) Get(ctx context.Context, id string) (persistence.Token
 }
 
 func (r *tokenRepository) GetByCode(ctx context.Context, code string) (persistence.Token, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	for _, v := range r.tokens {
 		ti, err := v.TokenInfo()
 		if err != nil {
@@ -44,6 +47,9 @@ func (r *tokenRepository) GetByCode(ctx context.Context, code string) (persisten
 }
 
 func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (persistence.Token, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	for _, v := range r.tokens {
 		ti, err := v.TokenInfo()
 		if err != nil {
@@ -58,6 +64,9 @@ func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (persi
 }
 
 func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (persistence.Token, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	for _, v := range r.tokens {
 		ti, err := v.TokenInfo()
 		if err != nil {
@@ -91,6 +100,9 @@ func (r *tokenRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (r *tokenRepository) FindAllByClientID(ctx context.Context, clientID string, limit, offset int32) ([]persistence.Token, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	var i int32
 	var tokens []persistence.Token
 	for _, v := range r.tokens {
@@ -118,6 +130,9 @@ func (r *tokenRepository) FindAllByClientID(ctx context.Context, clientID string
 }
 
 func (r *tokenRepository) CountByClientID(ctx context.Context, clientID string) (int32, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	var i int32
 	for _, v := range r.tokens {
 		ti, err := v.TokenInfo()

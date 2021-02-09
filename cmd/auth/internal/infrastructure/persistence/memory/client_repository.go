@@ -45,6 +45,9 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 }
 
 func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, limit, offset int32) ([]persistence.Client, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	var i int32
 	var clients []persistence.Client
 	for _, v := range r.clients {
@@ -68,6 +71,9 @@ func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, l
 }
 
 func (r *clientRepository) CountByUserID(ctx context.Context, userID string) (int32, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	var i int32
 	for _, v := range r.clients {
 		if v.GetUserID() != userID {

@@ -22,6 +22,9 @@ type userRepository struct {
 }
 
 func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	var i int32
 	var users []persistence.User
 	for _, v := range r.users {
@@ -52,6 +55,9 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 }
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (persistence.User, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	for _, v := range r.users {
 		if v.GetEmail() == email {
 			return v, nil
@@ -62,6 +68,9 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (persiste
 }
 
 func (r *userRepository) GetByFacebookID(ctx context.Context, facebookID string) (persistence.User, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	for _, v := range r.users {
 		if v.GetFacebookID() == facebookID {
 			return v, nil
@@ -72,6 +81,9 @@ func (r *userRepository) GetByFacebookID(ctx context.Context, facebookID string)
 }
 
 func (r *userRepository) GetByGoogleID(ctx context.Context, googleID string) (persistence.User, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	for _, v := range r.users {
 		if v.GetGoogleID() == googleID {
 			return v, nil
@@ -90,8 +102,8 @@ func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
 }
 
 func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) error {
-	r.RLock()
-	defer r.RUnlock()
+	r.Lock()
+	defer r.Unlock()
 
 	v, ok := r.users[id]
 	if !ok {
@@ -110,8 +122,8 @@ func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) erro
 }
 
 func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID string) error {
-	r.RLock()
-	defer r.RUnlock()
+	r.Lock()
+	defer r.Unlock()
 
 	v, ok := r.users[id]
 	if !ok {
@@ -130,8 +142,8 @@ func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID st
 }
 
 func (r *userRepository) UpdateGoogleID(ctx context.Context, id, googleID string) error {
-	r.RLock()
-	defer r.RUnlock()
+	r.Lock()
+	defer r.Unlock()
 
 	v, ok := r.users[id]
 	if !ok {
@@ -161,8 +173,8 @@ func (r *userRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (r *userRepository) Count(ctx context.Context) (int32, error) {
-	r.Lock()
-	defer r.Unlock()
+	r.RLock()
+	defer r.RUnlock()
 
 	return int32(len(r.users)), nil
 }
