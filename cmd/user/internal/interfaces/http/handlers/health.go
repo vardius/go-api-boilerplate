@@ -25,8 +25,10 @@ func BuildLivenessHandler() http.Handler {
 // BuildReadinessHandler provides readiness handler
 func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
-		if err := db.PingContext(r.Context()); err != nil {
-			return apperrors.Wrap(err)
+		if db != nil {
+			if err := db.PingContext(r.Context()); err != nil {
+				return apperrors.Wrap(err)
+			}
 		}
 
 		for name, conn := range connMap {
