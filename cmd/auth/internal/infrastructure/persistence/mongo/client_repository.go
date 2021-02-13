@@ -24,7 +24,7 @@ type clientRepository struct {
 
 // NewClientRepository returns mongo view model repository for client
 func NewClientRepository(ctx context.Context, cfg *config.Config, mongoDB *mongo.Database) (persistence.ClientRepository, error) {
-	collection := mongoDB.Collection("auth_clients")
+	collection := mongoDB.Collection("clients")
 
 	uniqueOpt := options.Index().SetUnique(true)
 	if _, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
