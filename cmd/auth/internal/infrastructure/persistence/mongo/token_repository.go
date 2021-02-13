@@ -17,7 +17,7 @@ import (
 
 // NewTokenRepository returns mongo view model repository for token
 func NewTokenRepository(ctx context.Context, mongoDB *mongo.Database) (persistence.TokenRepository, error) {
-	collection := mongoDB.Collection("auth_tokens")
+	collection := mongoDB.Collection("tokens")
 
 	uniqueOpt := options.Index().SetUnique(true)
 	if _, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
