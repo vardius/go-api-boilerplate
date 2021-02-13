@@ -48,7 +48,7 @@ type userRepository struct {
 	db *sql.DB
 }
 
-func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
+func (r *userRepository) FindAll(ctx context.Context, limit, offset int64) ([]persistence.User, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT id, email_address, role, facebook_id, google_id FROM user_users ORDER BY distinct_id ASC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
@@ -260,8 +260,8 @@ func (r *userRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *userRepository) Count(ctx context.Context) (int32, error) {
-	var totalUsers int32
+func (r *userRepository) Count(ctx context.Context) (int64, error) {
+	var totalUsers int64
 
 	row := r.db.QueryRowContext(ctx, `SELECT COUNT(distinct_id) FROM user_users`)
 	if err := row.Scan(&totalUsers); err != nil {

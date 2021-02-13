@@ -90,8 +90,8 @@ func BuildListClientsHandler(repository persistence.ClientRepository) http.Handl
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
 		limitInt, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
-		page := int32(math.Max(float64(pageInt), 1))
-		limit := int32(math.Max(float64(limitInt), 20))
+		page := int64(math.Max(float64(pageInt), 1))
+		limit := int64(math.Max(float64(limitInt), 20))
 
 		totalUsers, err := repository.CountByUserID(r.Context(), i.UserID.String())
 		if err != nil {
@@ -102,9 +102,9 @@ func BuildListClientsHandler(repository persistence.ClientRepository) http.Handl
 
 		paginatedList := struct {
 			Clients []persistence.Client `json:"clients"`
-			Page    int32                `json:"page"`
-			Limit   int32                `json:"limit"`
-			Total   int32                `json:"total"`
+			Page    int64                `json:"page"`
+			Limit   int64                `json:"limit"`
+			Total   int64                `json:"total"`
 		}{
 			Page:  page,
 			Limit: limit,

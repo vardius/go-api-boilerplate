@@ -29,6 +29,6 @@ type ClientRepository interface {
 	// Implements client store interface
 	GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error)
 
-	CountByUserID(ctx context.Context, userID string) (int32, error)
-	FindAllByUserID(ctx context.Context, userID string, limit, offset int32) ([]Client, error)
+	CountByUserID(ctx context.Context, userID string) (int64, error)
+	FindAllByUserID(ctx context.Context, userID string, limit, offset int64) ([]Client, error)
 }

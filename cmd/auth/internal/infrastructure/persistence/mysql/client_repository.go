@@ -82,7 +82,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 	}
 }
 
-func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, limit, offset int32) ([]persistence.Client, error) {
+func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, limit, offset int64) ([]persistence.Client, error) {
 	rows, err := r.db.QueryContext(
 		ctx,
 		`SELECT id, user_id, secret, domain, redirect_url, scope  FROM auth_clients WHERE user_id=? AND domain!=? ORDER BY distinct_id DESC LIMIT ? OFFSET ?`,
@@ -118,8 +118,8 @@ func (r *clientRepository) FindAllByUserID(ctx context.Context, userID string, l
 	return clients, nil
 }
 
-func (r *clientRepository) CountByUserID(ctx context.Context, userID string) (int32, error) {
-	var total int32
+func (r *clientRepository) CountByUserID(ctx context.Context, userID string) (int64, error) {
+	var total int64
 
 	row := r.db.QueryRowContext(
 		ctx,

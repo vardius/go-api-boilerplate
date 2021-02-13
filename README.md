@@ -159,7 +159,7 @@ make helm-install
 ```
 
 ## Build tags
-Build flags are used for different persistence layers. Please see `servvices.go` file for details. Provided layers are `mysql` and `memory`.
+Build flags are used for different persistence layers. Please see `servvices.go` file for details. Provided layers are `mysql`, `mongo` and `memory`.
 If desired in similar way new layer can be easily added, following given patter.
 
 ```shell
@@ -168,6 +168,7 @@ go build -tags=persistence_mysql
 
 ### Available build tags
 - persistence_mysql (mysql service container)
+- persistence_mongo (mongodb service container)
 
 **Important**
 persistence layer defaults to memory if no flag is provided (Docker image sets persistence_mysql flag), see each service Dockerfile for details.

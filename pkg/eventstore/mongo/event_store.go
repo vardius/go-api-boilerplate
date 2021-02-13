@@ -7,12 +7,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -24,14 +24,29 @@ type eventStore struct {
 }
 
 // New creates new mongo event store
-func New(collectionName string, mongoDB *mongo.Database) baseeventstore.EventStore {
+func New(ctx context.Context, collectionName string, mongoDB *mongo.Database) (baseeventstore.EventStore, error) {
 	if collectionName == "" {
 		collectionName = "events"
 	}
 
-	return &eventStore{
-		collection: mongoDB.Collection(collectionName),
+	collection := mongoDB.Collection(collectionName)
+
+	uniqueOpt := options.Index().SetUnique(true)
+	if _, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{Keys: bsonx.Elem{Key: "event_id", Value: bsonx.Int32(-1)}, Options: uniqueOpt},
+		{Keys: bsonx.Elem{Key: "stream_id", Value: bsonx.Int32(-1)}, Options: uniqueOpt},
+		{Keys: bsonx.Elem{Key: "occurred_at", Value: bsonx.Int32(1)}},
+		{Keys: bsonx.Doc{
+			bsonx.Elem{Key: "stream_id", Value: bsonx.Int32(1)},
+			bsonx.Elem{Key: "stream_name", Value: bsonx.Int32(1)},
+			bsonx.Elem{Key: "event_type", Value: bsonx.Int32(1)},
+			bsonx.Elem{Key: "occurred_at", Value: bsonx.Int32(1)},
+		}},
+	}); err != nil {
+		return nil, fmt.Errorf("failed to create indexes: %w", err)
 	}
+
+	return &eventStore{collection: collection}, nil
 }
 
 func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
@@ -145,7 +160,7 @@ func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UU
 	filter := bson.M{
 		"stream_id":   streamID.String(),
 		"stream_name": streamName,
-		"type":        eventType,
+		"event_type":  eventType,
 	}
 	findOptions := options.FindOptions{
 		Sort: bson.D{

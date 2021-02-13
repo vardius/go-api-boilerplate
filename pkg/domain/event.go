@@ -19,7 +19,7 @@ type RawEvent interface {
 // Event contains id, payload and metadata
 type Event struct {
 	ID            uuid.UUID       `json:"id" bson:"event_id"`
-	Type          string          `json:"type" bson:"type"`
+	Type          string          `json:"type" bson:"event_type"`
 	StreamID      uuid.UUID       `json:"stream_id" bson:"stream_id"`
 	StreamName    string          `json:"stream_name" bson:"stream_name"`
 	StreamVersion int             `json:"stream_version" bson:"stream_version"`

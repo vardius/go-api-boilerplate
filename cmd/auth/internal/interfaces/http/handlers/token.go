@@ -80,8 +80,8 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
 		limitInt, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
-		page := int32(math.Max(float64(pageInt), 1))
-		limit := int32(math.Max(float64(limitInt), 20))
+		page := int64(math.Max(float64(pageInt), 1))
+		limit := int64(math.Max(float64(limitInt), 20))
 
 		totalUsers, err := repository.CountByClientID(r.Context(), clientID)
 		if err != nil {
@@ -92,9 +92,9 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 
 		paginatedList := struct {
 			Tokens []persistence.Token `json:"tokens"`
-			Page   int32               `json:"page"`
-			Limit  int32               `json:"limit"`
-			Total  int32               `json:"total"`
+			Page   int64               `json:"page"`
+			Limit  int64               `json:"limit"`
+			Total  int64               `json:"total"`
 		}{
 			Page:  page,
 			Limit: limit,
@@ -133,8 +133,8 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
 		limitInt, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
-		page := int32(math.Max(float64(pageInt), 1))
-		limit := int32(math.Max(float64(limitInt), 20))
+		page := int64(math.Max(float64(pageInt), 1))
+		limit := int64(math.Max(float64(limitInt), 20))
 
 		totalUsers, err := repository.CountByClientID(r.Context(), uuid.Nil.String())
 		if err != nil {
@@ -145,9 +145,9 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 
 		paginatedList := struct {
 			AuthTokens []persistence.Token `json:"auth_tokens"`
-			Page       int32               `json:"page"`
-			Limit      int32               `json:"limit"`
-			Total      int32               `json:"total"`
+			Page       int64               `json:"page"`
+			Limit      int64               `json:"limit"`
+			Total      int64               `json:"total"`
 		}{
 			Page:  page,
 			Limit: limit,

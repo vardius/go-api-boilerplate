@@ -21,11 +21,11 @@ type userRepository struct {
 	users map[string]persistence.User
 }
 
-func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]persistence.User, error) {
+func (r *userRepository) FindAll(ctx context.Context, limit, offset int64) ([]persistence.User, error) {
 	r.RLock()
 	defer r.RUnlock()
 
-	var i int32
+	var i int64
 	var users []persistence.User
 	for _, v := range r.users {
 		if i < offset {
@@ -35,7 +35,7 @@ func (r *userRepository) FindAll(ctx context.Context, limit, offset int32) ([]pe
 
 		users = append(users, v)
 
-		if int32(len(users)) == limit {
+		if int64(len(users)) == limit {
 			return users, nil
 		}
 	}
@@ -172,9 +172,9 @@ func (r *userRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *userRepository) Count(ctx context.Context) (int32, error) {
+func (r *userRepository) Count(ctx context.Context) (int64, error) {
 	r.RLock()
 	defer r.RUnlock()
 
-	return int32(len(r.users)), nil
+	return int64(len(r.users)), nil
 }

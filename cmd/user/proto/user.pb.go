@@ -31,7 +31,7 @@ type DispatchUserCommandRequest struct {
 	Payload              []byte   `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	XXX_sizecache        int64    `json:"-"`
 }
 
 func (m *DispatchUserCommandRequest) Reset()         { *m = DispatchUserCommandRequest{} }
@@ -81,7 +81,7 @@ type User struct {
 	GoogleId             string   `protobuf:"bytes,4,opt,name=googleId,proto3" json:"googleId,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	XXX_sizecache        int64    `json:"-"`
 }
 
 func (m *User) Reset()         { *m = User{} }
@@ -142,7 +142,7 @@ type GetUserRequest struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	XXX_sizecache        int64    `json:"-"`
 }
 
 func (m *GetUserRequest) Reset()         { *m = GetUserRequest{} }
@@ -179,11 +179,11 @@ func (m *GetUserRequest) GetId() string {
 
 // ListUserRequest is a request data to read all user for a given page
 type ListUserRequest struct {
-	Page                 int32    `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	Limit                int32    `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Page                 int64    `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	Limit                int64    `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	XXX_sizecache        int64    `json:"-"`
 }
 
 func (m *ListUserRequest) Reset()         { *m = ListUserRequest{} }
@@ -211,14 +211,14 @@ func (m *ListUserRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListUserRequest proto.InternalMessageInfo
 
-func (m *ListUserRequest) GetPage() int32 {
+func (m *ListUserRequest) GetPage() int64 {
 	if m != nil {
 		return m.Page
 	}
 	return 0
 }
 
-func (m *ListUserRequest) GetLimit() int32 {
+func (m *ListUserRequest) GetLimit() int64 {
 	if m != nil {
 		return m.Limit
 	}
@@ -228,12 +228,12 @@ func (m *ListUserRequest) GetLimit() int32 {
 // ListUserResponse list of all users
 type ListUserResponse struct {
 	Users                []*User  `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
-	Page                 int32    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	Limit                int32    `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
-	Total                int32    `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`
+	Page                 int64    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	Limit                int64    `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Total                int64    `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	XXX_sizecache        int64    `json:"-"`
 }
 
 func (m *ListUserResponse) Reset()         { *m = ListUserResponse{} }
@@ -268,21 +268,21 @@ func (m *ListUserResponse) GetUsers() []*User {
 	return nil
 }
 
-func (m *ListUserResponse) GetPage() int32 {
+func (m *ListUserResponse) GetPage() int64 {
 	if m != nil {
 		return m.Page
 	}
 	return 0
 }
 
-func (m *ListUserResponse) GetLimit() int32 {
+func (m *ListUserResponse) GetLimit() int64 {
 	if m != nil {
 		return m.Limit
 	}
 	return 0
 }
 
-func (m *ListUserResponse) GetTotal() int32 {
+func (m *ListUserResponse) GetTotal() int64 {
 	if m != nil {
 		return m.Total
 	}

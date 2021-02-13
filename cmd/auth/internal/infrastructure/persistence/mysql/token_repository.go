@@ -183,7 +183,7 @@ func (r *tokenRepository) getTokenFromRow(row *sql.Row) (persistence.Token, erro
 	}
 }
 
-func (r *tokenRepository) FindAllByClientID(ctx context.Context, clientID string, limit, offset int32) ([]persistence.Token, error) {
+func (r *tokenRepository) FindAllByClientID(ctx context.Context, clientID string, limit, offset int64) ([]persistence.Token, error) {
 	rows, err := r.db.QueryContext(
 		ctx,
 		`SELECT id, client_id, user_id, code, access, refresh, expired_at, user_agent, data FROM auth_tokens WHERE client_id=? LIMIT ? OFFSET ?`,
@@ -223,8 +223,8 @@ func (r *tokenRepository) FindAllByClientID(ctx context.Context, clientID string
 	return tokens, nil
 }
 
-func (r *tokenRepository) CountByClientID(ctx context.Context, clientID string) (int32, error) {
-	var total int32
+func (r *tokenRepository) CountByClientID(ctx context.Context, clientID string) (int64, error) {
+	var total int64
 
 	row := r.db.QueryRowContext(
 		ctx,

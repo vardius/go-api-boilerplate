@@ -42,6 +42,10 @@ type Config struct {
 		ConnTime      time.Duration `env:"GRPC_CONN_TIME"       envDefault:"10s"` // send pings every 10 seconds if there is no activity
 		ConnTimeout   time.Duration `env:"GRPC_CONN_TIMEOUT"    envDefault:"20s"` // wait 20 second for ping ack before considering the connection dead
 	}
+	MongoDB struct {
+		URL      string `env:"MONGO_URL"`
+		Database string `env:"MONGO_DATABASE"`
+	}
 	MYSQL struct {
 		Host     string `env:"MYSQL_HOST"     envDefault:"0.0.0.0"`
 		Port     int    `env:"MYSQL_PORT"     envDefault:"3306"`
@@ -77,6 +81,9 @@ func FromEnv() *Config {
 		panic(err)
 	}
 	if err := env.Parse(&c.GRPC); err != nil {
+		panic(err)
+	}
+	if err := env.Parse(&c.MongoDB); err != nil {
 		panic(err)
 	}
 	if err := env.Parse(&c.MYSQL); err != nil {

@@ -36,14 +36,14 @@ message GetUserRequest {
 
 // ListUserRequest is a request data to read all user for a given page
 message ListUserRequest {
-  int32 page = 1;
-  int32 limit = 2;
+  int64 page = 1;
+  int64 limit = 2;
 }
 
 // ListUserResponse list of all users
 message ListUserResponse {
   repeated User users = 1;
-  int32 page = 2;
-  int32 limit = 3;
-  int32 total = 4;
+  int64 page = 2;
+  int64 limit = 3;
+  int64 total = 4;
 }

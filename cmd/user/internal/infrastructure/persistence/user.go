@@ -20,14 +20,14 @@ type User interface {
 
 // UserRepository allows to get/save user to mysql storage
 type UserRepository interface {
-	FindAll(ctx context.Context, limit, offset int32) ([]User, error)
+	FindAll(ctx context.Context, limit, offset int64) ([]User, error)
 	Get(ctx context.Context, id string) (User, error)
 	GetByEmail(ctx context.Context, email string) (User, error)
 	GetByFacebookID(ctx context.Context, facebookID string) (User, error)
 	GetByGoogleID(ctx context.Context, googleID string) (User, error)
 	Add(ctx context.Context, user User) error
 	Delete(ctx context.Context, id string) error
-	Count(ctx context.Context) (int32, error)
+	Count(ctx context.Context) (int64, error)
 	UpdateEmail(ctx context.Context, id, email string) error
 	UpdateFacebookID(ctx context.Context, id, facebookID string) error
 	UpdateGoogleID(ctx context.Context, id, googleID string) error
