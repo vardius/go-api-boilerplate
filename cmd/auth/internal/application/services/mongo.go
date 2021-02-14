@@ -4,6 +4,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	appoauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/oauth2"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence/mongo"
@@ -27,13 +28,13 @@ func init() {
 func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
 	logger := log.New(cfg.App.Environment)
 	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
-
-	mongoConnection, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.MongoDB.URL))
+	mongoConnection, err := mongo.Connect(ctx, options.Client().ApplyURI(
+		fmt.Sprintf("mongodb+srv://%s:%s@%s/%s?retryWrites=true", cfg.MongoDB.User, cfg.MongoDB.Password, cfg.MongoDB.Host, cfg.MongoDB.Database),
+	))
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 	mongoDB := mongoConnection.Database(cfg.MongoDB.Database)
-
 	grpcAuthConn := grpcutils.NewConnection(
 		ctx,
 		cfg.GRPC.Host,

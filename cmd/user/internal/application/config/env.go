@@ -46,8 +46,11 @@ type Config struct {
 		ConnTimeout   time.Duration `env:"GRPC_CONN_TIMEOUT" envDefault:"20s"`   // wait 20 second for ping ack before considering the connection dead
 	}
 	MongoDB struct {
-		URL      string `env:"MONGO_URL"`
-		Database string `env:"MONGO_DATABASE"`
+		User     string `env:"MONGO_USER"     envDefault:"root"`
+		Pass     string `env:"MONGO_PASS"     envDefault:"password"`
+		Host     string `env:"MONGO_HOST"     envDefault:"0.0.0.0"`
+		Port     int    `env:"MONGO_PORT"     envDefault:"27017"`
+		Database string `env:"MONGO_DATABASE" envDefault:"user"`
 	}
 	MYSQL struct {
 		Host     string `env:"MYSQL_HOST"     envDefault:"0.0.0.0"`

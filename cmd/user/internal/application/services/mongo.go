@@ -26,7 +26,9 @@ func init() {
 func newMongoServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
 	logger := log.New(cfg.App.Environment)
 	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
-	mongoConnection, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.MongoDB.URL))
+	mongoConnection, err := mongo.Connect(ctx, options.Client().ApplyURI(
+		fmt.Sprintf("mongodb+srv://%s:%s@%s/%s?retryWrites=true", cfg.MongoDB.User, cfg.MongoDB.Password, cfg.MongoDB.Host, cfg.MongoDB.Database),
+	))
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
