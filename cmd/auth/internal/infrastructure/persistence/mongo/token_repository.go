@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"time"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
@@ -19,15 +18,14 @@ import (
 func NewTokenRepository(ctx context.Context, mongoDB *mongo.Database) (persistence.TokenRepository, error) {
 	collection := mongoDB.Collection("tokens")
 
-	uniqueOpt := options.Index().SetUnique(true)
 	if _, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
-		{Keys: bsonx.Elem{Key: "token_id", Value: bsonx.Int32(1)}, Options: uniqueOpt},
-		{Keys: bsonx.Elem{Key: "code", Value: bsonx.Int32(1)}},
-		{Keys: bsonx.Elem{Key: "access", Value: bsonx.Int32(1)}},
-		{Keys: bsonx.Elem{Key: "refresh", Value: bsonx.Int32(1)}},
-		{Keys: bsonx.Doc{
-			bsonx.Elem{Key: "client_id", Value: bsonx.Int32(1)},
-			bsonx.Elem{Key: "user_id", Value: bsonx.Int32(1)},
+		{Keys: bson.D{{Key: "token_id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "code", Value: 1}}},
+		{Keys: bson.D{{Key: "access", Value: 1}}},
+		{Keys: bson.D{{Key: "refresh", Value: 1}}},
+		{Keys: bson.D{
+			{Key: "client_id", Value: 1},
+			{Key: "user_id", Value: 1},
 		}},
 	}); err != nil {
 		return nil, apperrors.Wrap(err)

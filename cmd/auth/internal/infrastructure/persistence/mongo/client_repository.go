@@ -7,8 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
-
 	"gopkg.in/oauth2.v4"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
@@ -26,12 +24,11 @@ type clientRepository struct {
 func NewClientRepository(ctx context.Context, cfg *config.Config, mongoDB *mongo.Database) (persistence.ClientRepository, error) {
 	collection := mongoDB.Collection("clients")
 
-	uniqueOpt := options.Index().SetUnique(true)
 	if _, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
-		{Keys: bsonx.Elem{Key: "client_id", Value: bsonx.Int32(1)}, Options: uniqueOpt},
-		{Keys: bsonx.Doc{
-			bsonx.Elem{Key: "user_id", Value: bsonx.Int32(1)},
-			bsonx.Elem{Key: "domain", Value: bsonx.Int32(1)},
+		{Keys: bson.D{{Key: "client_id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{
+			{Key: "user_id", Value: 1},
+			{Key: "domain", Value: 1},
 		}},
 	}); err != nil {
 		return nil, apperrors.Wrap(err)

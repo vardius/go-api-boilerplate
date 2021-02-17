@@ -10,19 +10,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 // NewUserRepository returns mongo view model repository for user
 func NewUserRepository(ctx context.Context, mongoDB *mongo.Database) (persistence.UserRepository, error) {
 	collection := mongoDB.Collection("users")
 
-	uniqueOpt := options.Index().SetUnique(true)
 	if _, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
-		{Keys: bsonx.Elem{Key: "user_id", Value: bsonx.Int32(1)}, Options: uniqueOpt},
-		{Keys: bsonx.Elem{Key: "email_address", Value: bsonx.Int32(1)}, Options: uniqueOpt},
-		{Keys: bsonx.Elem{Key: "facebook_id", Value: bsonx.Int32(1)}, Options: uniqueOpt},
-		{Keys: bsonx.Elem{Key: "google_id", Value: bsonx.Int32(1)}, Options: uniqueOpt},
+		{Keys: bson.D{{Key: "user_id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "email_address", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "facebook_id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "google_id", Value: 1}}, Options: options.Index().SetUnique(true)},
 	}); err != nil {
 		return nil, apperrors.Wrap(err)
 	}
