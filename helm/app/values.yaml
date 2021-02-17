@@ -137,8 +137,6 @@ mongodb:
 #    storageClass: go-api-boilerplate-app
 #  auth:
 #    existingSecret: mongodb-secret
-#    username: goapiboilerplate
-#    database: auth # has to be provided and because with mongo we use db per service lets set auth here
 #  hostPath: /mnt/mongodb
 
 maildev:
@@ -233,7 +231,7 @@ auth:
   #    - name: MONGO_PASS
   #      valueFrom:
   #        secretKeyRef:
-  #          key: mongodb-password
+  #          key: mongodb-root-password
   #          name: mongodb-secret
 #    - name: MONGO_DATABASE
 #      value: auth
@@ -303,7 +301,7 @@ user:
 #    - name: MONGO_PASS
 #      valueFrom:
 #        secretKeyRef:
-#          key: mongodb-password
+#          key: mongodb-root-password
 #          name: mongodb-secret
 #    - name: MONGO_DATABASE
 #      value: user
@@ -379,7 +377,7 @@ configMaps:
 #    data:
 #      MONGO_HOST: 'go-api-boilerplate-mongodb'
 #      MONGO_PORT: '27017'
-#      MONGO_USER: 'goapiboilerplate'
+#      MONGO_USER: 'root'
   - name: auth-config
     data:
       HOST: '0.0.0.0'
