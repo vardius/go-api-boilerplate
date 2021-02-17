@@ -53,7 +53,7 @@ func newMongoServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 		},
 		logger,
 	)
-	eventStore, err := mongoeventstore.New(ctx, "user_events", mongoDB)
+	eventStore, err := mongoeventstore.New(ctx, "events", mongoDB)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
