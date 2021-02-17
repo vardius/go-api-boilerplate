@@ -1,4 +1,4 @@
-// +build persistence_mongo
+// +build persistence_mongodb
 
 package services
 

@@ -168,7 +168,7 @@ go build -tags=persistence_mysql
 
 ### Available build tags
 - persistence_mysql (mysql service container)
-- persistence_mongo (mongodb service container)
+- persistence_mongodb (mongodb service container)
 
 **Important**
 persistence layer defaults to memory if no flag is provided (Docker image sets persistence_mysql flag), see each service Dockerfile for details.
