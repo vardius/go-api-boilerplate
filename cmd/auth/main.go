@@ -68,6 +68,7 @@ func main() {
 		oauth2Server,
 		container.CommandBus,
 		container.SQL,
+		container.Mongo,
 		map[string]*grpc.ClientConn{
 			"auth": container.AuthConn,
 		},

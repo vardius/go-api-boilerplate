@@ -75,6 +75,7 @@ ingress:
 nginx-ingress:
   tcp:
     3306: "go-api-boilerplate/go-api-boilerplate-mysql:3306"
+#    27017: "go-api-boilerplate/go-api-boilerplate-mongodb:27017"
 
 cert-manager:
   # https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/#new-installcrds-addition
@@ -109,15 +110,36 @@ issuer:
 #       class: nginx
 
 mysql:
-  existingSecret: mysql-secret
-  mysqlUser: goapiboilerplate
-  initializationFiles:
-    privileges.sql: |-
-      GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-      GRANT ALL PRIVILEGES ON *.* TO 'goapiboilerplate'@'%' WITH GRANT OPTION;
-      FLUSH PRIVILEGES;
-    base_schema.sql: |-
-      CREATE DATABASE IF NOT EXISTS goapiboilerplate DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+  volumePermissions:
+    enabled: true
+  primary:
+    persistence:
+      size: 2Gi
+      podSecurityContext:
+        enabled: false
+      containerSecurityContext:
+        enabled: false
+      existingClaim: go-api-boilerplate-app
+      storageClass: go-api-boilerplate-app
+  auth:
+    existingSecret: mysql-secret
+    username: goapiboilerplate
+    database: goapiboilerplate
+  hostPath: /mnt/mysql
+
+mongodb:
+  enabled: false
+#  volumePermissions:
+#    enabled: true
+#  persistence:
+#    size: 2Gi
+#    existingClaim: go-api-boilerplate-app
+#    storageClass: go-api-boilerplate-app
+#  auth:
+#    existingSecret: mongodb-secret
+#    username: goapiboilerplate
+#    database: auth # has to be provided and because with mongo we use db per service lets set auth here
+#  hostPath: /mnt/mongodb
 
 maildev:
   nameOverride: maildev
@@ -196,13 +218,25 @@ auth:
     - http-config
     - grpc-config
     - mysql-config
+#    - mongodb-config
     - auth-config
   env:
+    - name: MY_POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
     - name: MYSQL_PASS
       valueFrom:
         secretKeyRef:
           key: mysql-password
           name: mysql-secret
+  #    - name: MONGO_PASS
+  #      valueFrom:
+  #        secretKeyRef:
+  #          key: mongodb-password
+  #          name: mongodb-secret
+#    - name: MONGO_DATABASE
+#      value: auth
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -253,14 +287,26 @@ user:
     - http-config
     - grpc-config
     - mysql-config
+#    - mongodb-config
     - user-config
     - mail-config
   env:
+    - name: MY_POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
     - name: MYSQL_PASS
       valueFrom:
         secretKeyRef:
           key: mysql-password
           name: mysql-secret
+#    - name: MONGO_PASS
+#      valueFrom:
+#        secretKeyRef:
+#          key: mongodb-password
+#          name: mongodb-secret
+#    - name: MONGO_DATABASE
+#      value: user
   readiness:
     initialDelaySeconds: 20
     timeoutSeconds: 5
@@ -278,7 +324,14 @@ secrets:
     type: Opaque
     data:
       mysql-root-password: cGFzc3dvcmQ= # @FIXME: change password (remember its base64 encoded here)
-      mysql-password: MDdxVmFpNGRsMVFtR2VXcjNDUUlBcGhxZUFSOVRLNWo= # @FIXME: change password (remember its base64 encoded here)
+      mysql-password: cGFzc3dvcmQ= # @FIXME: change password (remember its base64 encoded here)
+      mysql-replication-password: cGFzc3dvcmQ= # @FIXME: change password (remember its base64 encoded here)
+#  - name: mongodb-secret
+#    type: Opaque
+#    data:
+#      mongodb-root-password: cGFzc3dvcmQ= # @FIXME: change password (remember its base64 encoded here)
+#      mongodb-password: cGFzc3dvcmQ= # @FIXME: change password (remember its base64 encoded here)
+#      mongodb-replica-set-key: cGFzc3dvcmQ= # @FIXME: change password (remember its base64 encoded here)
   - name: auth-secret
     type: Opaque
     data:
@@ -322,6 +375,11 @@ configMaps:
       MYSQL_PORT: '3306'
       MYSQL_DATABASE: 'goapiboilerplate'
       MYSQL_USER: 'goapiboilerplate'
+#  - name: mongodb-config
+#    data:
+#      MONGO_HOST: 'go-api-boilerplate-mongodb'
+#      MONGO_PORT: '27017'
+#      MONGO_USER: 'goapiboilerplate'
   - name: auth-config
     data:
       HOST: '0.0.0.0'

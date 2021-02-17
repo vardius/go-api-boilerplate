@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -23,10 +24,15 @@ func BuildLivenessHandler() http.Handler {
 }
 
 // BuildReadinessHandler provides readiness handler
-func BuildReadinessHandler(db *sql.DB, connMap map[string]*grpc.ClientConn) http.Handler {
+func BuildReadinessHandler(sqlConn *sql.DB, mongoConn *mongo.Client, connMap map[string]*grpc.ClientConn) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
-		if db != nil {
-			if err := db.PingContext(r.Context()); err != nil {
+		if sqlConn != nil {
+			if err := sqlConn.PingContext(r.Context()); err != nil {
+				return apperrors.Wrap(err)
+			}
+		}
+		if mongoConn != nil {
+			if err := mongoConn.Ping(r.Context(), nil); err != nil {
 				return apperrors.Wrap(err)
 			}
 		}

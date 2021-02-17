@@ -1,10 +1,10 @@
-{{- if and .Values.mysql.persistence.enabled (not .Values.mysql.persistence.existingClaim) }}
+{{- if .Values.mysql.primary.persistence.enabled }}
 kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: {{ template "app.fullname" $ }}
   namespace: {{ $.Release.Namespace }}
-  {{- with .Values.mysql.persistence.annotations  }}
+  {{- with .Values.mysql.primary.persistence.annotations  }}
   annotations:
   {{ toYaml . | indent 4 }}
   {{- end }}
@@ -17,16 +17,18 @@ metadata:
     type: local
 spec:
   hostPath:
-    path: "{{ .Values.mysql.hostPath }}"
+    path: {{ .Values.mysql.hostPath | quote }}
   accessModes:
-    - {{ .Values.mysql.persistence.accessMode | quote }}
+    {{- range .Values.mysql.primary.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
   capacity:
-    storage: {{ .Values.mysql.persistence.size | quote }}
-  {{- if .Values.mysql.persistence.storageClass }}
-  {{- if (eq "-" .Values.mysql.persistence.storageClass) }}
+    storage: {{ .Values.mysql.primary.persistence.size | quote }}
+  {{- if .Values.mysql.primary.persistence.storageClass }}
+  {{- if (eq "-" .Values.mysql.primary.persistence.storageClass) }}
   storageClassName: ""
   {{- else }}
-  storageClassName: "{{ .Values.mysql.persistence.storageClass }}"
+  storageClassName: {{ .Values.mysql.primary.persistence.storageClass | quote }}
   {{- end }}
   {{- end }}
 {{- end }}

@@ -9,11 +9,12 @@ import (
 
 type Config struct {
 	App struct {
-		Domain          string        `env:"APP_DOMAIN"                envDefault:"http://localhost:3000"`
-		Environment     string        `env:"APP_ENV"                   envDefault:"development"`
-		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
-		Secret          string        `env:"AUTH_SECRET"               envDefault:"secret"`
-		AuthorizeURL    string        `env:"AUTH_AUTHORIZE_URL"        envDefault:"http://localhost:3000/authorize"`
+		MyPodIP         string        `env:"MY_POD_IP"            envDefault:"127.0.0.1"`
+		Domain          string        `env:"APP_DOMAIN"           envDefault:"http://localhost:3000"`
+		Environment     string        `env:"APP_ENV"              envDefault:"development"`
+		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT" envDefault:"5s"`
+		Secret          string        `env:"AUTH_SECRET"          envDefault:"secret"`
+		AuthorizeURL    string        `env:"AUTH_AUTHORIZE_URL"   envDefault:"http://localhost:3000/authorize"`
 	}
 	OAuth struct {
 		InitTimeout time.Duration `env:"OAUTH_INIT_TIMEOUT" envDefault:"15s"`

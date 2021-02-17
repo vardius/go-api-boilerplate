@@ -69,6 +69,7 @@ func main() {
 		container.UserPersistenceRepository,
 		container.CommandBus,
 		container.SQL,
+		container.Mongo,
 		map[string]*grpc.ClientConn{
 			"user": container.UserConn,
 		},

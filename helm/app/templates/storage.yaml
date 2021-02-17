@@ -1,0 +1,15 @@
+{{- if .Values.mysql.primary.persistence.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ template "app.fullname" $ }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "app.chart" $ }}
+    app.kubernetes.io/name: {{ include "app.name" $ }}
+    app.kubernetes.io/instance: {{ include "app.fullname" $ }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/part-of: {{ $.Release.Name }}
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+{{- end }}

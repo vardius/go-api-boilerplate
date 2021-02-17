@@ -9,11 +9,12 @@ import (
 
 type Config struct {
 	App struct {
-		Domain          string        `env:"APP_DOMAIN"                envDefault:"https://go-api-boilerplate.local"`
-		Environment     string        `env:"APP_ENV"                   envDefault:"development"`
-		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT"      envDefault:"5s"`
-		Secret          string        `env:"USER_SECRET"               envDefault:"secret"`
-		ApiBaseURL      string        `env:"USER_BASE_URL"             envDefault:"https://api.go-api-boilerplate.local/users"`
+		MyPodIP         string        `env:"MY_POD_IP"            envDefault:"127.0.0.1"`
+		Domain          string        `env:"APP_DOMAIN"           envDefault:"https://go-api-boilerplate.local"`
+		Environment     string        `env:"APP_ENV"              envDefault:"development"`
+		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT" envDefault:"5s"`
+		Secret          string        `env:"USER_SECRET"          envDefault:"secret"`
+		ApiBaseURL      string        `env:"USER_BASE_URL"        envDefault:"https://api.go-api-boilerplate.local/users"`
 	}
 	Debug struct {
 		Host string `env:"DEBUG_HOST" envDefault:"0.0.0.0"`

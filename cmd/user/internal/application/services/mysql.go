@@ -26,7 +26,7 @@ func init() {
 func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
 	logger := log.New(cfg.App.Environment)
 	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
-	mysqlConnection := mysql.NewConnection(
+	sqlConn := mysql.NewConnection(
 		ctx,
 		mysql.ConnectionConfig{
 			Host:            cfg.MYSQL.Host,
@@ -60,12 +60,12 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 		},
 		logger,
 	)
-	eventStore, err := mysqleventstore.New(ctx, "user_events", mysqlConnection)
+	eventStore, err := mysqleventstore.New(ctx, "user_events", sqlConn)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize, logger)
-	userPersistenceRepository, err := persistence.NewUserRepository(ctx, mysqlConnection)
+	userPersistenceRepository, err := persistence.NewUserRepository(ctx, sqlConn)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
@@ -77,7 +77,7 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 
 	return &ServiceContainer{
 		Logger:                    logger,
-		SQL:                       mysqlConnection,
+		SQL:                       sqlConn,
 		CommandBus:                commandBus,
 		UserConn:                  grpcUserConn,
 		AuthConn:                  grpcAuthConn,

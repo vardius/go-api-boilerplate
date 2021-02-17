@@ -27,7 +27,7 @@ func init() {
 func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
 	logger := log.New(cfg.App.Environment)
 	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
-	mysqlConnection := mysql.NewConnection(
+	sqlConn := mysql.NewConnection(
 		ctx,
 		mysql.ConnectionConfig{
 			Host:            cfg.MYSQL.Host,
@@ -51,18 +51,18 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 		},
 		logger,
 	)
-	eventStore, err := mysqleventstore.New(ctx, "auth_events", mysqlConnection)
+	eventStore, err := mysqleventstore.New(ctx, "auth_events", sqlConn)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize, logger)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
-	tokenPersistenceRepository, err := persistence.NewTokenRepository(ctx, mysqlConnection)
+	tokenPersistenceRepository, err := persistence.NewTokenRepository(ctx, sqlConn)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
-	clientPersistenceRepository, err := persistence.NewClientRepository(ctx, cfg, mysqlConnection)
+	clientPersistenceRepository, err := persistence.NewClientRepository(ctx, cfg, sqlConn)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
@@ -74,7 +74,7 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, authenticator)
 
 	return &ServiceContainer{
-		SQL:                         mysqlConnection,
+		SQL:                         sqlConn,
 		Logger:                      logger,
 		CommandBus:                  commandBus,
 		EventBus:                    eventBus,

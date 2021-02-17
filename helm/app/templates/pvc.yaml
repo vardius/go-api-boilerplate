@@ -1,0 +1,34 @@
+{{- if .Values.mysql.primary.persistence.enabled }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "app.fullname" $ }}
+  namespace: {{ $.Release.Namespace }}
+  {{- with .Values.mysql.primary.persistence.annotations  }}
+  annotations:
+  {{ toYaml . | indent 4 }}
+  {{- end }}
+  labels:
+    helm.sh/chart: {{ include "app.chart" $ }}
+    app.kubernetes.io/name: {{ include "app.name" $ }}
+    app.kubernetes.io/instance: {{ include "app.fullname" $ }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/part-of: {{ $.Release.Name }}
+spec:
+  volumeName: {{ template "app.fullname" $ }}
+  volumeMode: Filesystem
+  accessModes:
+    {{- range .Values.mysql.primary.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.mysql.primary.persistence.size | quote }}
+  {{- if .Values.mysql.primary.persistence.storageClass }}
+  {{- if (eq "-" .Values.mysql.primary.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ .Values.mysql.primary.persistence.storageClass | quote }}
+  {{- end }}
+  {{- end }}
+{{- end }}

@@ -2,6 +2,7 @@ package http
 
 import (
 	"database/sql"
+	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 	"time"
 
@@ -28,7 +29,7 @@ func NewRouter(
 	tokenAuthorizer auth.TokenAuthorizer,
 	server *server.Server,
 	commandBus commandbus.CommandBus,
-	mysqlConnection *sql.DB,
+	sqlConn *sql.DB, mongoConn *mongo.Client,
 	grpcConnectionMap map[string]*grpc.ClientConn,
 	tokenRepository persistence.TokenRepository,
 	clientRepository persistence.ClientRepository,
@@ -82,7 +83,7 @@ func NewRouter(
 	// Liveness probes are to indicate that your application is running
 	mainRouter.GET("/health", handlers.BuildLivenessHandler())
 	// Readiness is meant to check if your application is ready to serve traffic
-	mainRouter.GET("/readiness", handlers.BuildReadinessHandler(mysqlConnection, grpcConnectionMap))
+	mainRouter.GET("/readiness", handlers.BuildReadinessHandler(sqlConn, mongoConn, grpcConnectionMap))
 
 	mainRouter.Mount("/v1", router)
 
