@@ -4,6 +4,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence/mongo"
