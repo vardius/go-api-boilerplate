@@ -62,7 +62,7 @@ func NotFound() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
 		httpError := &httperrors.HttpError{
 			Code:    http.StatusNotFound,
-			Message: fmt.Sprintf("Route %s", http.StatusText(http.StatusNotFound)),
+			Message: fmt.Sprintf("Route %s %s", r.URL.Path, http.StatusText(http.StatusNotFound)),
 		}
 
 		return JSON(r.Context(), w, httpError.Code, httpError)

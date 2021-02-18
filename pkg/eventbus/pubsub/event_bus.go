@@ -96,7 +96,7 @@ func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 		return apperrors.Wrap(err)
 	}
 
-	b.logger.Debug(ctx, "[EventBus] Publish: %s %s", event.Type, payload)
+	b.logger.Debug(ctx, "[EventBus] Publish: %s %s", event.Type, string(payload))
 
 	if _, err := b.pubsub.Publish(ctx, &pubsubproto.PublishRequest{
 		Topic:   event.Type,
