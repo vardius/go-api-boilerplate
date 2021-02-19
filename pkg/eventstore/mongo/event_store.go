@@ -57,7 +57,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	var buffer []mongo.WriteModel
 	for _, e := range events {
 		upsert := mongo.NewInsertOneModel()
-		upsert.SetDocument(bson.M{"$set": e})
+		upsert.SetDocument(e)
 
 		buffer = append(buffer, upsert)
 	}
