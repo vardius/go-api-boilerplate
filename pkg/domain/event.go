@@ -18,14 +18,14 @@ type RawEvent interface {
 
 // Event contains id, payload and metadata
 type Event struct {
-	ID            uuid.UUID       `json:"id" bson:"event_id"`
-	Type          string          `json:"type" bson:"event_type"`
-	StreamID      uuid.UUID       `json:"stream_id" bson:"stream_id"`
-	StreamName    string          `json:"stream_name" bson:"stream_name"`
-	StreamVersion int             `json:"stream_version" bson:"stream_version"`
-	OccurredAt    time.Time       `json:"occurred_at" bson:"occurred_at"`
-	Payload       json.RawMessage `json:"payload" bson:"payload"`
-	Metadata      json.RawMessage `json:"metadata,omitempty" bson:"metadata,omitempty"`
+	ID            uuid.UUID       `json:"id"`
+	Type          string          `json:"type"`
+	StreamID      uuid.UUID       `json:"stream_id"`
+	StreamName    string          `json:"stream_name"`
+	StreamVersion int             `json:"stream_version"`
+	OccurredAt    time.Time       `json:"occurred_at"`
+	Payload       json.RawMessage `json:"payload"`
+	Metadata      json.RawMessage `json:"metadata,omitempty"`
 }
 
 // NewEventFromRawEvent create new event

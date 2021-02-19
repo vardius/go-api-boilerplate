@@ -5,6 +5,7 @@ package eventstore
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -15,7 +16,40 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
+
+type dto struct {
+	ID            string          `bson:"event_id"`
+	Type          string          `bson:"event_type"`
+	StreamID      string          `bson:"stream_id"`
+	StreamName    string          `bson:"stream_name"`
+	StreamVersion int             `bson:"stream_version"`
+	OccurredAt    time.Time       `bson:"occurred_at"`
+	Payload       json.RawMessage `bson:"payload"`
+	Metadata      json.RawMessage `bson:"metadata,omitempty"`
+}
+
+func (o *dto) ToEvent() (domain.Event, error) {
+	id, err := uuid.Parse(o.ID)
+	if err != nil {
+		return domain.NullEvent, apperrors.Wrap(fmt.Errorf("failed to parse id:%s: %w", o.ID, err))
+	}
+	streamID, err := uuid.Parse(o.StreamID)
+	if err != nil {
+		return domain.NullEvent, apperrors.Wrap(fmt.Errorf("failed to parse strem id:%s: %w", o.StreamID, err))
+	}
+	return domain.Event{
+		ID:            id,
+		Type:          o.Type,
+		StreamID:      streamID,
+		StreamName:    o.StreamName,
+		StreamVersion: o.StreamVersion,
+		OccurredAt:    o.OccurredAt,
+		Payload:       o.Payload,
+		Metadata:      o.Metadata,
+	}, nil
+}
 
 type eventStore struct {
 	collection *mongo.Collection
@@ -43,10 +77,12 @@ func New(ctx context.Context, collectionName string, mongoDB *mongo.Database) (b
 			{Key: "occurred_at", Value: 1},
 		}},
 	}); err != nil {
-		return nil, fmt.Errorf("failed to create indexes: %w", err)
+		return nil, apperrors.Wrap(fmt.Errorf("failed to create indexes: %w", err))
 	}
 
-	return &eventStore{collection: collection}, nil
+	return &eventStore{
+		collection: collection,
+	}, nil
 }
 
 func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
@@ -57,7 +93,16 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	var buffer []mongo.WriteModel
 	for _, e := range events {
 		upsert := mongo.NewInsertOneModel()
-		upsert.SetDocument(e)
+		upsert.SetDocument(bson.M{
+			"event_id":           e.ID.String(),
+			"event_type":         e.Type,
+			"stream_id":          e.StreamID.String(),
+			"stream_name":        e.StreamName,
+			"stream_version":     e.StreamVersion,
+			"occurred_at":        e.OccurredAt,
+			"payload":            e.Payload,
+			"metadata,omitempty": e.Metadata,
+		})
 
 		buffer = append(buffer, upsert)
 	}
@@ -87,7 +132,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 		"event_id": id.String(),
 	}
 
-	var result domain.Event
+	var result dto
 	if err := s.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.NullEvent, apperrors.Wrap(fmt.Errorf("%s: %w", err, baseeventstore.ErrEventNotFound))
@@ -96,7 +141,12 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error
 		return domain.NullEvent, apperrors.Wrap(err)
 	}
 
-	return result, nil
+	event, err := result.ToEvent()
+	if err != nil {
+		return domain.NullEvent, apperrors.Wrap(err)
+	}
+
+	return event, nil
 }
 
 func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
@@ -109,17 +159,20 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 
 	cur, err := s.collection.Find(ctx, filter, &findOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query events: %w", err)
+		return nil, apperrors.Wrap(fmt.Errorf("failed to query events: %w", err))
 	}
 	defer cur.Close(ctx)
 
 	var result []domain.Event
 	for cur.Next(ctx) {
-		var event domain.Event
-		if err := cur.Decode(&event); err != nil {
-			return nil, fmt.Errorf("failed to decode event: %w", err)
+		var o dto
+		if err := cur.Decode(&o); err != nil {
+			return nil, apperrors.Wrap(fmt.Errorf("failed to decode event: %w", err))
 		}
-
+		event, err := o.ToEvent()
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
 		result = append(result, event)
 	}
 
@@ -139,17 +192,20 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 
 	cur, err := s.collection.Find(ctx, filter, &findOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query events: %w", err)
+		return nil, apperrors.Wrap(fmt.Errorf("failed to query events: %w", err))
 	}
 	defer cur.Close(ctx)
 
 	var result []domain.Event
 	for cur.Next(ctx) {
-		var event domain.Event
-		if err := cur.Decode(&event); err != nil {
-			return nil, fmt.Errorf("failed to decode event: %w", err)
+		var o dto
+		if err := cur.Decode(&o); err != nil {
+			return nil, apperrors.Wrap(fmt.Errorf("failed to decode event: %w", err))
 		}
-
+		event, err := o.ToEvent()
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
 		result = append(result, event)
 	}
 
@@ -170,17 +226,20 @@ func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UU
 
 	cur, err := s.collection.Find(ctx, filter, &findOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query events: %w", err)
+		return nil, apperrors.Wrap(fmt.Errorf("failed to query events: %w", err))
 	}
 	defer cur.Close(ctx)
 
 	var result []domain.Event
 	for cur.Next(ctx) {
-		var event domain.Event
-		if err := cur.Decode(&event); err != nil {
-			return nil, fmt.Errorf("failed to decode event: %w", err)
+		var o dto
+		if err := cur.Decode(&o); err != nil {
+			return nil, apperrors.Wrap(fmt.Errorf("failed to decode event: %w", err))
 		}
-
+		event, err := o.ToEvent()
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
 		result = append(result, event)
 	}
 
