@@ -1,6 +1,3 @@
-/*
-Package eventstore provides mysql implementation of domain event store
-*/
 package eventstore
 
 import (

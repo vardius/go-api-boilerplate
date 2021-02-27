@@ -1,6 +1,3 @@
-/*
-Package eventstore provides dynamodb implementation of domain event store
-*/
 package eventstore
 
 import (

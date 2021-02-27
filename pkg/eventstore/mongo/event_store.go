@@ -1,6 +1,3 @@
-/*
-Package eventstore provides mongo implementation of domain event store
-*/
 package eventstore
 
 import (
@@ -12,6 +9,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	baseeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore"
+	appmongo "github.com/vardius/go-api-boilerplate/pkg/mongo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,14 +18,14 @@ import (
 )
 
 type dto struct {
-	ID            string          `bson:"event_id"`
-	Type          string          `bson:"event_type"`
-	StreamID      string          `bson:"stream_id"`
-	StreamName    string          `bson:"stream_name"`
-	StreamVersion int             `bson:"stream_version"`
-	OccurredAt    time.Time       `bson:"occurred_at"`
-	Payload       json.RawMessage `bson:"payload"`
-	Metadata      json.RawMessage `bson:"metadata,omitempty"`
+	ID            string                  `bson:"event_id"`
+	Type          string                  `bson:"event_type"`
+	StreamID      string                  `bson:"stream_id"`
+	StreamName    string                  `bson:"stream_name"`
+	StreamVersion int                     `bson:"stream_version"`
+	OccurredAt    time.Time               `bson:"occurred_at"`
+	Payload       appmongo.JSONRawMessage `bson:"payload"`
+	Metadata      appmongo.JSONRawMessage `bson:"metadata,omitempty"`
 }
 
 func (o *dto) ToEvent() (domain.Event, error) {
@@ -41,14 +39,27 @@ func (o *dto) ToEvent() (domain.Event, error) {
 	}
 	return domain.Event{
 		ID:            id,
-		Type:          o.Type,
 		StreamID:      streamID,
+		Type:          o.Type,
 		StreamName:    o.StreamName,
 		StreamVersion: o.StreamVersion,
 		OccurredAt:    o.OccurredAt,
-		Payload:       o.Payload,
-		Metadata:      o.Metadata,
+		Payload:       json.RawMessage(o.Payload),
+		Metadata:      json.RawMessage(o.Metadata),
 	}, nil
+}
+
+func dtoFromEvent(e *domain.Event) *dto {
+	return &dto{
+		ID:            e.ID.String(),
+		Type:          e.Type,
+		StreamID:      e.StreamID.String(),
+		StreamName:    e.StreamName,
+		StreamVersion: e.StreamVersion,
+		OccurredAt:    e.OccurredAt,
+		Payload:       appmongo.JSONRawMessage(e.Payload),
+		Metadata:      appmongo.JSONRawMessage(e.Metadata),
+	}
 }
 
 type eventStore struct {
@@ -93,16 +104,7 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	var buffer []mongo.WriteModel
 	for _, e := range events {
 		upsert := mongo.NewInsertOneModel()
-		upsert.SetDocument(bson.M{
-			"event_id":           e.ID.String(),
-			"event_type":         e.Type,
-			"stream_id":          e.StreamID.String(),
-			"stream_name":        e.StreamName,
-			"stream_version":     e.StreamVersion,
-			"occurred_at":        e.OccurredAt,
-			"payload":            e.Payload,
-			"metadata,omitempty": e.Metadata,
-		})
+		upsert.SetDocument(dtoFromEvent(&e))
 
 		buffer = append(buffer, upsert)
 	}
