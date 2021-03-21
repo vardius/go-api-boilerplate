@@ -83,25 +83,20 @@ func (c *ServiceContainer) Close() error {
 		}
 	}()
 
-	closeCh := make(chan struct{})
-	go func() {
-		defer close(closeCh)
-		wg.Wait()
-	}()
+	wg.Wait()
 
-	select {
-	case <-closeCh:
-		var closeErr error
-		for _, err := range errs {
-			if closeErr == nil {
-				closeErr = err
-			} else {
-				closeErr = fmt.Errorf("%v | %v", closeErr, err)
-			}
+	var closeErr error
+	for _, err := range errs {
+		if closeErr == nil {
+			closeErr = err
+		} else {
+			closeErr = fmt.Errorf("%v | %v", closeErr, err)
 		}
-
-		return closeErr
-	case <-ctx.Done():
-		return ctx.Err()
 	}
+
+	if closeErr != nil {
+		return closeErr
+	}
+
+	return ctx.Err()
 }
