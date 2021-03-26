@@ -5,12 +5,10 @@ package user
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
 
-	userdomain "github.com/vardius/go-api-boilerplate/cmd/user/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
@@ -24,7 +22,7 @@ var StreamName = fmt.Sprintf("%T", User{})
 type User struct {
 	id      uuid.UUID
 	version int
-	changes []domain.Event
+	changes []*domain.Event
 
 	email EmailAddress
 }
@@ -35,55 +33,27 @@ func New() User {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func FromHistory(ctx context.Context, events []domain.Event) (User, error) {
+func FromHistory(ctx context.Context, events []*domain.Event) (User, error) {
 	u := New()
 
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 
 		switch domainEvent.Type {
-		case (AccessTokenWasRequested{}).GetType():
-			var accessTokenWasRequested AccessTokenWasRequested
-			if err := json.Unmarshal(domainEvent.Payload, &accessTokenWasRequested); err != nil {
-				return u, apperrors.Wrap(err)
-			}
-			e = accessTokenWasRequested
-		case (EmailAddressWasChanged{}).GetType():
-			var emailAddressWasChanged EmailAddressWasChanged
-			if err := json.Unmarshal(domainEvent.Payload, &emailAddressWasChanged); err != nil {
-				return u, apperrors.Wrap(err)
-			}
-			e = emailAddressWasChanged
-		case (WasRegisteredWithEmail{}).GetType():
-			var wasRegisteredWithEmail WasRegisteredWithEmail
-			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithEmail); err != nil {
-				return u, apperrors.Wrap(err)
-			}
-			e = wasRegisteredWithEmail
-		case (WasRegisteredWithFacebook{}).GetType():
-			var wasRegisteredWithFacebook WasRegisteredWithFacebook
-			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithFacebook); err != nil {
-				return u, apperrors.Wrap(err)
-			}
-			e = wasRegisteredWithFacebook
-		case (ConnectedWithFacebook{}).GetType():
-			var connectedWithFacebook ConnectedWithFacebook
-			if err := json.Unmarshal(domainEvent.Payload, &connectedWithFacebook); err != nil {
-				return u, apperrors.Wrap(err)
-			}
-			e = connectedWithFacebook
-		case (WasRegisteredWithGoogle{}).GetType():
-			var wasRegisteredWithGoogle WasRegisteredWithGoogle
-			if err := json.Unmarshal(domainEvent.Payload, &wasRegisteredWithGoogle); err != nil {
-				return u, apperrors.Wrap(err)
-			}
-			e = wasRegisteredWithGoogle
-		case (ConnectedWithGoogle{}).GetType():
-			var connectedWithGoogle ConnectedWithGoogle
-			if err := json.Unmarshal(domainEvent.Payload, &connectedWithGoogle); err != nil {
-				return u, apperrors.Wrap(err)
-			}
-			e = connectedWithGoogle
+		case AccessTokenWasRequestedType:
+			e = domainEvent.Payload.(AccessTokenWasRequested)
+		case EmailAddressWasChangedType:
+			e = domainEvent.Payload.(EmailAddressWasChanged)
+		case WasRegisteredWithEmailType:
+			e = domainEvent.Payload.(WasRegisteredWithEmail)
+		case WasRegisteredWithFacebookType:
+			e = domainEvent.Payload.(WasRegisteredWithFacebook)
+		case ConnectedWithFacebookType:
+			e = domainEvent.Payload.(ConnectedWithFacebook)
+		case WasRegisteredWithGoogleType:
+			e = domainEvent.Payload.(WasRegisteredWithGoogle)
+		case ConnectedWithGoogleType:
+			e = domainEvent.Payload.(ConnectedWithGoogle)
 		default:
 			return u, apperrors.Wrap(fmt.Errorf("unhandled user event %s", domainEvent.Type))
 		}
@@ -109,7 +79,7 @@ func (u User) Version() int {
 }
 
 // Changes returns all new applied events
-func (u User) Changes() []domain.Event {
+func (u User) Changes() []*domain.Event {
 	return u.changes
 }
 
@@ -129,7 +99,7 @@ func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailA
 		return apperrors.Wrap(err)
 	}
 
-	if _, err := u.trackChange(ctx, domainEvent); err != nil {
+	if err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -155,7 +125,7 @@ func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email Email
 		return apperrors.Wrap(err)
 	}
 
-	if _, err := u.trackChange(ctx, domainEvent); err != nil {
+	if err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -180,7 +150,7 @@ func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken, red
 		return apperrors.Wrap(err)
 	}
 
-	if _, err := u.trackChange(ctx, domainEvent); err != nil {
+	if err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -206,7 +176,7 @@ func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email Ema
 		return apperrors.Wrap(err)
 	}
 
-	if _, err := u.trackChange(ctx, domainEvent); err != nil {
+	if err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -231,7 +201,7 @@ func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken,
 		return apperrors.Wrap(err)
 	}
 
-	if _, err := u.trackChange(ctx, domainEvent); err != nil {
+	if err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -254,7 +224,7 @@ func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error
 		return apperrors.Wrap(err)
 	}
 
-	if _, err := u.trackChange(ctx, domainEvent); err != nil {
+	if err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -278,15 +248,15 @@ func (u *User) RequestAccessToken(ctx context.Context, redirectPath string) erro
 		return apperrors.Wrap(err)
 	}
 
-	if _, err := u.trackChange(ctx, domainEvent); err != nil {
+	if err := u.trackChange(ctx, domainEvent); err != nil {
 		return apperrors.Wrap(err)
 	}
 
 	return nil
 }
 
-func (u *User) trackChange(ctx context.Context, event domain.Event) (domain.Event, error) {
-	var meta userdomain.EventMetadata
+func (u *User) trackChange(ctx context.Context, event *domain.Event) error {
+	var meta domain.EventMetadata
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
 		meta.Identity = i
 	}
@@ -296,15 +266,13 @@ func (u *User) trackChange(ctx context.Context, event domain.Event) (domain.Even
 		meta.Referer = m.Referer
 	}
 	if !meta.IsEmpty() {
-		if err := event.WithMetadata(meta); err != nil {
-			return event, apperrors.Wrap(err)
-		}
+		event.WithMetadata(&meta)
 	}
 
 	u.changes = append(u.changes, event)
 	u.version++
 
-	return event, nil
+	return nil
 }
 
 func (u *User) transition(e domain.RawEvent) error {

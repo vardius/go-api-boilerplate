@@ -29,6 +29,14 @@ const (
 	RegisterUserWithGoogle = "user-register-with-google"
 )
 
+var (
+	RegisterWithEmailName    = (RegisterWithEmail{}).GetName()
+	RequestAccessTokenName   = (RequestAccessToken{}).GetName()
+	RegisterWithGoogleName   = (RegisterWithGoogle{}).GetName()
+	RegisterWithFacebookName = (RegisterWithFacebook{}).GetName()
+	ChangeEmailAddressName   = (ChangeEmailAddress{}).GetName()
+)
+
 // NewCommandFromPayload builds command by contract from json payload
 func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
 	switch contract {

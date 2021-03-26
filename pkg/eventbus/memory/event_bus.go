@@ -26,7 +26,7 @@ func New(maxConcurrentCalls int, logger golog.Logger) eventbus.EventBus {
 	}
 }
 
-type eventHandler func(ctx context.Context, event domain.Event, out chan<- error)
+type eventHandler func(ctx context.Context, event *domain.Event, out chan<- error)
 
 type eventBus struct {
 	messageBus messagebus.MessageBus
@@ -35,7 +35,7 @@ type eventBus struct {
 	handlers   map[string]map[reflect.Value]eventHandler
 }
 
-func (b *eventBus) Publish(parentCtx context.Context, event domain.Event) error {
+func (b *eventBus) Publish(parentCtx context.Context, event *domain.Event) error {
 	b.mtx.RLock()
 	defer b.mtx.RUnlock()
 
@@ -63,7 +63,7 @@ func (b *eventBus) Publish(parentCtx context.Context, event domain.Event) error 
 	return nil
 }
 
-func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain.Event) error {
+func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event *domain.Event) error {
 	b.mtx.RLock()
 	defer b.mtx.RUnlock()
 
@@ -104,7 +104,7 @@ func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain
 func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
 	b.logger.Info(ctx, "[EventBus] Subscribe: %s", eventType)
 
-	handler := func(ctx context.Context, event domain.Event, out chan<- error) {
+	handler := func(ctx context.Context, event *domain.Event, out chan<- error) {
 		b.logger.Debug(ctx, "[EventHandler] %s: %s", eventType, event.Payload)
 
 		if err := fn(ctx, event); err != nil {

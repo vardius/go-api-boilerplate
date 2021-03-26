@@ -2,8 +2,6 @@ package eventhandler
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
@@ -16,27 +14,14 @@ import (
 )
 
 // WhenUserConnectedWithGoogle handles event
-func WhenUserConnectedWithGoogle(db *sql.DB, repository persistence.UserRepository, cb commandbus.CommandBus) eventbus.EventHandler {
-	fn := func(parentCtx context.Context, event domain.Event) error {
+func WhenUserConnectedWithGoogle(repository persistence.UserRepository, cb commandbus.CommandBus) eventbus.EventHandler {
+	fn := func(parentCtx context.Context, event *domain.Event) error {
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		var e user.ConnectedWithGoogle
-		if err := json.Unmarshal(event.Payload, &e); err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		tx, err := db.BeginTx(ctx, nil)
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
-		defer tx.Rollback()
+		e := event.Payload.(user.ConnectedWithGoogle)
 
 		if err := repository.UpdateGoogleID(ctx, e.ID.String(), e.GoogleID); err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		if err := tx.Commit(); err != nil {
 			return apperrors.Wrap(err)
 		}
 

@@ -1,3 +1,6 @@
+/*
+Package eventstore provides sqllite implementation of domain event store
+*/
 package eventstore
 
 import (
@@ -16,22 +19,17 @@ import (
 const createTableSQLFormat = `
 CREATE TABLE IF NOT EXISTS %s
 (
-    distinct_id    INT          NOT NULL AUTO_INCREMENT,
-    event_id       CHAR(36)     NOT NULL,
+    distinct_id    INTEGER      PRIMARY KEY AUTOINCREMENT,
+    event_id       CHAR(36)     NOT NULL UNIQUE,
     event_type     VARCHAR(255) NOT NULL,
     stream_id      CHAR(36)     NOT NULL,
     stream_name    VARCHAR(255) NOT NULL,
-    stream_version INT          NOT NULL,
+    stream_version INTEGER      NOT NULL,
     occurred_at    DATETIME     NOT NULL,
     payload        JSON         NOT NULL,
-    metadata       JSON DEFAULT NULL,
-    PRIMARY KEY (distinct_id),
-    UNIQUE KEY u_event_id (event_id),
-    INDEX i_stream_id_stream_name_event_type (stream_id, stream_name, event_type)
-)
-    ENGINE = InnoDB
-    DEFAULT CHARSET = utf8
-    COLLATE = utf8_bin;
+    metadata       JSON DEFAULT NULL
+);
+CREATE INDEX IF NOT EXISTS i_stream_id_stream_name_event_type ON %s (stream_id, stream_name, event_type);
 `
 
 type eventStore struct {
@@ -39,9 +37,9 @@ type eventStore struct {
 	db        *sql.DB
 }
 
-// New creates in mysql event store
+// New creates in sqllite event store
 func New(ctx context.Context, tableName string, db *sql.DB) (baseeventstore.EventStore, error) {
-	if _, err := db.ExecContext(ctx, fmt.Sprintf(createTableSQLFormat, tableName)); err != nil {
+	if _, err := db.ExecContext(ctx, fmt.Sprintf(createTableSQLFormat, tableName, tableName)); err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 
@@ -129,7 +127,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (*domain.Event, erro
 		&event.StreamName,
 		&event.StreamVersion,
 		&event.OccurredAt,
-		payload,
+		&payload,
 		&metadata,
 	)
 
@@ -156,7 +154,7 @@ func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (*domain.Event, erro
 }
 
 func (s *eventStore) FindAll(ctx context.Context) ([]*domain.Event, error) {
-	return nil, apperrors.Wrap(fmt.Errorf("should never load all events from mysql"))
+	return nil, apperrors.Wrap(fmt.Errorf("should never load all events from sqllite"))
 }
 
 func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]*domain.Event, error) {

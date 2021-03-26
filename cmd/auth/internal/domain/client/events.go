@@ -6,14 +6,19 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	WasCreatedType = (WasCreated{}).GetType()
+	WasRemovedType = (WasRemoved{}).GetType()
+)
+
 // WasCreated event
 type WasCreated struct {
-	ID          uuid.UUID `json:"id"`
-	UserID      uuid.UUID `json:"user_id"`
-	Secret      uuid.UUID `json:"secret"`
-	Domain      string    `json:"domain"`
-	RedirectURL string    `json:"redirect_url"`
-	Scopes      []string  `json:"scopes"`
+	ID          uuid.UUID `json:"id" bson:"id"`
+	UserID      uuid.UUID `json:"user_id" bson:"user_id"`
+	Secret      uuid.UUID `json:"secret" bson:"secret"`
+	Domain      string    `json:"domain" bson:"domain"`
+	RedirectURL string    `json:"redirect_url" bson:"redirect_url"`
+	Scopes      []string  `json:"scopes" bson:"scopes"`
 }
 
 // GetType returns event type
@@ -53,7 +58,7 @@ func (e WasCreated) GetScopes() []string {
 
 // WasRemoved event
 type WasRemoved struct {
-	ID uuid.UUID `json:"id"`
+	ID uuid.UUID `json:"id" bson:"id"`
 }
 
 // GetType returns event type

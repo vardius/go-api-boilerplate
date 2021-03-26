@@ -3,19 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain"
 	"math/rand"
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/gocontainer"
 	"google.golang.org/grpc"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/eventhandler"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/services"
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	usergrpc "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/grpc"
 	userhttp "github.com/vardius/go-api-boilerplate/cmd/user/internal/interfaces/http"
 	userproto "github.com/vardius/go-api-boilerplate/cmd/user/proto"
@@ -75,41 +73,7 @@ func main() {
 		},
 	)
 
-	if err := container.CommandBus.Subscribe(ctx, (user.RegisterWithEmail{}).GetName(), user.OnRegisterWithEmail(container.UserRepository, container.UserPersistenceRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.CommandBus.Subscribe(ctx, (user.RequestAccessToken{}).GetName(), user.OnRequestAccessToken(container.UserRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.CommandBus.Subscribe(ctx, (user.RegisterWithGoogle{}).GetName(), user.OnRegisterWithGoogle(container.UserRepository, container.UserPersistenceRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.CommandBus.Subscribe(ctx, (user.RegisterWithFacebook{}).GetName(), user.OnRegisterWithFacebook(container.UserRepository, container.UserPersistenceRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.CommandBus.Subscribe(ctx, (user.ChangeEmailAddress{}).GetName(), user.OnChangeEmailAddress(container.UserRepository, container.UserPersistenceRepository)); err != nil {
-		panic(err)
-	}
-
-	if err := container.EventBus.Subscribe(ctx, (user.WasRegisteredWithEmail{}).GetType(), eventhandler.WhenUserWasRegisteredWithEmail(container.SQL, container.UserPersistenceRepository, container.CommandBus)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (user.WasRegisteredWithGoogle{}).GetType(), eventhandler.WhenUserWasRegisteredWithGoogle(container.SQL, container.UserPersistenceRepository, container.CommandBus)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (user.WasRegisteredWithFacebook{}).GetType(), eventhandler.WhenUserWasRegisteredWithFacebook(container.SQL, container.UserPersistenceRepository, container.CommandBus)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (user.EmailAddressWasChanged{}).GetType(), eventhandler.WhenUserEmailAddressWasChanged(container.SQL, container.UserPersistenceRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (user.AccessTokenWasRequested{}).GetType(), eventhandler.WhenUserAccessTokenWasRequested(cfg, jwt.SigningMethodHS512, container.Authenticator, container.UserPersistenceRepository, container.AuthClient)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (user.ConnectedWithGoogle{}).GetType(), eventhandler.WhenUserConnectedWithGoogle(container.SQL, container.UserPersistenceRepository, container.CommandBus)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (user.ConnectedWithFacebook{}).GetType(), eventhandler.WhenUserConnectedWithFacebook(container.SQL, container.UserPersistenceRepository, container.CommandBus)); err != nil {
+	if err := domain.RegisterUserDomain(ctx, cfg, container); err != nil {
 		panic(err)
 	}
 

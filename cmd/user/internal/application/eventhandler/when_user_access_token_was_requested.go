@@ -2,7 +2,6 @@ package eventhandler
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -22,7 +21,7 @@ import (
 
 // WhenUserAccessTokenWasRequested handles event
 func WhenUserAccessTokenWasRequested(cfg *config.Config, signedMethod jwt.SigningMethod, authenticator auth.Authenticator, userRepository persistence.UserRepository, authClient proto.AuthenticationServiceClient) eventbus.EventHandler {
-	fn := func(parentCtx context.Context, event domain.Event) error {
+	fn := func(parentCtx context.Context, event *domain.Event) error {
 		if !executioncontext.Has(parentCtx, executioncontext.LIVE) {
 			return nil
 		}
@@ -30,10 +29,7 @@ func WhenUserAccessTokenWasRequested(cfg *config.Config, signedMethod jwt.Signin
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		var e user.AccessTokenWasRequested
-		if err := json.Unmarshal(event.Payload, &e); err != nil {
-			return apperrors.Wrap(err)
-		}
+		e := event.Payload.(user.AccessTokenWasRequested)
 
 		u, err := userRepository.Get(ctx, e.ID.String())
 		if err != nil {

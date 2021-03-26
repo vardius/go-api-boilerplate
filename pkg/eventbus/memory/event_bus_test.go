@@ -39,7 +39,7 @@ func TestSubscribePublish(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := bus.Subscribe(ctx, "event", func(ctx context.Context, event domain.Event) error {
+	if err := bus.Subscribe(ctx, "event", func(ctx context.Context, event *domain.Event) error {
 		c <- nil
 		return nil
 	}); err != nil {
@@ -76,7 +76,7 @@ func TestUnsubscribe(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	handler := func(ctx context.Context, event domain.Event) error {
+	handler := func(ctx context.Context, event *domain.Event) error {
 		t.Fail()
 
 		return nil

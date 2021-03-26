@@ -27,7 +27,7 @@ func New(handlerTimeout time.Duration, pubsub pubsubproto.PubSubClient, log golo
 }
 
 type dto struct {
-	Event           domain.Event       `json:"event"`
+	Event           *domain.Event      `json:"event"`
 	RequestMetadata *metadata.Metadata `json:"request_metadata,omitempty"`
 }
 
@@ -82,7 +82,7 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 }
 
 // Publish sends event to every client subscribed
-func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
+func (b *eventBus) Publish(ctx context.Context, event *domain.Event) error {
 	o := dto{
 		Event: event,
 	}
@@ -108,7 +108,7 @@ func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 	return nil
 }
 
-func (b *eventBus) PublishAndAcknowledge(ctx context.Context, event domain.Event) error {
+func (b *eventBus) PublishAndAcknowledge(ctx context.Context, event *domain.Event) error {
 	panic("not implemented")
 }
 

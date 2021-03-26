@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"gopkg.in/oauth2.v4"
 
-	authdomain "github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
@@ -26,7 +25,7 @@ type Token struct {
 	id      uuid.UUID
 	userID  uuid.UUID
 	version int
-	changes []domain.Event
+	changes []*domain.Event
 }
 
 // New creates an Token
@@ -35,27 +34,17 @@ func New() Token {
 }
 
 // FromHistory loads current aggregate root state by applying all events in order
-func FromHistory(ctx context.Context, events []domain.Event) (Token, error) {
+func FromHistory(ctx context.Context, events []*domain.Event) (Token, error) {
 	t := New()
 
 	for _, domainEvent := range events {
 		var e domain.RawEvent
 
 		switch domainEvent.Type {
-		case (WasCreated{}).GetType():
-			var wasCreated WasCreated
-			if err := json.Unmarshal(domainEvent.Payload, &wasCreated); err != nil {
-				return t, apperrors.Wrap(err)
-			}
-
-			e = wasCreated
-		case (WasRemoved{}).GetType():
-			var wasRemoved WasRemoved
-			if err := json.Unmarshal(domainEvent.Payload, &wasRemoved); err != nil {
-				return t, apperrors.Wrap(err)
-			}
-
-			e = wasRemoved
+		case WasCreatedType:
+			e = domainEvent.Payload.(WasCreated)
+		case WasRemovedType:
+			e = domainEvent.Payload.(WasRemoved)
 		default:
 			return t, apperrors.Wrap(fmt.Errorf("unhandled token event %s", domainEvent.Type))
 		}
@@ -81,7 +70,7 @@ func (t Token) Version() int {
 }
 
 // Changes returns all new applied events
-func (t Token) Changes() []domain.Event {
+func (t Token) Changes() []*domain.Event {
 	return t.changes
 }
 
@@ -146,8 +135,8 @@ func (t *Token) Remove(ctx context.Context) error {
 	return nil
 }
 
-func (t *Token) trackChange(ctx context.Context, event domain.Event) (domain.Event, error) {
-	var meta authdomain.EventMetadata
+func (t *Token) trackChange(ctx context.Context, event *domain.Event) (*domain.Event, error) {
+	var meta domain.EventMetadata
 	if i, hasIdentity := identity.FromContext(ctx); hasIdentity {
 		meta.Identity = i
 	}
@@ -157,9 +146,7 @@ func (t *Token) trackChange(ctx context.Context, event domain.Event) (domain.Eve
 		meta.Referer = m.Referer
 	}
 	if !meta.IsEmpty() {
-		if err := event.WithMetadata(meta); err != nil {
-			return event, apperrors.Wrap(err)
-		}
+		event.WithMetadata(&meta)
 	}
 
 	t.changes = append(t.changes, event)

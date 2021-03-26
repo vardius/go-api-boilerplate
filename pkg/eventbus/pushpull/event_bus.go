@@ -27,7 +27,7 @@ func New(handlerTimeout time.Duration, client pushpullproto.PushPullClient, log 
 }
 
 type dto struct {
-	Event           domain.Event       `json:"event"`
+	Event           *domain.Event      `json:"event"`
 	RequestMetadata *metadata.Metadata `json:"request_metadata,omitempty"`
 }
 
@@ -84,7 +84,7 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 
 // Publish pushes event to the queue,
 // will be handled by first handler to Pull it from that queue
-func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
+func (b *eventBus) Publish(ctx context.Context, event *domain.Event) error {
 	o := dto{
 		Event: event,
 	}
@@ -110,7 +110,7 @@ func (b *eventBus) Publish(ctx context.Context, event domain.Event) error {
 	return nil
 }
 
-func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event domain.Event) error {
+func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event *domain.Event) error {
 	panic("not implemented")
 }
 

@@ -26,6 +26,11 @@ const (
 	RemoveAuthToken = "token-remove"
 )
 
+var (
+	RemoveName = (Remove{}).GetName()
+	CreateName = (Create{}).GetName()
+)
+
 // NewCommandFromPayload builds command by contract from json payload
 func NewCommandFromPayload(contract string, payload []byte) (domain.Command, error) {
 	switch contract {

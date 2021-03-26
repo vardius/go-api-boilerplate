@@ -13,10 +13,10 @@ import (
 
 type eventStore struct {
 	sync.RWMutex
-	events map[string]domain.Event
+	events map[string]*domain.Event
 }
 
-func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
+func (s *eventStore) Store(ctx context.Context, events []*domain.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -32,20 +32,20 @@ func (s *eventStore) Store(ctx context.Context, events []domain.Event) error {
 	return nil
 }
 
-func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (domain.Event, error) {
+func (s *eventStore) Get(ctx context.Context, id uuid.UUID) (*domain.Event, error) {
 	s.RLock()
 	defer s.RUnlock()
 	if val, ok := s.events[id.String()]; ok {
 		return val, nil
 	}
 
-	return domain.NullEvent, baseeventstore.ErrEventNotFound
+	return nil, baseeventstore.ErrEventNotFound
 }
 
-func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
+func (s *eventStore) FindAll(ctx context.Context) ([]*domain.Event, error) {
 	s.RLock()
 	defer s.RUnlock()
-	es := make([]domain.Event, 0, len(s.events))
+	es := make([]*domain.Event, 0, len(s.events))
 	for _, val := range s.events {
 		es = append(es, val)
 	}
@@ -55,10 +55,10 @@ func (s *eventStore) FindAll(ctx context.Context) ([]domain.Event, error) {
 	return es, nil
 }
 
-func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]domain.Event, error) {
+func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamName string) ([]*domain.Event, error) {
 	s.RLock()
 	defer s.RUnlock()
-	e := make([]domain.Event, 0, 0)
+	e := make([]*domain.Event, 0, 0)
 	for _, val := range s.events {
 		if val.StreamName == streamName && val.StreamID == streamID {
 			e = append(e, val)
@@ -70,10 +70,10 @@ func (s *eventStore) GetStream(ctx context.Context, streamID uuid.UUID, streamNa
 	return e, nil
 }
 
-func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UUID, streamName, eventType string) ([]domain.Event, error) {
+func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UUID, streamName, eventType string) ([]*domain.Event, error) {
 	s.RLock()
 	defer s.RUnlock()
-	e := make([]domain.Event, 0, 0)
+	e := make([]*domain.Event, 0, 0)
 	for _, val := range s.events {
 		if val.StreamName == streamName && val.StreamID == streamID && val.Type == eventType {
 			e = append(e, val)
@@ -88,6 +88,6 @@ func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UU
 // New creates in memory event store
 func New() baseeventstore.EventStore {
 	return &eventStore{
-		events: make(map[string]domain.Event),
+		events: make(map[string]*domain.Event),
 	}
 }

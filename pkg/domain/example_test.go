@@ -2,8 +2,6 @@ package domain_test
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
@@ -28,31 +26,10 @@ func ExampleNewEventFromRawEvent() {
 
 	fmt.Printf("%v\n", event.StreamName)
 	fmt.Printf("%v\n", event.StreamVersion)
-	fmt.Printf("%s\n", event.Payload)
+	fmt.Printf("%v\n", event.Payload)
 
 	// Output:
 	// streamName
 	// 0
-	// {"page":1,"fruits":["apple","peach"]}
-}
-
-func ExampleNewEventFromPayload() {
-	event, _ := domain.NewEventFromPayload(
-		uuid.New(),
-		"streamName",
-		0,
-		uuid.New(),
-		"type",
-		time.Now(),
-		[]byte(`{"page":1,"fruits":["apple","peach"]}`),
-	)
-
-	fmt.Printf("%v\n", event.StreamName)
-	fmt.Printf("%v\n", event.StreamVersion)
-	fmt.Printf("%s\n", event.Payload)
-
-	// Output:
-	// streamName
-	// 0
-	// {"page":1,"fruits":["apple","peach"]}
+	// {1 [apple peach]}
 }

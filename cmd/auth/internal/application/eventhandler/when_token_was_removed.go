@@ -2,8 +2,6 @@ package eventhandler
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
@@ -14,27 +12,14 @@ import (
 )
 
 // WhenTokenWasRemoved handles event
-func WhenTokenWasRemoved(db *sql.DB, repository persistence.TokenRepository) eventbus.EventHandler {
-	fn := func(parentCtx context.Context, event domain.Event) error {
+func WhenTokenWasRemoved(repository persistence.TokenRepository) eventbus.EventHandler {
+	fn := func(parentCtx context.Context, event *domain.Event) error {
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		var e token.WasRemoved
-		if err := json.Unmarshal(event.Payload, &e); err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		tx, err := db.BeginTx(ctx, nil)
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
-		defer tx.Rollback()
+		e := event.Payload.(token.WasRemoved)
 
 		if err := repository.Delete(ctx, e.ID.String()); err != nil {
-			return apperrors.Wrap(err)
-		}
-
-		if err := tx.Commit(); err != nil {
 			return apperrors.Wrap(err)
 		}
 

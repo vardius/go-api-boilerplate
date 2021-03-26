@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
 	"math/rand"
 	"net/http"
 	"time"
@@ -12,11 +13,8 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/eventhandler"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/oauth2"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	authgrpc "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/grpc"
 	authhttp "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http"
 	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
@@ -76,29 +74,10 @@ func main() {
 		container.ClientPersistenceRepository,
 	)
 
-	if err := container.CommandBus.Subscribe(ctx, (token.Create{}).GetName(), token.OnCreate(container.TokenRepository)); err != nil {
+	if err := domain.RegisterClientDomain(ctx, cfg, container); err != nil {
 		panic(err)
 	}
-	if err := container.CommandBus.Subscribe(ctx, (token.Remove{}).GetName(), token.OnRemove(container.TokenRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.CommandBus.Subscribe(ctx, (client.Create{}).GetName(), client.OnCreate(container.ClientRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.CommandBus.Subscribe(ctx, (client.Remove{}).GetName(), client.OnRemove(container.ClientRepository)); err != nil {
-		panic(err)
-	}
-
-	if err := container.EventBus.Subscribe(ctx, (token.WasCreated{}).GetType(), eventhandler.WhenTokenWasCreated(container.SQL, container.TokenPersistenceRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (token.WasRemoved{}).GetType(), eventhandler.WhenTokenWasRemoved(container.SQL, container.TokenPersistenceRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (client.WasCreated{}).GetType(), eventhandler.WhenClientWasCreated(container.SQL, container.ClientPersistenceRepository)); err != nil {
-		panic(err)
-	}
-	if err := container.EventBus.Subscribe(ctx, (client.WasRemoved{}).GetType(), eventhandler.WhenClientWasRemoved(container.SQL, container.ClientPersistenceRepository)); err != nil {
+	if err := domain.RegisterTokenDomain(ctx, cfg, container); err != nil {
 		panic(err)
 	}
 

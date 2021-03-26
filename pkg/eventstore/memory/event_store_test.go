@@ -43,7 +43,7 @@ func TestEventStore(t *testing.T) {
 	ctx := context.Background()
 	store := New()
 
-	if store.Store(ctx, []domain.Event{e1, e2}) != nil {
+	if store.Store(ctx, []*domain.Event{e1, e2}) != nil {
 		t.Fail()
 	}
 
