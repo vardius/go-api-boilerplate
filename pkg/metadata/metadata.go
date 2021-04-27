@@ -38,6 +38,9 @@ func ContextWithMetadata(ctx context.Context, m *Metadata) context.Context {
 	if ctx == nil {
 		return nil
 	}
+	if m == nil {
+		return ctx
+	}
 
 	return context.WithValue(ctx, metadataKey, m)
 }
