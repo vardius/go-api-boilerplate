@@ -35,7 +35,7 @@ func (o *DTO) ToEvent() (*domain.Event, error) {
 	if err != nil {
 		return nil, apperrors.Wrap(fmt.Errorf("failed to create raw event:%s: %w", o.Type, err))
 	}
-	if err := bson.Unmarshal(o.Payload, &rawEvent); err != nil {
+	if err := bson.Unmarshal(o.Payload, rawEvent); err != nil {
 		return nil, apperrors.Wrap(fmt.Errorf("failed to unmarshal raw event:%s: %w", o.Type, err))
 	}
 
@@ -68,16 +68,7 @@ func (o *DTO) ToEvent() (*domain.Event, error) {
 		}
 	}
 
-	return &domain.Event{
-		ID:            id,
-		StreamID:      streamID,
-		Type:          o.Type,
-		StreamName:    o.StreamName,
-		StreamVersion: o.StreamVersion,
-		OccurredAt:    o.OccurredAt,
-		ExpiresAt:     o.ExpiresAt,
-		Payload:       rawEvent,
-	}, nil
+	return event, nil
 }
 
 func NewDTOFromEvent(e *domain.Event) (*DTO, error) {

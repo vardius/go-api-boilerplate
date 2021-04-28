@@ -41,19 +41,19 @@ func FromHistory(ctx context.Context, events []*domain.Event) (User, error) {
 
 		switch domainEvent.Type {
 		case AccessTokenWasRequestedType:
-			e = domainEvent.Payload.(AccessTokenWasRequested)
+			e = domainEvent.Payload.(*AccessTokenWasRequested)
 		case EmailAddressWasChangedType:
-			e = domainEvent.Payload.(EmailAddressWasChanged)
+			e = domainEvent.Payload.(*EmailAddressWasChanged)
 		case WasRegisteredWithEmailType:
-			e = domainEvent.Payload.(WasRegisteredWithEmail)
+			e = domainEvent.Payload.(*WasRegisteredWithEmail)
 		case WasRegisteredWithFacebookType:
-			e = domainEvent.Payload.(WasRegisteredWithFacebook)
+			e = domainEvent.Payload.(*WasRegisteredWithFacebook)
 		case ConnectedWithFacebookType:
-			e = domainEvent.Payload.(ConnectedWithFacebook)
+			e = domainEvent.Payload.(*ConnectedWithFacebook)
 		case WasRegisteredWithGoogleType:
-			e = domainEvent.Payload.(WasRegisteredWithGoogle)
+			e = domainEvent.Payload.(*WasRegisteredWithGoogle)
 		case ConnectedWithGoogleType:
-			e = domainEvent.Payload.(ConnectedWithGoogle)
+			e = domainEvent.Payload.(*ConnectedWithGoogle)
 		default:
 			return u, apperrors.Wrap(fmt.Errorf("unhandled user event %s", domainEvent.Type))
 		}

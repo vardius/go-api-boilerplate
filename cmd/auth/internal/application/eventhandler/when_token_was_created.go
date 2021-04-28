@@ -17,7 +17,7 @@ func WhenTokenWasCreated(repository persistence.TokenRepository) eventbus.EventH
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(token.WasCreated)
+		e := event.Payload.(*token.WasCreated)
 
 		if err := repository.Add(ctx, e); err != nil {
 			return apperrors.Wrap(err)

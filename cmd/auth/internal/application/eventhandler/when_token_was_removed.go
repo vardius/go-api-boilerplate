@@ -17,7 +17,7 @@ func WhenTokenWasRemoved(repository persistence.TokenRepository) eventbus.EventH
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(token.WasRemoved)
+		e := event.Payload.(*token.WasRemoved)
 
 		if err := repository.Delete(ctx, e.ID.String()); err != nil {
 			return apperrors.Wrap(err)

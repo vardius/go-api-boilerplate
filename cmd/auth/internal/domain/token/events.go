@@ -29,19 +29,19 @@ func (e WasCreated) GetType() string {
 }
 
 // GetID the id
-func (e WasCreated) GetID() string {
+func (e *WasCreated) GetID() string {
 	return e.ID.String()
 }
 
-func (e WasCreated) GetUserAgent() string {
+func (e *WasCreated) GetUserAgent() string {
 	return e.UserAgent
 }
 
-func (e WasCreated) GetData() json.RawMessage {
+func (e *WasCreated) GetData() json.RawMessage {
 	return e.Data
 }
 
-func (e WasCreated) TokenInfo() (oauth2.TokenInfo, error) {
+func (e *WasCreated) TokenInfo() (oauth2.TokenInfo, error) {
 	var tm models.Token
 	if err := json.Unmarshal(e.Data, &tm); err != nil {
 		return &tm, err

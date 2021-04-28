@@ -44,6 +44,10 @@ func main() {
 	}
 	defer container.Close()
 
+	if err := domain.RegisterUserDomain(ctx, cfg, container); err != nil {
+		panic(err)
+	}
+
 	grpcServer := grpcutils.NewServer(
 		grpcutils.ServerConfig{
 			ServerMinTime: cfg.GRPC.ServerMinTime,
@@ -72,10 +76,6 @@ func main() {
 			"user": container.UserConn,
 		},
 	)
-
-	if err := domain.RegisterUserDomain(ctx, cfg, container); err != nil {
-		panic(err)
-	}
 
 	grpcUserServer := usergrpc.NewServer(container.CommandBus, container.UserPersistenceRepository)
 	userproto.RegisterUserServiceServer(grpcServer, grpcUserServer)

@@ -17,7 +17,7 @@ func WhenClientWasRemoved(repository persistence.ClientRepository) eventbus.Even
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(client.WasRemoved)
+		e := event.Payload.(*client.WasRemoved)
 
 		if err := repository.Delete(ctx, e.ID.String()); err != nil {
 			return apperrors.Wrap(err)

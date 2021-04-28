@@ -27,32 +27,32 @@ func (e WasCreated) GetType() string {
 }
 
 // GetID client id
-func (e WasCreated) GetID() string {
+func (e *WasCreated) GetID() string {
 	return e.ID.String()
 }
 
 // GetSecret client domain
-func (e WasCreated) GetSecret() string {
+func (e *WasCreated) GetSecret() string {
 	return e.Secret.String()
 }
 
 // GetDomain client domain
-func (e WasCreated) GetDomain() string {
+func (e *WasCreated) GetDomain() string {
 	return e.Domain
 }
 
 // GetUserID user id
-func (e WasCreated) GetUserID() string {
+func (e *WasCreated) GetUserID() string {
 	return e.UserID.String()
 }
 
 // GetRedirectURL user id
-func (e WasCreated) GetRedirectURL() string {
+func (e *WasCreated) GetRedirectURL() string {
 	return e.RedirectURL
 }
 
 // GetScopes user id
-func (e WasCreated) GetScopes() []string {
+func (e *WasCreated) GetScopes() []string {
 	return e.Scopes
 }
 

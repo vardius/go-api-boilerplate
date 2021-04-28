@@ -42,9 +42,9 @@ func FromHistory(ctx context.Context, events []*domain.Event) (Token, error) {
 
 		switch domainEvent.Type {
 		case WasCreatedType:
-			e = domainEvent.Payload.(WasCreated)
+			e = domainEvent.Payload.(*WasCreated)
 		case WasRemovedType:
-			e = domainEvent.Payload.(WasRemoved)
+			e = domainEvent.Payload.(*WasRemoved)
 		default:
 			return t, apperrors.Wrap(fmt.Errorf("unhandled token event %s", domainEvent.Type))
 		}

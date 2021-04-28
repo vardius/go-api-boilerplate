@@ -5,15 +5,10 @@ import (
 	"sync"
 )
 
-// RawEvent represents raw event that it is aware of its type
-type RawEvent interface {
-	GetType() string
-}
-
-var eventFactories = make(map[string]func() RawEvent)
+var eventFactories = make(map[string]func() interface{})
 var eventFactoriesMtx sync.RWMutex
 
-func RegisterEventFactory(eventType string, factory func() RawEvent) error {
+func RegisterEventFactory(eventType string, factory func() interface{}) error {
 	if eventType == "" {
 		return fmt.Errorf("invalid event type")
 	}
@@ -43,7 +38,7 @@ func UnregisterEventData(eventType string) error {
 	return nil
 }
 
-func NewRawEvent(eventType string) (RawEvent, error) {
+func NewRawEvent(eventType string) (interface{}, error) {
 	eventFactoriesMtx.RLock()
 	defer eventFactoriesMtx.RUnlock()
 	if factory, ok := eventFactories[eventType]; ok {

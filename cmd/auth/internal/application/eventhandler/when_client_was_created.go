@@ -17,7 +17,7 @@ func WhenClientWasCreated(repository persistence.ClientRepository) eventbus.Even
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(client.WasCreated)
+		e := event.Payload.(*client.WasCreated)
 
 		if err := repository.Add(ctx, e); err != nil {
 			return apperrors.Wrap(err)

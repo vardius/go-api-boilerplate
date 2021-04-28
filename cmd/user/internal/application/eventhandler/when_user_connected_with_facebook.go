@@ -19,7 +19,7 @@ func WhenUserConnectedWithFacebook(repository persistence.UserRepository, cb com
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(user.ConnectedWithFacebook)
+		e := event.Payload.(*user.ConnectedWithFacebook)
 
 		if err := repository.UpdateFacebookID(ctx, e.ID.String(), e.FacebookID); err != nil {
 			return apperrors.Wrap(err)

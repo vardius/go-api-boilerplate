@@ -12,10 +12,10 @@ import (
 )
 
 func RegisterTokenDomain(ctx context.Context, cfg *config.Config, container *services.ServiceContainer) error {
-	if err := domain.RegisterEventFactory(token.WasCreatedType, func() domain.RawEvent { return token.WasCreated{} }); err != nil {
+	if err := domain.RegisterEventFactory(token.WasCreatedType, func() interface{} { return token.WasCreated{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
-	if err := domain.RegisterEventFactory(token.WasRemovedType, func() domain.RawEvent { return token.WasRemoved{} }); err != nil {
+	if err := domain.RegisterEventFactory(token.WasRemovedType, func() interface{} { return token.WasRemoved{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
 
@@ -36,10 +36,10 @@ func RegisterTokenDomain(ctx context.Context, cfg *config.Config, container *ser
 }
 
 func RegisterClientDomain(ctx context.Context, cfg *config.Config, container *services.ServiceContainer) error {
-	if err := domain.RegisterEventFactory(client.WasCreatedType, func() domain.RawEvent { return client.WasCreated{} }); err != nil {
+	if err := domain.RegisterEventFactory(client.WasCreatedType, func() interface{} { return client.WasCreated{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
-	if err := domain.RegisterEventFactory(client.WasRemovedType, func() domain.RawEvent { return client.WasRemoved{} }); err != nil {
+	if err := domain.RegisterEventFactory(client.WasRemovedType, func() interface{} { return client.WasRemoved{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
 

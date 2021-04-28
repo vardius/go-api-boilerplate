@@ -19,7 +19,7 @@ func WhenUserWasRegisteredWithFacebook(repository persistence.UserRepository, cb
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(user.WasRegisteredWithFacebook)
+		e := event.Payload.(*user.WasRegisteredWithFacebook)
 
 		if err := repository.Add(ctx, e); err != nil {
 			return apperrors.Wrap(err)

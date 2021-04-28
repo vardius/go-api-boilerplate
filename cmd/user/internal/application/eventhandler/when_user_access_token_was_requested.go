@@ -29,7 +29,7 @@ func WhenUserAccessTokenWasRequested(cfg *config.Config, signedMethod jwt.Signin
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(user.AccessTokenWasRequested)
+		e := event.Payload.(*user.AccessTokenWasRequested)
 
 		u, err := userRepository.Get(ctx, e.ID.String())
 		if err != nil {

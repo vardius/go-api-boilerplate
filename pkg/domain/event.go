@@ -7,6 +7,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type RawEvent interface {
+	GetType() string
+}
+
 // Event contains id, payload and metadata
 type Event struct {
 	ID            uuid.UUID      `json:"id"`
@@ -16,7 +20,7 @@ type Event struct {
 	StreamVersion int            `json:"stream_version"`
 	OccurredAt    time.Time      `json:"occurred_at"`
 	ExpiresAt     *time.Time     `json:"expires_at,omitempty"`
-	Payload       RawEvent       `json:"payload,omitempty"`
+	Payload       interface{}    `json:"payload,omitempty"`
 	Metadata      *EventMetadata `json:"metadata,omitempty"`
 }
 

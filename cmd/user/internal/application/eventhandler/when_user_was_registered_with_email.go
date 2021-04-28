@@ -19,7 +19,7 @@ func WhenUserWasRegisteredWithEmail(repository persistence.UserRepository, cb co
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(user.WasRegisteredWithEmail)
+		e := event.Payload.(*user.WasRegisteredWithEmail)
 
 		if err := repository.Add(ctx, e); err != nil {
 			return apperrors.Wrap(err)

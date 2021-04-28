@@ -54,27 +54,27 @@ func (e WasRegisteredWithEmail) GetType() string {
 }
 
 // GetID the id
-func (e WasRegisteredWithEmail) GetID() string {
+func (e *WasRegisteredWithEmail) GetID() string {
 	return e.ID.String()
 }
 
 // GetEmail the email
-func (e WasRegisteredWithEmail) GetEmail() string {
+func (e *WasRegisteredWithEmail) GetEmail() string {
 	return e.Email.String()
 }
 
 // GetFacebookID facebook id
-func (e WasRegisteredWithEmail) GetFacebookID() string {
+func (e *WasRegisteredWithEmail) GetFacebookID() string {
 	return ""
 }
 
 // GetGoogleID google id
-func (e WasRegisteredWithEmail) GetGoogleID() string {
+func (e *WasRegisteredWithEmail) GetGoogleID() string {
 	return ""
 }
 
 // GetRole
-func (e WasRegisteredWithEmail) GetRole() access.Role {
+func (e *WasRegisteredWithEmail) GetRole() access.Role {
 	return access.RoleUser
 }
 
@@ -93,27 +93,27 @@ func (e WasRegisteredWithFacebook) GetType() string {
 }
 
 // GetID the id
-func (e WasRegisteredWithFacebook) GetID() string {
+func (e *WasRegisteredWithFacebook) GetID() string {
 	return e.ID.String()
 }
 
 // GetEmail the email
-func (e WasRegisteredWithFacebook) GetEmail() string {
+func (e *WasRegisteredWithFacebook) GetEmail() string {
 	return e.Email.String()
 }
 
 // GetFacebookID facebook id
-func (e WasRegisteredWithFacebook) GetFacebookID() string {
+func (e *WasRegisteredWithFacebook) GetFacebookID() string {
 	return e.FacebookID
 }
 
 // GetGoogleID google id
-func (e WasRegisteredWithFacebook) GetGoogleID() string {
+func (e *WasRegisteredWithFacebook) GetGoogleID() string {
 	return ""
 }
 
 // GetRole
-func (e WasRegisteredWithFacebook) GetRole() access.Role {
+func (e *WasRegisteredWithFacebook) GetRole() access.Role {
 	return access.RoleUser
 }
 
@@ -145,27 +145,27 @@ func (e WasRegisteredWithGoogle) GetType() string {
 }
 
 // GetID the id
-func (e WasRegisteredWithGoogle) GetID() string {
+func (e *WasRegisteredWithGoogle) GetID() string {
 	return e.ID.String()
 }
 
 // GetEmail the email
-func (e WasRegisteredWithGoogle) GetEmail() string {
+func (e *WasRegisteredWithGoogle) GetEmail() string {
 	return e.Email.String()
 }
 
 // GetFacebookID facebook id
-func (e WasRegisteredWithGoogle) GetFacebookID() string {
+func (e *WasRegisteredWithGoogle) GetFacebookID() string {
 	return ""
 }
 
 // GetGoogleID google id
-func (e WasRegisteredWithGoogle) GetGoogleID() string {
+func (e *WasRegisteredWithGoogle) GetGoogleID() string {
 	return e.GoogleID
 }
 
 // GetRole
-func (e WasRegisteredWithGoogle) GetRole() access.Role {
+func (e *WasRegisteredWithGoogle) GetRole() access.Role {
 	return access.RoleUser
 }
 

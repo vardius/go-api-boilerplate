@@ -17,7 +17,7 @@ func WhenUserEmailAddressWasChanged(repository persistence.UserRepository) event
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(user.EmailAddressWasChanged)
+		e := event.Payload.(*user.EmailAddressWasChanged)
 
 		if err := repository.UpdateEmail(ctx, e.ID.String(), string(e.Email)); err != nil {
 			return apperrors.Wrap(err)

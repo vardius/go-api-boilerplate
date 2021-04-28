@@ -19,7 +19,7 @@ func WhenUserConnectedWithGoogle(repository persistence.UserRepository, cb comma
 		ctx, cancel := context.WithTimeout(parentCtx, time.Second*120)
 		defer cancel()
 
-		e := event.Payload.(user.ConnectedWithGoogle)
+		e := event.Payload.(*user.ConnectedWithGoogle)
 
 		if err := repository.UpdateGoogleID(ctx, e.ID.String(), e.GoogleID); err != nil {
 			return apperrors.Wrap(err)

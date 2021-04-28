@@ -45,6 +45,13 @@ func main() {
 	}
 	defer container.Close()
 
+	if err := domain.RegisterClientDomain(ctx, cfg, container); err != nil {
+		panic(err)
+	}
+	if err := domain.RegisterTokenDomain(ctx, cfg, container); err != nil {
+		panic(err)
+	}
+
 	grpcServer := grpcutils.NewServer(
 		grpcutils.ServerConfig{
 			ServerMinTime: cfg.GRPC.ServerMinTime,
@@ -73,13 +80,6 @@ func main() {
 		container.TokenPersistenceRepository,
 		container.ClientPersistenceRepository,
 	)
-
-	if err := domain.RegisterClientDomain(ctx, cfg, container); err != nil {
-		panic(err)
-	}
-	if err := domain.RegisterTokenDomain(ctx, cfg, container); err != nil {
-		panic(err)
-	}
 
 	authproto.RegisterAuthenticationServiceServer(grpcServer, grpcAuthServer)
 

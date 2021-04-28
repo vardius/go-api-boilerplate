@@ -264,13 +264,18 @@ func (s *eventStore) GetStreamEventsByType(ctx context.Context, streamID uuid.UU
 func getRawEvent(eventType string, data json.RawMessage) (domain.RawEvent, error) {
 	rawEvent, err := domain.NewRawEvent(eventType)
 	if err != nil {
-		return nil, apperrors.Wrap(fmt.Errorf("failed to create raw event:%s: %w", eventType, err))
+		return nil, apperrors.Wrap(fmt.Errorf("failed to create raw event: %s: %w", eventType, err))
 	}
 	if err := json.Unmarshal(data, &rawEvent); err != nil {
-		return nil, apperrors.Wrap(fmt.Errorf("failed to unmarshal raw event:%s: %w", eventType, err))
+		return nil, apperrors.Wrap(fmt.Errorf("failed to unmarshal raw event: %s: %w", eventType, err))
 	}
 
-	return rawEvent, nil
+	e, ok := rawEvent.(domain.RawEvent)
+	if !ok {
+		return nil, apperrors.Wrap(fmt.Errorf("aw event does not implement domain.RawEvent: %s: %w", eventType, err))
+	}
+
+	return e, nil
 }
 
 func getEventMetadata(data json.RawMessage) (*domain.EventMetadata, error) {

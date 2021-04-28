@@ -34,14 +34,9 @@ const AuthContextProvider = (props: Props) => {
 
   const setAuthToken = useCallback(
     (token: AuthToken) => {
-      if (!token) {
-        return
-      }
-
-      if (token === "none") {
+      if (!token || token === "none") {
         removeAuthToken();
       } else if (token && token.length > 0) {
-
         setCookie(AUTH_TOKEN_COOKIE, authToken, cookieOptions);
       }
 
@@ -55,7 +50,9 @@ const AuthContextProvider = (props: Props) => {
   );
 
   useEffect(() => {
-    setAuthToken(authToken);
+    if (authToken) {
+      setAuthToken(authToken);
+    }
   }, [authToken, setAuthToken]);
 
   return (
