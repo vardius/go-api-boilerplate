@@ -122,7 +122,7 @@ v1.0.0+web
 v1.0.0+migrate
 ```
 
-Replace image details in [main.yaml](helm/app/values.yaml)
+Replace image details in [main.yaml](cmd/user/main.yaml)
 ```diff
   image:
 -    repository: go-api-boilerplate-user
