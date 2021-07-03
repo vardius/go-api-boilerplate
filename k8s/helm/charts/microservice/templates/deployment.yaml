@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "microservice.fullname" $ }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "microservice.chart" $ }}
+    app.kubernetes.io/name: {{ include "microservice.name" $ }}
+    app.kubernetes.io/instance: {{ include "microservice.fullname" $ }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/part-of: {{ $.Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "microservice.name" $ }}
+      app.kubernetes.io/part-of: {{ $.Release.Name }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "microservice.name" $ }}
+        app.kubernetes.io/part-of: {{ $.Release.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{.Values.imagePullSecrets }}
+      {{- end }}
+      {{- if .Values.persistence }}
+      volumes:
+        {{- range .Values.persistence }}
+        - name: {{ .storageClass }}
+          persistentVolumeClaim:
+            claimName: {{ .claim }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ include "microservice.fullname" $ }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.service.ports }}
+          ports:
+            {{- range .Values.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .internalPort }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if ( or .Values.envFromSecretRefs .Values.envFromConfigMapRefs ) }}
+          envFrom:
+            {{- range .Values.envFromSecretRefs }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+            {{- range .Values.envFromConfigMapRefs }}
+            - configMapRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.env }}
+          env:
+            {{ toYaml .Values.env | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readiness }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.liveness }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- range .Values.initContainers }}
+        - name: {{ .name }}
+          image: "{{ .image.repository }}:{{ .image.tag }}"
+          imagePullPolicy: {{ .image.pullPolicy }}
+          command:
+            {{- toYaml .command | nindent 12 }}
+          args:
+            {{- toYaml .args | nindent 12 }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+            {{- range .volumeMounts }}
+            - name: {{ .storageClass }}
+              mountPath: {{ .mountPath }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

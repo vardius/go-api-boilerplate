@@ -1,0 +1,23 @@
+image:
+  repository: go-api-boilerplate-user
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  ports:
+    - name: http
+      internalPort: 3000
+      externalPort: 3000
+    - name: grpc
+      internalPort: 3001
+      externalPort: 3001
+readiness:
+  initialDelaySeconds: 20
+  timeoutSeconds: 5
+  httpGet:
+    path: /readiness
+    port: 3000
+liveness:
+  initialDelaySeconds: 20
+  httpGet:
+    path: /health
+    port: 3000

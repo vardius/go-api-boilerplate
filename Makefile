@@ -61,22 +61,15 @@ docker-tag-version:
 
 docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
 
-helm-install: ## [HELM] Deploy the Helm chart for application. Example: `make helm-install`
-	kubectl create namespace go-api-boilerplate \
-	&& helm install go-api-boilerplate helm/app/ --namespace go-api-boilerplate
+# TERRAFORM TASKS
+terraform-install: ## [TERRAFORM] Install terraform deployment to your kubernetes cluster. Example: `make terraform-install`
+	kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.3.1/cert-manager.crds.yaml \
+	terraform init \
+	terraform apply \
+  terraform output -raw templates | kubectl apply -f -
 
-helm-upgrade: ## [HELM] Update the Helm chart for application. Example: `make helm-upgrade`
-	helm upgrade go-api-boilerplate helm/app/ --namespace go-api-boilerplate
-
-helm-history: ## [HELM] See what revisions have been made to the application's helm chart. Example: `make helm-history`
-	helm history go-api-boilerplate --namespace go-api-boilerplate
-
-helm-dependencies: ## [HELM] Update helm chart's dependencies for application. Example: `make helm-dependencies`
-	cd helm/app/ && helm dependency update
-
-helm-delete: ## [HELM] Delete helm chart for application. Example: `make helm-delete`
-	helm uninstall go-api-boilerplate --namespace go-api-boilerplate \
-	&& kubectl delete namespace go-api-boilerplate
+terraform-destroy: ## [TERRAFORM] Remove deployment kubernetes cluster. Example: `make terraform-destroy`
+	terraform destroy
 
 # TELEPRESENCE TASKS
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`

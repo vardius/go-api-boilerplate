@@ -60,12 +60,13 @@ Once deployed and hosts are set please visit [https://api.go-api-boilerplate.loc
 2. [Docker](https://www.docker.com/what-docker)
 3. [Kubernetes](https://kubernetes.io/)
 4. [Helm chart](https://helm.sh/)
-5. [gRPC](https://grpc.io/docs/)
-6. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design)  (DDD)
-7. [CQRS](https://martinfowler.com/bliki/CQRS.html)
-8. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
-9. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
-10. [oAuth2](https://github.com/go-oauth2/oauth2)
+5. [Terraform](https://terraform.io/)
+6. [gRPC](https://grpc.io/docs/)
+7. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design) (DDD)
+8. [CQRS](https://martinfowler.com/bliki/CQRS.html)
+9. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
+10. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
+11. [oAuth2](https://github.com/go-oauth2/oauth2)
 
 Worth getting to know packages used in this boilerplate:
 1. [gorouter](https://github.com/vardius/gorouter)
@@ -75,7 +76,6 @@ Worth getting to know packages used in this boilerplate:
 5. [pubsub](https://github.com/vardius/pubsub)
 6. [pushpull](https://github.com/vardius/pushpull)
 7. [gocontainer](https://github.com/vardius/gocontainer)
-8. [ardanlabs/service](https://github.com/ardanlabs/service)
 
 📚 DOCUMENTATION
 ==================================================
@@ -94,12 +94,12 @@ Worth getting to know packages used in this boilerplate:
 ### Localhost alias
 Edit `/etc/hosts` to add localhost alias
 ```bash
-➜  go-api-boilerplate git:(master) cat /etc/hosts
+➜ go-api-boilerplate git:(master) cat /etc/hosts
 ##
 # Host Database
 #
 # localhost is used to configure the loopback interface
-# when the system is booting.  Do not change this entry.
+# when the system is booting. Do not change this entry.
 ##
 127.0.0.1 go-api-boilerplate.local api.go-api-boilerplate.local maildev.go-api-boilerplate.local mysql.go-api-boilerplate.local
 ```
@@ -123,29 +123,26 @@ v1.0.0+web
 v1.0.0+migrate
 ```
 
-Replace image details in [values.yaml](helm/app/values.yaml)
+Replace image details in [main.yaml](helm/app/values.yaml)
 ```diff
   image:
 -    repository: go-api-boilerplate-user
-+    repository: docker.pkg.github.com/vardius/go-api-boilerplate/user
++    repository: docker.pkg.github.com/vardius/go-api-boilerplate/go-api-boilerplate-user
 -    tag: latest
 +    tag: 1.0.0
     pullPolicy: IfNotPresent
 ```
 repeat for all services and `migrate` init containers.
 #### Private Registry
-If you want your k8sto [Pull an Image from a Private Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) on your k8 machine login to docker:
-```sh
+[Log in to Docker](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#log-in-to-docker)
+```shell
 docker login
 ```
-Then create a secret in `go-api-boilerplate` namespace as follows:
-```sh
-kubectl create secret generic regcred --from-file=.dockerconfigjson=.docker/config.json --type=kubernetes.io/dockerconfigjson --namespace=go-api-boilerplate
+Copy docker config
+```shell
+cp ~/.docker/config.json ./k8s/.docker/config.json
 ```
-Set `imagePullSecrets` in your [values.yaml](helm/app/values.yaml) file (simply look for all occurrences and uncomment).
-```diff
-+  imagePullSecrets: regcred
-```
+Verify [config.json](k8s/.docker/config.json)
 ### Install [Cert Manager](https://github.com/vardius/go-api-boilerplate/wiki/3.3.-Cert-manager)
 ```sh
 helm repo add jetstack https://charts.jetstack.io
@@ -154,12 +151,26 @@ helm repo update
 make helm-dependencies
 ```
 ### Deploy release
-```sh
-make helm-install
+```shell
+make terraform-install
 ```
+#### Destroy
+```shell
+make terraform-destroy
+```
+If persistent volume is stack in terminating, this happens when persistent volume is protected. You should be able to cross verify this:
+```shell
+kubectl describe pvc PVC_NAME --namespace=go-api-boilerplate | grep Finalizers
 
+Output:
+Finalizers:    [kubernetes.io/pvc-protection]
+```
+You can fix this by setting finalizers to null using kubectl patch:
+```shell
+kubectl patch pvc PVC_NAME --namespace=go-api-boilerplate -p '{"metadata":{"finalizers": []}}' --type=merge
+```
 ## Build tags
-Build flags are used for different persistence layers. Please see `servvices.go` file for details. Provided layers are `mysql`, `mongo` and `memory`.
+Build flags are used for different persistence layers. Please see `services.go` file for details. Provided layers are `mysql`, `mongo` and `memory`.
 If desired in similar way new layer can be easily added, following given patter.
 
 ```shell
