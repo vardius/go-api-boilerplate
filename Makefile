@@ -63,13 +63,15 @@ docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, 
 
 # TERRAFORM TASKS
 terraform-install: ## [TERRAFORM] Install terraform deployment to your kubernetes cluster. Example: `make terraform-install`
-	kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.3.1/cert-manager.crds.yaml \
+	cd k8s \
+  kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.3.1/cert-manager.crds.yaml \
 	terraform init \
 	terraform apply \
   terraform output -raw templates | kubectl apply -f -
 
 terraform-destroy: ## [TERRAFORM] Remove deployment kubernetes cluster. Example: `make terraform-destroy`
-	terraform destroy
+	cd k8s \
+  terraform destroy
 
 # TELEPRESENCE TASKS
 telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`

@@ -26,7 +26,6 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
         - [Local image](#local-image)
         - [GitHub Package Registry](#github-package-registry)
         - [Private Registry](#private-registry)
-    - [Install Cert Manager](#install-cert-manager)
     - [Deploy release](#build-release)
   - [Dashboard](#dashboard)
   - [Domain](#domain)
@@ -143,13 +142,6 @@ Copy docker config
 cp ~/.docker/config.json ./k8s/.docker/config.json
 ```
 Verify [config.json](k8s/.docker/config.json)
-### Install [Cert Manager](https://github.com/vardius/go-api-boilerplate/wiki/3.3.-Cert-manager)
-```sh
-helm repo add jetstack https://charts.jetstack.io
-helm repo update
-
-make helm-dependencies
-```
 ### Deploy release
 ```shell
 make terraform-install
