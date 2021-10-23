@@ -10,7 +10,6 @@ import (
 	"fmt"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
@@ -81,7 +80,7 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 	err := row.Scan(&user.ID, &user.Email, &user.Role, &user.FacebookID, &user.GoogleID)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", apperrors.ErrNotFound, err))
 	case err != nil:
 		return nil, apperrors.Wrap(err)
 	default:
@@ -97,7 +96,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (persiste
 	err := row.Scan(&user.ID, &user.Email, &user.Role, &user.FacebookID, &user.GoogleID)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", apperrors.ErrNotFound, err))
 	case err != nil:
 		return nil, apperrors.Wrap(err)
 	default:
@@ -113,7 +112,7 @@ func (r *userRepository) GetByFacebookID(ctx context.Context, facebookID string)
 	err := row.Scan(&user.ID, &user.Email, &user.Role, &user.FacebookID, &user.GoogleID)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", apperrors.ErrNotFound, err))
 	case err != nil:
 		return nil, apperrors.Wrap(err)
 	default:
@@ -129,7 +128,7 @@ func (r *userRepository) GetByGoogleID(ctx context.Context, googleID string) (pe
 	err := row.Scan(&user.ID, &user.Email, &user.Role, &user.FacebookID, &user.GoogleID)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", application.ErrNotFound, err))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: %s", apperrors.ErrNotFound, err))
 	case err != nil:
 		return nil, apperrors.Wrap(err)
 	default:

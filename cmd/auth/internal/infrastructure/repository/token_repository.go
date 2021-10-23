@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
@@ -43,7 +42,7 @@ func (r *tokenRepository) Get(ctx context.Context, id uuid.UUID) (token.Token, e
 	}
 
 	if len(events) == 0 {
-		return token.Token{}, application.ErrNotFound
+		return token.Token{}, apperrors.ErrNotFound
 	}
 
 	return token.FromHistory(ctx, events)

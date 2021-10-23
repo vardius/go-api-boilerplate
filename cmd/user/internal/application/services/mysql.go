@@ -1,9 +1,11 @@
+//go:build persistence_mysql
 // +build persistence_mysql
 
 package services
 
 import (
 	"context"
+
 	_ "github.com/go-sql-driver/mysql"
 	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
@@ -15,7 +17,6 @@ import (
 	memoryeventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	mysqleventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
@@ -24,8 +25,7 @@ func init() {
 }
 
 func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
-	logger := log.New(cfg.App.Environment)
-	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
+	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize)
 	sqlConn := mysql.NewConnection(
 		ctx,
 		mysql.ConnectionConfig{
@@ -38,7 +38,6 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 			MaxIdleConns:    cfg.MYSQL.MaxIdleConns,
 			MaxOpenConns:    cfg.MYSQL.MaxOpenConns,
 		},
-		logger,
 	)
 	grpcUserConn := grpcutils.NewConnection(
 		ctx,
@@ -48,7 +47,6 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 			ConnTime:    cfg.GRPC.ConnTime,
 			ConnTimeout: cfg.GRPC.ConnTimeout,
 		},
-		logger,
 	)
 	grpcAuthConn := grpcutils.NewConnection(
 		ctx,
@@ -58,13 +56,12 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 			ConnTime:    cfg.GRPC.ConnTime,
 			ConnTimeout: cfg.GRPC.ConnTimeout,
 		},
-		logger,
 	)
 	eventStore, err := mysqleventstore.New(ctx, "user_events", sqlConn)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
-	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize, logger)
+	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize)
 	userPersistenceRepository, err := persistence.NewUserRepository(ctx, sqlConn)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
@@ -76,7 +73,6 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, authenticator)
 
 	return &ServiceContainer{
-		Logger:                    logger,
 		SQL:                       sqlConn,
 		CommandBus:                commandBus,
 		UserConn:                  grpcUserConn,

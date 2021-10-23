@@ -6,27 +6,33 @@ import (
 	"strings"
 
 	"github.com/vardius/trace"
-	"golang.org/x/xerrors"
-
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 )
 
-var DefaultSeparator = "\n"
+// Application errors
+var (
+	ErrInvalid           = errors.New("validation failed")
+	ErrUnauthorized      = errors.New("access denied")
+	ErrForbidden         = errors.New("forbidden")
+	ErrNotFound          = errors.New("not found")
+	ErrInternal          = errors.New("internal system error")
+	ErrTemporaryDisabled = errors.New("temporary disabled")
+	ErrTimeout           = errors.New("timeout")
+)
 
 // New returns new app error that formats as the given text.
-func New(message string) error {
+func New(message string) *AppError {
 	return newAppError(errors.New(message))
 }
 
 // Wrap returns new app error wrapping target error.
 // If passed value is nil will fallback to internal
-func Wrap(err error) error {
+func Wrap(err error) *AppError {
 	return newAppError(err)
 }
 
-func newAppError(err error) error {
+func newAppError(err error) *AppError {
 	if err == nil {
-		err = application.ErrInternal
+		err = ErrInternal
 	}
 
 	return &AppError{
@@ -42,11 +48,7 @@ type AppError struct {
 
 // Error returns the string representation of the error message.
 func (e *AppError) Error() string {
-	messages := e.messages()
-	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
-		messages[i], messages[j] = messages[j], messages[i]
-	}
-	return strings.Join(messages, DefaultSeparator)
+	return e.err.Error()
 }
 
 func (e *AppError) Unwrap() error {
@@ -54,43 +56,19 @@ func (e *AppError) Unwrap() error {
 }
 
 // StackTrace returns the string slice of the error stack traces
-func (e *AppError) StackTrace() []string {
+func (e *AppError) StackTrace() string {
 	var stack []string
 
 	if e.trace != "" {
 		stack = append(stack, e.trace)
 	}
 
-	if e.err == nil {
-		return stack
-	}
-
-	var next *AppError
-	if errors.As(e.err, &next) {
-		return append(stack, next.StackTrace()...)
-	}
-
-	return stack
-}
-
-// messages returns the string slice of the error messages
-func (e *AppError) messages() []string {
-	var messages []string
-
-	var err error = e
-	for {
-		if v, ok := err.(*AppError); ok {
-			if v.trace != "" {
-				messages = append(messages, v.trace)
-			}
-		} else {
-			return append(messages, err.Error())
+	if e.err != nil {
+		var next *AppError
+		if errors.As(e.err, &next) {
+			stack = append(stack, next.StackTrace())
 		}
-
-		u, ok := err.(xerrors.Wrapper)
-		if !ok {
-			return messages
-		}
-		err = u.Unwrap()
 	}
+
+	return strings.Join(stack, "\n")
 }

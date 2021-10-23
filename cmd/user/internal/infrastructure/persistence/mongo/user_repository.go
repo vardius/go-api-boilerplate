@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -65,7 +64,7 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 	var result User
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}
@@ -81,7 +80,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (persiste
 	var result User
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}
@@ -97,7 +96,7 @@ func (r *userRepository) GetByFacebookID(ctx context.Context, facebookID string)
 	var result User
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}
@@ -113,7 +112,7 @@ func (r *userRepository) GetByGoogleID(ctx context.Context, googleID string) (pe
 	var result User
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}
@@ -149,7 +148,7 @@ func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) erro
 
 	if err := r.collection.FindOneAndUpdate(ctx, filter, update, opt).Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return apperrors.Wrap(err)
 	}
@@ -170,7 +169,7 @@ func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID st
 
 	if err := r.collection.FindOneAndUpdate(ctx, filter, update, opt).Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return apperrors.Wrap(err)
 	}
@@ -191,7 +190,7 @@ func (r *userRepository) UpdateGoogleID(ctx context.Context, id, googleID string
 
 	if err := r.collection.FindOneAndUpdate(ctx, filter, update, opt).Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return apperrors.Wrap(err)
 	}

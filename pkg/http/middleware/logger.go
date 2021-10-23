@@ -1,26 +1,26 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/vardius/golog"
-	"github.com/vardius/gorouter/v4"
-
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
 	mtd "github.com/vardius/go-api-boilerplate/pkg/metadata"
+	"github.com/vardius/gorouter/v4"
 )
 
 // Logger wraps http.Handler with a logger middleware
-func Logger(logger golog.Logger) gorouter.MiddlewareFunc {
+func Logger() gorouter.MiddlewareFunc {
 	m := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			now := time.Now()
 
-			logger.Info(r.Context(), "[HTTP] Start: %s %s -> %s",
+			logger.Info(r.Context(), fmt.Sprintf("[HTTP] Start: %s %s -> %s",
 				r.Method,
 				r.URL.Path,
 				r.RemoteAddr,
-			)
+			))
 
 			next.ServeHTTP(w, r)
 
@@ -43,13 +43,13 @@ func Logger(logger golog.Logger) gorouter.MiddlewareFunc {
 			}
 
 			if stackTrace == "" {
-				logger.Info(r.Context(), "[HTTP] End: %s %s -> %s [%d] (%s)", args...)
+				logger.Info(r.Context(), fmt.Sprintf("[HTTP] End: %s %s -> %s [%d] (%s)", args...))
 			} else if statusCode != http.StatusInternalServerError {
 				args = append(args, stackTrace)
-				logger.Debug(r.Context(), "[HTTP] End: %s %s -> %s [%d] (%s): %s", args...)
+				logger.Debug(r.Context(), fmt.Sprintf("[HTTP] End: %s %s -> %s [%d] (%s): %s", args...))
 			} else {
 				args = append(args, stackTrace)
-				logger.Error(r.Context(), "[HTTP] End: %s %s -> %s [%d] (%s): %s", args...)
+				logger.Error(r.Context(), fmt.Sprintf("[HTTP] End: %s %s -> %s [%d] (%s): %s", args...))
 			}
 		}
 

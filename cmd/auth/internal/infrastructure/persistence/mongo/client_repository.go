@@ -11,7 +11,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
@@ -57,7 +56,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 	var result Client
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}

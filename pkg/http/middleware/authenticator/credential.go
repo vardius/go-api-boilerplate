@@ -2,9 +2,8 @@ package authenticator
 
 import (
 	"fmt"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
 	"net/http"
-
-	"github.com/vardius/golog"
 
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
@@ -18,14 +17,14 @@ type CredentialsAuthFunc func(username, password string) (identity.Identity, err
 type CredentialsAuthenticator interface {
 	// FromBasicAuth authorize by the username and password provided in the request's
 	// Authorization header, if the request uses HTTP Basic Authentication.
-	FromBasicAuth(name string, logger golog.Logger) func(next http.Handler) http.Handler
+	FromBasicAuth(name string) func(next http.Handler) http.Handler
 }
 
 type credentialsAuth struct {
 	afn CredentialsAuthFunc
 }
 
-func (a *credentialsAuth) FromBasicAuth(realm string, logger golog.Logger) func(next http.Handler) http.Handler {
+func (a *credentialsAuth) FromBasicAuth(realm string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			username, password, hasAuth := r.BasicAuth()
@@ -34,7 +33,7 @@ func (a *credentialsAuth) FromBasicAuth(realm string, logger golog.Logger) func(
 				if err != nil {
 					w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, realm))
 
-					logger.Warning(r.Context(), "[HTTP] failed to authenticate from basic auth: %v", apperrors.Wrap(err))
+					logger.Warning(r.Context(), fmt.Sprintf("[HTTP] failed to authenticate from basic auth: %v", apperrors.Wrap(err)))
 				}
 
 				next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), &i)))

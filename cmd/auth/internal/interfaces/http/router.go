@@ -2,14 +2,8 @@ package http
 
 import (
 	"database/sql"
-	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 	"time"
-
-	"github.com/vardius/golog"
-	"github.com/vardius/gorouter/v4"
-	"google.golang.org/grpc"
-	"gopkg.in/oauth2.v4/server"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
@@ -20,12 +14,15 @@ import (
 	httpauthenticator "github.com/vardius/go-api-boilerplate/pkg/http/middleware/authenticator"
 	"github.com/vardius/go-api-boilerplate/pkg/http/response/json"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/gorouter/v4"
+	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc"
+	"gopkg.in/oauth2.v4/server"
 )
 
 // NewRouter provides new router
 func NewRouter(
 	cfg *config.Config,
-	logger golog.Logger,
 	tokenAuthorizer auth.TokenAuthorizer,
 	server *server.Server,
 	commandBus commandbus.CommandBus,
@@ -38,21 +35,21 @@ func NewRouter(
 
 	// Global middleware
 	router := gorouter.New(
-		httpmiddleware.Recover(logger),
+		httpmiddleware.Recover(),
 		httpmiddleware.WithMetadata(),
-		httpmiddleware.Logger(logger),
+		httpmiddleware.Logger(),
 		httpmiddleware.XSS(),
 		httpmiddleware.HSTS(),
-		authenticator.FromHeader("Restricted", logger),
-		authenticator.FromQuery("authToken", logger),
-		authenticator.FromCookie("at", logger),
+		authenticator.FromHeader("Restricted"),
+		authenticator.FromQuery("authToken"),
+		authenticator.FromCookie("at"),
 		httpmiddleware.CORS(
 			cfg.HTTP.Origins,
 			cfg.App.Environment == "development",
 		),
 		httpmiddleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 		httpmiddleware.Metrics(),
-		httpmiddleware.RateLimit(logger, 10, 10, 3*time.Minute), // 5 of requests per second with bursts of at most 10 requests
+		httpmiddleware.RateLimit(10, 10, 3*time.Minute), // 5 of requests per second with bursts of at most 10 requests
 	)
 	router.NotFound(json.NotFound())
 	router.NotAllowed(json.NotAllowed())

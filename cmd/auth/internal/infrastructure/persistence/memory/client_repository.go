@@ -2,13 +2,13 @@ package memory
 
 import (
 	"context"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"sync"
 
 	"gopkg.in/oauth2.v4"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 )
 
 type clientRepository struct {
@@ -28,7 +28,7 @@ func (r *clientRepository) GetByID(ctx context.Context, id string) (oauth2.Clien
 
 	v, ok := r.clients[id]
 	if !ok {
-		return nil, application.ErrNotFound
+		return nil, apperrors.ErrNotFound
 	}
 	return v, nil
 }
@@ -39,7 +39,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 
 	v, ok := r.clients[id]
 	if !ok {
-		return nil, application.ErrNotFound
+		return nil, apperrors.ErrNotFound
 	}
 	return v, nil
 }

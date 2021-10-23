@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"sync"
 )
@@ -24,7 +23,7 @@ func (r *tokenRepository) Get(ctx context.Context, id string) (persistence.Token
 
 	v, ok := r.tokens[id]
 	if !ok {
-		return nil, application.ErrNotFound
+		return nil, apperrors.ErrNotFound
 	}
 	return v, nil
 }
@@ -43,7 +42,7 @@ func (r *tokenRepository) GetByCode(ctx context.Context, code string) (persisten
 		}
 	}
 
-	return nil, application.ErrNotFound
+	return nil, apperrors.ErrNotFound
 }
 
 func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (persistence.Token, error) {
@@ -60,7 +59,7 @@ func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (persi
 		}
 	}
 
-	return nil, application.ErrNotFound
+	return nil, apperrors.ErrNotFound
 }
 
 func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (persistence.Token, error) {
@@ -77,7 +76,7 @@ func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (per
 		}
 	}
 
-	return nil, application.ErrNotFound
+	return nil, apperrors.ErrNotFound
 }
 
 func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {

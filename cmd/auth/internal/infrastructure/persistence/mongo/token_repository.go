@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -48,7 +47,7 @@ func (r *tokenRepository) Get(ctx context.Context, id string) (persistence.Token
 	var result Token
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}
@@ -64,7 +63,7 @@ func (r *tokenRepository) GetByCode(ctx context.Context, code string) (persisten
 	var result Token
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}
@@ -80,7 +79,7 @@ func (r *tokenRepository) GetByAccess(ctx context.Context, access string) (persi
 	var result Token
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}
@@ -96,7 +95,7 @@ func (r *tokenRepository) GetByRefresh(ctx context.Context, refresh string) (per
 	var result Token
 	if err := r.collection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, application.ErrNotFound))
+			return nil, apperrors.Wrap(fmt.Errorf("%s: %w", err, apperrors.ErrNotFound))
 		}
 		return nil, apperrors.Wrap(err)
 	}

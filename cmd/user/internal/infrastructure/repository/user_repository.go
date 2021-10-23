@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
@@ -48,7 +47,7 @@ func (r *userRepository) Get(ctx context.Context, id uuid.UUID) (user.User, erro
 	}
 
 	if len(events) == 0 {
-		return user.User{}, application.ErrNotFound
+		return user.User{}, apperrors.ErrNotFound
 	}
 
 	return user.FromHistory(ctx, events)

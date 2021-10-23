@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 type eventMock struct{}
@@ -19,8 +18,7 @@ func (e eventMock) GetType() string {
 }
 
 func TestNew(t *testing.T) {
-	logger := log.New("dev")
-	bus := New(runtime.NumCPU(), logger)
+	bus := New(runtime.NumCPU())
 
 	if bus == nil {
 		t.Fail()
@@ -32,7 +30,7 @@ func TestSubscribePublish(t *testing.T) {
 	defer cancel()
 
 	c := make(chan error, 1)
-	bus := New(runtime.NumCPU(), log.New("development"))
+	bus := New(runtime.NumCPU())
 
 	e, err := domain.NewEventFromRawEvent(uuid.New(), "event", 0, eventMock{})
 	if err != nil {
@@ -69,7 +67,7 @@ func TestUnsubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	bus := New(runtime.NumCPU(), log.New("development"))
+	bus := New(runtime.NumCPU())
 
 	e, err := domain.NewEventFromRawEvent(uuid.New(), "event", 0, eventMock{})
 	if err != nil {

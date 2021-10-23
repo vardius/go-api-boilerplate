@@ -11,7 +11,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	httpjson "github.com/vardius/go-api-boilerplate/pkg/http/response/json"
@@ -22,12 +21,12 @@ import (
 func BuildUserCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
 		if r.Body == nil {
-			return fmt.Errorf("%w: %v", application.ErrInvalid, ErrEmptyRequestBody)
+			return fmt.Errorf("%w: %v", apperrors.ErrInvalid, ErrEmptyRequestBody)
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			return fmt.Errorf("%w: %v", application.ErrInvalid, ErrInvalidURLParams)
+			return fmt.Errorf("%w: %v", apperrors.ErrInvalid, ErrInvalidURLParams)
 		}
 
 		defer r.Body.Close()

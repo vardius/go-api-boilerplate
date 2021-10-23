@@ -9,7 +9,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
@@ -33,7 +32,7 @@ type TokenStore struct {
 func (ts *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
+		return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", apperrors.ErrInternal, err))
 	}
 
 	var userID uuid.UUID
@@ -154,7 +153,7 @@ func (ts *TokenStore) remove(ctx context.Context, model persistence.Token) error
 	}
 
 	if err := t.Remove(ctx); err != nil {
-		return apperrors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
+		return apperrors.Wrap(fmt.Errorf("%w: Error when removing token: %s", apperrors.ErrInternal, err))
 	}
 
 	if err := ts.eventSourcedRepository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), t); err != nil {

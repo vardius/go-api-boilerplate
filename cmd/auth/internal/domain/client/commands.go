@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -67,7 +66,7 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 
 		i, hasIdentity := identity.FromContext(ctx)
 		if !hasIdentity {
-			return apperrors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(apperrors.ErrUnauthorized)
 		}
 
 		client, err := repository.Get(ctx, c.ID)
@@ -75,7 +74,7 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 			return apperrors.Wrap(err)
 		}
 		if i.UserID.String() != client.userID.String() {
-			return apperrors.Wrap(application.ErrForbidden)
+			return apperrors.Wrap(apperrors.ErrForbidden)
 		}
 
 		if err := client.Remove(ctx); err != nil {
@@ -114,16 +113,16 @@ func OnCreate(repository Repository) commandbus.CommandHandler {
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", apperrors.ErrInternal, err))
 		}
 		secret, err := uuid.NewRandom()
 		if err != nil {
-			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new secret: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new secret: %s", apperrors.ErrInternal, err))
 		}
 
 		i, hasIdentity := identity.FromContext(ctx)
 		if !hasIdentity {
-			return apperrors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(apperrors.ErrUnauthorized)
 		}
 
 		client := New()

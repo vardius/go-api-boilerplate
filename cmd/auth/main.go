@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware"
 	"math/rand"
 	"net/http"
 	"time"
@@ -58,17 +59,21 @@ func main() {
 			ServerTime:    cfg.GRPC.ServerTime,
 			ServerTimeout: cfg.GRPC.ServerTimeout,
 		},
-		container.Logger,
-		nil,
-		nil,
+		[]grpc.UnaryServerInterceptor{
+			middleware.TransformUnaryOutgoingError(),
+			middleware.CountIncomingUnaryRequests(),
+		},
+		[]grpc.StreamServerInterceptor{
+			middleware.TransformStreamOutgoingError(),
+			middleware.CountIncomingStreamRequests(),
+		},
 	)
 
-	oauth2Server := oauth2.InitServer(cfg, container.OAuth2Manager, container.Logger, container.ClientPersistenceRepository, cfg.OAuth.InitTimeout)
+	oauth2Server := oauth2.InitServer(cfg, container.OAuth2Manager, container.ClientPersistenceRepository, cfg.OAuth.InitTimeout)
 	grpcAuthServer := authgrpc.NewServer(oauth2Server, container.CommandBus)
 
 	router := authhttp.NewRouter(
 		cfg,
-		container.Logger,
 		container.TokenAuthorizer,
 		oauth2Server,
 		container.CommandBus,
@@ -83,7 +88,7 @@ func main() {
 
 	authproto.RegisterAuthenticationServiceServer(grpcServer, grpcAuthServer)
 
-	app := application.New(container.Logger)
+	app := application.New()
 	app.AddAdapters(
 		httputils.NewAdapter(
 			&http.Server{

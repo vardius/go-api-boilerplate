@@ -14,7 +14,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 )
 
@@ -71,7 +70,7 @@ func (r *clientRepository) Get(ctx context.Context, id string) (persistence.Clie
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, apperrors.Wrap(fmt.Errorf("%w: Client (id:%s) not found: %s", application.ErrNotFound, id, err))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: Client (id:%s) not found: %s", apperrors.ErrNotFound, id, err))
 	case err != nil:
 		return nil, apperrors.Wrap(err)
 	default:

@@ -3,9 +3,9 @@ package errors
 import (
 	"context"
 	"errors"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"net/http"
 
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	mtd "github.com/vardius/go-api-boilerplate/pkg/metadata"
 )
 
@@ -19,19 +19,19 @@ func NewHttpError(ctx context.Context, err error) *HttpError {
 	code := http.StatusInternalServerError
 
 	switch {
-	case errors.Is(err, application.ErrInvalid):
+	case errors.Is(err, apperrors.ErrInvalid):
 		code = http.StatusBadRequest
-	case errors.Is(err, application.ErrUnauthorized):
+	case errors.Is(err, apperrors.ErrUnauthorized):
 		code = http.StatusUnauthorized
-	case errors.Is(err, application.ErrForbidden):
+	case errors.Is(err, apperrors.ErrForbidden):
 		code = http.StatusForbidden
-	case errors.Is(err, application.ErrNotFound):
+	case errors.Is(err, apperrors.ErrNotFound):
 		code = http.StatusNotFound
-	case errors.Is(err, application.ErrTimeout):
+	case errors.Is(err, apperrors.ErrTimeout):
 		code = http.StatusRequestTimeout
-	case errors.Is(err, application.ErrTemporaryDisabled):
+	case errors.Is(err, apperrors.ErrTemporaryDisabled):
 		code = http.StatusServiceUnavailable
-	case errors.Is(err, application.ErrInternal):
+	case errors.Is(err, apperrors.ErrInternal):
 		code = http.StatusInternalServerError
 	}
 

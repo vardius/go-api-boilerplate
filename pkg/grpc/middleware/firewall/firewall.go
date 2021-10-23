@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -121,10 +120,10 @@ func GrantAccessForStreamRequest(permission identity.Permission) grpc.StreamServ
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		i, ok := identity.FromContext(ss.Context())
 		if !ok {
-			return apperrors.Wrap(fmt.Errorf("%w: missing identity", application.ErrUnauthorized))
+			return apperrors.Wrap(fmt.Errorf("%w: missing identity", apperrors.ErrUnauthorized))
 		}
 		if !i.Permission.Has(permission) {
-			return apperrors.Wrap(fmt.Errorf("%w: (%d) missing permission: %d", application.ErrForbidden, i.Permission, permission))
+			return apperrors.Wrap(fmt.Errorf("%w: (%d) missing permission: %d", apperrors.ErrForbidden, i.Permission, permission))
 		}
 
 		return handler(srv, ss)
@@ -144,10 +143,10 @@ func GrantAccessForUnaryRequest(permission identity.Permission) grpc.UnaryServer
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		i, ok := identity.FromContext(ctx)
 		if !ok {
-			return nil, apperrors.Wrap(fmt.Errorf("%w: missing identity", application.ErrUnauthorized))
+			return nil, apperrors.Wrap(fmt.Errorf("%w: missing identity", apperrors.ErrUnauthorized))
 		}
 		if !i.Permission.Has(permission) {
-			return nil, apperrors.Wrap(fmt.Errorf("%w: (%d) missing permission: %d", application.ErrForbidden, i.Permission, permission))
+			return nil, apperrors.Wrap(fmt.Errorf("%w: (%d) missing permission: %d", apperrors.ErrForbidden, i.Permission, permission))
 		}
 
 		return handler(ctx, req)

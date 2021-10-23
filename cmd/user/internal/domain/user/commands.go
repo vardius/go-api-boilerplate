@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -99,10 +98,10 @@ func OnChangeEmailAddress(repository Repository, userRepository persistence.User
 			return apperrors.New("invalid command")
 		}
 
-		if _, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, application.ErrNotFound) {
+		if _, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, apperrors.ErrNotFound) {
 			return apperrors.Wrap(err)
 		} else if err == nil {
-			return apperrors.Wrap(fmt.Errorf("%w: user with this email address is already registered", application.ErrInvalid))
+			return apperrors.Wrap(fmt.Errorf("%w: user with this email address is already registered", apperrors.ErrInvalid))
 		}
 
 		u, err := repository.Get(ctx, c.ID)
@@ -182,7 +181,7 @@ func OnRegisterWithEmail(repository Repository, userRepository persistence.UserR
 		}
 
 		user, err := userRepository.GetByEmail(ctx, c.Email.String())
-		if err != nil && !errors.Is(err, application.ErrNotFound) {
+		if err != nil && !errors.Is(err, apperrors.ErrNotFound) {
 			return apperrors.Wrap(err)
 		}
 
@@ -245,11 +244,11 @@ func OnRegisterWithFacebook(repository Repository, userRepository persistence.Us
 		}
 
 		var user User
-		if u, err := userRepository.GetByFacebookID(ctx, c.FacebookID); err != nil && !errors.Is(err, application.ErrNotFound) {
+		if u, err := userRepository.GetByFacebookID(ctx, c.FacebookID); err != nil && !errors.Is(err, apperrors.ErrNotFound) {
 			return apperrors.Wrap(err)
 		} else if err == nil {
 			if u.GetEmail() != c.Email.String() {
-				return apperrors.Wrap(fmt.Errorf("%w: facebook account connected to another user", application.ErrInvalid))
+				return apperrors.Wrap(fmt.Errorf("%w: facebook account connected to another user", apperrors.ErrInvalid))
 			}
 
 			id, err := uuid.Parse(u.GetID())
@@ -266,11 +265,11 @@ func OnRegisterWithFacebook(repository Repository, userRepository persistence.Us
 				return apperrors.Wrap(err)
 			}
 		} else {
-			if u, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, application.ErrNotFound) {
+			if u, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, apperrors.ErrNotFound) {
 				return apperrors.Wrap(err)
 			} else if err == nil {
 				if u.GetFacebookID() != "" && u.GetFacebookID() != c.FacebookID {
-					return apperrors.Wrap(fmt.Errorf("%w: user connected to another facebook account", application.ErrInvalid))
+					return apperrors.Wrap(fmt.Errorf("%w: user connected to another facebook account", apperrors.ErrInvalid))
 				}
 
 				userID, err := uuid.Parse(u.GetID())
@@ -331,11 +330,11 @@ func OnRegisterWithGoogle(repository Repository, userRepository persistence.User
 		}
 
 		var user User
-		if u, err := userRepository.GetByGoogleID(ctx, c.GoogleID); err != nil && !errors.Is(err, application.ErrNotFound) {
+		if u, err := userRepository.GetByGoogleID(ctx, c.GoogleID); err != nil && !errors.Is(err, apperrors.ErrNotFound) {
 			return apperrors.Wrap(err)
 		} else if err == nil {
 			if u.GetEmail() != c.Email.String() {
-				return apperrors.Wrap(fmt.Errorf("%w: google account connected to another user", application.ErrInvalid))
+				return apperrors.Wrap(fmt.Errorf("%w: google account connected to another user", apperrors.ErrInvalid))
 			}
 
 			id, err := uuid.Parse(u.GetID())
@@ -352,11 +351,11 @@ func OnRegisterWithGoogle(repository Repository, userRepository persistence.User
 				return apperrors.Wrap(err)
 			}
 		} else {
-			if u, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, application.ErrNotFound) {
+			if u, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, apperrors.ErrNotFound) {
 				return apperrors.Wrap(err)
 			} else if err == nil {
 				if u.GetGoogleID() != "" && u.GetGoogleID() != c.GoogleID {
-					return apperrors.Wrap(fmt.Errorf("%w: user connected to another google account", application.ErrInvalid))
+					return apperrors.Wrap(fmt.Errorf("%w: user connected to another google account", apperrors.ErrInvalid))
 				}
 
 				userID, err := uuid.Parse(u.GetID())

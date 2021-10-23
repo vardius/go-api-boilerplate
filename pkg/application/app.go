@@ -2,10 +2,11 @@ package application
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
-	"github.com/vardius/golog"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
 	"github.com/vardius/shutdown"
 )
 
@@ -19,15 +20,12 @@ type Adapter interface {
 type App struct {
 	adapters        []Adapter
 	shutdownTimeout time.Duration
-
-	logger golog.Logger
 }
 
 // New provides new service application
-func New(logger golog.Logger) *App {
+func New() *App {
 	return &App{
 		shutdownTimeout: 5 * time.Second, // Default shutdown timeout
-		logger:          logger,
 	}
 }
 
@@ -46,7 +44,7 @@ func (app *App) Run(ctx context.Context) {
 	for _, adapter := range app.adapters {
 		go func(adapter Adapter) {
 			if err := adapter.Start(ctx); err != nil {
-				app.logger.Critical(ctx, "adapter start error: %v", adapter.Start(ctx))
+				logger.Critical(ctx, fmt.Sprintf("adapter start error: %v", adapter.Start(ctx)))
 				os.Exit(1)
 			}
 		}(adapter)
@@ -59,7 +57,7 @@ func (app *App) stop(ctx context.Context) {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, app.shutdownTimeout)
 	defer cancel()
 
-	app.logger.Info(ctxWithTimeout, "shutting down...")
+	logger.Info(ctxWithTimeout, fmt.Sprintf("shutting down..."))
 
 	errCh := make(chan error, len(app.adapters))
 
@@ -73,12 +71,12 @@ func (app *App) stop(ctx context.Context) {
 		if err := <-errCh; err != nil {
 			// calling Goexit terminates that goroutine without returning (previous defers would not run)
 			go func(err error) {
-				app.logger.Critical(ctxWithTimeout, "shutdown error: %v", err)
+				logger.Critical(ctxWithTimeout, fmt.Sprintf("shutdown error: %v", err))
 				os.Exit(1)
 			}(err)
 			return
 		}
 	}
 
-	app.logger.Info(ctxWithTimeout, "gracefully stopped")
+	logger.Info(ctxWithTimeout, fmt.Sprintf("gracefully stopped"))
 }

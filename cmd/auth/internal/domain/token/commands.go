@@ -10,7 +10,6 @@ import (
 	"gopkg.in/oauth2.v4/models"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/access"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -61,12 +60,12 @@ func OnCreate(repository Repository) commandbus.CommandHandler {
 	fn := func(ctx context.Context, command domain.Command) error {
 		i, hasIdentity := identity.FromContext(ctx)
 		if !hasIdentity {
-			return apperrors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(apperrors.ErrUnauthorized)
 		}
 
 		id, err := uuid.NewRandom()
 		if err != nil {
-			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Could not generate new id: %s", apperrors.ErrInternal, err))
 		}
 
 		var userAgent string
@@ -83,7 +82,7 @@ func OnCreate(repository Repository) commandbus.CommandHandler {
 			AccessCreateAt:  time.Now(),
 			AccessExpiresIn: 365 * 24 * time.Hour,
 		}, userAgent); err != nil {
-			return apperrors.Wrap(fmt.Errorf("%w: Error when creating token: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Error when creating token: %s", apperrors.ErrInternal, err))
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {
@@ -116,7 +115,7 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 
 		i, hasIdentity := identity.FromContext(ctx)
 		if !hasIdentity {
-			return apperrors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(apperrors.ErrUnauthorized)
 		}
 
 		token, err := repository.Get(ctx, c.ID)
@@ -124,11 +123,11 @@ func OnRemove(repository Repository) commandbus.CommandHandler {
 			return apperrors.Wrap(err)
 		}
 		if i.UserID.String() != token.userID.String() {
-			return apperrors.Wrap(application.ErrForbidden)
+			return apperrors.Wrap(apperrors.ErrForbidden)
 		}
 
 		if err := token.Remove(ctx); err != nil {
-			return apperrors.Wrap(fmt.Errorf("%w: Error when removing token: %s", application.ErrInternal, err))
+			return apperrors.Wrap(fmt.Errorf("%w: Error when removing token: %s", apperrors.ErrInternal, err))
 		}
 
 		if err := repository.Save(executioncontext.WithFlag(ctx, executioncontext.LIVE), token); err != nil {

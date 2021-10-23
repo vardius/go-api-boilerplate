@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain"
+	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware"
 	"math/rand"
 	"net/http"
 	"time"
@@ -54,19 +55,20 @@ func main() {
 			ServerTime:    cfg.GRPC.ServerTime,
 			ServerTimeout: cfg.GRPC.ServerTimeout,
 		},
-		container.Logger,
-		// @TODO: Secure grpc server with firewall
-		nil, // []grpc.UnaryServerInterceptor{
-		// 	firewall.GrantAccessForUnaryRequest(identity.RoleUser),
-		// },
-		nil, // []grpc.StreamServerInterceptor{
-		// 	firewall.GrantAccessForStreamRequest(identity.RoleUser),
-		// },
+		[]grpc.UnaryServerInterceptor{
+			middleware.TransformUnaryOutgoingError(),
+			middleware.CountIncomingUnaryRequests(),
+			// 	firewall.GrantAccessForUnaryRequest(identity.RoleUser),
+		},
+		[]grpc.StreamServerInterceptor{
+			middleware.TransformStreamOutgoingError(),
+			middleware.CountIncomingStreamRequests(),
+			// 	firewall.GrantAccessForStreamRequest(identity.RoleUser),
+		},
 	)
 
 	router := userhttp.NewRouter(
 		cfg,
-		container.Logger,
 		container.TokenAuthorizer,
 		container.UserPersistenceRepository,
 		container.CommandBus,
@@ -80,7 +82,7 @@ func main() {
 	grpcUserServer := usergrpc.NewServer(container.CommandBus, container.UserPersistenceRepository)
 	userproto.RegisterUserServiceServer(grpcServer, grpcUserServer)
 
-	app := application.New(container.Logger)
+	app := application.New()
 
 	app.AddAdapters(
 		httputils.NewAdapter(

@@ -8,15 +8,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vardius/golog"
-	"gopkg.in/oauth2.v4"
-	oauth2errors "gopkg.in/oauth2.v4/errors"
-	oauth2server "gopkg.in/oauth2.v4/server"
-
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
+	"gopkg.in/oauth2.v4"
+	oauth2errors "gopkg.in/oauth2.v4/errors"
+	oauth2server "gopkg.in/oauth2.v4/server"
 )
 
 var (
@@ -28,7 +27,6 @@ var (
 func InitServer(
 	cfg *config.Config,
 	manager oauth2.Manager,
-	logger golog.Logger,
 	clientRepository persistence.ClientRepository,
 	timeout time.Duration,
 ) *oauth2server.Server {
@@ -73,12 +71,12 @@ func InitServer(
 			clientScopes := client.GetScopes()
 
 			if len(tokenScopes) > len(clientScopes) {
-				logger.Debug(ctx, "Token not allowed: scopes do not match len(tokenScopes) > len(clientScopes) %v > %v", tokenScopes, clientScopes)
+				logger.Debug(ctx, fmt.Sprintf("Token not allowed: scopes do not match len(tokenScopes) > len(clientScopes) %v > %v", tokenScopes, clientScopes))
 				return false, nil
 			}
 
 			if len(tokenScopes) == 0 || len(tokenScopes) == 0 {
-				logger.Debug(ctx, "Token not allowed: empty scopes len(tokenScopes) == 0 || len(tokenScopes) == 0 %v %v", tokenScopes, clientScopes)
+				logger.Debug(ctx, fmt.Sprintf("Token not allowed: empty scopes len(tokenScopes) == 0 || len(tokenScopes) == 0 %v %v", tokenScopes, clientScopes))
 				return false, nil
 			}
 
@@ -103,7 +101,7 @@ func InitServer(
 		})
 
 		srv.SetResponseErrorHandler(func(re *oauth2errors.Response) {
-			logger.Error(context.Background(), "[oAuth2|Server] response error: %v", re)
+			logger.Error(context.Background(), fmt.Sprintf("[oAuth2|Server] response error: %v", re))
 		})
 	})
 

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/vardius/golog"
 	"google.golang.org/grpc"
 
 	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
@@ -30,7 +29,6 @@ type ServiceContainer struct {
 	SQL   *sql.DB
 	Mongo *mongo.Client
 
-	Logger                    golog.Logger
 	CommandBus                commandbus.CommandBus
 	EventBus                  eventbus.EventBus
 	UserConn                  *grpc.ClientConn

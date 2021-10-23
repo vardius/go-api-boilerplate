@@ -6,22 +6,20 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/vardius/golog"
-	messagebus "github.com/vardius/message-bus"
-
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
+	messagebus "github.com/vardius/message-bus"
 )
 
 // New creates memory event bus
-func New(maxConcurrentCalls int, logger golog.Logger) eventbus.EventBus {
+func New(maxConcurrentCalls int) eventbus.EventBus {
 	return &eventBus{
 		messageBus: messagebus.New(maxConcurrentCalls),
-		logger:     logger,
 		handlers:   make(map[string]map[reflect.Value]eventHandler),
 	}
 }
@@ -30,7 +28,6 @@ type eventHandler func(ctx context.Context, event *domain.Event, out chan<- erro
 
 type eventBus struct {
 	messageBus messagebus.MessageBus
-	logger     golog.Logger
 	mtx        sync.RWMutex
 	handlers   map[string]map[reflect.Value]eventHandler
 }
@@ -56,7 +53,7 @@ func (b *eventBus) Publish(parentCtx context.Context, event *domain.Event) error
 	}
 
 	go func() {
-		b.logger.Debug(parentCtx, "[EventBus] Publish: %s %+v", event.Type, event)
+		logger.Debug(parentCtx, fmt.Sprintf("[EventBus] Publish: %s %+v", event.Type, event))
 		b.messageBus.Publish(event.Type, ctx, event, out)
 	}()
 
@@ -77,7 +74,7 @@ func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event *domai
 	flags := executioncontext.FromContext(parentCtx)
 	ctx := executioncontext.WithFlag(context.Background(), flags)
 
-	b.logger.Debug(parentCtx, "[EventBus] PublishAndAcknowledge: %s %+v", event.Type, event)
+	logger.Debug(parentCtx, fmt.Sprintf("[EventBus] PublishAndAcknowledge: %s %+v", event.Type, event))
 	b.messageBus.Publish(event.Type, ctx, event, out)
 
 	var errs []error
@@ -102,13 +99,13 @@ func (b *eventBus) PublishAndAcknowledge(parentCtx context.Context, event *domai
 }
 
 func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
-	b.logger.Info(ctx, "[EventBus] Subscribe: %s", eventType)
+	logger.Info(ctx, fmt.Sprintf("[EventBus] Subscribe: %s", eventType))
 
 	handler := func(ctx context.Context, event *domain.Event, out chan<- error) {
-		b.logger.Debug(ctx, "[EventHandler] %s: %s", eventType, event.Payload)
+		logger.Debug(ctx, fmt.Sprintf("[EventHandler] %s: %s", eventType, event.Payload))
 
 		if err := fn(ctx, event); err != nil {
-			b.logger.Error(ctx, "[EventHandler] %s: %v", eventType, err)
+			logger.Error(ctx, fmt.Sprintf("[EventHandler] %s: %v", eventType, err))
 			out <- apperrors.Wrap(err)
 		} else {
 			out <- nil
@@ -130,7 +127,7 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 }
 
 func (b *eventBus) Unsubscribe(ctx context.Context, eventType string, fn eventbus.EventHandler) error {
-	b.logger.Info(ctx, "[EventBus] Unsubscribe: %s", eventType)
+	logger.Info(ctx, fmt.Sprintf("[EventBus] Unsubscribe: %s", eventType))
 
 	rv := reflect.ValueOf(fn)
 

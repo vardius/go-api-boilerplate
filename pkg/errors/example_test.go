@@ -1,3 +1,4 @@
+//go:build docker
 // +build docker
 
 package errors_test
@@ -11,23 +12,31 @@ import (
 func ExampleNew() {
 	err := apperrors.New("example")
 
-	fmt.Printf("%s", err)
+	fmt.Printf("%s\n", err.Error())
+	var e *apperrors.AppError
+	if errors.As(err, &e) {
+		fmt.Printf("%s", e.StackTrace())
+	}
 
 	// Output:
 	// example
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:12
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:13
 }
 
 func ExampleWrap() {
 	subErr := apperrors.New("example")
 	err := apperrors.Wrap(subErr)
 
-	fmt.Printf("%s", err)
+	fmt.Printf("%s\n", err.Error())
+	var e *apperrors.AppError
+	if errors.As(err, &e) {
+		fmt.Printf("%s", e.StackTrace())
+	}
 
 	// Output:
 	// example
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:22
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:23
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:28
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:27
 }
 
 func ExampleWrap_second() {
@@ -36,11 +45,15 @@ func ExampleWrap_second() {
 
 	err := fmt.Errorf("test2: %w", wrappedErr)
 
-	fmt.Printf("%s", err)
+	fmt.Printf("%s\n", err.Error())
+	var e *apperrors.AppError
+	if errors.As(err, &e) {
+		fmt.Printf("%s", e.StackTrace())
+	}
 
 	// Output:
 	// test2: original
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:35
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:44
 }
 
 func ExampleWrap_third() {
@@ -51,13 +64,17 @@ func ExampleWrap_third() {
 	third := apperrors.Wrap(fmt.Errorf("third: %w", second))
 	err := apperrors.Wrap(third)
 
-	fmt.Printf("%s\n\n", err)
+	fmt.Printf("%s\n", err.Error())
+	var e *apperrors.AppError
+	if errors.As(err, &e) {
+		fmt.Printf("%s", e.StackTrace())
+	}
 
 	// Output:
 	// third: second: first
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:47
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:48
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:50
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:51
-	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:52
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:65
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:64
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:63
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:61
+	// /home/runner/work/go-api-boilerplate/go-api-boilerplate/pkg/errors/example_test.go:60
 }

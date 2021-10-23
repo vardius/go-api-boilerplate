@@ -1,9 +1,11 @@
+//go:build persistence_mysql
 // +build persistence_mysql
 
 package services
 
 import (
 	"context"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	appoauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/oauth2"
@@ -16,7 +18,6 @@ import (
 	memoryeventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	mysqleventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mysql"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
 
@@ -25,8 +26,7 @@ func init() {
 }
 
 func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
-	logger := log.New(cfg.App.Environment)
-	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
+	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize)
 	sqlConn := mysql.NewConnection(
 		ctx,
 		mysql.ConnectionConfig{
@@ -39,7 +39,6 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 			MaxIdleConns:    cfg.MYSQL.MaxIdleConns,
 			MaxOpenConns:    cfg.MYSQL.MaxOpenConns,
 		},
-		logger,
 	)
 	grpcAuthConn := grpcutils.NewConnection(
 		ctx,
@@ -49,13 +48,12 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 			ConnTime:    cfg.GRPC.ConnTime,
 			ConnTimeout: cfg.GRPC.ConnTimeout,
 		},
-		logger,
 	)
 	eventStore, err := mysqleventstore.New(ctx, "auth_events", sqlConn)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
-	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize, logger)
+	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
 	tokenPersistenceRepository, err := persistence.NewTokenRepository(ctx, sqlConn)
@@ -75,7 +73,6 @@ func newMYSQLServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 
 	return &ServiceContainer{
 		SQL:                         sqlConn,
-		Logger:                      logger,
 		CommandBus:                  commandBus,
 		EventBus:                    eventBus,
 		Authenticator:               authenticator,

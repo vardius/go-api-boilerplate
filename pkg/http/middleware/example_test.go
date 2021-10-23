@@ -6,11 +6,10 @@ import (
 	"net/http/httptest"
 
 	"github.com/vardius/go-api-boilerplate/pkg/http/middleware"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 func ExampleRecover() {
-	m := middleware.Recover(log.New("development"))
+	m := middleware.Recover()
 	handler := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
@@ -55,7 +54,7 @@ func ExampleXSS() {
 }
 
 func ExampleLogger() {
-	m := middleware.Logger(log.New("development"))
+	m := middleware.Logger()
 	h := m(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
 	w := httptest.NewRecorder()

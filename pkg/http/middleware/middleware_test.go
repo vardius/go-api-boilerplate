@@ -12,11 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vardius/gocontainer"
-
 	"github.com/vardius/go-api-boilerplate/pkg/container"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 	md "github.com/vardius/go-api-boilerplate/pkg/metadata"
+	"github.com/vardius/gocontainer"
 )
 
 func TestHSTS(t *testing.T) {
@@ -79,7 +77,7 @@ func TestLimitRequestBody(t *testing.T) {
 }
 
 func TestRateLimit(t *testing.T) {
-	m := RateLimit(log.New("development"), 1, 1, time.Minute)
+	m := RateLimit(1, 1, time.Minute)
 	h := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -118,7 +116,7 @@ func TestRecover(t *testing.T) {
 		}
 	}()
 
-	m := Recover(log.New("development"))
+	m := Recover()
 	handler := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("error")
 	}))
@@ -158,7 +156,7 @@ func captureOutput(f func()) string {
 
 func TestLogger(t *testing.T) {
 	output := captureOutput(func() {
-		m := Logger(log.New("development"))
+		m := Logger()
 		h := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})
 
 		w := httptest.NewRecorder()

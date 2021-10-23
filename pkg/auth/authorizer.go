@@ -7,7 +7,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/proto"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
@@ -69,7 +68,7 @@ func (a *jwtAuthorizer) Auth(ctx context.Context, token string) (*identity.Ident
 	}
 
 	if c.Identity == nil {
-		return nil, apperrors.Wrap(fmt.Errorf("could not verify token credentials, identity: %w", application.ErrUnauthorized))
+		return nil, apperrors.Wrap(fmt.Errorf("could not verify token credentials, identity: %w", apperrors.ErrUnauthorized))
 	}
 
 	if _, err := a.authClient.ValidationBearerToken(ctx, &proto.ValidationBearerTokenRequest{

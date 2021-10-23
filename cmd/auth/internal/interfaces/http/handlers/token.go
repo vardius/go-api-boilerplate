@@ -11,7 +11,6 @@ import (
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/token"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	httpjson "github.com/vardius/go-api-boilerplate/pkg/http/response/json"
@@ -22,12 +21,12 @@ import (
 func BuildTokenCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
 		if r.Body == nil {
-			return apperrors.Wrap(application.ErrInvalid)
+			return apperrors.Wrap(apperrors.ErrInvalid)
 		}
 
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			return apperrors.Wrap(application.ErrInvalid)
+			return apperrors.Wrap(apperrors.ErrInvalid)
 		}
 
 		defer r.Body.Close()
@@ -60,14 +59,14 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 	fn := func(w http.ResponseWriter, r *http.Request) error {
 		params, ok := context.Parameters(r.Context())
 		if !ok {
-			return apperrors.Wrap(application.ErrInvalid)
+			return apperrors.Wrap(apperrors.ErrInvalid)
 		}
 
 		clientID := params.Value("clientID")
 
 		i, hasIdentity := identity.FromContext(r.Context())
 		if !hasIdentity {
-			return apperrors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(apperrors.ErrUnauthorized)
 		}
 
 		c, err := clientRepository.Get(r.Context(), clientID)
@@ -75,7 +74,7 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 			return apperrors.Wrap(err)
 		}
 		if c.GetUserID() != i.UserID.String() {
-			return apperrors.Wrap(application.ErrForbidden)
+			return apperrors.Wrap(apperrors.ErrForbidden)
 		}
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
@@ -128,7 +127,7 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 	fn := func(w http.ResponseWriter, r *http.Request) error {
 		i, hasIdentity := identity.FromContext(r.Context())
 		if !hasIdentity {
-			return apperrors.Wrap(application.ErrUnauthorized)
+			return apperrors.Wrap(apperrors.ErrUnauthorized)
 		}
 
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)

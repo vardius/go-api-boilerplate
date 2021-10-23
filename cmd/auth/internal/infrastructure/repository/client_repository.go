@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain/client"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
 	"github.com/vardius/go-api-boilerplate/pkg/eventstore"
@@ -43,7 +42,7 @@ func (r *clientRepository) Get(ctx context.Context, id uuid.UUID) (client.Client
 	}
 
 	if len(events) == 0 {
-		return client.Client{}, application.ErrNotFound
+		return client.Client{}, apperrors.ErrNotFound
 	}
 
 	return client.FromHistory(ctx, events)

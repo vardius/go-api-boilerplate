@@ -2,7 +2,8 @@ package middleware
 
 import (
 	"expvar"
-	"github.com/vardius/golog"
+	"fmt"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
 	"net/http"
 	"sync"
 	"time"
@@ -72,7 +73,7 @@ func (l *rateLimiter) cleanup(frequency time.Duration) {
 // RateLimit returns a new HTTP middleware that allows request per visitor (IP)
 // up to rate r and permits bursts of at most b tokens.
 // Please add before metrics if used together
-func RateLimit(logger golog.Logger, r rate.Limit, b int, frequency time.Duration) gorouter.MiddlewareFunc {
+func RateLimit(r rate.Limit, b int, frequency time.Duration) gorouter.MiddlewareFunc {
 	// If metrics middleware was used
 	if hasMetrics {
 		rateLimits = expvar.NewMap("rateLimits")
@@ -97,7 +98,7 @@ func RateLimit(logger golog.Logger, r rate.Limit, b int, frequency time.Duration
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ip, err := request.IpAddress(r)
 			if err != nil {
-				logger.Error(r.Context(), "[HTTP] RateLimit invalid IP Address: %v", err)
+				logger.Error(r.Context(), fmt.Sprintf("[HTTP] RateLimit invalid IP Address: %v", err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}

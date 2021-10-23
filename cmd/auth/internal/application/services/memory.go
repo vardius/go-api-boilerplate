@@ -1,9 +1,11 @@
+//go:build !persistence_mysql
 // +build !persistence_mysql
 
 package services
 
 import (
 	"context"
+
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
 	appoauth2 "github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/oauth2"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence/memory"
@@ -14,7 +16,6 @@ import (
 	memoryeventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	memoryeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/memory"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 )
 
 func init() {
@@ -22,8 +23,7 @@ func init() {
 }
 
 func newMemoryServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
-	logger := log.New(cfg.App.Environment)
-	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
+	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize)
 	grpcAuthConn := grpcutils.NewConnection(
 		ctx,
 		cfg.GRPC.Host,
@@ -32,10 +32,9 @@ func newMemoryServiceContainer(ctx context.Context, cfg *config.Config) (*Servic
 			ConnTime:    cfg.GRPC.ConnTime,
 			ConnTimeout: cfg.GRPC.ConnTimeout,
 		},
-		logger,
 	)
 	eventStore := memoryeventstore.New()
-	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize, logger)
+	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize)
 	tokenRepository := repository.NewTokenRepository(eventStore, eventBus)
 	clientRepository := repository.NewClientRepository(eventStore, eventBus)
 	tokenPersistenceRepository := persistence.NewTokenRepository()
@@ -48,7 +47,6 @@ func newMemoryServiceContainer(ctx context.Context, cfg *config.Config) (*Servic
 	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, authenticator)
 
 	return &ServiceContainer{
-		Logger:                      logger,
 		CommandBus:                  commandBus,
 		EventBus:                    eventBus,
 		Authenticator:               authenticator,

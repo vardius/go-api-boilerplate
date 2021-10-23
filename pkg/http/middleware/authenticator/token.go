@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vardius/golog"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
 
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/identity"
@@ -19,18 +19,18 @@ type TokenAuthFunc func(ctx context.Context, token string) (*identity.Identity, 
 // and adds Identity to request's Context
 type TokenAuthenticator interface {
 	// FromHeader authorize by the token provided in the request's Authorization header
-	FromHeader(realm string, logger golog.Logger) func(next http.Handler) http.Handler
+	FromHeader(realm string) func(next http.Handler) http.Handler
 	// FromQuery authorize by the token provided in the request's query parameter
-	FromQuery(name string, logger golog.Logger) func(next http.Handler) http.Handler
+	FromQuery(name string) func(next http.Handler) http.Handler
 	// FromCookie authorize by the token provided in the request's cookie
-	FromCookie(name string, logger golog.Logger) func(next http.Handler) http.Handler
+	FromCookie(name string) func(next http.Handler) http.Handler
 }
 
 type tokenAuth struct {
 	afn TokenAuthFunc
 }
 
-func (a *tokenAuth) FromHeader(realm string, logger golog.Logger) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromHeader(realm string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.Header.Get("Authorization")
@@ -44,7 +44,7 @@ func (a *tokenAuth) FromHeader(realm string, logger golog.Logger) func(next http
 				if err != nil {
 					w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, realm))
 
-					logger.Warning(r.Context(), "[HTTP] failed to authenticate from header: %v", apperrors.Wrap(err))
+					logger.Warning(r.Context(), fmt.Sprintf("[HTTP] failed to authenticate from header: %v", apperrors.Wrap(err)))
 				}
 
 				next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
@@ -58,7 +58,7 @@ func (a *tokenAuth) FromHeader(realm string, logger golog.Logger) func(next http
 	}
 }
 
-func (a *tokenAuth) FromQuery(name string, logger golog.Logger) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromQuery(name string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			token := r.URL.Query().Get(name)
@@ -69,7 +69,7 @@ func (a *tokenAuth) FromQuery(name string, logger golog.Logger) func(next http.H
 
 			i, err := a.afn(r.Context(), token)
 			if err != nil {
-				logger.Warning(r.Context(), "[HTTP] failed to authenticate from query: %v", apperrors.Wrap(err))
+				logger.Warning(r.Context(), fmt.Sprintf("[HTTP] failed to authenticate from query: %v", apperrors.Wrap(err)))
 			}
 
 			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))
@@ -79,7 +79,7 @@ func (a *tokenAuth) FromQuery(name string, logger golog.Logger) func(next http.H
 	}
 }
 
-func (a *tokenAuth) FromCookie(name string, logger golog.Logger) func(next http.Handler) http.Handler {
+func (a *tokenAuth) FromCookie(name string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(name)
@@ -90,7 +90,7 @@ func (a *tokenAuth) FromCookie(name string, logger golog.Logger) func(next http.
 
 			i, err := a.afn(r.Context(), cookie.Value)
 			if err != nil {
-				logger.Warning(r.Context(), "[HTTP] failed to authenticate from cookie: %v", apperrors.Wrap(err))
+				logger.Warning(r.Context(), fmt.Sprintf("[HTTP] failed to authenticate from cookie: %v", apperrors.Wrap(err)))
 			}
 
 			next.ServeHTTP(w, r.WithContext(identity.ContextWithIdentity(r.Context(), i)))

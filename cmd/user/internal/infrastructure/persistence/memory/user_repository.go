@@ -5,10 +5,10 @@ package memory
 
 import (
 	"context"
+	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"sync"
 
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 )
 
 // NewUserRepository returns memory view model repository for user
@@ -49,7 +49,7 @@ func (r *userRepository) Get(ctx context.Context, id string) (persistence.User, 
 
 	v, ok := r.users[id]
 	if !ok {
-		return nil, application.ErrNotFound
+		return nil, apperrors.ErrNotFound
 	}
 	return v, nil
 }
@@ -64,7 +64,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (persiste
 		}
 	}
 
-	return nil, application.ErrNotFound
+	return nil, apperrors.ErrNotFound
 }
 
 func (r *userRepository) GetByFacebookID(ctx context.Context, facebookID string) (persistence.User, error) {
@@ -77,7 +77,7 @@ func (r *userRepository) GetByFacebookID(ctx context.Context, facebookID string)
 		}
 	}
 
-	return nil, application.ErrNotFound
+	return nil, apperrors.ErrNotFound
 }
 
 func (r *userRepository) GetByGoogleID(ctx context.Context, googleID string) (persistence.User, error) {
@@ -90,7 +90,7 @@ func (r *userRepository) GetByGoogleID(ctx context.Context, googleID string) (pe
 		}
 	}
 
-	return nil, application.ErrNotFound
+	return nil, apperrors.ErrNotFound
 }
 
 func (r *userRepository) Add(ctx context.Context, u persistence.User) error {
@@ -107,7 +107,7 @@ func (r *userRepository) UpdateEmail(ctx context.Context, id, email string) erro
 
 	v, ok := r.users[id]
 	if !ok {
-		return application.ErrNotFound
+		return apperrors.ErrNotFound
 	}
 
 	r.users[id] = User{
@@ -127,7 +127,7 @@ func (r *userRepository) UpdateFacebookID(ctx context.Context, id, facebookID st
 
 	v, ok := r.users[id]
 	if !ok {
-		return application.ErrNotFound
+		return apperrors.ErrNotFound
 	}
 
 	r.users[id] = User{
@@ -147,7 +147,7 @@ func (r *userRepository) UpdateGoogleID(ctx context.Context, id, googleID string
 
 	v, ok := r.users[id]
 	if !ok {
-		return application.ErrNotFound
+		return apperrors.ErrNotFound
 	}
 
 	r.users[id] = User{

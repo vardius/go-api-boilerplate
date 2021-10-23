@@ -1,3 +1,4 @@
+//go:build persistence_mongodb
 // +build persistence_mongodb
 
 package services
@@ -5,6 +6,7 @@ package services
 import (
 	"context"
 	"fmt"
+
 	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/application/config"
 	persistence "github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence/mongo"
@@ -15,7 +17,6 @@ import (
 	memoryeventbus "github.com/vardius/go-api-boilerplate/pkg/eventbus/memory"
 	mongoeventstore "github.com/vardius/go-api-boilerplate/pkg/eventstore/mongo"
 	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
-	"github.com/vardius/go-api-boilerplate/pkg/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -25,8 +26,7 @@ func init() {
 }
 
 func newMongoServiceContainer(ctx context.Context, cfg *config.Config) (*ServiceContainer, error) {
-	logger := log.New(cfg.App.Environment)
-	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize, logger)
+	commandBus := memorycommandbus.New(cfg.CommandBus.QueueSize)
 	mongoConnection, err := mongo.Connect(ctx, options.Client().ApplyURI(
 		fmt.Sprintf("mongodb://%s:%s@%s:%d", cfg.MongoDB.User, cfg.MongoDB.Pass, cfg.MongoDB.Host, cfg.MongoDB.Port),
 	))
@@ -42,7 +42,6 @@ func newMongoServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 			ConnTime:    cfg.GRPC.ConnTime,
 			ConnTimeout: cfg.GRPC.ConnTimeout,
 		},
-		logger,
 	)
 	grpcAuthConn := grpcutils.NewConnection(
 		ctx,
@@ -52,13 +51,12 @@ func newMongoServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 			ConnTime:    cfg.GRPC.ConnTime,
 			ConnTimeout: cfg.GRPC.ConnTimeout,
 		},
-		logger,
 	)
 	eventStore, err := mongoeventstore.New(ctx, "events", mongoDB)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
-	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize, logger)
+	eventBus := memoryeventbus.New(cfg.EventBus.QueueSize)
 	userPersistenceRepository, err := persistence.NewUserRepository(ctx, mongoDB)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
@@ -70,7 +68,6 @@ func newMongoServiceContainer(ctx context.Context, cfg *config.Config) (*Service
 	tokenAuthorizer := auth.NewJWTTokenAuthorizer(grpAuthClient, claimsProvider, authenticator)
 
 	return &ServiceContainer{
-		Logger:                    logger,
 		Mongo:                     mongoConnection,
 		CommandBus:                commandBus,
 		UserConn:                  grpcUserConn,

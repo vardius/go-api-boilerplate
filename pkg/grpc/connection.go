@@ -6,12 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/vardius/golog"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
-
 	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware"
 	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware/firewall"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 // ConnectionConfig provides values for gRPC connection configuration
@@ -21,7 +20,7 @@ type ConnectionConfig struct {
 }
 
 // NewConnection provides new grpc connection
-func NewConnection(ctx context.Context, host string, port int, cfg ConnectionConfig, logger golog.Logger) *grpc.ClientConn {
+func NewConnection(ctx context.Context, host string, port int, cfg ConnectionConfig) *grpc.ClientConn {
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
@@ -32,17 +31,19 @@ func NewConnection(ctx context.Context, host string, port int, cfg ConnectionCon
 		grpc.WithChainUnaryInterceptor(
 			middleware.AppendMetadataToOutgoingUnaryContext(),
 			firewall.AppendIdentityToOutgoingUnaryContext(),
-			middleware.LogOutgoingUnaryRequest(logger),
+			middleware.TransformUnaryIncomingError(),
+			middleware.LogOutgoingUnaryRequest(),
 		),
 		grpc.WithChainStreamInterceptor(
 			middleware.AppendMetadataToOutgoingStreamContext(),
 			firewall.AppendIdentityToOutgoingStreamContext(),
-			middleware.LogOutgoingStreamRequest(logger),
+			middleware.TransformStreamIncomingError(),
+			middleware.LogOutgoingStreamRequest(),
 		),
 	}
 	conn, err := grpc.DialContext(ctx, fmt.Sprintf("%s:%d", host, port), opts...)
 	if err != nil {
-		logger.Critical(ctx, "[gRPC|Client] auth conn dial error: %v", err)
+		logger.Critical(ctx, fmt.Sprintf("[gRPC|Client] auth conn dial error: %v", err))
 		os.Exit(1)
 	}
 

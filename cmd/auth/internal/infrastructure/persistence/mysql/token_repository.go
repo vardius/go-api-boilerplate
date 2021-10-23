@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/mysql"
 )
@@ -94,7 +93,7 @@ func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
 
 	stmt, err := r.db.PrepareContext(ctx, `INSERT INTO auth_tokens (id, client_id, user_id, code, access, refresh, expired_at, user_agent, data) VALUES (?,?,?,?,?,?,?,?,?)`)
 	if err != nil {
-		return apperrors.Wrap(fmt.Errorf("%w: Invalid token insert query: %s", application.ErrInternal, err))
+		return apperrors.Wrap(fmt.Errorf("%w: Invalid token insert query: %s", apperrors.ErrInternal, err))
 	}
 	defer stmt.Close()
 
@@ -120,16 +119,16 @@ func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
 		t.GetData(),
 	)
 	if err != nil {
-		return apperrors.Wrap(fmt.Errorf("%w: Could not add token: %s", application.ErrInternal, err))
+		return apperrors.Wrap(fmt.Errorf("%w: Could not add token: %s", apperrors.ErrInternal, err))
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return apperrors.Wrap(fmt.Errorf("%w: Could not get affected rows: %s", application.ErrInternal, err))
+		return apperrors.Wrap(fmt.Errorf("%w: Could not get affected rows: %s", apperrors.ErrInternal, err))
 	}
 
 	if rows != 1 {
-		return apperrors.Wrap(fmt.Errorf("%w: Did not add token", application.ErrInternal))
+		return apperrors.Wrap(fmt.Errorf("%w: Did not add token", apperrors.ErrInternal))
 	}
 
 	return nil
@@ -175,9 +174,9 @@ func (r *tokenRepository) getTokenFromRow(row *sql.Row) (persistence.Token, erro
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, apperrors.Wrap(fmt.Errorf("%w: Token not found: %s", application.ErrInternal, err))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: Token not found: %s", apperrors.ErrInternal, err))
 	case err != nil:
-		return nil, apperrors.Wrap(fmt.Errorf("%w: Error while scanning auth_tokens table: %s", application.ErrInternal, err))
+		return nil, apperrors.Wrap(fmt.Errorf("%w: Error while scanning auth_tokens table: %s", apperrors.ErrInternal, err))
 	default:
 		return &token, nil
 	}

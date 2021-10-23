@@ -3,25 +3,24 @@ package pubsub
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"sync"
 	"time"
 
-	"github.com/vardius/golog"
-	pubsubproto "github.com/vardius/pubsub/v2/proto"
-
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/eventbus"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
 	"github.com/vardius/go-api-boilerplate/pkg/metadata"
+	pubsubproto "github.com/vardius/pubsub/v2/proto"
 )
 
 // New creates pubsub event bus
-func New(handlerTimeout time.Duration, pubsub pubsubproto.PubSubClient, log golog.Logger) eventbus.EventBus {
+func New(handlerTimeout time.Duration, pubsub pubsubproto.PubSubClient) eventbus.EventBus {
 	return &eventBus{
 		handlerTimeout:      handlerTimeout,
 		pubsub:              pubsub,
-		logger:              log,
 		unsubscribeChannels: make(map[reflect.Value]chan struct{}),
 	}
 }
@@ -37,7 +36,6 @@ type dto struct {
 type eventBus struct {
 	handlerTimeout time.Duration
 	pubsub         pubsubproto.PubSubClient
-	logger         golog.Logger
 
 	mtx                 sync.RWMutex
 	unsubscribeChannels map[reflect.Value]chan struct{}
@@ -52,7 +50,7 @@ func (b *eventBus) Subscribe(ctx context.Context, eventType string, fn eventbus.
 		return apperrors.Wrap(err)
 	}
 
-	b.logger.Info(stream.Context(), "[EventBus] Subscribe: %s", eventType)
+	logger.Info(stream.Context(), fmt.Sprintf("[EventBus] Subscribe: %s", eventType))
 
 	rv := reflect.ValueOf(fn)
 	unsubscribeCh := make(chan struct{}, 1)
@@ -96,7 +94,7 @@ func (b *eventBus) Publish(ctx context.Context, event *domain.Event) error {
 		return apperrors.Wrap(err)
 	}
 
-	b.logger.Debug(ctx, "[EventBus] Publish: %s %s", event.Type, string(payload))
+	logger.Debug(ctx, fmt.Sprintf("[EventBus] Publish: %s %s", event.Type, string(payload)))
 
 	if _, err := b.pubsub.Publish(ctx, &pubsubproto.PublishRequest{
 		Topic:   event.Type,
@@ -121,7 +119,7 @@ func (b *eventBus) Unsubscribe(ctx context.Context, eventType string, fn eventbu
 		ch <- struct{}{}
 	}
 	b.mtx.RUnlock()
-	b.logger.Info(ctx, "[EventBus] Unsubscribe: %s", eventType)
+	logger.Info(ctx, fmt.Sprintf("[EventBus] Unsubscribe: %s", eventType))
 	return nil
 }
 
@@ -138,7 +136,7 @@ func (b *eventBus) dispatchEvent(payload []byte, fn eventbus.EventHandler) error
 		ctx = metadata.ContextWithMetadata(ctx, o.RequestMetadata)
 	}
 
-	b.logger.Debug(ctx, "[EventBus] Dispatch Event: %s %s", o.Event.Type, o.Event.Payload)
+	logger.Debug(ctx, fmt.Sprintf("[EventBus] Dispatch Event: %s %s", o.Event.Type, o.Event.Payload))
 
 	return fn(ctx, o.Event)
 }

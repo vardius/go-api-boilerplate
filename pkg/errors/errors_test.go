@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"testing"
-
-	"github.com/vardius/go-api-boilerplate/pkg/application"
 )
 
 func TestNew(t *testing.T) {
@@ -17,13 +15,13 @@ func TestNew(t *testing.T) {
 }
 
 func TestWrap(t *testing.T) {
-	err := Wrap(fmt.Errorf("test error: %w", application.ErrInternal))
+	err := Wrap(fmt.Errorf("test error: %w", ErrInternal))
 
 	if err == nil {
 		t.Error("Error should not be nil")
 	}
 
-	if !errors.Is(err, application.ErrInternal) {
+	if !errors.Is(err, ErrInternal) {
 		t.Error("Error is not Internal")
 	}
 }
