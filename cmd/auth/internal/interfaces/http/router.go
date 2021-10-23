@@ -50,9 +50,9 @@ func NewRouter(
 			cfg.HTTP.Origins,
 			cfg.App.Environment == "development",
 		),
-		httpmiddleware.LimitRequestBody(int64(10<<20)),          // 10 MB is a lot of text.
-		httpmiddleware.RateLimit(logger, 10, 10, 3*time.Minute), // 5 of requests per second with bursts of at most 10 requests
+		httpmiddleware.LimitRequestBody(int64(10<<20)), // 10 MB is a lot of text.
 		httpmiddleware.Metrics(),
+		httpmiddleware.RateLimit(logger, 10, 10, 3*time.Minute), // 5 of requests per second with bursts of at most 10 requests
 	)
 	router.NotFound(json.NotFound())
 	router.NotAllowed(json.NotAllowed())

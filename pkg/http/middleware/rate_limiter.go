@@ -1,16 +1,18 @@
 package middleware
 
 import (
+	"expvar"
+	"github.com/vardius/golog"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/vardius/golog"
+	"github.com/vardius/go-api-boilerplate/pkg/http/request"
 	"github.com/vardius/gorouter/v4"
 	"golang.org/x/time/rate"
-
-	"github.com/vardius/go-api-boilerplate/pkg/http/request"
 )
+
+var rateLimits *expvar.Map
 
 type visitor struct {
 	*rate.Limiter
@@ -41,7 +43,9 @@ func (l *rateLimiter) allow(ip string) bool {
 
 	v.lastSeen = time.Now()
 
-	m.rl.Add(ip, 1)
+	if rateLimits != nil {
+		rateLimits.Add(ip, 1)
+	}
 
 	return v.Allow()
 }
@@ -56,7 +60,9 @@ func (l *rateLimiter) cleanup(frequency time.Duration) {
 			if time.Since(v.lastSeen) > frequency {
 				delete(l.visitors, ip)
 
-				m.rl.Delete(ip)
+				if rateLimits != nil {
+					rateLimits.Delete(ip)
+				}
 			}
 		}
 		l.Unlock()
@@ -65,7 +71,13 @@ func (l *rateLimiter) cleanup(frequency time.Duration) {
 
 // RateLimit returns a new HTTP middleware that allows request per visitor (IP)
 // up to rate r and permits bursts of at most b tokens.
+// Please add before metrics if used together
 func RateLimit(logger golog.Logger, r rate.Limit, b int, frequency time.Duration) gorouter.MiddlewareFunc {
+	// If metrics middleware was used
+	if hasMetrics {
+		rateLimits = expvar.NewMap("rateLimits")
+	}
+
 	var rl *rateLimiter
 	if r != rate.Inf {
 		rl = &rateLimiter{
