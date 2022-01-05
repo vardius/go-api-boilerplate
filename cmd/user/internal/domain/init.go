@@ -12,25 +12,25 @@ import (
 )
 
 func RegisterUserDomain(ctx context.Context, cfg *config.Config, container *services.ServiceContainer) error {
-	if err := domain.RegisterEventFactory(user.WasRegisteredWithEmailType, func() interface{} { return user.WasRegisteredWithEmail{} }); err != nil {
+	if err := domain.RegisterEventFactory(user.WasRegisteredWithEmailType, func() interface{} { return &user.WasRegisteredWithEmail{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
-	if err := domain.RegisterEventFactory(user.WasRegisteredWithGoogleType, func() interface{} { return user.WasRegisteredWithGoogle{} }); err != nil {
+	if err := domain.RegisterEventFactory(user.WasRegisteredWithGoogleType, func() interface{} { return &user.WasRegisteredWithGoogle{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
-	if err := domain.RegisterEventFactory(user.WasRegisteredWithFacebookType, func() interface{} { return user.WasRegisteredWithFacebook{} }); err != nil {
+	if err := domain.RegisterEventFactory(user.WasRegisteredWithFacebookType, func() interface{} { return &user.WasRegisteredWithFacebook{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
-	if err := domain.RegisterEventFactory(user.EmailAddressWasChangedType, func() interface{} { return user.EmailAddressWasChanged{} }); err != nil {
+	if err := domain.RegisterEventFactory(user.EmailAddressWasChangedType, func() interface{} { return &user.EmailAddressWasChanged{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
-	if err := domain.RegisterEventFactory(user.AccessTokenWasRequestedType, func() interface{} { return user.AccessTokenWasRequested{} }); err != nil {
+	if err := domain.RegisterEventFactory(user.AccessTokenWasRequestedType, func() interface{} { return &user.AccessTokenWasRequested{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
-	if err := domain.RegisterEventFactory(user.ConnectedWithGoogleType, func() interface{} { return user.ConnectedWithGoogle{} }); err != nil {
+	if err := domain.RegisterEventFactory(user.ConnectedWithGoogleType, func() interface{} { return &user.ConnectedWithGoogle{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
-	if err := domain.RegisterEventFactory(user.ConnectedWithFacebookType, func() interface{} { return user.ConnectedWithFacebook{} }); err != nil {
+	if err := domain.RegisterEventFactory(user.ConnectedWithFacebookType, func() interface{} { return &user.ConnectedWithFacebook{} }); err != nil {
 		return apperrors.Wrap(err)
 	}
 
