@@ -89,7 +89,7 @@ func (t *Token) Create(
 		return apperrors.Wrap(err)
 	}
 
-	e := WasCreated{
+	e := &WasCreated{
 		ID:        id,
 		ClientID:  clientID,
 		UserID:    userID,
@@ -115,7 +115,7 @@ func (t *Token) Create(
 
 // Remove alters current token state and append changes to aggregate root
 func (t *Token) Remove(ctx context.Context) error {
-	e := WasRemoved{
+	e := &WasRemoved{
 		ID: t.id,
 	}
 
@@ -157,7 +157,7 @@ func (t *Token) trackChange(ctx context.Context, event *domain.Event) (*domain.E
 
 func (t *Token) transition(e domain.RawEvent) error {
 	switch e := e.(type) {
-	case WasCreated:
+	case *WasCreated:
 		t.id = e.ID
 		t.userID = e.UserID
 	}
