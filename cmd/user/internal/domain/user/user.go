@@ -85,7 +85,7 @@ func (u User) Changes() []*domain.Event {
 
 // RegisterWithEmail alters current user state and append changes to aggregate root
 func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailAddress) error {
-	e := WasRegisteredWithEmail{
+	e := &WasRegisteredWithEmail{
 		ID:    id,
 		Email: email,
 	}
@@ -108,7 +108,7 @@ func (u *User) RegisterWithEmail(ctx context.Context, id uuid.UUID, email EmailA
 
 // RegisterWithGoogle alters current user state and append changes to aggregate root
 func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email EmailAddress, googleID, accessToken, redirectPath string) error {
-	e := WasRegisteredWithGoogle{
+	e := &WasRegisteredWithGoogle{
 		ID:           id,
 		Email:        email,
 		GoogleID:     googleID,
@@ -134,7 +134,7 @@ func (u *User) RegisterWithGoogle(ctx context.Context, id uuid.UUID, email Email
 
 // ConnectWithGoogle alters current user state and append changes to aggregate root
 func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken, redirectPath string) error {
-	e := ConnectedWithGoogle{
+	e := &ConnectedWithGoogle{
 		ID:           u.id,
 		GoogleID:     googleID,
 		AccessToken:  accessToken,
@@ -159,7 +159,7 @@ func (u *User) ConnectWithGoogle(ctx context.Context, googleID, accessToken, red
 
 // RegisterWithFacebook alters current user state and append changes to aggregate root
 func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email EmailAddress, facebookID, accessToken, redirectPath string) error {
-	e := WasRegisteredWithFacebook{
+	e := &WasRegisteredWithFacebook{
 		ID:           id,
 		Email:        email,
 		FacebookID:   facebookID,
@@ -185,7 +185,7 @@ func (u *User) RegisterWithFacebook(ctx context.Context, id uuid.UUID, email Ema
 
 // ConnectWithFacebook alters current user state and append changes to aggregate root
 func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken, redirectPath string) error {
-	e := ConnectedWithFacebook{
+	e := &ConnectedWithFacebook{
 		ID:           u.id,
 		FacebookID:   facebookID,
 		AccessToken:  accessToken,
@@ -210,7 +210,7 @@ func (u *User) ConnectWithFacebook(ctx context.Context, facebookID, accessToken,
 
 // ChangeEmailAddress alters current user state and append changes to aggregate root
 func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error {
-	e := EmailAddressWasChanged{
+	e := &EmailAddressWasChanged{
 		ID:    u.id,
 		Email: email,
 	}
@@ -233,7 +233,7 @@ func (u *User) ChangeEmailAddress(ctx context.Context, email EmailAddress) error
 
 // RequestAccessToken dispatches AccessTokenWasRequested event
 func (u *User) RequestAccessToken(ctx context.Context, redirectPath string) error {
-	e := AccessTokenWasRequested{
+	e := &AccessTokenWasRequested{
 		ID:           u.id,
 		Email:        u.email,
 		RedirectPath: redirectPath,
@@ -277,16 +277,16 @@ func (u *User) trackChange(ctx context.Context, event *domain.Event) error {
 
 func (u *User) transition(e domain.RawEvent) error {
 	switch e := e.(type) {
-	case WasRegisteredWithEmail:
+	case *WasRegisteredWithEmail:
 		u.id = e.ID
 		u.email = e.Email
-	case WasRegisteredWithGoogle:
+	case *WasRegisteredWithGoogle:
 		u.id = e.ID
 		u.email = e.Email
-	case WasRegisteredWithFacebook:
+	case *WasRegisteredWithFacebook:
 		u.id = e.ID
 		u.email = e.Email
-	case EmailAddressWasChanged:
+	case *EmailAddressWasChanged:
 		u.email = e.Email
 	}
 
