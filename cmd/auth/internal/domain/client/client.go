@@ -82,7 +82,7 @@ func (c *Client) Create(
 	redirectURL string,
 	scopes ...string,
 ) error {
-	e := WasCreated{
+	e := &WasCreated{
 		ID:          clientID,
 		Secret:      clientSecret,
 		UserID:      userID,
@@ -109,7 +109,7 @@ func (c *Client) Create(
 
 // Remove alters current client state and append changes to aggregate root
 func (c *Client) Remove(ctx context.Context) error {
-	e := WasRemoved{
+	e := &WasRemoved{
 		ID: c.id,
 	}
 
@@ -151,7 +151,7 @@ func (c *Client) trackChange(ctx context.Context, event *domain.Event) (*domain.
 
 func (c *Client) transition(e domain.RawEvent) error {
 	switch e := e.(type) {
-	case WasCreated:
+	case *WasCreated:
 		c.id = e.ID
 		c.userID = e.UserID
 	}
