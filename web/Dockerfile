@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build
 
 # Runs as the image's unprivileged nginx user (UID 101) and listens on 8080.
-FROM nginxinc/nginx-unprivileged:1.30.6-alpine3.24
+FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 LABEL org.opencontainers.image.source="https://github.com/vardius/go-api-boilerplate" \
       org.opencontainers.image.licenses="MIT"
 ENV AUTH_UPSTREAM=http://auth:8080 \
