@@ -1,0 +1,64 @@
+---
+title: Working with AI agents
+description: How the AGENTS.md files, the written standards, the project skills and the automated checks let a coding agent change this codebase safely.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A coding agent does what a new teammate does: reads the folder it is working in, follows the rules it finds, and runs the checks. This repository is laid out so that the rules are where the agent will look, and so that the rules that matter most are enforced by tests rather than by trust.
+
+{/* verify: the root AGENTS.md, internal/user/AGENTS.md, internal/auth/AGENTS.md, web/AGENTS.md, deploy/AGENTS.md and .agents/skills/ against plan section I once they exist */}
+
+## AGENTS.md, nearest first
+
+Each area has an `AGENTS.md` that holds only what is true there. An agent reads the ones on the path to the file it is changing:
+
+| File | Says |
+|---|---|
+| `AGENTS.md` | The repository map, a scope router from folder to its `AGENTS.md`, and the project rules: which shapes change together, and where the trust boundaries are. |
+| [`internal/platform/AGENTS.md`](https://github.com/vardius/go-api-boilerplate/blob/master/internal/platform/AGENTS.md) | The kit imports no service; every store interface has one contract suite; container tests skip under `-short`. |
+| [`internal/platform/es/AGENTS.md`](https://github.com/vardius/go-api-boilerplate/blob/master/internal/platform/es/AGENTS.md) | Events are immutable; names never change; no secrets in events; `Apply` only assigns; projections are idempotent. |
+| `internal/user/AGENTS.md` | The actor comes from the identity, never the body; every route gets an authorization-matrix row. |
+| `internal/auth/AGENTS.md` | OAuth changes follow RFC 9700; token material is never logged. |
+| `web/AGENTS.md` | Cookies only, zod at the boundary, the 320 px rule. |
+| `deploy/AGENTS.md` | No secrets in values; images run as non-root. |
+| [`website/AGENTS.md`](https://github.com/vardius/go-api-boilerplate/blob/master/website/AGENTS.md) | Code samples are imported from real files, never pasted. |
+
+If your tool reads a different file, point it at these. Duplicating the rules into a second file is how they drift apart.
+
+## The standards
+
+[`docs/standards/`](https://github.com/vardius/go-api-boilerplate/tree/master/docs/standards) holds the bar every change meets, whoever wrote it: `shared.md` for every change, `go.md` and `typescript.md` for each stack. Each rule is something a reviewer can check, such as "wrap every returned error with context" or "inject the clock wherever logic reads the time".
+
+## Skills
+
+`.agents/skills/` holds step-by-step skills for the changes people make most often:
+
+- **add-command**: an event, the aggregate method, the use case, the projection, tests, the endpoint and its OpenAPI entry.
+- **add-endpoint**: a route, its guard, its OpenAPI entry and its authorization-matrix row.
+- **add-service**: copy the user layout and register the service in compose, Helm, CI and the scope router.
+
+Each skill links to the guide on this site instead of repeating it, so there is one description to keep true.
+
+## Shapes that change together
+
+Some files describe the same thing in different languages. A change to one is incomplete until the others match:
+
+- `proto/` and the generated code in `gen/`;
+- a route, its entry in `api/<service>.openapi.yaml`, and the web app's zod schema for it;
+- a config field and the [environment variable reference](../../reference/environment-variables/);
+- any of these and the reference pages on this site.
+
+## Rules that are checks, not prose
+
+An agent can miss a sentence. It can't miss a failing test:
+
+- **Import boundaries.** `internal/archtest` fails when the platform imports a service, when the user domain imports anything but the standard library and `es`, or when one service imports another.
+- **Authorization.** The matrix test fails when a route has no row.
+- **API contract.** The OpenAPI test fails when the router and the file disagree.
+- **Store rules.** The contract suites fail when a backend breaks a rule the others keep.
+- **Links.** CI checks that every link in the `AGENTS.md` files and on this site resolves.
+
+<Aside title="Try it">
+Give an agent only this repository and the task "add a `DisplayName` to users". With the add-command skill, it should reach a green `make check` without further prompting. Where it trips, a rule is missing or in the wrong place.
+</Aside>

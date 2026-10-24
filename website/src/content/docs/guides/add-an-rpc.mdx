@@ -1,0 +1,50 @@
+---
+title: Add an RPC
+description: Add a Connect method between the services, from the proto file and buf checks to the generated code and the scope that protects it.
+---
+
+import { Code, Steps } from '@astrojs/starlight/components';
+import { bufConfig, bufGenConfig, loginService } from '../../../lib/samples';
+
+Services call each other over [Connect](https://connectrpc.com/), which speaks the gRPC protocol and plain HTTP with the same generated code. Add an RPC only when a request can't be served without the other service. Reading another service's data per request couples them; a token or a projection usually does the job.
+
+Today there is exactly one: auth redeems login codes with user.
+
+<Code {...loginService} />
+
+<Steps>
+
+1. **Write the method** in `proto/<service>/v1/`. Comment the service and every method: say who may call it and what each failure means.
+
+2. **Lint it and check compatibility.** buf enforces the standard lint rules and rejects breaking changes against `master`:
+
+   <Code {...bufConfig} />
+
+   ```sh
+   buf lint
+   buf breaking --against '.git#branch=master'
+   ```
+
+   A field once released is never renumbered or reused. To change one, add a new field and deprecate the old.
+
+3. **Generate the code.** buf runs the generators pinned as tools in `go.mod`, so everyone generates with the same versions:
+
+   <Code {...bufGenConfig} />
+
+   ```sh
+   buf generate
+   ```
+
+   The output in `gen/` is committed, so the build needs no generator. CI fails if it is out of date.
+
+4. **Implement the server** in the called service and mount it on its RPC listener, not its public one. The gateway never forwards to the RPC listener.
+
+5. **Require a scope.** Add the scope to auth's scope table, marked not grantable to OAuth clients, and require it with the Connect server interceptor from `internal/platform/connectx`. The caller sends a short-lived bearer token carrying that scope, verified through JWKS like any other token. Today only auth calls an RPC, and it signs that token for itself.
+
+6. **Call it** from the other service with the generated client and the `connectx` client interceptor, which attaches the bearer token. Map the Connect error codes back to `apperr` kinds through the same `connectx` table.
+
+7. **Test both sides:** the server with a token from `authntest`, including a token without the scope, and the client against a fake server.
+
+</Steps>
+
+{/* verify: connectx's interceptors and error table, authntest, and the "CI fails if gen is out of date" check against plan sections C and H once they land */}

@@ -1,0 +1,32 @@
+---
+title: Proto
+description: The Connect services the backends call each other through, where their definitions and generated code live, and the buf configuration that checks them.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import { bufConfig, bufGenConfig, loginService } from '../../../lib/samples';
+
+Internal calls between the services use [Connect](https://connectrpc.com/), defined in Protocol Buffers under `proto/` and generated with buf into `gen/`. None of these services is reachable through the gateway.
+
+## LoginService
+
+`user.v1.LoginService` is called only by auth, with a token carrying the `login-codes:redeem` scope. It listens on the user service's `RPC_ADDR`.
+
+<Code {...loginService} />
+
+| Method | Request | Response | Errors |
+|---|---|---|---|
+| `RedeemLoginCode` | `code`: the code from the sign-in link | `user_id`, `email` | `UNAUTHENTICATED` for an unknown, used or expired code |
+
+Generated code:
+
+- [`gen/user/v1/login.pb.go`](https://github.com/vardius/go-api-boilerplate/blob/master/gen/user/v1/login.pb.go): the messages.
+- [`gen/user/v1/userv1connect/login.connect.go`](https://github.com/vardius/go-api-boilerplate/blob/master/gen/user/v1/userv1connect/login.connect.go): the Connect client and server interfaces.
+
+## buf
+
+<Code {...bufConfig} />
+
+<Code {...bufGenConfig} />
+
+The generators run through `go tool`, at the versions pinned in `go.mod`. To add a method, see [Add an RPC](../../guides/add-an-rpc/).

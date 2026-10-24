@@ -1,0 +1,58 @@
+---
+title: CQRS and projections
+description: Why reads come from projections, why those projections update in the append transaction, and how to move one onto the outbox when it must be asynchronous.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import { counterProjectionRollbackTest, projectionApi } from '../../../lib/samples';
+
+CQRS splits the code that changes things from the code that reads them. Commands go through an aggregate and append events. Queries read **projections**: tables shaped for the question being asked, built from those events.
+
+The split matters because an event stream is a poor thing to query. "Which user has this email?" would mean replaying every stream. A `users` table with a unique index on `email` answers it in one lookup, and the index also enforces the rule.
+
+## Projections run in the append transaction
+
+A projection is a function the repository calls on every save, with the events just appended and the same transaction:
+
+<Code {...projectionApi} />
+
+That gives two guarantees:
+
+- **Read your writes.** When a request returns, the projection already shows its change. There is no window where the user exists in the stream but not in the table.
+- **Rules across aggregates.** One account per email can't be checked inside a single aggregate. A unique index in the projection checks it, and a duplicate fails the whole transaction, events included:
+
+<Code {...counterProjectionRollbackTest} />
+
+The user service turns that duplicate-key error into `apperr.ErrConflict`, which the client sees as a `409`.
+
+## The user service's read side
+
+| Table | Columns | Rules |
+|---|---|---|
+| `users` | `id`, `email`, `google_sub`, `created_at` | `email` unique. `google_sub` unique when set, so any number of users can have none. |
+| `login_codes` | `code_hash`, `purpose`, `email`, `user_id`, `next`, `expires_at`, `used_at` | Consumed atomically: a code works once, and two concurrent uses can't both succeed. |
+
+{/* verify: the users projection and login_codes columns, and the MongoDB partial index on google_sub, against internal/user/store */}
+
+Login codes aren't a projection: they are short-lived state written directly by the use cases. They live beside the projection because they share its transaction.
+
+## Writing a projection
+
+- **Make it idempotent.** Running it twice on the same events must leave the same rows. Upserts by ID, not blind inserts.
+- **Switch on the payload type** and ignore events it doesn't need.
+- **Write one implementation per backend,** each under the service's store contract suite.
+- **Keep it in the transaction.** It must not call other services or send anything. A side effect is an outbox message.
+
+[Add a projection](../../guides/add-a-projection/) walks through one end to end.
+
+## When a projection must be asynchronous
+
+Inline projections are the default because they need no checkpoints, no replay machinery and no eventual-consistency handling in the web app. Sometimes a projection is too slow to sit in the request, or it lives in another system, such as a search index.
+
+Then move it onto the outbox:
+
+1. In the use case, add an outbox message for the projection in the same transaction as the events.
+2. Register a relay handler for that topic that updates the read model.
+3. Make the handler idempotent by message ID, because the relay delivers at least once.
+
+The read model now lags by the relay's poll interval, and the web app has to live with that. [Outbox and side effects](../outbox-and-side-effects/) covers delivery and retries.

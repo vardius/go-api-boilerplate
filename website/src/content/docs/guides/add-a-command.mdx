@@ -1,0 +1,72 @@
+---
+title: Add a command
+description: Change the domain end to end, from a new event and the rule that raises it to the use case, its transaction and its tests.
+---
+
+import { Aside, Code, Steps } from '@astrojs/starlight/components';
+import {
+	counterAggregate,
+	counterEvents,
+	counterRegistry,
+	counterSave,
+	counterScenario,
+	outboxNewMessage,
+} from '../../../lib/samples';
+
+A command is anything that changes an aggregate: register a user, change their email, link Google. There is no command bus. A command is a method on the aggregate, called from a use case, which is a method on the service's app.
+
+This guide adds one in the order that keeps each step testable. The samples come from the event-sourcing kit's `counter` test aggregate, which has the same shape as the user aggregate.
+
+{/* verify: switch the samples to internal/user/domain and internal/user/app, and check the paths below, once they exist */}
+
+<Aside title="Using a coding agent?">
+The `add-command` skill in `.agents/skills/` walks an agent through these steps and the checks to run.
+</Aside>
+
+<Steps>
+
+1. **Name the event.** It is a fact, in the past tense, with a versioned name: `user.display_name_changed.v1`. Its payload is a struct with JSON tags, holding only what the fact needs. No secrets, and no personal data beyond that.
+
+   <Code {...counterEvents} />
+
+2. **Register it** in the service's registry, next to the others. The name is stored with every event and never changes.
+
+   <Code {...counterRegistry} />
+
+3. **Add the aggregate method and its `Apply` case.** The method checks the rule and raises the event. `Apply` only assigns: it never fails on a rule, because stored events are facts.
+
+   <Code {...counterAggregate} />
+
+4. **Test the aggregate with Given/When/Then.** Given the history, when the method runs, then exactly these events are raised, or this error and nothing else.
+
+   <Code {...counterScenario} />
+
+   Write one test per rule, for both outcomes. These tests need no database.
+
+5. **Write the use case** in `internal/user/app`. It takes the actor from `authn.Identity`, never from the request body. It loads the aggregate, calls the method, and saves inside one unit of work, with `Meta` naming the actor:
+
+   <Code {...counterSave} />
+
+   If the change has a side effect, such as an email, add an outbox message inside the same `Do` call:
+
+   <Code {...outboxNewMessage} />
+
+6. **Update the projection** if the read model changes. See [Add a projection](../add-a-projection/).
+
+7. **Expose it** through an endpoint, its OpenAPI entry and an authorization-matrix row. See [Add an endpoint](../add-an-endpoint/).
+
+8. **Run the checks:**
+
+   ```sh
+   go test -race ./internal/user/...
+   make check
+   ```
+
+</Steps>
+
+## Mistakes the checks won't catch
+
+- **Validating in `Apply`.** Old events would fail to load the day the rule changes. Check rules in the method, before `Raise`.
+- **Renaming a stored event.** Existing streams stop loading. Add a `.v2` with an upcast instead; see [Aggregates and events](../../concepts/aggregates-and-events/#names-and-versions).
+- **Doing I/O inside `Do`.** A backend may run the function twice. Send nothing from it; add an outbox message.
+- **Retrying `es.ErrConcurrency` in the use case.** Return it. The client gets a `409` and decides with fresh data.

@@ -1,0 +1,85 @@
+---
+title: Testing
+description: What each layer's tests check, how they stay fast and deterministic, and the commands that run them locally and in CI.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import {
+	counterConflictTest,
+	counterScenario,
+	memdbContractTests,
+	relayRetryTest,
+	relayRunTest,
+	scenarioApi,
+	storeContract,
+} from '../../../lib/samples';
+
+Tests are written against behaviour you can name: "a stale version conflicts", "a code works once", "another user gets a 404". Each layer has its own kind of test, and the fast ones need no Docker.
+
+## Commands
+
+| Command | Runs |
+|---|---|
+| `go test -short ./...` | Everything except tests that start containers. No Docker needed. |
+| `go test -race -shuffle=on ./...` | Everything, in random order, with the race detector. This is what CI runs. |
+| `go test -race -tags persistence_mysql ./...` | The same with the MySQL build. CI runs the memory, MySQL and MongoDB builds. |
+| `make check` | Formatting, vet, lint, tests and the generated-code check: all of CI. |
+| `make e2e` | The end-to-end suite against `docker compose up`. |
+
+{/* verify: make check and make e2e once the Makefile targets from plan section F exist */}
+
+## Aggregates: Given, When, Then
+
+An aggregate test says what happened before, what is tried now, and which events must result, or which error and no events:
+
+<Code {...counterScenario} />
+
+The helper is a few lines in `estest`:
+
+<Code {...scenarioApi} />
+
+Write one per rule, for both outcomes. They touch no store, so there is no setup to share and nothing to clean up.
+
+## Repositories and concurrency
+
+Repository tests run on the memory backend and check what the aggregate test can't: versions, conflicts and rollbacks.
+
+<Code {...counterConflictTest} />
+
+## Contract suites
+
+Every store interface has one suite, and every backend runs it. The suite is where a rule lives; a backend passes it or isn't done.
+
+<Code {...storeContract} />
+
+<Code {...memdbContractTests} />
+
+The MySQL and MongoDB runs use testcontainers: one container per test binary, a fresh database per test. They skip under `-short`.
+
+## Time without sleeping
+
+Code that reads the time takes a `Now func() time.Time`, and tests move it forward:
+
+<Code {...relayRetryTest} />
+
+Code that waits on timers runs inside `testing/synctest`, where time only moves when every goroutine is blocked. The test finishes instantly and never flakes on a slow machine:
+
+<Code {...relayRunTest} />
+
+CI also runs once with `TZ=Pacific/Kiritimati`, a UTC+14 zone, to catch code that assumes the local time zone.
+
+## HTTP: the authorization matrix
+
+Each service has a table-driven test that calls every route as anonymous, another user, the owner, and a token with the wrong scope, and checks the status each gets. A route with no row fails the test. This is the test that would have caught the 2022 layout's account-takeover bug.
+
+A second test checks the router against `api/<service>.openapi.yaml`: every route is documented, every documented route exists, and every response matches its schema.
+
+{/* verify: the authorization-matrix and OpenAPI contract tests, the TZ run and the container helpers (mysqltest, mongotest) against plan sections D, E and H */}
+
+## End to end
+
+`go test -tags e2e ./e2e/...` drives the running stack over HTTP. CI runs it against the memory, MySQL and MongoDB builds, each started with `docker compose up --wait`.
+
+Playwright drives the web app on the memory build: it signs in through the Mailpit API, creates an OAuth app, runs the client-credentials flow and revokes a session.
+
+{/* verify: e2e/ and the Playwright suite against plan sections G and H */}

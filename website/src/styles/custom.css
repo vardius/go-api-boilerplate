@@ -1,0 +1,225 @@
+/*
+ * Design tokens. Brand: violet, so this site doesn't blur with gorouter's green.
+ * Dark mode is Starlight's default; light mode overrides it. Every text pairing below is AA (4.5:1) or better.
+ */
+:root {
+	/* One font pairing: the platform's UI font for text, its monospace for code. Nothing to download. */
+	--sl-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif;
+	--sl-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+
+	--sl-color-accent-low: #2a2160;
+	--sl-color-accent: #9d8cff;
+	--sl-color-accent-high: #d9d2ff;
+
+	/* Architecture diagram */
+	--diagram-surface: var(--sl-color-bg-nav);
+	--diagram-line: var(--sl-color-gray-3);
+	--diagram-text: var(--sl-color-white);
+	--diagram-muted: var(--sl-color-gray-2);
+	--diagram-accent: var(--sl-color-accent);
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #e9e4ff;
+	--sl-color-accent: #5a3fd6;
+	--sl-color-accent-high: #2e1c7a;
+}
+
+/* Expressive Code keeps wrapped lines a minimum width, which is wider than a 320 px phone with large text. */
+.expressive-code .ec-line .code {
+	min-width: 0;
+}
+
+/* A long file path in a code frame's tab wraps instead of being cut off. */
+.expressive-code .frame.has-title .title {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+/* Landing page: a soft accent glow at the top, behind the hero. */
+.main-frame:has(.hero) {
+	background:
+		radial-gradient(ellipse 70% 32rem at 70% -6rem, color-mix(in srgb, var(--sl-color-accent) 16%, transparent), transparent),
+		radial-gradient(ellipse 50% 24rem at 0% 0%, color-mix(in srgb, var(--sl-color-accent) 8%, transparent), transparent);
+}
+
+/* Landing sections */
+.landing-section {
+	margin-block: clamp(3.5rem, calc(2rem + 5vw), 6rem);
+}
+
+.eyebrow {
+	margin-bottom: 0.25rem;
+	color: var(--sl-color-text-accent);
+	font-size: var(--sl-text-sm);
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.landing-section > h2 {
+	margin-top: 0 !important;
+	margin-bottom: 0.75rem;
+	letter-spacing: -0.015em;
+}
+
+.landing-lead {
+	color: var(--sl-color-gray-2);
+	max-width: 42rem;
+}
+
+/* Feature cards: a quiet surface with one accent, on the icon. */
+.card {
+	--sl-card-border: color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+	--sl-card-bg: var(--sl-color-accent-low);
+	border-color: var(--sl-color-hairline-light);
+	border-radius: 0.75rem;
+	background-color: var(--sl-color-bg-nav);
+	transition: border-color 0.15s;
+}
+
+.card:hover {
+	border-color: color-mix(in srgb, var(--sl-color-accent) 50%, var(--sl-color-hairline-light));
+}
+
+.card .icon {
+	color: var(--sl-color-text-accent);
+	border-radius: 0.5rem;
+	padding: 0.3em;
+}
+
+.card .body {
+	color: var(--sl-color-gray-2);
+}
+
+/* Closing call to action */
+.cta {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 1rem;
+	margin-block: clamp(3.5rem, calc(2rem + 5vw), 6rem) 1rem;
+	padding: clamp(1.5rem, calc(0.5rem + 4vw), 3rem);
+	border: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, var(--sl-color-hairline-light));
+	border-radius: 1rem;
+	background:
+		radial-gradient(ellipse 80% 120% at 100% 0%, color-mix(in srgb, var(--sl-color-accent) 18%, transparent), transparent),
+		var(--sl-color-bg-nav);
+}
+
+.cta h2 {
+	margin: 0;
+	font-size: clamp(var(--sl-text-2xl), calc(1rem + 2vw), var(--sl-text-4xl));
+	line-height: 1.15;
+	letter-spacing: -0.015em;
+	color: var(--sl-color-white);
+}
+
+.cta p {
+	margin: 0;
+	max-width: 36rem;
+	color: var(--sl-color-gray-2);
+}
+
+.cta-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1rem 2rem;
+	margin-top: 0.5rem;
+}
+
+/* Header: the mark sits close to the name. With large text on a phone the name may break after
+   "go-api-" rather than be cut off beside the search and menu buttons. */
+.site-title {
+	gap: 0.5rem;
+	font-weight: 700;
+	line-height: 1.1;
+	letter-spacing: -0.01em;
+}
+
+.site-title span {
+	white-space: normal;
+}
+
+.site-title img {
+	height: 1.75rem;
+}
+
+/* Narrow phones with large text: a smaller name, and smaller headings so a long word like
+   "Authentication" fits on its line instead of splitting. */
+@media (max-width: 24rem) {
+	:root {
+		--sl-text-h1: var(--sl-text-3xl);
+		--sl-text-h2: var(--sl-text-2xl);
+		--sl-text-h3: var(--sl-text-xl);
+		--sl-text-h4: var(--sl-text-lg);
+	}
+
+	.site-title {
+		font-size: var(--sl-text-base);
+	}
+
+	.site-title img {
+		height: 1.5rem;
+	}
+}
+
+/* In a narrow column (a phone, or a laptop with large text) each table row becomes a labelled
+   stack instead of squeezed columns. table-labels.mjs copies the headings onto the cells. */
+.sl-markdown-content {
+	container: content / inline-size;
+}
+
+@container content (max-width: 30rem) {
+	.sl-markdown-content table,
+	.sl-markdown-content table :is(tbody, tr, td) {
+		display: block;
+		width: 100%;
+	}
+
+	.sl-markdown-content table thead {
+		display: none;
+	}
+
+	.sl-markdown-content table tr {
+		padding-block: 0.75rem;
+		border-bottom: 1px solid var(--sl-color-hairline-light);
+	}
+
+	.sl-markdown-content table td {
+		border: 0;
+		padding: 0.125rem 0;
+	}
+
+	.sl-markdown-content table td:empty {
+		display: none;
+	}
+
+	.sl-markdown-content table td[data-label]::before {
+		content: attr(data-label);
+		display: block;
+		line-height: 1.5;
+		color: var(--sl-color-gray-3);
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+}
+
+/* Long identifiers (env vars, routes) break instead of widening the page. In tables they break
+   only where they must, so columns keep a readable width; inline-code.mjs adds the break points
+   after slashes. */
+.sl-markdown-content :is(li, p) code {
+	overflow-wrap: anywhere;
+}
+
+.sl-markdown-content :is(td, th) code {
+	overflow-wrap: break-word;
+}
+
+/* inline-code.mjs wraps flags such as --wait, so they never split at their dashes. */
+code > .nowrap {
+	white-space: nowrap;
+}
