@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"path"
 	"strings"
 	"time"
 	"uuid"
@@ -169,8 +170,9 @@ const maxNextBytes = 2048
 // SafeNext returns next when it is a path on the web app's own origin, such
 // as "/consent?request=42", and "" for anything else: an absolute or
 // scheme-relative URL ("//evil.example"), a backslash, which browsers read
-// as a slash, or a control character. Redirecting to what it returns can't
-// leave the site.
+// as a slash, a control character, or a path that isn't clean, since dot
+// segments and doubled slashes can normalise into "//evil.example"
+// ("/.//evil.example"). Redirecting to what it returns can't leave the site.
 func SafeNext(next string) string {
 	if next == "" || len(next) > maxNextBytes || !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") {
 		return ""
@@ -180,6 +182,9 @@ func SafeNext(next string) string {
 	}
 	u, err := url.Parse(next)
 	if err != nil || u.Scheme != "" || u.Host != "" || u.User != nil || u.Opaque != "" {
+		return ""
+	}
+	if u.Path != "/" && path.Clean(u.Path) != strings.TrimSuffix(u.Path, "/") {
 		return ""
 	}
 	return next

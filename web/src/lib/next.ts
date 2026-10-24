@@ -16,6 +16,8 @@ export function safeNext(next: string | null | undefined, origin: string = windo
   }
   // Catches "//host", "/\host" and anything the URL parser normalises into another origin.
   if (url.origin !== origin) return undefined;
+  // "/.//host" stays on this origin but normalises to the path "//host", which a link or navigation reads as a host.
+  if (url.pathname.startsWith('//')) return undefined;
   return url.pathname + url.search + url.hash;
 }
 

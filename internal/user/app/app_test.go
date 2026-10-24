@@ -853,6 +853,12 @@ func TestSafeNext(t *testing.T) {
 		{"/\n/evil.example", ""},
 		{"/a b", ""},
 		{"/%zz", ""},
+		{"/apps/", "/apps/"},
+		{"/.//evil.example", ""},
+		{"/a/..//evil.example", ""},
+		{"/%2e//evil.example", ""},
+		{"/a//b", ""},
+		{"/a/./b", ""},
 		{"/" + strings.Repeat("a", 2048), ""},
 	}
 	for _, tt := range tests {
