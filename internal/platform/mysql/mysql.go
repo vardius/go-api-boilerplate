@@ -1,4 +1,4 @@
-// Package mysql runs the platform's stores on MySQL 8.4: a unit of work
+// Package mysql runs the platform's stores on MySQL 9.7: a unit of work
 // over database transactions, an event store, an outbox, and goose
 // migrations for their tables and for each service's own.
 package mysql

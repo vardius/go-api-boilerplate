@@ -69,7 +69,7 @@ make up STORE=mysql
 make up STORE=mongodb
 ```
 
-`STORE=mysql` runs MySQL 8.4 and applies the migrations at start, which compose turns on with `MIGRATE_ON_START=true`. `STORE=mongodb` runs MongoDB as a single-node replica set, because multi-document transactions need one, and creates the indexes at start the same way. Stop either with the same `STORE`, such as `make down STORE=mysql`; it also removes the database volume. `make up OBSERVABILITY=1` adds Grafana on [localhost:3000](http://localhost:3000), as [Observability](../concepts/observability/#traces-and-metrics) explains.
+`STORE=mysql` runs MySQL 9.7 and applies the migrations at start, which compose turns on with `MIGRATE_ON_START=true`. `STORE=mongodb` runs MongoDB as a single-node replica set, because multi-document transactions need one, and creates the indexes at start the same way. Stop either with the same `STORE`, such as `make down STORE=mysql`; it also removes the database volume. `make up OBSERVABILITY=1` adds Grafana on [localhost:3000](http://localhost:3000), as [Observability](../concepts/observability/#traces-and-metrics) explains.
 
 ## Work on the code
 

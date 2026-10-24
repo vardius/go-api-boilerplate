@@ -7,7 +7,7 @@ import { Aside, Steps } from '@astrojs/starlight/components';
 
 Kubernetes is optional. The services are ordinary containers that read the environment and answer `/livez` and `/readyz`, so anything that runs containers can run them. For Kubernetes, the repository ships one Helm chart in `deploy/helm/go-api-boilerplate`.
 
-The chart doesn't create a cluster or a database. Use any cluster: a managed one, or `kind` or minikube on your machine. Use a managed MySQL 8.4 or MongoDB replica set, or one you already run. The `memory` store is there to try the chart: it keeps data in the pod, so the chart refuses more than one replica per service with it.
+The chart doesn't create a cluster or a database. Use any cluster: a managed one, or `kind` or minikube on your machine. Use a managed MySQL 9.7 or MongoDB replica set, or one you already run. The `memory` store is there to try the chart: it keeps data in the pod, so the chart refuses more than one replica per service with it.
 
 ## Images
 

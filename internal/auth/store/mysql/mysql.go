@@ -1,4 +1,4 @@
-// Package mysql keeps the auth service's store in MySQL 8.4.
+// Package mysql keeps the auth service's store in MySQL 9.7.
 //
 // Migrate creates its tables, under their own goose version table. A
 // single-use operation locks its row with SELECT … FOR UPDATE inside a

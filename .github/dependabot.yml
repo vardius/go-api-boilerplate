@@ -23,6 +23,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # MySQL stays on its LTS line (9.7); the calendar-versioned releases
+      # (26.7, 26.10, …) are Innovation releases until 28.4 LTS.
+      - dependency-name: mysql
+        versions: ['>= 10']
   - package-ecosystem: github-actions
     directory: /
     schedule:
