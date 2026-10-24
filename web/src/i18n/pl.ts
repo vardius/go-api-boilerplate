@@ -40,6 +40,17 @@ export const pl: Record<MessageId, string> = {
   'signIn.signedOut': 'Wylogowano.',
   'signIn.or': 'lub',
   'signIn.google': 'Kontynuuj z Google',
+  'signIn.googleFailed.title': 'Logowanie przez Google się nie zakończyło',
+  'signIn.googleFailed.denied':
+    'W Google odmówiono zgody, więc nic nie zostało udostępnione. Zaloguj się linkiem z e-maila albo spróbuj Google jeszcze raz.',
+  'signIn.googleFailed.expired':
+    'Trwało to zbyt długo albo zostało przerwane przed końcem. Spróbuj Google jeszcze raz albo zaloguj się linkiem z e-maila.',
+  'signIn.googleFailed.unverified':
+    'Google nie potwierdził adresu e-mail tego konta, a zalogować można się tylko potwierdzonym adresem. Potwierdź go w Google albo zaloguj się linkiem z e-maila.',
+  'signIn.googleFailed.taken':
+    'To konto Google należy do innego konta albo konto z jego adresem e-mail jest połączone z innym kontem Google. Zaloguj się linkiem z e-maila.',
+  'signIn.googleFailed.failed':
+    'Coś poszło nie tak przy kończeniu logowania. Spróbuj ponownie za chwilę albo zaloguj się linkiem z e-maila.',
 
   'checkInbox.title': 'Sprawdź skrzynkę',
   'checkInbox.body': 'Wysłaliśmy link do logowania na adres {email}. Działa raz i wygasa po 15 minutach.',
@@ -68,13 +79,22 @@ export const pl: Record<MessageId, string> = {
   'profile.email.submit': 'Wyślij link potwierdzający',
   'profile.email.sending': 'Wysyłanie…',
   'profile.email.same': 'To już jest Twój e-mail.',
-  'profile.email.taken': 'Inne konto używa już tego adresu.',
   'profile.email.sent.title': 'Sprawdź nową skrzynkę',
   'profile.email.sent.body':
     'Wysłaliśmy link potwierdzający na adres {email}. Dopóki go nie otworzysz, logujesz się adresem {current}.',
   'profile.google.heading': 'Google',
   'profile.google.linked': 'Połączone. Możesz logować się przez Google.',
   'profile.google.linkedNotice': 'Konto Google zostało połączone.',
+  'profile.google.failed.title': 'Nie połączono konta Google',
+  'profile.google.failed.denied':
+    'W Google odmówiono zgody, więc nic się nie zmieniło. Wybierz „Połącz konto Google”, aby spróbować ponownie.',
+  'profile.google.failed.expired':
+    'Łączenie trwało zbyt długo albo zostało przerwane przed końcem. Wybierz „Połącz konto Google”, aby zacząć od nowa.',
+  'profile.google.failed.unverified':
+    'Google nie potwierdził adresu e-mail tego konta, więc nie można go połączyć. Potwierdź go w Google i spróbuj ponownie.',
+  'profile.google.failed.taken':
+    'To konto Google należy do innego konta, więc nie można go połączyć z tym. Wybierz inne konto Google.',
+  'profile.google.failed.failed': 'Coś poszło nie tak przy łączeniu. Spróbuj ponownie za chwilę.',
   'profile.google.unlinked': 'Połącz konto Google, aby logować się bez czekania na e-mail.',
   'profile.google.link': 'Połącz konto Google',
   'profile.google.disabledReason':
@@ -89,9 +109,9 @@ export const pl: Record<MessageId, string> = {
   'confirmEmail.incomplete.title': 'Ten link potwierdzający jest niekompletny',
   'confirmEmail.incomplete.body':
     'W linku brakuje kodu. Skopiuj cały link z e-maila albo zmień e-mail ponownie w profilu.',
-  'confirmEmail.expired.title': 'Ten link potwierdzający wygasł',
+  'confirmEmail.expired.title': 'Ten link potwierdzający wygasł lub jest nieprawidłowy',
   'confirmEmail.expired.body':
-    'Link potwierdzający działa raz i wygasa po 15 minutach. Zmień e-mail ponownie w profilu, aby dostać nowy.',
+    'Link potwierdzający działa raz, przez 15 minut i tylko dla konta, które poprosiło o zmianę. Zmień e-mail ponownie w profilu, aby dostać nowy.',
   'confirmEmail.taken.title': 'Ten adres jest zajęty',
   'confirmEmail.taken.body':
     'Inne konto zaczęło używać tego adresu po Twojej prośbie o zmianę. Twój e-mail się nie zmienił.',

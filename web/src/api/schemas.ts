@@ -11,9 +11,13 @@ const timestamp = z.iso
 
 const httpURL = z.url({ protocol: /^https?$/ });
 
+// Field names, required fields and statuses follow api/user.openapi.yaml for the user service.
+
 export const configSchema = z.object({
   google_enabled: z.boolean(),
-  mail_preview_url: z.preprocess((value) => (value === '' || value === null ? undefined : value), httpURL.optional()),
+  // The server passes MAIL_PREVIEW_URL through as written. It becomes a link, so only http(s) is kept;
+  // anything else drops this one field rather than the whole config (and with it Google).
+  mail_preview_url: httpURL.optional().catch(undefined),
 });
 export type Config = z.output<typeof configSchema>;
 

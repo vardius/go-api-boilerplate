@@ -8,6 +8,7 @@ import { useConfig, useMe } from '../api/queries';
 import type { User } from '../api/schemas';
 import type { MessageId } from '../i18n/messages';
 import { emailProblem } from '../lib/email';
+import { googleFailure } from '../lib/google';
 import { Actions, Button, ButtonAnchor } from '../ui/Button';
 import { ErrorState } from '../ui/ErrorState';
 import { TextField } from '../ui/Field';
@@ -15,6 +16,7 @@ import { Loading } from '../ui/Loading';
 import { Notice } from '../ui/Notice';
 import { Muted, Page, Section } from '../ui/Page';
 import { useFocusFirstInvalid } from '../ui/useFocusFirstInvalid';
+import { GoogleFailureNotice } from './GoogleFailureNotice';
 import { MailPreviewNotice } from './MailPreviewNotice';
 import styles from './screens.module.css';
 
@@ -22,6 +24,7 @@ export function Profile() {
   const intl = useIntl();
   const [params] = useSearchParams();
   const me = useMe();
+  const google = googleFailure(params.get('google'));
 
   return (
     <Page title={intl.formatMessage({ id: 'profile.title' })}>
@@ -30,6 +33,7 @@ export function Profile() {
           <p>{intl.formatMessage({ id: 'profile.google.linkedNotice' })}</p>
         </Notice>
       )}
+      {google !== undefined && <GoogleFailureNotice failure={google} linking />}
       {me.isError && <ErrorState error={me.error} onRetry={() => void me.refetch()} />}
       {me.data === undefined ? (
         !me.isError && <Loading />
@@ -85,12 +89,7 @@ function EmailSection({ user }: { user: User }) {
   }
 
   const serverFieldError = isProblem(change.error, 400) ? change.error.fieldErrors.email : undefined;
-  const fieldError =
-    invalid !== undefined
-      ? intl.formatMessage({ id: invalid })
-      : isProblem(change.error, 409)
-        ? intl.formatMessage({ id: 'profile.email.taken' })
-        : serverFieldError;
+  const fieldError = invalid === undefined ? serverFieldError : intl.formatMessage({ id: invalid });
   const formError = change.isError && fieldError === undefined ? change.error : undefined;
 
   return (

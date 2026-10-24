@@ -63,7 +63,8 @@ export function ConfirmEmail() {
   if (isProblem(confirm.error, 409)) {
     return outcome('confirmEmail.taken.title', intl.formatMessage({ id: 'confirmEmail.taken.body' }));
   }
-  if (isProblem(confirm.error, 400, 404, 410)) {
+  // 400 is the code: unknown, used, expired or another account's (errors.code). Never a sign-out.
+  if (isProblem(confirm.error, 400)) {
     return outcome('confirmEmail.expired.title', intl.formatMessage({ id: 'confirmEmail.expired.body' }));
   }
   if (confirm.isError) {
