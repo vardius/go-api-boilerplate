@@ -41,10 +41,10 @@ Read `internal/user/AGENTS.md` and `internal/platform/es/AGENTS.md` first.
      the read mapping; `userDoc` is only for reads.
 5. **Use case** in `internal/user/app/app.go`: a method on `Service` that
    gets the caller from `Actor(ctx, scope)`, which also checks the scope
-   (never from the body). Load the user and call the aggregate method
-   *before* `s.uow.Do`; inside it only write: `s.repo.Save` and any
-   `outbox.NewMessage`. MongoDB may run that function again, so it must not
-   change the aggregate. Test it in `app_test.go` with the memory stores and
+   (never from the body). Load the user, call the aggregate method and
+   build any message with `outbox.NewMessage` *before* `s.uow.Do`; inside
+   it only write: `s.repo.Save` and `s.outbox.Add`. MongoDB may run that
+   function again, so it must not change the aggregate. Test it in `app_test.go` with the memory stores and
    an injected clock.
 6. **Endpoint**: follow the add-endpoint skill (route, OpenAPI entry,
    authorization matrix row, web schema and screen).
