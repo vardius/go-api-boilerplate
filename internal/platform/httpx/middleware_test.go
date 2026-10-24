@@ -184,6 +184,10 @@ func TestLog(t *testing.T) {
 		{"client left", httpx.Handle(func(http.ResponseWriter, *http.Request) error {
 			return fmt.Errorf("query: %w", context.Canceled)
 		}), "DEBUG", 200, 0, "query: context canceled"},
+		{"an error answered in another format", func(w http.ResponseWriter, _ *http.Request) {
+			httpx.RecordError(w, errors.New("invalid_grant: code used again"))
+			w.WriteHeader(http.StatusBadRequest)
+		}, "INFO", 400, 0, "invalid_grant: code used again"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -210,6 +214,14 @@ func TestLog(t *testing.T) {
 				t.Errorf("err = %q, want %q", got, tt.err)
 			}
 		})
+	}
+}
+
+func TestRecordErrorWithoutLogWritesNothing(t *testing.T) {
+	rec := httptest.NewRecorder()
+	httpx.RecordError(rec, errors.New("boom"))
+	if rec.Code != http.StatusOK || rec.Body.Len() != 0 || len(rec.Header()) != 0 {
+		t.Fatalf("RecordError wrote %d %v %q", rec.Code, rec.Header(), rec.Body)
 	}
 }
 

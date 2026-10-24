@@ -1,0 +1,665 @@
+openapi: 3.1.0
+info:
+  title: go-api-boilerplate auth service
+  version: "1"
+  summary: Sessions for the web app, OAuth 2 for third-party apps, and the keys that verify every access token.
+  description: |
+    Every route is served through the gateway under /api/auth. Access
+    tokens are RFC 9068 JWTs signed with ES256; any service verifies them
+    with the keys at /.well-known/jwks.json.
+
+    Errors are RFC 9457 problem details, except at /oauth/token and
+    /oauth/revoke, which answer in the format of RFC 6749 §5.2. Unsafe
+    requests that a browser sends from another origin to a cookie-
+    authenticated route are refused with 403.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: /api/auth
+    description: Through the gateway.
+tags:
+  - name: probes
+  - name: keys
+  - name: sessions
+  - name: clients
+  - name: oauth
+paths:
+  /livez:
+    get:
+      tags: [probes]
+      operationId: live
+      summary: The process is up.
+      responses:
+        "200":
+          description: Alive.
+          content:
+            text/plain:
+              schema: { type: string }
+  /readyz:
+    get:
+      tags: [probes]
+      operationId: ready
+      summary: The store answers and the service isn't shutting down.
+      responses:
+        "200":
+          description: Ready for traffic.
+          content:
+            text/plain:
+              schema: { type: string }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+  /.well-known/jwks.json:
+    get:
+      tags: [keys]
+      operationId: getJWKS
+      summary: The public keys that verify access tokens.
+      description: |
+        The current signing key first, then the previous keys still
+        accepted while tokens they signed may be alive. A key's kid is its
+        RFC 7638 thumbprint. Cacheable for a minute.
+      responses:
+        "200":
+          description: The keys, as an RFC 7517 JWK set.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JWKS" }
+  /.well-known/oauth-authorization-server:
+    get:
+      tags: [oauth]
+      operationId: getMetadata
+      summary: RFC 8414 authorization server metadata.
+      responses:
+        "200":
+          description: The metadata.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Metadata" }
+  /v1/sessions:
+    post:
+      tags: [sessions]
+      operationId: signIn
+      summary: Start a session with a sign-in code.
+      description: |
+        Redeems the one-time code from a sign-in link or Google sign-in with
+        the user service, and sets the access_token and refresh_token
+        cookies. Limited per client IP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SignInRequest" }
+      responses:
+        "201":
+          description: Signed in.
+          headers:
+            Set-Cookie: { $ref: "#/components/headers/SessionCookies" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionCreated" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/InternalError" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+    get:
+      tags: [sessions]
+      operationId: listSessions
+      summary: The signed-in user's sessions.
+      description: Most recently used first. Only the web app's own session token may list them.
+      security: [{ cookie: [] }, { bearer: [] }]
+      responses:
+        "200":
+          description: The sessions.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionList" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/sessions/refresh:
+    post:
+      tags: [sessions]
+      operationId: refreshSession
+      summary: Rotate the session's tokens.
+      description: |
+        Takes the refresh_token cookie and sets new access_token and
+        refresh_token cookies. A refresh token works once: presenting one
+        that was rotated already ends the session. A 401 clears both
+        cookies.
+      security: [{ refreshCookie: [] }]
+      responses:
+        "200":
+          description: Refreshed.
+          headers:
+            Set-Cookie: { $ref: "#/components/headers/SessionCookies" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionCreated" }
+        "401": { $ref: "#/components/responses/SessionEnded" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/sessions/current:
+    delete:
+      tags: [sessions]
+      operationId: signOut
+      summary: Sign out.
+      description: Ends the session the refresh_token cookie belongs to, if any, and clears both cookies.
+      security: [{ refreshCookie: [] }, {}]
+      responses:
+        "204":
+          description: Signed out.
+          headers:
+            Set-Cookie: { $ref: "#/components/headers/SessionCookies" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/sessions/{id}:
+    delete:
+      tags: [sessions]
+      operationId: revokeSession
+      summary: End one of the signed-in user's sessions.
+      security: [{ cookie: [] }, { bearer: [] }]
+      parameters:
+        - $ref: "#/components/parameters/SessionID"
+      responses:
+        "204":
+          description: Ended. Its refresh token stops working; its access token expires within 15 minutes.
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/clients:
+    get:
+      tags: [clients]
+      operationId: listClients
+      summary: The OAuth clients the user registered.
+      description: Oldest first. A client's secret is never shown again.
+      security: [{ cookie: [] }, { bearer: [clients:read] }]
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200":
+          description: A page of clients.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClientList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    post:
+      tags: [clients]
+      operationId: createClient
+      summary: Register an OAuth client.
+      description: |
+        The answer holds the client secret, which is shown this once: only
+        its argon2id hash is kept. Redirect URIs are matched exactly, so
+        register every one the client uses.
+      security: [{ cookie: [] }, { bearer: [clients:write] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewClient" }
+      responses:
+        "201":
+          description: Registered.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClientCreated" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/clients/{id}:
+    delete:
+      tags: [clients]
+      operationId: deleteClient
+      summary: Delete an OAuth client the user registered.
+      description: Revokes every grant to it; its secret stops working at once.
+      security: [{ cookie: [] }, { bearer: [clients:write] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Deleted.
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/authorization-requests/{id}:
+    get:
+      tags: [oauth]
+      operationId: getAuthorizationRequest
+      summary: What the consent page asks the user to allow.
+      security: [{ cookie: [] }, { bearer: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: The pending request.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Consent" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /oauth/authorize:
+    get:
+      tags: [oauth]
+      operationId: authorize
+      summary: An OAuth 2 authorization request (RFC 6749 §4.1.1).
+      description: |
+        Only the authorization code flow, and only with PKCE S256. The user
+        agent is sent:
+
+        - to {WEB_URL}/oauth/error?reason=… when the client_id is unknown
+          or the redirect_uri is not exactly one the client registered;
+        - back to the redirect_uri with error, error_description, state and
+          iss for any other bad request;
+        - to {WEB_URL}/sign-in?next=… without a session;
+        - to {WEB_URL}/consent?request=… with one.
+      parameters:
+        - { name: response_type, in: query, required: true, schema: { type: string, const: code } }
+        - { name: client_id, in: query, required: true, schema: { type: string } }
+        - { name: redirect_uri, in: query, required: true, schema: { type: string, format: uri } }
+        - { name: scope, in: query, schema: { type: string }, description: "Space-separated; the client's scopes when omitted." }
+        - { name: state, in: query, schema: { type: string, maxLength: 1024 } }
+        - { name: code_challenge, in: query, required: true, schema: { type: string, minLength: 43, maxLength: 43 } }
+        - { name: code_challenge_method, in: query, required: true, schema: { type: string, const: S256 } }
+      responses:
+        "302": { $ref: "#/components/responses/Redirect" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    post:
+      tags: [oauth]
+      operationId: decide
+      summary: The consent page's answer.
+      description: |
+        Sends the user agent back to the client's redirect_uri with a code,
+        valid once for one minute, or with error=access_denied; or to
+        {WEB_URL}/oauth/error?reason=… when there is no session or no such
+        pending request.
+      security: [{ cookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema: { $ref: "#/components/schemas/Decision" }
+      responses:
+        "303": { $ref: "#/components/responses/Redirect" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /oauth/token:
+    post:
+      tags: [oauth]
+      operationId: token
+      summary: The token endpoint (RFC 6749 §3.2).
+      description: |
+        Grants: authorization_code (with the code_verifier and the same
+        redirect_uri), client_credentials and refresh_token. Refresh tokens
+        rotate: presenting one that was rotated already revokes the grant.
+        The client authenticates with HTTP Basic (client_secret_basic) or
+        with client_id and client_secret in the body (client_secret_post),
+        not both. Limited per client IP.
+      security: [{ clientBasic: [] }, {}]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema: { $ref: "#/components/schemas/TokenRequest" }
+      responses:
+        "200":
+          description: Tokens.
+          headers:
+            Cache-Control: { $ref: "#/components/headers/NoStore" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenResponse" }
+        "400": { $ref: "#/components/responses/OAuthError" }
+        "401": { $ref: "#/components/responses/InvalidClient" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /oauth/revoke:
+    post:
+      tags: [oauth]
+      operationId: revoke
+      summary: Token revocation (RFC 7009).
+      description: |
+        A refresh token issued to the client ends its grant. Any other
+        token, unknown, expired, another client's or an access token, is
+        answered 200 all the same; access tokens expire on their own within
+        15 minutes. The client authenticates as at /oauth/token. Limited
+        per client IP, together with /oauth/token.
+      security: [{ clientBasic: [] }, {}]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema: { $ref: "#/components/schemas/RevocationRequest" }
+      responses:
+        "200":
+          description: Revoked, or nothing to revoke.
+        "400": { $ref: "#/components/responses/OAuthError" }
+        "401": { $ref: "#/components/responses/InvalidClient" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/InternalError" }
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: An RFC 9068 access token.
+    cookie:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: The web app's session access token.
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: refresh_token
+      description: The web app's session refresh token, sent only to /v1/sessions.
+    clientBasic:
+      type: http
+      scheme: basic
+      description: client_secret_basic, the client ID and secret each form-encoded (RFC 6749 §2.3.1).
+  parameters:
+    SessionID:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  headers:
+    SessionCookies:
+      description: |
+        access_token (HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=900)
+        and refresh_token (HttpOnly; Secure; SameSite=Strict;
+        Path=REFRESH_COOKIE_PATH; Max-Age=2592000), or both cleared.
+      schema: { type: string }
+    NoStore:
+      schema: { type: string, const: no-store }
+    Location:
+      required: true
+      schema: { type: string, format: uri-reference }
+    RetryAfter:
+      description: Seconds to wait.
+      schema: { type: integer }
+    WWWAuthenticate:
+      schema: { type: string }
+  responses:
+    Redirect:
+      description: The user agent is sent on; see the operation.
+      headers:
+        Location: { $ref: "#/components/headers/Location" }
+    BadRequest:
+      description: The request is malformed; errors names the fields.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Unauthorized:
+      description: No access token, or one that is invalid or expired.
+      headers:
+        WWW-Authenticate: { $ref: "#/components/headers/WWWAuthenticate" }
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    SessionEnded:
+      description: No refresh cookie, or one that is unknown, expired or reused. Both cookies are cleared.
+      headers:
+        WWW-Authenticate: { $ref: "#/components/headers/WWWAuthenticate" }
+        Set-Cookie: { $ref: "#/components/headers/SessionCookies" }
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Forbidden:
+      description: The token lacks a scope or isn't the right kind, or the request came from another origin.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    NotFound:
+      description: There is no such thing, or it is someone else's.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    PayloadTooLarge:
+      description: The body is larger than 64 KiB.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    TooManyRequests:
+      description: This client IP is sending too many requests.
+      headers:
+        Retry-After: { $ref: "#/components/headers/RetryAfter" }
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    InternalError:
+      description: The service failed; the problem says nothing more.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    ServiceUnavailable:
+      description: A dependency timed out or the service is shutting down.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    OAuthError:
+      description: The request was refused (RFC 6749 §5.2).
+      headers:
+        Cache-Control: { $ref: "#/components/headers/NoStore" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/OAuthError" }
+    InvalidClient:
+      description: Client authentication failed, error invalid_client.
+      headers:
+        WWW-Authenticate: { $ref: "#/components/headers/WWWAuthenticate" }
+        Cache-Control: { $ref: "#/components/headers/NoStore" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/OAuthError" }
+  schemas:
+    Problem:
+      description: An RFC 9457 problem.
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        request_id: { type: string }
+        errors:
+          type: object
+          additionalProperties: { type: string }
+    OAuthError:
+      description: An RFC 6749 §5.2 error response.
+      type: object
+      required: [error]
+      additionalProperties: false
+      properties:
+        error:
+          type: string
+          enum: [invalid_request, invalid_client, invalid_grant, unauthorized_client, unsupported_grant_type, invalid_scope]
+        error_description: { type: string }
+    Scope:
+      type: string
+      enum: [user:read, user:write, clients:read, clients:write]
+    JWKS:
+      type: object
+      required: [keys]
+      properties:
+        keys:
+          type: array
+          items:
+            type: object
+            required: [kty, crv, x, y, kid, use, alg]
+            properties:
+              kty: { type: string, const: EC }
+              crv: { type: string, const: P-256 }
+              x: { type: string }
+              y: { type: string }
+              kid: { type: string }
+              use: { type: string, const: sig }
+              alg: { type: string, const: ES256 }
+    Metadata:
+      type: object
+      required: [issuer, authorization_endpoint, token_endpoint, revocation_endpoint, jwks_uri, response_types_supported, grant_types_supported, code_challenge_methods_supported]
+      properties:
+        issuer: { type: string, format: uri }
+        authorization_endpoint: { type: string, format: uri }
+        token_endpoint: { type: string, format: uri }
+        revocation_endpoint: { type: string, format: uri }
+        jwks_uri: { type: string, format: uri }
+        scopes_supported: { type: array, items: { $ref: "#/components/schemas/Scope" } }
+        response_types_supported: { type: array, items: { type: string } }
+        response_modes_supported: { type: array, items: { type: string } }
+        grant_types_supported: { type: array, items: { type: string } }
+        token_endpoint_auth_methods_supported: { type: array, items: { type: string } }
+        revocation_endpoint_auth_methods_supported: { type: array, items: { type: string } }
+        code_challenge_methods_supported: { type: array, items: { type: string } }
+        authorization_response_iss_parameter_supported: { type: boolean }
+    SignInRequest:
+      type: object
+      required: [code]
+      additionalProperties: false
+      properties:
+        code: { type: string, description: The code from the sign-in link. }
+    SessionCreated:
+      type: object
+      required: [session]
+      properties:
+        session:
+          type: object
+          required: [id, expires_at]
+          properties:
+            id: { type: string, format: uuid }
+            expires_at: { type: string, format: date-time, description: When the session ends unless refreshed. }
+    SessionList:
+      type: object
+      required: [sessions]
+      properties:
+        sessions:
+          type: array
+          items:
+            type: object
+            required: [id, created_at, last_used_at, user_agent, current]
+            properties:
+              id: { type: string, format: uuid }
+              created_at: { type: string, format: date-time }
+              last_used_at: { type: string, format: date-time }
+              user_agent: { type: string }
+              current: { type: boolean, description: The session this request comes from. }
+    Client:
+      type: object
+      required: [id, name, redirect_uris, scopes, created_at]
+      additionalProperties: false
+      properties:
+        id: { type: string }
+        name: { type: string }
+        redirect_uris: { type: array, items: { type: string, format: uri } }
+        scopes: { type: array, items: { $ref: "#/components/schemas/Scope" } }
+        created_at: { type: string, format: date-time }
+    ClientList:
+      type: object
+      required: [clients, limit, offset]
+      properties:
+        clients: { type: array, items: { $ref: "#/components/schemas/Client" } }
+        limit: { type: integer }
+        offset: { type: integer }
+    NewClient:
+      type: object
+      required: [name, redirect_uris, scopes]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        redirect_uris:
+          type: array
+          minItems: 1
+          maxItems: 10
+          description: Absolute https URLs, or http on localhost or 127.0.0.1, without fragments.
+          items: { type: string, format: uri, maxLength: 2000 }
+        scopes:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/Scope" }
+    ClientCreated:
+      type: object
+      required: [client, client_secret]
+      properties:
+        client: { $ref: "#/components/schemas/Client" }
+        client_secret: { type: string, description: Shown this once. }
+    Consent:
+      type: object
+      required: [client, scopes, redirect_host]
+      properties:
+        client:
+          type: object
+          required: [id, name]
+          properties:
+            id: { type: string }
+            name: { type: string }
+        scopes:
+          type: array
+          items:
+            type: object
+            required: [name, description]
+            properties:
+              name: { $ref: "#/components/schemas/Scope" }
+              description: { type: string }
+        redirect_host: { type: string, description: Where the user is sent back to. }
+    Decision:
+      type: object
+      required: [request, decision]
+      properties:
+        request: { type: string, format: uuid }
+        decision: { type: string, enum: [allow, deny] }
+    TokenRequest:
+      type: object
+      required: [grant_type]
+      properties:
+        grant_type: { type: string, enum: [authorization_code, client_credentials, refresh_token] }
+        code: { type: string }
+        redirect_uri: { type: string }
+        code_verifier: { type: string, minLength: 43, maxLength: 128 }
+        refresh_token: { type: string }
+        scope: { type: string }
+        client_id: { type: string }
+        client_secret: { type: string }
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, expires_in, scope]
+      additionalProperties: false
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, const: Bearer }
+        expires_in: { type: integer }
+        refresh_token: { type: string, description: Not for client_credentials. }
+        scope: { type: string }
+    RevocationRequest:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+        token_type_hint: { type: string }
+        client_id: { type: string }
+        client_secret: { type: string }

@@ -114,6 +114,15 @@ func WriteError(w http.ResponseWriter, r *http.Request, err error) {
 	writeProblem(w, r, code, detail, fields)
 }
 
+// RecordError puts err in the request's log line, as WriteError does, for
+// a handler that answers the failure in a format of its own, such as an
+// OAuth 2 error response. It writes nothing; without Log it does nothing.
+func RecordError(w http.ResponseWriter, err error) {
+	if rec := findRecorder(w); rec != nil {
+		rec.err = err
+	}
+}
+
 type problem struct {
 	Type      string            `json:"type"`
 	Title     string            `json:"title"`
