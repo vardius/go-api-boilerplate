@@ -17,7 +17,7 @@ Queries never read the event store. They read projections: tables or collections
    - MongoDB: add the index to `Indexes` in `internal/user/store/mongodb`. The same `user migrate`, or `MIGRATE_ON_START`, ensures them, and ensuring them again changes nothing.
    - Memory: add the field in `internal/user/store/memory` and, for a unique rule, a map that enforces it.
 
-3. **Update the projection function.** It receives the events of one save and the transaction. Switch on each payload type, ignore the rest, and write with upserts so that running it twice changes nothing.
+3. **Update the projection function.** It receives the events of one save and the transaction. Switch on each payload type, and write with upserts so that running it twice changes nothing. The user stores' `Project` refuses an event it has no case for, so every event needs a case in each backend, even one that changes nothing. In MongoDB the write is the `bson.D` in `project`; `userDoc` is only for reads.
 
    <Code {...projectionApi} />
 

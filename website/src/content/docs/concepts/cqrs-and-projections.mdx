@@ -39,7 +39,7 @@ Login codes aren't a projection: they are short-lived state written directly by 
 ## Writing a projection
 
 - **Make it idempotent.** Running it twice on the same events must leave the same rows. Upserts by ID, not blind inserts.
-- **Switch on the payload type** and ignore events it doesn't need.
+- **Switch on the payload type.** The user stores refuse an event they have no case for, so a new event can't be saved until every backend handles it.
 - **Write one implementation per backend,** each under the service's store contract suite.
 - **Keep it in the transaction.** It must not call other services or send anything. A side effect is an outbox message.
 

@@ -22,7 +22,7 @@ Tests are written against behaviour you can name: "a stale version conflicts", "
 |---|---|
 | `go test -short ./...` | Everything except tests that start containers. No Docker needed. |
 | `make test` | `go test -race -shuffle=on ./...`: everything, in random order, with the race detector, including the MySQL and MongoDB containers. |
-| `make check` | What CI runs, except the container and end-to-end tests: formatting, `go fix`, vet and staticcheck for every store build, the short tests with the race detector, the proto lint and generated-file check, the web app's checks and the Helm chart's. |
+| `make check` | What CI runs, except the container and end-to-end tests: formatting, `go fix`, vet and staticcheck for every store build and the end-to-end tests, the short tests with the race detector, the proto lint and generated-file check, the web app's checks and the Helm chart's. |
 | `make e2e` | The end-to-end suite, against a stack started with `make up`. |
 | `make e2e-web` | The Playwright suite, against the same stack. |
 

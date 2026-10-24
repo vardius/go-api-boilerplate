@@ -39,26 +39,30 @@ The `add-command` skill in `.agents/skills/` holds these steps as a checklist.
 
    <Code {...userChangeEmailTests} />
 
-   Write one test per rule, for both outcomes. These tests need no database.
+   Write one test per rule, for both outcomes. These tests need no database. Add the event to `TestEventsKeepTheirStoredShape` too, which pins each event's stored JSON.
 
-5. **Write the use case** in `internal/user/app`. It takes the actor from the identity in the context with `Actor`, never from the request body. It loads the aggregate and calls the method, then saves inside one unit of work, with `meta` naming the actor:
+5. **Project it in every backend.** Each store's `Project`, in `internal/user/store/memory`, `mysql` and `mongodb`, refuses an event it has no case for, so a new event can't be saved until all three handle it, even when it changes no column. Write the rule into `internal/user/store/storetest` first; a new `store.User` field also goes in its `assertUser`. In MongoDB the write is the `bson.D` in `project`; `userDoc` is only for reads. [Add a projection](../add-a-projection/) covers new columns and indexes.
+
+6. **Write the use case** in `internal/user/app/app.go`. It gets the caller from `Actor(ctx, scope)`, which also checks the scope, never from the request body. Load the user and call the aggregate method *before* `s.uow.Do`. Inside it, only write: `s.repo.Save`, with `meta` naming the actor, and `s.outbox.Add` for any message. A backend may run that function again, so it must not change the aggregate:
 
    <Code {...userConfirmEmailChange} />
 
-   If the change has a side effect, such as an email, add an outbox message inside the same `Do` call:
+   If the change has a side effect, such as an email, make the message with `outbox.NewMessage` and add it inside the same `Do` call:
 
    <Code {...userRequestEmailChange} />
 
-6. **Update the projection** if the read model changes. See [Add a projection](../add-a-projection/).
+   Test it in `app_test.go`, with the memory stores and an injected clock.
 
-7. **Expose it** through an endpoint, its OpenAPI entry and an authorization-matrix row. See [Add an endpoint](../add-an-endpoint/).
+7. **Expose it** through an endpoint, its OpenAPI entry and an authorization-matrix row. See [Add an endpoint](../add-an-endpoint/). Add the event to the list on [Aggregates and events](../../concepts/aggregates-and-events/).
 
 8. **Run the checks:**
 
    ```sh
-   go test -race ./internal/user/...
+   go test -race -shuffle=on ./internal/user/... ./internal/archtest/...
    make check
    ```
+
+   Without Docker, add `-short`: the MySQL and MongoDB store tests then run only in CI.
 
 </Steps>
 
