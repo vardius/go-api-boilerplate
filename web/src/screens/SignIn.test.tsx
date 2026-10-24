@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { signInStartedHere } from '../lib/signInStart';
 import { json, mockApi, offline, problem } from '../test/api';
 import { renderApp } from '../test/render';
 
@@ -7,6 +8,10 @@ const config = 'GET /api/user/v1/config';
 const loginLinks = 'POST /api/user/v1/login-links';
 
 describe('Sign in', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it('emails a link, says to check the inbox, and links to Mailpit with the reason', async () => {
     const api = mockApi({
       [config]: json(200, { google_enabled: false, mail_preview_url: 'http://localhost:8025' }),
@@ -132,5 +137,22 @@ describe('Sign in', () => {
       'href',
       '/api/user/v1/google/start?next=%2Fapps',
     );
+  });
+  it('remembers that this browser started a sign-in, so its link goes straight in', async () => {
+    mockApi({ [config]: json(200, { google_enabled: true }), [loginLinks]: json(202, {}) });
+    const { user } = renderApp('/sign-in');
+
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+    await user.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Check your inbox' })).toBeInTheDocument();
+    expect(signInStartedHere()).toBe(true);
+
+    window.localStorage.clear();
+    await user.click(screen.getByRole('button', { name: 'Use a different email' }));
+    const google = screen.getByRole('link', { name: 'Continue with Google' });
+    // jsdom can't follow the link to Google; the click is what matters.
+    google.addEventListener('click', (event) => event.preventDefault());
+    await user.click(google);
+    expect(signInStartedHere()).toBe(true);
   });
 });

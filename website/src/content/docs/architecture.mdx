@@ -26,7 +26,7 @@ Only auth ever holds token material or sets cookies. The user service redeems th
 
 3. The outbox relay sends the email. The link points at `{WEB_URL}/sign-in/complete?code=…`.
 
-4. The web app posts the code to auth: `POST /api/auth/v1/sessions` with `{code}`. If this browser is already signed in, it first asks whether to switch to the link's account or stay signed in, so a link someone else sent can't quietly sign the reader in to their account.
+4. The web app posts the code to auth: `POST /api/auth/v1/sessions` with `{code}`. It does so at once only when this browser asked for the link and has no session. Otherwise it asks first: whether to sign in with a link this browser didn't ask for (one opened on another device, say), or whether to switch accounts or stay signed in. A link someone else sent therefore can't quietly sign the reader in to their account, and a sign-in this browser didn't start goes to the profile, never on to a server route such as linking Google. Only the web app can post the code, because auth refuses cross-origin calls.
 
 5. auth calls `user.v1.LoginService/RedeemLoginCode` over Connect, authenticated with a short-lived token it signs for itself, with `client_id` `auth`. In one transaction, user marks the code used, registers the user if the address is new, and returns the user's ID and email.
 

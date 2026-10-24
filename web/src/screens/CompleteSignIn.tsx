@@ -7,6 +7,7 @@ import { createSession } from '../api/endpoints';
 import { useSignedInUser } from '../api/queries';
 import { loadPage } from '../lib/browser';
 import { isServerPath, safeNext, signInPath } from '../lib/next';
+import { forgetSignInStarted, signInStartedHere } from '../lib/signInStart';
 import { Actions, Button, ButtonAnchor, ButtonLink } from '../ui/Button';
 import { ErrorState } from '../ui/ErrorState';
 import { Loading } from '../ui/Loading';
@@ -18,19 +19,25 @@ import { Card, Page } from '../ui/Page';
  *
  * Signing in replaces this browser's session, so a link someone else sent
  * could quietly sign the reader in to that person's account (login CSRF).
- * With no session the code is redeemed at once; with one, the reader chooses.
+ * The code is redeemed at once only when this browser started the sign-in
+ * and has no session; otherwise the reader chooses.
  */
 export function CompleteSignIn() {
   const intl = useIntl();
   const [params] = useSearchParams();
   const code = params.get('code');
   const next = safeNext(params.get('next'));
-  const destination = next ?? '/profile';
+  const [startedHere] = useState(signInStartedHere);
+  // A sign-in this browser didn't start never goes on to a server route, such as linking Google, by itself.
+  const destination = next !== undefined && (startedHere || !isServerPath(next)) ? next : '/profile';
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const signIn = useMutation({
-    mutationFn: createSession,
+    mutationFn: (signInCode: string) => {
+      forgetSignInStarted();
+      return createSession(signInCode);
+    },
     onSuccess: () => {
       // Whatever was cached belongs to whoever was signed in before.
       queryClient.clear();
@@ -48,10 +55,10 @@ export function CompleteSignIn() {
   const { mutate } = signIn;
   const noSession = signedIn.isSuccess && signedIn.data === null;
   useEffect(() => {
-    if (code === null || code === '' || !noSession || posted.current) return;
+    if (code === null || code === '' || !noSession || !startedHere || posted.current) return;
     posted.current = true;
     mutate(code);
-  }, [code, noSession, mutate]);
+  }, [code, noSession, startedHere, mutate]);
 
   const newLink = (
     <Actions>
@@ -92,6 +99,28 @@ export function CompleteSignIn() {
     );
   }
 
+  const choose = () => {
+    posted.current = true;
+    setSwitching(true);
+    mutate(code);
+  };
+
+  if (signIn.isIdle && noSession && !startedHere) {
+    return (
+      <Page title={intl.formatMessage({ id: 'confirmSignIn.title' })}>
+        <Card>
+          <p>{intl.formatMessage({ id: 'confirmSignIn.body' })}</p>
+          <Actions>
+            <Button variant="primary" onClick={choose}>
+              {intl.formatMessage({ id: 'switchAccount.continue' })}
+            </Button>
+            <ButtonLink to={signInPath()}>{intl.formatMessage({ id: 'confirmSignIn.cancel' })}</ButtonLink>
+          </Actions>
+        </Card>
+      </Page>
+    );
+  }
+
   const current = signedIn.data;
   if (signIn.isIdle && current !== undefined && current !== null) {
     const stayLabel = intl.formatMessage({ id: 'switchAccount.stay' }, { email: current.email });
@@ -105,14 +134,7 @@ export function CompleteSignIn() {
             )}
           </p>
           <Actions>
-            <Button
-              variant="primary"
-              onClick={() => {
-                posted.current = true;
-                setSwitching(true);
-                mutate(code);
-              }}
-            >
+            <Button variant="primary" onClick={choose}>
               {intl.formatMessage({ id: 'switchAccount.continue' })}
             </Button>
             {isServerPath(destination) ? (

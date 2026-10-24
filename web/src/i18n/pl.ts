@@ -77,6 +77,12 @@ export const pl: Record<MessageId, string> = {
   'switchAccount.continue': 'Zaloguj się tym linkiem',
   'switchAccount.stay': 'Pozostań na koncie {email}',
 
+  // A sign-in link this browser didn't ask for, with no one signed in: it may be someone else's.
+  'confirmSignIn.title': 'Zalogować się tym linkiem?',
+  'confirmSignIn.body':
+    'Ta przeglądarka nie prosiła o link do logowania. Jeśli prośba o link została wysłana z innego urządzenia, kontynuuj. Jeśli nie, nie loguj się: ktoś może próbować zalogować Cię na swoje konto.',
+  'confirmSignIn.cancel': 'Nie loguj się',
+
   'profile.title': 'Profil',
   'profile.memberSince': 'Konto od {date}',
   'profile.email.heading': 'E-mail',

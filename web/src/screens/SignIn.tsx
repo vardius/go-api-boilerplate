@@ -10,6 +10,7 @@ import type { MessageId } from '../i18n/messages';
 import { emailProblem } from '../lib/email';
 import { googleFailure } from '../lib/google';
 import { safeNext } from '../lib/next';
+import { markSignInStarted } from '../lib/signInStart';
 import { Actions, Button, ButtonAnchor } from '../ui/Button';
 import { ErrorState } from '../ui/ErrorState';
 import { TextField } from '../ui/Field';
@@ -36,7 +37,12 @@ export function SignIn() {
   const config = useConfig();
   const [email, setEmail] = useState('');
   const [invalid, setInvalid] = useState<MessageId>();
-  const send = useMutation({ mutationFn: (address: string) => requestLoginLink(address, next) });
+  const send = useMutation({
+    mutationFn: (address: string) => {
+      markSignInStarted();
+      return requestLoginLink(address, next);
+    },
+  });
   const { form, submitted } = useFocusFirstInvalid(send.error);
   // Back from "check your inbox" by choice: the email field is what the reader came back for.
   const [again, setAgain] = useState(false);
@@ -118,7 +124,9 @@ export function SignIn() {
           <Stack>
             <p className={styles.divider}>{intl.formatMessage({ id: 'signIn.or' })}</p>
             <Actions>
-              <ButtonAnchor href={googleStartURL({ next })}>{intl.formatMessage({ id: 'signIn.google' })}</ButtonAnchor>
+              <ButtonAnchor href={googleStartURL({ next })} onClick={() => markSignInStarted()}>
+                {intl.formatMessage({ id: 'signIn.google' })}
+              </ButtonAnchor>
             </Actions>
           </Stack>
         )}

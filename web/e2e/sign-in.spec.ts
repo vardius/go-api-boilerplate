@@ -20,9 +20,12 @@ test('a sign-in link works only once', async ({ page, browser }) => {
   await page.goto(link);
   await expect(page.getByRole('heading', { level: 1, name: 'Profile' })).toBeVisible();
 
+  // Another browser didn't ask for the link, so it asks before using it.
   const elsewhere = await browser.newContext();
   const replay = await elsewhere.newPage();
   await replay.goto(link);
+  await expect(replay.getByRole('heading', { level: 1, name: 'Sign in with this link?' })).toBeVisible();
+  await replay.getByRole('button', { name: 'Sign in with this link' }).click();
 
   await expect(replay.getByRole('heading', { level: 1, name: 'This sign-in link has expired' })).toBeVisible();
   await elsewhere.close();

@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadPage } from '../lib/browser';
+import { markSignInStarted, signInStartedHere } from '../lib/signInStart';
 import { json, mockApi, offline, problem } from '../test/api';
 import { apiUser, renderApp } from '../test/render';
 
@@ -14,6 +15,12 @@ const created = json(201, { session: { id: 's1', expires_at: '2026-11-23T10:00:0
 const signedOut = { [me]: problem(401), [refresh]: problem(401) };
 
 describe('Complete sign-in', () => {
+  // Most links finish a sign-in this browser started; the block at the end covers one it didn't.
+  beforeEach(() => {
+    window.localStorage.clear();
+    markSignInStarted();
+  });
+
   it('with no session, trades the code for a session at once, then goes to next', async () => {
     const api = mockApi({
       ...signedOut,
@@ -128,5 +135,64 @@ describe('Complete sign-in', () => {
     await user.click(await screen.findByRole('button', { name: 'Try again' }));
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Profile' })).toBeInTheDocument();
+  });
+  describe("a sign-in this browser didn't start", () => {
+    beforeEach(() => {
+      window.localStorage.clear();
+    });
+
+    it('asks before using the code, even with no session', async () => {
+      const api = mockApi({
+        ...signedOut,
+        [sessions]: created,
+        'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20, offset: 0 }),
+      });
+      const { user, router } = renderApp('/sign-in/complete?code=abc&next=%2Fapps');
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Sign in with this link?' })).toBeInTheDocument();
+      expect(api.callsTo(sessions)).toHaveLength(0);
+
+      await user.click(screen.getByRole('button', { name: 'Sign in with this link' }));
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'OAuth apps' })).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/apps');
+      expect(api.callsTo(sessions)).toEqual([expect.objectContaining({ body: { code: 'abc' } })]);
+    });
+
+    it("posts nothing when the reader doesn't sign in", async () => {
+      const api = mockApi({ ...signedOut, 'GET /api/user/v1/config': json(200, { google_enabled: false }) });
+      const { user, router } = renderApp('/sign-in/complete?code=abc');
+
+      await user.click(await screen.findByRole('link', { name: "Don't sign in" }));
+
+      expect(router.state.location.pathname).toBe('/sign-in');
+      expect(api.callsTo(sessions)).toHaveLength(0);
+    });
+
+    it('goes to the profile instead of a server route', async () => {
+      vi.mocked(loadPage).mockClear();
+      mockApi({
+        [me]: [problem(401), json(200, apiUser())],
+        [refresh]: problem(401),
+        [sessions]: created,
+        'GET /api/user/v1/config': json(200, { google_enabled: false }),
+      });
+      const next = '/api/user/v1/google/start?link=1';
+      const { user, router } = renderApp(`/sign-in/complete?code=abc&next=${encodeURIComponent(next)}`);
+
+      await user.click(await screen.findByRole('button', { name: 'Sign in with this link' }));
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Profile' })).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/profile');
+      expect(loadPage).not.toHaveBeenCalled();
+    });
+  });
+
+  it('forgets the start once its code is used, so one start finishes one sign-in', async () => {
+    mockApi({ ...signedOut, [sessions]: problem(401) });
+    renderApp('/sign-in/complete?code=old');
+
+    expect(await screen.findByRole('heading', { name: 'This sign-in link has expired' })).toBeInTheDocument();
+    expect(signInStartedHere()).toBe(false);
   });
 });

@@ -76,6 +76,12 @@ export const en = {
   'switchAccount.continue': 'Sign in with this link',
   'switchAccount.stay': 'Stay signed in as {email}',
 
+  // A sign-in link this browser didn't ask for, with no one signed in: it may be someone else's.
+  'confirmSignIn.title': 'Sign in with this link?',
+  'confirmSignIn.body':
+    "This browser didn't ask for a sign-in link. If you asked for it on another device, go ahead. If you didn't ask for it, don't: someone may be trying to sign you in to their account.",
+  'confirmSignIn.cancel': "Don't sign in",
+
   'profile.title': 'Profile',
   'profile.memberSince': 'Member since {date}',
   'profile.email.heading': 'Email',
