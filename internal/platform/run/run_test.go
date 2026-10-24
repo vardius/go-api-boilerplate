@@ -154,13 +154,15 @@ func TestRunStopsEveryServerWhenOneFails(t *testing.T) {
 
 func TestRunReportsServersThatOutliveTheTimeout(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
 		release := make(chan struct{})
+		// The worker stops Run only once it is serving: one shut down before
+		// it starts stops cleanly.
 		stuck := run.Worker(func(context.Context) error {
+			cancel()
 			<-release
 			return nil
 		})
-		ctx, cancel := context.WithCancel(t.Context())
-		cancel()
 
 		err := run.Run(ctx, run.Config{ShutdownTimeout: 20 * time.Second}, nil, discard, stuck)
 		close(release)
