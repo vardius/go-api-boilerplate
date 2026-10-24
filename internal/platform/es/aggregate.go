@@ -43,6 +43,7 @@ type Changes struct {
 	pending []any
 }
 
+//lint:ignore U1000 aggregates in other packages embed Changes, and Repository calls this through Aggregate.
 func (c *Changes) changes() *Changes { return c }
 
 // Version is the version of the last stored event the aggregate was built
