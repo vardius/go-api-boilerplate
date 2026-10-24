@@ -212,14 +212,17 @@ func TestDecide(t *testing.T) {
 		}
 	})
 
-	t.Run("a client deleted meanwhile takes its requests", func(t *testing.T) {
-		id := must(e.Service.RequestConsent(t.Context(), user, a))(t)
+	t.Run("a client deleted meanwhile takes its requests, so neither answer reaches it", func(t *testing.T) {
+		allow := must(e.Service.RequestConsent(t.Context(), user, a))(t)
+		deny := must(e.Service.RequestConsent(t.Context(), user, a))(t)
 		if err := e.Service.DeleteClient(t.Context(), c.OwnerID, c.ID); err != nil {
 			t.Fatal(err)
 		}
-		_, err := e.Service.Decide(t.Context(), user, id, true)
-		if ae, ok := errors.AsType[*app.AuthorizeError](err); !ok || ae.Code != app.ReasonRequestExpired {
-			t.Fatalf("err = %v, want %s", err, app.ReasonRequestExpired)
+		for id, answer := range map[uuid.UUID]bool{allow: true, deny: false} {
+			_, err := e.Service.Decide(t.Context(), user, id, answer)
+			if ae, ok := errors.AsType[*app.AuthorizeError](err); !ok || ae.Code != app.ReasonRequestExpired {
+				t.Fatalf("allow %t: err = %v, want %s", answer, err, app.ReasonRequestExpired)
+			}
 		}
 	})
 }

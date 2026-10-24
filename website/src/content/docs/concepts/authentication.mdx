@@ -64,7 +64,7 @@ The rules that matter:
 - The client secret is 32 random bytes, shown once at creation, stored as an argon2id hash and compared in constant time.
 - Deleting a client revokes every grant it holds.
 - The user sees a consent screen with the app's name and scopes before anything is granted.
-- A refused authorization request, such as an unknown client, a redirect URI that doesn't match or a missing PKCE challenge, goes to the web app's `/oauth/error` page with a reason, never to the redirect URI: anyone can register a client, so sending errors there would make auth an open redirector. Only the user's decision goes back to the app, with `state` and `iss`.
+- A refused authorization request, such as an unknown client, a redirect URI that doesn't match or a missing PKCE challenge, goes to the web app's `/oauth/error` page with a reason, never to the redirect URI: anyone can register a client, so sending errors there would make auth an open redirector. Only the user's decision goes back to the app, with `state` and `iss`. RFC 6749 §4.1.2.1 sends most of these errors to the client; RFC 9700 §4.11.2 lets a server keep an untrusted redirect URI out of them, as auth does. A client in development therefore sees its mistakes on that page, not in its callback.
 
 Users manage their apps with `GET /api/auth/v1/clients`, `POST /api/auth/v1/clients` and `DELETE /api/auth/v1/clients/{id}`. A list never includes a secret. Clients find the server's RFC 8414 metadata at `/.well-known/oauth-authorization-server/api/auth`, where RFC 8414 puts it for the issuer `/api/auth`, and at `/api/auth/.well-known/oauth-authorization-server`.
 

@@ -182,6 +182,13 @@ func (s *Service) Decide(ctx context.Context, user, id uuid.UUID, allow bool) (s
 	if err != nil {
 		return "", fmt.Errorf("take authorization request %s: %w", id, err)
 	}
+	// A client deleted while its consent page was open gets no answer, not even a denial.
+	if _, ok, err := s.lookupClient(ctx, r.ClientID); err != nil || !ok {
+		if err == nil {
+			err = &AuthorizeError{Code: ReasonInvalidClient, Description: "The client was deleted."}
+		}
+		return "", err
+	}
 	params := url.Values{}
 	if r.State != "" {
 		params.Set("state", r.State)
@@ -190,12 +197,6 @@ func (s *Service) Decide(ctx context.Context, user, id uuid.UUID, allow bool) (s
 		params.Set("error", ErrorAccessDenied)
 		params.Set("error_description", "The user denied the request.")
 		return s.redirect(r.RedirectURI, params), nil
-	}
-	if _, ok, err := s.lookupClient(ctx, r.ClientID); err != nil || !ok {
-		if err == nil {
-			err = &AuthorizeError{Code: ReasonInvalidClient, Description: "The client was deleted."}
-		}
-		return "", err
 	}
 
 	code := newSecret()
