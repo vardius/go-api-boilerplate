@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"runtime"
 	"time"
 
@@ -13,7 +14,7 @@ type Config struct {
 		Domain          string        `env:"APP_DOMAIN"           envDefault:"http://localhost:3000"`
 		Environment     string        `env:"APP_ENV"              envDefault:"development"`
 		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT" envDefault:"5s"`
-		Secret          string        `env:"AUTH_SECRET"          envDefault:"secret"`
+		Secret          string        `env:"AUTH_SECRET"`
 		AuthorizeURL    string        `env:"AUTH_AUTHORIZE_URL"   envDefault:"http://localhost:3000/authorize"`
 	}
 	OAuth struct {
@@ -69,6 +70,9 @@ type Config struct {
 	}
 }
 
+// minSecretLength is the shortest secret accepted for signing tokens (HS512 wants at least 64 bytes; 32 is the floor).
+const minSecretLength = 32
+
 func FromEnv() *Config {
 	var c Config
 
@@ -105,6 +109,10 @@ func FromEnv() *Config {
 	}
 	if c.EventBus.QueueSize == 0 {
 		c.EventBus.QueueSize = runtime.NumCPU()
+	}
+
+	if len(c.App.Secret) < minSecretLength {
+		panic(fmt.Sprintf("AUTH_SECRET must be set to at least %d random bytes; generate one with: openssl rand -base64 48", minSecretLength))
 	}
 
 	return &c

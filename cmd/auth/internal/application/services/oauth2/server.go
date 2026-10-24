@@ -67,26 +67,21 @@ func InitServer(
 				return false, apperrors.Wrap(err)
 			}
 
-			tokenScopes := strings.Split(scope, ",")
-			clientScopes := client.GetScopes()
-
-			if len(tokenScopes) > len(clientScopes) {
-				logger.Debug(ctx, fmt.Sprintf("Token not allowed: scopes do not match len(tokenScopes) > len(clientScopes) %v > %v", tokenScopes, clientScopes))
+			// RFC 6749 section 3.3: the scope is a list of space-delimited strings.
+			requested := strings.Fields(scope)
+			if len(requested) == 0 {
+				logger.Debug(ctx, "Token not allowed: no scope requested")
 				return false, nil
 			}
 
-			if len(tokenScopes) == 0 || len(tokenScopes) == 0 {
-				logger.Debug(ctx, fmt.Sprintf("Token not allowed: empty scopes len(tokenScopes) == 0 || len(tokenScopes) == 0 %v %v", tokenScopes, clientScopes))
-				return false, nil
-			}
-
-			clientScopesMap := make(map[string]struct{}, len(clientScopes))
+			clientScopes := make(map[string]struct{}, len(client.GetScopes()))
 			for _, clientScope := range client.GetScopes() {
-				clientScopesMap[clientScope] = struct{}{}
+				clientScopes[clientScope] = struct{}{}
 			}
 
-			for _, s := range strings.Split(scope, " ") {
-				if _, ok := clientScopesMap[s]; !ok {
+			for _, s := range requested {
+				if _, ok := clientScopes[s]; !ok {
+					logger.Debug(ctx, fmt.Sprintf("Token not allowed: scope %q is not granted to the client", s))
 					return false, nil
 				}
 			}

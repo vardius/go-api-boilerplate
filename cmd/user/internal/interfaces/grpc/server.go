@@ -7,42 +7,33 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
-	"github.com/vardius/go-api-boilerplate/cmd/user/internal/domain/user"
 	"github.com/vardius/go-api-boilerplate/cmd/user/internal/infrastructure/persistence"
 	"github.com/vardius/go-api-boilerplate/cmd/user/proto"
-	"github.com/vardius/go-api-boilerplate/pkg/commandbus"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	grpcerrors "github.com/vardius/go-api-boilerplate/pkg/grpc/errors"
 )
 
 type userServer struct {
-	commandBus     commandbus.CommandBus
 	userRepository persistence.UserRepository
 }
 
 // NewServer returns new user server object
-func NewServer(cb commandbus.CommandBus, r persistence.UserRepository) proto.UserServiceServer {
+func NewServer(r persistence.UserRepository) proto.UserServiceServer {
 	s := &userServer{
-		commandBus:     cb,
 		userRepository: r,
 	}
 
 	return s
 }
 
-// DispatchUserCommand implements proto.UserServiceServer interface
-func (s *userServer) DispatchUserCommand(ctx context.Context, r *proto.DispatchUserCommandRequest) (*empty.Empty, error) {
-	c, err := user.NewCommandFromPayload(r.GetName(), r.GetPayload())
-	if err != nil {
-		return nil, grpcerrors.NewGRPCError(apperrors.Wrap(err))
-	}
-
-	if err := s.commandBus.Publish(ctx, c); err != nil {
-		return nil, grpcerrors.NewGRPCError(apperrors.Wrap(err))
-	}
-
-	return new(empty.Empty), nil
+// DispatchUserCommand implements proto.UserServiceServer interface.
+// It always fails: the gRPC server trusts identity from unsigned metadata, so a
+// command sent here could act as any user. Clients use the HTTP API instead.
+func (s *userServer) DispatchUserCommand(context.Context, *proto.DispatchUserCommandRequest) (*empty.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "user commands are accepted only over HTTP")
 }
 
 // GetUser implements proto.UserServiceServer interface

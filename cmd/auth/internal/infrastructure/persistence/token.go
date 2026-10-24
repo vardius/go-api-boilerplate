@@ -29,4 +29,6 @@ type TokenRepository interface {
 
 	CountByClientID(ctx context.Context, clientID string) (int64, error)
 	FindAllByClientID(ctx context.Context, clientID string, limit, offset int64) ([]Token, error)
+	CountByUserID(ctx context.Context, userID, clientID string) (int64, error)
+	FindAllByUserID(ctx context.Context, userID, clientID string, limit, offset int64) ([]Token, error)
 }

@@ -7,7 +7,8 @@ resource "kubernetes_secret" "config" {
   }
 
   data = {
-    APP_SECRET = "secret" #TODO: changeme
+    # Signing secrets: at least 32 random bytes each, e.g. `openssl rand -base64 48`. Never commit real values.
+    AUTH_SECRET = var.auth_secret
     APP_ENV = "production"
     APP_DOMAIN = "https://go-api-boilerplate.local"
     APP_SHUTDOWN_TIMEOUT = "5s"

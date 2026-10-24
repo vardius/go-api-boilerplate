@@ -59,9 +59,11 @@ func NewRouter(
 	router.NotFound(json.NotFound())
 	router.NotAllowed(json.NotAllowed())
 
-	router.GET("/", handlers.BuildListUserHandler(repository))
-	router.GET("/me", handlers.BuildMeHandler(repository))
-	router.GET("/{id}", handlers.BuildGetUserHandler(repository))
+	// Each guard wraps its handler: gorouter's USE also covers every route below the pattern.
+	canRead := httpmiddleware.GrantAccessFor(identity.PermissionUserRead)
+	router.GET("/", canRead(handlers.BuildListUserHandler(repository)))
+	router.GET("/me", canRead(handlers.BuildMeHandler(repository)))
+	router.GET("/{id}", canRead(handlers.BuildGetUserHandler(repository)))
 	router.POST("/dispatch/user/{command}", handlers.BuildUserCommandDispatchHandler(commandBus))
 
 	var googleOauthConfig = &oauth2.Config{
@@ -83,9 +85,6 @@ func NewRouter(
 	}
 	router.POST("/facebook", handlers.BuildSocialAuthHandler(facebookOauthConfig))
 	router.POST("/facebook/callback", handlers.BuildAuthCallbackHandler(facebookOauthConfig, facebookAPIURL, commandBus, user.RegisterUserWithGoogle))
-
-	router.USE(http.MethodGet, "/me", httpmiddleware.GrantAccessFor(identity.PermissionUserRead))
-	router.USE(http.MethodPost, "/dispatch/"+user.ChangeUserEmailAddress, httpmiddleware.GrantAccessFor(identity.PermissionUserWrite))
 
 	mainRouter := gorouter.New()
 	mainRouter.NotFound(json.NotFound())

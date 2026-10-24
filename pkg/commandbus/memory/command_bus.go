@@ -21,8 +21,9 @@ type commandBus struct {
 }
 
 func (bus *commandBus) Publish(ctx context.Context, command domain.Command) error {
+	// out is buffered and never closed: the handler may still send after ctx is done,
+	// and a send on a closed channel would panic in the bus goroutine.
 	out := make(chan error, 1)
-	defer close(out)
 
 	logger.Debug(ctx, fmt.Sprintf("[CommandBus] Publish: %s %+v", command.GetName(), command))
 	bus.messageBus.Publish(command.GetName(), ctx, command, out)

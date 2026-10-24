@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"runtime"
 	"time"
 
@@ -13,7 +14,7 @@ type Config struct {
 		Domain          string        `env:"APP_DOMAIN"           envDefault:"https://go-api-boilerplate.local"`
 		Environment     string        `env:"APP_ENV"              envDefault:"development"`
 		ShutdownTimeout time.Duration `env:"APP_SHUTDOWN_TIMEOUT" envDefault:"5s"`
-		Secret          string        `env:"USER_SECRET"          envDefault:"secret"`
+		Secret          string        `env:"USER_SECRET"`
 		ApiBaseURL      string        `env:"USER_BASE_URL"        envDefault:"https://api.go-api-boilerplate.local/users"`
 	}
 	Debug struct {
@@ -66,7 +67,7 @@ type Config struct {
 	}
 	Auth struct {
 		Host   string `env:"AUTH_HOST" envDefault:"0.0.0.0"` // Auth service host
-		Secret string `env:"AUTH_SECRET"                envDefault:"secret"`
+		Secret string `env:"AUTH_SECRET"`
 	}
 	Facebook struct {
 		ClientID     string `env:"FACEBOOK_CLIENT_ID"`
@@ -83,6 +84,9 @@ type Config struct {
 		QueueSize int `env:"COMMAND_BUS_BUFFER" envDefault:"100"`
 	}
 }
+
+// minSecretLength is the shortest secret accepted for signing tokens (HS512 wants at least 64 bytes; 32 is the floor).
+const minSecretLength = 32
 
 func FromEnv() *Config {
 	var c Config
@@ -123,6 +127,10 @@ func FromEnv() *Config {
 	}
 	if c.EventBus.QueueSize == 0 {
 		c.EventBus.QueueSize = runtime.NumCPU()
+	}
+
+	if len(c.Auth.Secret) < minSecretLength {
+		panic(fmt.Sprintf("AUTH_SECRET must be set to at least %d random bytes; generate one with: openssl rand -base64 48", minSecretLength))
 	}
 
 	return &c

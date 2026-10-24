@@ -192,3 +192,46 @@ func (r *tokenRepository) CountByClientID(ctx context.Context, clientID string) 
 
 	return total, nil
 }
+
+func (r *tokenRepository) FindAllByUserID(ctx context.Context, userID, clientID string, limit, offset int64) ([]persistence.Token, error) {
+	findOptions := options.Find().SetSort(bson.D{{Key: "id", Value: 1}}).SetLimit(limit).SetSkip(offset)
+	filter := bson.M{
+		"user_id":   userID,
+		"client_id": clientID,
+	}
+
+	cur, err := r.collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	defer cur.Close(ctx)
+
+	var result []persistence.Token
+	for cur.Next(ctx) {
+		var item Token
+		if err := cur.Decode(&item); err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+
+		result = append(result, &item)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	return result, nil
+}
+
+func (r *tokenRepository) CountByUserID(ctx context.Context, userID, clientID string) (int64, error) {
+	filter := bson.M{
+		"user_id":   userID,
+		"client_id": clientID,
+	}
+
+	total, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, apperrors.Wrap(err)
+	}
+
+	return total, nil
+}

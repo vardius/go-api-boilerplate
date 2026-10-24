@@ -19,19 +19,17 @@ workflow-generate: ## Generate github workflows from templates
 	cd .github && sh workflows.sh
 
 # HTTPS TASK
-key: ## [HTTP] Generate key
-	openssl genrsa -out server.key 2048
-	openssl ecparam -genkey -name secp384r1 -out server.key
-
-cert: ## [HTTP] Generate self signed certificate
-	openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650
+cert: ## [HTTP] Generate a self-signed development certificate into k8s/tls (gitignored)
+	mkdir -p k8s/tls
+	openssl ecparam -genkey -name secp384r1 -out k8s/tls/server.key
+	openssl req -new -x509 -sha256 -key k8s/tls/server.key -out k8s/tls/server.pem -days 365 -subj "/CN=go-api-boilerplate.local" -addext "subjectAltName=DNS:go-api-boilerplate.local,DNS:*.go-api-boilerplate.local"
 
 # DOCKER TASKS
 docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`
 	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) --build-arg VERSION=$(VERSION) --build-arg GIT_COMMIT=$(GIT_COMMIT) -t go-api-boilerplate-$(BIN) .
 
-docker-run: ## [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
-	docker run -i -t --rm -p=$(PORT):$(PORT) --name="go-api-boilerplate-$(BIN)" go-api-boilerplate-$(BIN)
+docker-run: ## [DOCKER] Run container on given port. Needs AUTH_SECRET (32+ random bytes) in the environment. Example: `make docker-run BIN=user PORT=3000`
+	docker run -i -t --rm -e AUTH_SECRET -p=$(PORT):$(PORT) --name="go-api-boilerplate-$(BIN)" go-api-boilerplate-$(BIN)
 
 docker-stop: ## [DOCKER] Stop docker container. Example: `make docker-stop BIN=user`
 	docker stop go-api-boilerplate-$(BIN)

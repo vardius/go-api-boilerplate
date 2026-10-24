@@ -11,6 +11,10 @@ const messages = defineMessages({
     id: "home.table.title",
     defaultMessage: "User: {users}/{total} | Page {page}/{maxPage}",
   },
+  signedOut: {
+    id: "home.signed_out",
+    defaultMessage: "Sign in to see your account.",
+  },
 });
 
 function Home() {
@@ -22,6 +26,7 @@ function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [users, setUsers] = useState<Array<User>>([]);
+  const [failed, setFailed] = useState(false);
 
   const fetchUsers = useCallback(
     async ({page, limit}: { page: number; limit: number }) => {
@@ -43,6 +48,7 @@ function Home() {
         }
 
         setIsLoading(false);
+        setFailed(false);
         setUsers(response.users || []);
         setTotal(response.total || 0);
       } catch (err) {
@@ -51,6 +57,7 @@ function Home() {
         }
 
         setIsLoading(false);
+        setFailed(true);
       }
     };
 
@@ -60,6 +67,16 @@ function Home() {
       mounted = false
     }
   }, [page, limit, fetchUsers]);
+
+  if (failed) {
+    return (
+      <Stack flex={1}>
+        <Heading m={4}>
+          <Center>{intl.formatMessage(messages.signedOut)}</Center>
+        </Heading>
+      </Stack>
+    );
+  }
 
   return (
     <Stack flex={1}>

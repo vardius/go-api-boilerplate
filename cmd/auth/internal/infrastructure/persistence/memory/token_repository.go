@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
+	"sort"
 	"sync"
 )
 
@@ -139,6 +140,53 @@ func (r *tokenRepository) CountByClientID(ctx context.Context, clientID string) 
 			return 0, apperrors.Wrap(err)
 		}
 		if ti.GetClientID() != clientID {
+			continue
+		}
+		i++
+	}
+
+	return i, nil
+}
+
+func (r *tokenRepository) FindAllByUserID(ctx context.Context, userID, clientID string, limit, offset int64) ([]persistence.Token, error) {
+	r.RLock()
+	defer r.RUnlock()
+
+	// Map order is random, so sort by ID to keep pages stable.
+	var matched []persistence.Token
+	for _, v := range r.tokens {
+		ti, err := v.TokenInfo()
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+		if ti.GetUserID() != userID || ti.GetClientID() != clientID {
+			continue
+		}
+		matched = append(matched, v)
+	}
+	sort.Slice(matched, func(i, j int) bool { return matched[i].GetID() < matched[j].GetID() })
+
+	if offset >= int64(len(matched)) {
+		return nil, nil
+	}
+	end := offset + limit
+	if end > int64(len(matched)) {
+		end = int64(len(matched))
+	}
+	return matched[offset:end], nil
+}
+
+func (r *tokenRepository) CountByUserID(ctx context.Context, userID, clientID string) (int64, error) {
+	r.RLock()
+	defer r.RUnlock()
+
+	var i int64
+	for _, v := range r.tokens {
+		ti, err := v.TokenInfo()
+		if err != nil {
+			return 0, apperrors.Wrap(err)
+		}
+		if ti.GetUserID() != userID || ti.GetClientID() != clientID {
 			continue
 		}
 		i++

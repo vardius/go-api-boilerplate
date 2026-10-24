@@ -37,7 +37,6 @@ func main() {
 	defer cancel()
 
 	cfg := config.FromEnv()
-	fmt.Println("CONFIG:", cfg)
 
 	container, err := services.NewServiceContainer(ctx, cfg)
 	if err != nil {
@@ -79,7 +78,7 @@ func main() {
 		},
 	)
 
-	grpcUserServer := usergrpc.NewServer(container.CommandBus, container.UserPersistenceRepository)
+	grpcUserServer := usergrpc.NewServer(container.UserPersistenceRepository)
 	userproto.RegisterUserServiceServer(grpcServer, grpcUserServer)
 
 	app := application.New()

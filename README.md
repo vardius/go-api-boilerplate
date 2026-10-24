@@ -31,7 +31,6 @@ Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
   - [Domain](#domain)
     - [Dispatching command](#dispatching-command)
   - [View](#view)
-    - [Public routes](#public-routes)
     - [Protected routes](#protected-routes)
 - [Sponsoring](#sponsoring)
 <!-- tocstop -->
@@ -137,12 +136,22 @@ repeat for all services and `migrate` init containers.
 ```shell
 docker login
 ```
-Copy docker config
-```shell
-cp ~/.docker/config.json ./k8s/.docker/config.json
-```
-Verify [config.json](k8s/.docker/config.json)
 ### Deploy release
+Terraform reads three local files that are gitignored, so create them first, whichever registry you use:
+
+1. A registry config for the cluster at `k8s/.docker/config.json`. It holds your registry credentials; never commit it. For local images with no registry, `echo '{"auths":{}}'` is enough.
+   ```shell
+   mkdir -p k8s/.docker && cp ~/.docker/config.json k8s/.docker/config.json
+   ```
+2. The development TLS certificate:
+   ```shell
+   make cert
+   ```
+3. The JWT signing secret, at least 32 random bytes. Both services refuse to start without it.
+   ```shell
+   export TF_VAR_auth_secret="$(openssl rand -base64 48)"
+   ```
+
 ```shell
 make terraform-install
 ```
@@ -183,16 +192,13 @@ Send example JSON via POST request
 curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/user/user-register-with-email --insecure
 ```
 ## View
-### Public routes
+### Protected routes
+Every user route needs an auth token, and users can read only their own record.
+
 Get user details [https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812](https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812)
 ```json
 {"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
 ```
-Get list of users [https://api.go-api-boilerplate.local/users/v1?page=1&limit=10](https://api.go-api-boilerplate.local/users/v1?page=1&limit=10)
-```json
-{"page":1,"limit":20,"total":1,"users":[{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}]}
-```
-### Protected routes
 Access protected route using auth token [https://api.go-api-boilerplate.local/users/v1/me](https://api.go-api-boilerplate.local/users/v1/me).
 ```json
 {"code": "401","message": "Unauthorized"}
