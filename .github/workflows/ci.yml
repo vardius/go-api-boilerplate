@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each service picks its persistence at build time; every variant must build and pass.
+        tags: ['', 'persistence_mysql', 'persistence_mongodb']
+    name: go (${{ matrix.tags || 'memory' }})
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - run: go vet -tags "${{ matrix.tags }}" ./...
+      - run: go test -race -shuffle=on -tags "${{ matrix.tags }}" ./...

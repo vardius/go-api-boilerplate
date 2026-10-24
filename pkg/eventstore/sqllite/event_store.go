@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"strings"
 
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
@@ -46,7 +47,7 @@ func New(ctx context.Context, tableName string, db *sql.DB) (baseeventstore.Even
 	return &eventStore{tableName: tableName, db: db}, nil
 }
 
-func addEventToInsert(values []interface{}, event *domain.Event) ([]interface{}, error) {
+func addEventToInsert(values []any, event *domain.Event) ([]any, error) {
 	payload, err := json.Marshal(event.Payload)
 	if err != nil {
 		return nil, apperrors.Wrap(err)
@@ -74,13 +75,14 @@ func (s *eventStore) Store(ctx context.Context, events []*domain.Event) error {
 		return nil
 	}
 
-	query := "INSERT INTO " + s.tableName + " (event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata) VALUES "
-	values := make([]interface{}, 0, lenEvents*7)
+	var query strings.Builder
+	query.WriteString("INSERT INTO " + s.tableName + " (event_id, event_type, stream_id, stream_name, stream_version, occurred_at, payload, metadata) VALUES ")
+	values := make([]any, 0, lenEvents*7)
 
 	if lenEvents > 1 {
 		for i := 0; i < lenEvents-1; i++ {
 			var err error
-			query += "(?, ?, ?, ?, ?, ?, ?, ?),"
+			query.WriteString("(?, ?, ?, ?, ?, ?, ?, ?),")
 			values, err = addEventToInsert(values, events[i])
 			if err != nil {
 				return apperrors.Wrap(err)
@@ -90,13 +92,13 @@ func (s *eventStore) Store(ctx context.Context, events []*domain.Event) error {
 
 	i := lenEvents - 1
 	var err error
-	query += "(?, ?, ?, ?, ?, ?, ?, ?),"
+	query.WriteString("(?, ?, ?, ?, ?, ?, ?, ?),")
 	values, err = addEventToInsert(values, events[i])
 	if err != nil {
 		return apperrors.Wrap(err)
 	}
 
-	stmt, err := s.db.PrepareContext(ctx, query)
+	stmt, err := s.db.PrepareContext(ctx, query.String())
 	if err != nil {
 		return apperrors.Wrap(err)
 	}

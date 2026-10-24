@@ -12,15 +12,16 @@ import (
 
 // TransformUnaryOutgoingError transforms incoming error into app error
 //
-// 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
+//	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(TransformUnaryOutgoingError()),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(TransformUnaryOutgoingError()),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func TransformUnaryOutgoingError() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {
 			return resp, fromAppError(err)
@@ -32,15 +33,16 @@ func TransformUnaryOutgoingError() grpc.UnaryServerInterceptor {
 
 // TransformStreamOutgoingError transforms incoming error into app error
 //
-// 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
+//	https://godoc.org/google.golang.org/grpc#StreamInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(TransformStreamOutgoingError()),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(TransformStreamOutgoingError()),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func TransformStreamOutgoingError() grpc.StreamServerInterceptor {
-	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		if err := handler(srv, ss); err != nil {
 			return fromAppError(err)
 		}
@@ -55,7 +57,7 @@ func TransformStreamOutgoingError() grpc.StreamServerInterceptor {
 //
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(TransformUnaryIncomingError()))
 func TransformUnaryIncomingError() grpc.UnaryClientInterceptor {
-	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		if err := invoker(ctx, method, req, reply, cc, opts...); err != nil {
 			return apperrors.Wrap(toAppError(err))
 		}

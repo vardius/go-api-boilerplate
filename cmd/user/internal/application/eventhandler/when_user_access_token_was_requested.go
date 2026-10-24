@@ -48,11 +48,9 @@ func WhenUserAccessTokenWasRequested(cfg *config.Config, signedMethod jwt.Signin
 			UserID:     e.ID,
 		}
 		claims := &auth.Claims{
-			StandardClaims: jwt.StandardClaims{
-				Subject:   u.GetID(),
-				ExpiresAt: time.Now().Add(365 * 24 * time.Hour).Unix(),
-			},
-			Identity: &i,
+			Subject:   u.GetID(),
+			ExpiresAt: time.Now().Add(365 * 24 * time.Hour).Unix(),
+			Identity:  &i,
 		}
 
 		token := jwt.NewWithClaims(signedMethod, claims)

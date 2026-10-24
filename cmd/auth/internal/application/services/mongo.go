@@ -1,5 +1,4 @@
 //go:build persistence_mongodb
-// +build persistence_mongodb
 
 package services
 

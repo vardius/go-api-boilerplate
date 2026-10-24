@@ -20,7 +20,7 @@ type Event struct {
 	StreamVersion int            `json:"stream_version"`
 	OccurredAt    time.Time      `json:"occurred_at"`
 	ExpiresAt     *time.Time     `json:"expires_at,omitempty"`
-	Payload       interface{}    `json:"payload,omitempty"`
+	Payload       any            `json:"payload,omitempty"`
 	Metadata      *EventMetadata `json:"metadata,omitempty"`
 }
 

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/vardius/gorouter/v4/context"
@@ -48,7 +48,7 @@ func BuildUserCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		}
 
 		defer r.Body.Close()
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			return apperrors.Wrap(err)
 		}

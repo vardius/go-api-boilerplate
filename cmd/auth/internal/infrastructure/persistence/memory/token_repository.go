@@ -169,10 +169,7 @@ func (r *tokenRepository) FindAllByUserID(ctx context.Context, userID, clientID 
 	if offset >= int64(len(matched)) {
 		return nil, nil
 	}
-	end := offset + limit
-	if end > int64(len(matched)) {
-		end = int64(len(matched))
-	}
+	end := min(offset+limit, int64(len(matched)))
 	return matched[offset:end], nil
 }
 

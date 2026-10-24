@@ -30,7 +30,7 @@ func TestUnmarshalRegisterWithGoogle(t *testing.T) {
 	testUnmarshalCommand(t, testJSON, &RegisterWithGoogle{})
 }
 
-func testUnmarshalCommand(t *testing.T, testJSON []byte, c interface{}) {
+func testUnmarshalCommand(t *testing.T, testJSON []byte, c any) {
 	if err := json.Unmarshal(testJSON, c); err != nil {
 		t.Fatal(err)
 	}

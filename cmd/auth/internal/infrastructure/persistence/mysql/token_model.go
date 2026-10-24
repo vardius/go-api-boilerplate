@@ -19,9 +19,9 @@ type Token struct {
 	ClientID  string           `json:"-"`
 	UserID    string           `json:"-"`
 	Access    string           `json:"access"`
-	Refresh   mysql.NullString `json:"refresh,omitempty"`
+	Refresh   mysql.NullString `json:"refresh"`
 	Code      mysql.NullString `json:"-"`
-	UserAgent mysql.NullString `json:"user_agent,omitempty"`
+	UserAgent mysql.NullString `json:"user_agent"`
 	ExpiredAt time.Time        `json:"-"`
 	Data      json.RawMessage  `json:"-"`
 }
