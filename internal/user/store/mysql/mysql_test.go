@@ -1,6 +1,7 @@
 package mysql_test
 
 import (
+	"path/filepath"
 	"testing"
 
 	platform "github.com/vardius/go-api-boilerplate/internal/platform/mysql"
@@ -36,7 +37,11 @@ func TestMigrateTwiceChangesNothing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if n != 2 {
-		t.Errorf("%s records %d migrations, want 2", mysql.MigrationsTable, n)
+	files, err := filepath.Glob("migrations/*.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != len(files) {
+		t.Errorf("%s records %d migrations, want one per file in migrations/, %d", mysql.MigrationsTable, n, len(files))
 	}
 }

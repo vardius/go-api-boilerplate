@@ -49,6 +49,9 @@ jobs:
         run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
       - name: go fix leaves the tree unchanged
         run: go fix -diff ./...
+      # The e2e job only runs the tests; a mistake there should fail in a minute, not after the stack is up.
+      - name: Vet and lint the e2e tests
+        run: go vet -tags e2e ./e2e/... && go run "$STATICCHECK" -tags e2e ./e2e/...
       - name: Known vulnerabilities
         run: go run "$GOVULNCHECK" ./...
 
