@@ -9,7 +9,7 @@ The documentation site: Astro Starlight, published to https://vardius.github.io/
   declarations from a Go file by their first line; other files are imported whole with `?raw`) and
   spread it into a page: `<Code {...sample} />`. A renamed declaration fails the build: fix the sample.
 - **Every page has a one-sentence `description`** in its frontmatter.
-- **Never invent** an env var, endpoint, flag or config key. Take it from the code or the design doc.
+- **Never invent** an env var, endpoint, flag or config key. Take it from the code.
 - Text that depends on code not written yet carries a verify note: `{/* verify: … */}` in `.mdx`,
   `<!-- verify: … -->` in `.md` and `.astro`. Check it against the code, then delete the note.
 - Everything after `<!-- generated -->` in `reference/environment-variables.md` belongs to the generator.

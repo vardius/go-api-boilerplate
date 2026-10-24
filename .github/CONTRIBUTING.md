@@ -20,7 +20,7 @@ writing code, so we can agree on the shape first.
    [`docs/standards/`](../docs/standards/shared.md). Both apply whether you
    write the code yourself or with an AI agent.
 3. Run the stack locally with `docker compose up --wait` (see the
-   [quick start](https://vardius.github.io/go-api-boilerplate/start/quick-start/)).
+   [quick start](https://vardius.github.io/go-api-boilerplate/quick-start/)).
 4. Before you push, run everything CI runs:
 
    ```bash
