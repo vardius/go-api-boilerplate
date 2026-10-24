@@ -8,6 +8,7 @@ import { googleStartURL, requestLoginLink } from '../api/endpoints';
 import { useConfig } from '../api/queries';
 import type { MessageId } from '../i18n/messages';
 import { emailProblem } from '../lib/email';
+import { googleFailure } from '../lib/google';
 import { safeNext } from '../lib/next';
 import { Actions, Button, ButtonAnchor } from '../ui/Button';
 import { ErrorState } from '../ui/ErrorState';
@@ -15,6 +16,7 @@ import { TextField } from '../ui/Field';
 import { Notice } from '../ui/Notice';
 import { Card, Page, Stack } from '../ui/Page';
 import { useFocusFirstInvalid } from '../ui/useFocusFirstInvalid';
+import { GoogleFailureNotice } from './GoogleFailureNotice';
 import { MailPreviewNotice } from './MailPreviewNotice';
 import styles from './screens.module.css';
 
@@ -29,6 +31,7 @@ export function SignIn() {
   const intl = useIntl();
   const [params] = useSearchParams();
   const next = safeNext(params.get('next'));
+  const google = googleFailure(params.get('google'));
   const reason = reasonSchema.safeParse(useLocation().state);
   const config = useConfig();
   const [email, setEmail] = useState('');
@@ -85,6 +88,7 @@ export function SignIn() {
           <p>{intl.formatMessage({ id: reasonMessages[reason.data.reason] })}</p>
         </Notice>
       )}
+      {google !== undefined && <GoogleFailureNotice failure={google} linking={false} />}
       <Card>
         <form ref={form} className={styles.form} noValidate onSubmit={submit}>
           <TextField

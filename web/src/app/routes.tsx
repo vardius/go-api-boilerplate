@@ -21,7 +21,7 @@ export const routes: RouteObject[] = [
         children: [
           { path: '/', element: <Navigate to="/profile" replace /> },
           { path: '/profile', element: <Profile /> },
-          { path: '/email/confirm', element: <ConfirmEmail /> },
+          { path: '/profile/confirm-email', element: <ConfirmEmail /> },
           { path: '/devices', element: <Devices /> },
           { path: '/apps', element: <Apps /> },
         ],

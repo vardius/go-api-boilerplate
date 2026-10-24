@@ -29,6 +29,21 @@ describe('Profile', () => {
     );
   });
 
+  it.each([
+    ['denied', 'You said no at Google, so nothing changed. Choose Link Google account to try again.'],
+    ['expired', 'Linking took too long or was interrupted before it finished. Choose Link Google account to start again.'],
+    ['unverified', "Google hasn't verified that account's email address, so it can't be linked. Verify it with Google, then try again."],
+    ['taken', "That Google account belongs to another account, so it can't be linked to this one. Try a different Google account."],
+    ['failed', 'Something went wrong while linking. Try again in a moment.'],
+  ])('says why linking Google ended in %s and what to do', async (outcome, text) => {
+    mockApi({ [me]: json(200, apiUser()), [config]: json(200, { google_enabled: true }) });
+    renderApp(`/profile?google=${outcome}`);
+
+    expect(screen.getByText('Google account not linked')).toBeInTheDocument();
+    expect(screen.getByText(text)).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Link Google account' })).toBeInTheDocument();
+  });
+
   it('confirms a just-linked Google account', async () => {
     mockApi({ [me]: json(200, apiUser({ google_linked: true })), [config]: json(200, { google_enabled: true }) });
     renderApp('/profile?google=linked');
@@ -69,21 +84,6 @@ describe('Profile', () => {
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByRole('button', { name: 'Change email' })).toHaveFocus();
-  });
-
-  it('says when another account has the new email', async () => {
-    mockApi({
-      [me]: json(200, apiUser()),
-      [config]: json(200, { google_enabled: false }),
-      [emailChange]: problem(409, { title: 'Conflict' }),
-    });
-    const { user } = renderApp('/profile');
-
-    await user.click(await screen.findByRole('button', { name: 'Change email' }));
-    await user.type(screen.getByLabelText('New email'), 'taken@example.com');
-    await user.click(screen.getByRole('button', { name: 'Send confirmation link' }));
-
-    expect(await screen.findByText('Another account already uses that email.')).toBeInTheDocument();
   });
 
   it('sends the reader to sign in, and back here after, once the session cannot be refreshed', async () => {

@@ -39,6 +39,16 @@ export const en = {
   'signIn.signedOut': "You're signed out.",
   'signIn.or': 'or',
   'signIn.google': 'Continue with Google',
+  'signIn.googleFailed.title': "Google sign-in didn't finish",
+  'signIn.googleFailed.denied': 'You said no at Google, so nothing was shared. Sign in with an email link, or try Google again.',
+  'signIn.googleFailed.expired':
+    'It took too long or was interrupted before it finished. Try Google again, or sign in with an email link.',
+  'signIn.googleFailed.unverified':
+    "Google hasn't verified this account's email address, and only verified addresses can sign in. Verify it with Google, or sign in with an email link.",
+  'signIn.googleFailed.taken':
+    'This Google account belongs to another account, or the account with its email address is linked to a different Google account. Sign in with an email link instead.',
+  'signIn.googleFailed.failed':
+    'Something went wrong while finishing the sign-in. Try again in a moment, or sign in with an email link.',
 
   'checkInbox.title': 'Check your inbox',
   'checkInbox.body': 'We sent a sign-in link to {email}. It works once and expires in 15 minutes.',
@@ -68,13 +78,21 @@ export const en = {
   'profile.email.submit': 'Send confirmation link',
   'profile.email.sending': 'Sending…',
   'profile.email.same': "That's already your email.",
-  'profile.email.taken': 'Another account already uses that email.',
   'profile.email.sent.title': 'Check your new inbox',
   'profile.email.sent.body':
     'We sent a confirmation link to {email}. Until you open it, you keep signing in with {current}.',
   'profile.google.heading': 'Google',
   'profile.google.linked': 'Linked. You can sign in with Google.',
   'profile.google.linkedNotice': 'Google account linked.',
+  'profile.google.failed.title': 'Google account not linked',
+  'profile.google.failed.denied': 'You said no at Google, so nothing changed. Choose Link Google account to try again.',
+  'profile.google.failed.expired':
+    'Linking took too long or was interrupted before it finished. Choose Link Google account to start again.',
+  'profile.google.failed.unverified':
+    "Google hasn't verified that account's email address, so it can't be linked. Verify it with Google, then try again.",
+  'profile.google.failed.taken':
+    "That Google account belongs to another account, so it can't be linked to this one. Try a different Google account.",
+  'profile.google.failed.failed': 'Something went wrong while linking. Try again in a moment.',
   'profile.google.unlinked': 'Link a Google account to sign in without waiting for an email.',
   'profile.google.link': 'Link Google account',
   'profile.google.disabledReason':
@@ -89,9 +107,9 @@ export const en = {
   'confirmEmail.incomplete.title': 'This confirmation link is incomplete',
   'confirmEmail.incomplete.body':
     'The link is missing its code. Copy the whole link from the email, or change your email again from your profile.',
-  'confirmEmail.expired.title': 'This confirmation link has expired',
+  'confirmEmail.expired.title': 'This confirmation link is expired or invalid',
   'confirmEmail.expired.body':
-    'Confirmation links work once and expire after 15 minutes. Change your email again from your profile to get a new one.',
+    'Confirmation links work once, for 15 minutes, and only for the account that asked for the change. Change your email again from your profile to get a new one.',
   'confirmEmail.taken.title': 'That email is taken',
   'confirmEmail.taken.body':
     "Another account started using this email after you asked for the change. Your email hasn't changed.",

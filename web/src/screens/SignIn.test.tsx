@@ -49,6 +49,41 @@ describe('Sign in', () => {
     expect(api.callsTo(loginLinks)[0]?.body).toEqual({ email: 'ada@example.com' });
   });
 
+  it.each([
+    ['denied', 'You said no at Google, so nothing was shared. Sign in with an email link, or try Google again.'],
+    ['expired', 'It took too long or was interrupted before it finished. Try Google again, or sign in with an email link.'],
+    [
+      'unverified',
+      "Google hasn't verified this account's email address, and only verified addresses can sign in. Verify it with Google, or sign in with an email link.",
+    ],
+    [
+      'taken',
+      'This Google account belongs to another account, or the account with its email address is linked to a different Google account. Sign in with an email link instead.',
+    ],
+    ['failed', 'Something went wrong while finishing the sign-in. Try again in a moment, or sign in with an email link.'],
+  ])('says why Google sign-in ended in %s and what to do', (outcome, text) => {
+    mockApi({ [config]: json(200, { google_enabled: true }) });
+    renderApp(`/sign-in?google=${outcome}`);
+
+    expect(screen.getByText("Google sign-in didn't finish")).toBeInTheDocument();
+    expect(screen.getByText(text)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Email me a sign-in link' })).toBeInTheDocument();
+  });
+
+  it('ignores a ?google= value the server never sends', () => {
+    mockApi({ [config]: json(200, { google_enabled: true }) });
+    renderApp('/sign-in?google=__proto__');
+
+    expect(screen.queryByText("Google sign-in didn't finish")).not.toBeInTheDocument();
+  });
+
+  it('keeps Google when the mail preview URL is not a web address', async () => {
+    mockApi({ [config]: json(200, { google_enabled: true, mail_preview_url: 'localhost:8025' }) });
+    renderApp('/sign-in');
+
+    expect(await screen.findByRole('link', { name: 'Continue with Google' })).toBeInTheDocument();
+  });
+
   it('checks the address before sending anything', async () => {
     const api = mockApi({ [config]: json(200, { google_enabled: false }) });
     const { user } = renderApp('/sign-in');
