@@ -43,6 +43,7 @@ type Changes struct {
 	pending []any
 }
 
+//lint:ignore U1000 aggregates outside es get it by embedding Changes, which staticcheck can't see from here.
 func (c *Changes) changes() *Changes { return c }
 
 // Version is the version of the last stored event the aggregate was built

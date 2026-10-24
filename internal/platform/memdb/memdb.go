@@ -12,6 +12,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/vardius/go-api-boilerplate/internal/platform/uow"
@@ -41,8 +42,8 @@ func (db *DB) Do(ctx context.Context, fn func(tx uow.Tx) error) error {
 	committed := false
 	defer func() {
 		if !committed {
-			for i := len(tx.undo) - 1; i >= 0; i-- {
-				tx.undo[i]()
+			for _, v := range slices.Backward(tx.undo) {
+				v()
 			}
 		}
 		tx.done = true
