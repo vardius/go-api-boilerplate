@@ -66,8 +66,10 @@ securityContext:
 {{- $root := .root -}}
 {{- $v := $root.Values -}}
 {{- $svc := index $v .component -}}
+{{- if eq .component "auth" -}}
 - name: APP_ENV
   value: production
+{{ end -}}
 - name: LOG_LEVEL
   value: {{ $v.logLevel | quote }}
 - name: MIGRATE_ON_START
