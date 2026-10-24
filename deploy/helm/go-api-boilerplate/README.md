@@ -29,20 +29,24 @@ With `store: mysql` or `mongodb`, a hook Job runs each service's
 ## Rotating the signing key
 
 Services cache the auth service's public keys for up to an hour, so publish
-a new key before signing with it:
+a new key before signing with it. The auth service reads its keys only when
+it starts, and changing a Secret doesn't restart it, so each step ends with
+a restart:
 
 1. Add the new key's public half to the `auth.previousKeysSecret` Secret
-   and upgrade. The JWKS now lists it.
+   and restart auth. The JWKS now lists it.
 2. Wait more than an hour, so every service has fetched it.
 3. Put the new private key in `signing-key.pem`, add the old key's public
-   half to `auth.previousKeysSecret`, and upgrade. A previous key that is
-   also the signing key is skipped, so `new.pem` can stay.
-4. After another hour, remove the old public key.
+   half to `auth.previousKeysSecret`, and restart auth. A previous key that
+   is also the signing key is skipped, so `new.pem` can stay.
+4. After another hour, remove the old public key and restart auth.
 
 ```bash
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out new-signing-key.pem
 openssl pkey -in new-signing-key.pem -pubout -out new.pem
 kubectl create secret generic gab-auth-previous --from-file=new.pem --dry-run=client -o yaml | kubectl apply -f -
+# The first time, also set auth.previousKeysSecret=gab-auth-previous and upgrade.
+kubectl rollout restart deployment/gab-auth
 ```
 
 Every value is described in [values.yaml](values.yaml).
