@@ -3,7 +3,7 @@
 # replica set because multi-document transactions need one.
 services:
   mongodb:
-    image: mongo:8.0.34
+    image: mongo:9.0.4
     restart: unless-stopped
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     volumes:
