@@ -1,4 +1,4 @@
-import { emptyBody, request } from './client';
+import { emptyBody, request, SessionExpiredError } from './client';
 import {
   authorizationRequestSchema,
   clientPageSchema,
@@ -42,6 +42,20 @@ export function deleteCurrentSession() {
 
 export function getMe(signal?: AbortSignal) {
   return request(`${user}/me`, { schema: userSchema, signal });
+}
+
+/**
+ * The user this browser is signed in as, or null when it has no session (none,
+ * or one that can't be refreshed). Unlike getMe, no session is an answer here,
+ * not a reason to go to sign-in.
+ */
+export async function getSignedInUser(signal?: AbortSignal) {
+  try {
+    return await getMe(signal);
+  } catch (error) {
+    if (error instanceof SessionExpiredError) return null;
+    throw error;
+  }
 }
 
 export function requestEmailChange(email: string) {

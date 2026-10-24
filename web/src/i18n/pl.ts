@@ -70,6 +70,13 @@ export const pl: Record<MessageId, string> = {
   'completeSignIn.newLink': 'Wyślij mi nowy link',
   'completeSignIn.failed.title': 'Nie udało się zalogować',
 
+  // A sign-in link opened while already signed in: switching accounts is a choice, never automatic.
+  'switchAccount.title': 'Zalogować się na inne konto?',
+  'switchAccount.body':
+    'Ta przeglądarka jest zalogowana jako {email}. Ten link może być do innego konta, a użycie go przełączy przeglądarkę na tamto konto. Kontynuuj tylko, jeśli ten link pochodzi z Twojej prośby.',
+  'switchAccount.continue': 'Zaloguj się tym linkiem',
+  'switchAccount.stay': 'Pozostań na koncie {email}',
+
   'profile.title': 'Profil',
   'profile.memberSince': 'Konto od {date}',
   'profile.email.heading': 'E-mail',

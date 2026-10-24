@@ -69,6 +69,13 @@ export const en = {
   'completeSignIn.newLink': 'Send me a new link',
   'completeSignIn.failed.title': "We couldn't sign you in",
 
+  // A sign-in link opened while already signed in: switching accounts is a choice, never automatic.
+  'switchAccount.title': 'Sign in to a different account?',
+  'switchAccount.body':
+    "You're signed in as {email}. This link may be for a different account, and using it switches this browser to that account. Only continue if you asked for this link.",
+  'switchAccount.continue': 'Sign in with this link',
+  'switchAccount.stay': 'Stay signed in as {email}',
+
   'profile.title': 'Profile',
   'profile.memberSince': 'Member since {date}',
   'profile.email.heading': 'Email',
