@@ -1,6 +1,7 @@
 package httpx_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
@@ -115,5 +116,48 @@ func TestRateLimitDefaults(t *testing.T) {
 		l.expect("192.0.2.1:1", "", 429)
 		time.Sleep(100 * time.Millisecond)
 		l.expect("192.0.2.1:1", "", 200)
+	})
+}
+
+func TestLimiterKeepsABucketPerKey(t *testing.T) {
+	l := httpx.NewLimiter[string](httpx.RateLimitConfig{Rate: 0.5, Burst: 2, Visitors: 2})
+	now := time.Date(2026, 10, 24, 9, 0, 0, 0, time.UTC)
+
+	for i := range 2 {
+		if err := l.Allow("a@example.com", now); err != nil {
+			t.Fatalf("request %d: %v", i+1, err)
+		}
+	}
+	err := l.Allow("a@example.com", now)
+	tmr, ok := errors.AsType[*httpx.TooManyRequestsError](err)
+	if !ok || tmr.RetryAfter != 2*time.Second {
+		t.Fatalf("over the limit: err = %v, want a TooManyRequestsError retrying after 2s", err)
+	}
+	if err := l.Allow("b@example.com", now); err != nil {
+		t.Errorf("another key shares the bucket: %v", err)
+	}
+	if err := l.Allow("a@example.com", now.Add(2*time.Second)); err != nil {
+		t.Errorf("a token didn't come back after 2s: %v", err)
+	}
+
+	// A third key makes the limiter forget the least recent one, b.
+	if err := l.Allow("c@example.com", now); err != nil {
+		t.Fatal(err)
+	}
+	for i := range 2 {
+		if err := l.Allow("b@example.com", now); err != nil {
+			t.Errorf("b request %d after being forgotten: %v", i+1, err)
+		}
+	}
+}
+
+func TestRateLimitAnswersWithTheProblemTable(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		l := newLimited(t, httpx.RateLimitConfig{Rate: 1, Burst: 1})
+		l.expect("203.0.113.7:1", "", 200)
+		rec := l.from("203.0.113.7:1", "")
+		if p := readProblem(t, rec); p["status"] != float64(http.StatusTooManyRequests) || p["instance"] != "/v1/login-links" {
+			t.Errorf("problem = %v", p)
+		}
 	})
 }

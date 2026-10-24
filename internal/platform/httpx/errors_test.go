@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/vardius/go-api-boilerplate/internal/platform/apperr"
 	"github.com/vardius/go-api-boilerplate/internal/platform/es"
@@ -52,6 +53,7 @@ func TestWriteErrorTable(t *testing.T) {
 		{"invalid with message", fmt.Errorf("parse: %w", apperr.New(apperr.ErrInvalid, "The code is malformed.")), 400, "The code is malformed.", nil},
 		{"bare invalid", apperr.ErrInvalid, 400, "", nil},
 		{"body too large", fmt.Errorf("read: %w", &http.MaxBytesError{Limit: 1024}), 413, "The request body is larger than 1024 bytes.", nil},
+		{"too many requests", fmt.Errorf("login link: %w", &httpx.TooManyRequestsError{RetryAfter: 59500 * time.Millisecond}), 429, "Too many requests; try again in 1m0s.", nil},
 		{"unauthorized", fmt.Errorf("verify token: %w", apperr.ErrUnauthorized), 401, "", nil},
 		{"forbidden", apperr.New(apperr.ErrForbidden, "This needs the user:write scope."), 403, "This needs the user:write scope.", nil},
 		{"not found", fmt.Errorf("load user 42: %w", apperr.ErrNotFound), 404, "", nil},

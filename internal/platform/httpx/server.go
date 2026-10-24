@@ -1,7 +1,7 @@
 // Package httpx is the HTTP kit the services share: a server with every
 // timeout set, handlers that return errors, one table that turns errors
 // into RFC 9457 problems, strict JSON decoding, paging, the client IP behind
-// proxies, and the middleware chain.
+// proxies, rate limits, and the middleware chain.
 //
 // A service wraps its router, outermost first, in
 //

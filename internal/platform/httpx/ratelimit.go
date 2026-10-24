@@ -6,7 +6,6 @@ import (
 	"math"
 	"net/http"
 	"net/netip"
-	"strconv"
 	"sync"
 	"time"
 
@@ -41,14 +40,11 @@ func (c RateLimitConfig) withDefaults() RateLimitConfig {
 // clients are remembered, so memory stays bounded whatever addresses
 // arrive.
 func RateLimit(cfg RateLimitConfig, trusted []netip.Prefix) Middleware {
-	l := &limiter{cfg: cfg.withDefaults(), clients: map[netip.Addr]*list.Element{}, lru: list.New()}
+	l := NewLimiter[netip.Addr](cfg)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			wait, ok := l.allow(clientKey(ClientIP(r, trusted)), time.Now())
-			if !ok {
-				secs := max(1, int(math.Ceil(wait.Seconds())))
-				w.Header().Set("Retry-After", strconv.Itoa(secs))
-				writeProblem(w, r, http.StatusTooManyRequests, fmt.Sprintf("Too many requests; try again in %s.", time.Duration(secs)*time.Second), nil)
+			if err := l.Allow(clientKey(ClientIP(r, trusted)), time.Now()); err != nil {
+				WriteError(w, r, err)
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -65,22 +61,48 @@ func clientKey(a netip.Addr) netip.Addr {
 	return a
 }
 
-type limiter struct {
+// TooManyRequestsError means a client has used up its rate limit. WriteError
+// answers it with 429 and a Retry-After of RetryAfter, rounded up to whole
+// seconds.
+type TooManyRequestsError struct {
+	RetryAfter time.Duration
+}
+
+func (e *TooManyRequestsError) Error() string {
+	return fmt.Sprintf("too many requests; retry after %s", e.RetryAfter)
+}
+
+// retryAfterSeconds is what Retry-After says: at least one second, since 0
+// would invite an immediate retry that fails again.
+func (e *TooManyRequestsError) retryAfterSeconds() int {
+	return max(1, int(math.Ceil(e.RetryAfter.Seconds())))
+}
+
+// Limiter keeps a token bucket per key, for limits that aren't per client
+// IP, such as login links per email address. It remembers only
+// cfg.Visitors keys, forgetting the one used least recently, so memory stays
+// bounded whatever keys arrive. It is safe for concurrent use.
+type Limiter[K comparable] struct {
 	cfg RateLimitConfig
 
 	mu      sync.Mutex
-	clients map[netip.Addr]*list.Element // of *client, front most recent
+	clients map[K]*list.Element // of *client[K], front most recent
 	lru     *list.List
 }
 
-type client struct {
-	key    netip.Addr
+type client[K comparable] struct {
+	key    K
 	bucket *rate.Limiter
 }
 
-// allow takes a token from key's bucket, or says how long until one is
-// there.
-func (l *limiter) allow(key netip.Addr, now time.Time) (time.Duration, bool) {
+// NewLimiter returns a Limiter whose buckets cfg sizes.
+func NewLimiter[K comparable](cfg RateLimitConfig) *Limiter[K] {
+	return &Limiter[K]{cfg: cfg.withDefaults(), clients: map[K]*list.Element{}, lru: list.New()}
+}
+
+// Allow takes a token from key's bucket at now. When the bucket is empty it
+// returns a *TooManyRequestsError saying how long until a token is there.
+func (l *Limiter[K]) Allow(key K, now time.Time) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	e, ok := l.clients[key]
@@ -89,14 +111,14 @@ func (l *limiter) allow(key netip.Addr, now time.Time) (time.Duration, bool) {
 	} else {
 		if l.lru.Len() >= l.cfg.Visitors {
 			oldest := l.lru.Back()
-			delete(l.clients, l.lru.Remove(oldest).(*client).key)
+			delete(l.clients, l.lru.Remove(oldest).(*client[K]).key)
 		}
-		e = l.lru.PushFront(&client{key: key, bucket: rate.NewLimiter(rate.Limit(l.cfg.Rate), l.cfg.Burst)})
+		e = l.lru.PushFront(&client[K]{key: key, bucket: rate.NewLimiter(rate.Limit(l.cfg.Rate), l.cfg.Burst)})
 		l.clients[key] = e
 	}
-	bucket := e.Value.(*client).bucket
+	bucket := e.Value.(*client[K]).bucket
 	if bucket.AllowN(now, 1) {
-		return 0, true
+		return nil
 	}
-	return time.Duration((1 - bucket.TokensAt(now)) / l.cfg.Rate * float64(time.Second)), false
+	return &TooManyRequestsError{RetryAfter: time.Duration((1 - bucket.TokensAt(now)) / l.cfg.Rate * float64(time.Second))}
 }
