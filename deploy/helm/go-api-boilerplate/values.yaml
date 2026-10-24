@@ -1,0 +1,94 @@
+# Which persistence build the auth and user images carry: memory, mysql or
+# mongodb. memory keeps everything in the pod, so it allows one replica each
+# and loses its data on restart; use it to try the chart, not to run it.
+store: memory
+
+image:
+  registry: ghcr.io
+  repository: vardius/go-api-boilerplate
+  # Defaults to the chart's appVersion. Go images get "-<store>" appended.
+  tag: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+# The public origin the browser sees, without a trailing slash. Tokens are
+# issued for <publicURL>/api/auth and email links point here.
+publicURL: https://app.example.com
+
+# CIDRs whose X-Forwarded-For is trusted: your gateway or ingress pods.
+trustedProxies: ""
+
+logLevel: info
+
+auth:
+  replicas: 1
+  # A Secret you create. Keys:
+  #   signing-key.pem   ES256 private key, PKCS#8 PEM (required)
+  #   mysql-password    with store: mysql
+  #   mongodb-uri       with store: mongodb
+  existingSecret: ""
+  # A Secret of public PEMs for keys rotated out, still served in the JWKS.
+  previousKeysSecret: ""
+  mysql:
+    addr: ""
+    user: auth
+    database: auth
+  mongodb:
+    database: auth
+  # Extra environment variables, see the configuration reference.
+  env: {}
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { memory: 256Mi }
+
+user:
+  replicas: 1
+  # A Secret you create. Keys:
+  #   smtp-password          optional
+  #   google-client-secret   when google.clientID is set
+  #   mysql-password         with store: mysql
+  #   mongodb-uri            with store: mongodb
+  existingSecret: ""
+  smtp:
+    addr: ""
+    username: ""
+    from: ""
+  google:
+    clientID: ""
+  mysql:
+    addr: ""
+    user: user
+    database: user
+  mongodb:
+    database: user
+  env: {}
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { memory: 256Mi }
+
+web:
+  replicas: 1
+  resources:
+    requests: { cpu: 10m, memory: 16Mi }
+    limits: { memory: 64Mi }
+
+# Gateway API route to the web service, which proxies /api/auth and
+# /api/user to the services, so the app is one origin.
+httpRoute:
+  enabled: true
+  parentRefs: []
+  #  - name: my-gateway
+  #    namespace: gateway-system
+  hostnames: []
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []
+
+# Run "<service> migrate" as a pre-install and pre-upgrade hook (MySQL
+# migrations, MongoDB indexes). Off for the memory store.
+migrations:
+  enabled: true

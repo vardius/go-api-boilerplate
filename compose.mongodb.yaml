@@ -1,0 +1,47 @@
+# docker compose -f compose.yaml -f compose.mongodb.yaml up --wait  (make up STORE=mongodb)
+# Rebuilds both services with the MongoDB store. MongoDB runs as a one-node
+# replica set because multi-document transactions need one.
+services:
+  mongodb:
+    image: mongo:8.0.34
+    restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongodb:/data/db
+    healthcheck:
+      # Initiates the replica set on first run, then reports whether this node is primary.
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status().ok } catch (e) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongodb:27017'}]}).ok }; db.hello().isWritablePrimary || quit(1)"
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+  auth:
+    build:
+      args:
+        STORE: mongodb
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/?replicaSet=rs0
+      MONGODB_DATABASE: auth
+      MIGRATE_ON_START: "true"
+    depends_on:
+      mongodb: { condition: service_healthy }
+
+  user:
+    build:
+      args:
+        STORE: mongodb
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/?replicaSet=rs0
+      MONGODB_DATABASE: user
+      MIGRATE_ON_START: "true"
+    depends_on:
+      mongodb: { condition: service_healthy }
+
+volumes:
+  mongodb:

@@ -1,0 +1,89 @@
+{{- $ctx := dict "root" . "component" "user" -}}
+{{- $name := printf "%s-user" (include "gab.fullname" .) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "gab.labels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.user.replicas }}
+  selector:
+    matchLabels:
+      {{- include "gab.selector" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gab.labels" $ctx | nindent 8 }}
+    spec:
+      {{- include "gab.podSecurity" . | nindent 6 }}
+      containers:
+        - name: user
+          image: {{ include "gab.image" $ctx }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - { name: http, containerPort: 8080 }
+            - { name: rpc, containerPort: 8081 }
+          env:
+            {{- include "gab.env" $ctx | nindent 12 }}
+            - name: WEB_URL
+              value: {{ .Values.publicURL | quote }}
+            - name: AUTH_ISSUER
+              value: {{ printf "%s/api/auth" .Values.publicURL | quote }}
+            - name: AUTH_JWKS_URL
+              value: {{ printf "http://%s-auth:8080/.well-known/jwks.json" (include "gab.fullname" .) | quote }}
+            - name: TRUSTED_PROXIES
+              value: {{ .Values.trustedProxies | quote }}
+            - name: SMTP_ADDR
+              value: {{ .Values.user.smtp.addr | quote }}
+            - name: SMTP_FROM
+              value: {{ required "user.smtp.from is required" .Values.user.smtp.from | quote }}
+            {{- with .Values.user.smtp.username }}
+            - name: SMTP_USERNAME
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if .Values.user.existingSecret }}
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.user.existingSecret }}
+                  key: smtp-password
+                  optional: true
+            {{- end }}
+            {{- with .Values.user.google.clientID }}
+            - name: GOOGLE_CLIENT_ID
+              value: {{ . | quote }}
+            - name: GOOGLE_REDIRECT_URL
+              value: {{ printf "%s/api/user/v1/google/callback" $.Values.publicURL | quote }}
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "user.existingSecret is required with google.clientID" $.Values.user.existingSecret }}
+                  key: google-client-secret
+            {{- end }}
+            {{- range $k, $val := .Values.user.env }}
+            - name: {{ $k }}
+              value: {{ $val | quote }}
+            {{- end }}
+          livenessProbe:
+            httpGet: { path: /livez, port: http }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.user.resources | nindent 12 }}
+          {{- include "gab.containerSecurity" . | nindent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "gab.labels" $ctx | nindent 4 }}
+spec:
+  selector:
+    {{- include "gab.selector" $ctx | nindent 4 }}
+  ports:
+    - { name: http, port: 8080, targetPort: http }
+    # Connect, for the auth service only; the routes below never expose it.
+    - { name: rpc, port: 8081, targetPort: rpc }

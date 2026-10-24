@@ -12,6 +12,12 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  STATICCHECK: honnef.co/go/tools/cmd/staticcheck@v0.8.2
+  GOVULNCHECK: golang.org/x/vuln/cmd/govulncheck@v1.9.0
+  BUF: github.com/bufbuild/buf/cmd/buf@v1.75.0
+  KUBECONFORM: github.com/yannh/kubeconform/cmd/kubeconform@v0.8.0
+
 jobs:
   go:
     runs-on: ubuntu-latest
@@ -26,7 +32,136 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - run: go vet -tags "${{ matrix.tags }}" ./...
+      - run: go build -tags "${{ matrix.tags }}" ./...
+      - run: go run "$STATICCHECK" -tags "${{ matrix.tags }}" ./...
+      # -short skips the container tests; the stores job runs them.
+      - run: go test -race -shuffle=on -short -tags "${{ matrix.tags }}" ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
       - name: Check formatting
         run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
-      - run: go vet -tags "${{ matrix.tags }}" ./...
-      - run: go test -race -shuffle=on -tags "${{ matrix.tags }}" ./...
+      - name: go fix leaves the tree unchanged
+        run: go fix -diff ./...
+      - name: Known vulnerabilities
+        run: go run "$GOVULNCHECK" ./...
+
+  # The contract suites and the services' stores against real databases.
+  stores:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [mysql, mongodb]
+    name: stores (${{ matrix.backend }})
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Container tests
+        run: go test -race -shuffle=on -tags "persistence_${{ matrix.backend }}" $(go list -tags "persistence_${{ matrix.backend }}" ./... | grep -E '/${{ matrix.backend }}(/|$)')
+
+  # Generated code, the configuration reference and the proto stay in step.
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go run "$BUF" lint
+      - name: No breaking change to the proto
+        if: github.event_name == 'pull_request'
+        run: |
+          if git cat-file -e "origin/${{ github.base_ref }}:proto" 2>/dev/null; then
+            go run "$BUF" breaking --against ".git#ref=origin/${{ github.base_ref }}"
+          else
+            echo "the base branch has no proto yet"
+          fi
+      - name: Generated files are current
+        run: |
+          go run "$BUF" generate
+          go run ./cmd/auth env > website/src/content/docs/reference/auth-configuration.md
+          go run ./cmd/user env > website/src/content/docs/reference/user-configuration.md
+          git diff --exit-code -- gen website/src/content/docs/reference || (echo "::error::generated files changed: run make gen and commit" && exit 1)
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Lint and validate the chart for each store
+        run: |
+          for store in memory mysql mongodb; do
+            values=deploy/helm/go-api-boilerplate/ci/$store-values.yaml
+            helm lint deploy/helm/go-api-boilerplate --strict -f "$values"
+            helm template ci deploy/helm/go-api-boilerplate -f "$values" |
+              go run "$KUBECONFORM" -strict -summary \
+                -schema-location default \
+                -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+          done
+
+  # The whole stack in containers, once per store, driven through the gateway.
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        store: [memory, mysql, mongodb]
+    name: e2e (${{ matrix.store }})
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Start the stack
+        run: make up STORE=${{ matrix.store }}
+      - name: API
+        run: make e2e
+      - uses: actions/setup-node@v7
+        if: matrix.store == 'memory'
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Browser
+        if: matrix.store == 'memory'
+        working-directory: web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          E2E=1 npx playwright test
+      - name: Service logs
+        if: failure()
+        run: make logs STORE=${{ matrix.store }} FOLLOW=
+      - name: Stop the stack
+        if: always()
+        run: make down STORE=${{ matrix.store }}

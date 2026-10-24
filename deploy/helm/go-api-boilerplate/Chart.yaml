@@ -1,0 +1,10 @@
+apiVersion: v2
+name: go-api-boilerplate
+description: The auth and user services and the web app behind one origin.
+type: application
+version: 0.1.0
+# The image tag when image.tag is empty; the release workflow sets both.
+appVersion: "0.1.0"
+home: https://vardius.github.io/go-api-boilerplate/
+sources:
+  - https://github.com/vardius/go-api-boilerplate

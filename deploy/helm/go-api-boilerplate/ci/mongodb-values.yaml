@@ -1,0 +1,17 @@
+store: mongodb
+publicURL: https://app.example.com
+auth:
+  replicas: 2
+  existingSecret: gab-auth
+  previousKeysSecret: gab-auth-previous
+user:
+  replicas: 2
+  existingSecret: gab-user
+  smtp:
+    addr: smtp.example.com:587
+    from: Example <no-reply@example.com>
+httpRoute:
+  parentRefs:
+    - name: gateway
+      namespace: gateway-system
+  hostnames: [app.example.com]

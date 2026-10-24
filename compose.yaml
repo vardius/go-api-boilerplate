@@ -1,0 +1,90 @@
+# Local development: docker compose up --wait, then http://localhost:8080.
+# Both services use the memory store, so data is gone when they restart.
+# For a database, add an override: make up STORE=mysql or STORE=mongodb.
+name: go-api-boilerplate
+
+x-service: &service
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "/service", "healthcheck"]
+    interval: 5s
+    timeout: 3s
+    retries: 20
+    start_period: 5s
+
+services:
+  auth:
+    <<: *service
+    build:
+      context: .
+      args:
+        SERVICE: auth
+        STORE: memory
+    environment:
+      APP_ENV: development
+      LOG_FORMAT: text
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ISSUER: http://localhost:8080/api/auth
+      WEB_URL: http://localhost:8080
+      USER_RPC_URL: http://user:8081
+      # Compose serves plain http, and Safari drops Secure cookies on http://localhost.
+      COOKIE_SECURE: "false"
+      # The gateway is the only peer; trust its X-Forwarded-For on the compose network.
+      TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+    develop:
+      watch:
+        - { action: rebuild, path: ./cmd/auth }
+        - { action: rebuild, path: ./internal }
+        - { action: rebuild, path: ./gen }
+
+  user:
+    <<: *service
+    build:
+      context: .
+      args:
+        SERVICE: user
+        STORE: memory
+    environment:
+      APP_ENV: development
+      LOG_FORMAT: text
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      WEB_URL: http://localhost:8080
+      AUTH_ISSUER: http://localhost:8080/api/auth
+      AUTH_JWKS_URL: http://auth:8080/.well-known/jwks.json
+      SMTP_ADDR: mailpit:1025
+      SMTP_FROM: go-api-boilerplate <no-reply@go-api-boilerplate.localhost>
+      SMTP_ALLOW_INSECURE: "true"
+      MAIL_PREVIEW_URL: http://localhost:8025
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: http://localhost:8080/api/user/v1/google/callback
+      # The gateway is the only peer; trust its X-Forwarded-For on the compose network.
+      TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+    develop:
+      watch:
+        - { action: rebuild, path: ./cmd/user }
+        - { action: rebuild, path: ./internal }
+        - { action: rebuild, path: ./gen }
+
+  web:
+    build: ./web
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth: { condition: service_healthy }
+      user: { condition: service_healthy }
+    develop:
+      watch:
+        - { action: rebuild, path: ./web/src }
+
+  mailpit:
+    image: axllent/mailpit:v1.32.0
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20

@@ -1,0 +1,21 @@
+# docker compose -f compose.yaml -f compose.observability.yaml up --wait  (make up OBSERVABILITY=1)
+# Adds Grafana with Tempo, Prometheus and Loki in one container and points
+# both services' OpenTelemetry exporters at it. Grafana: http://localhost:3000
+services:
+  lgtm:
+    image: grafana/otel-lgtm:0.38.0
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+  auth:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4318
+    depends_on:
+      lgtm: { condition: service_started }
+
+  user:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4318
+    depends_on:
+      lgtm: { condition: service_started }

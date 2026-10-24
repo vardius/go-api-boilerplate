@@ -1,0 +1,10 @@
+go-api-boilerplate {{ .Chart.AppVersion }} with the {{ .Values.store }} store.
+
+Open {{ .Values.publicURL }} once the pods are ready:
+
+  kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }}
+{{- if eq .Values.store "memory" }}
+
+The memory store keeps data in the pods: a restart signs everyone out and
+forgets every user. Set store=mysql or store=mongodb to keep it.
+{{- end }}
