@@ -26,6 +26,11 @@ export function isServerPath(path: string): boolean {
   return path.startsWith('/api/');
 }
 
+/** The auth service's OAuth authorize endpoint: a server path, and one that always asks for consent. */
+export function isAuthorizePath(path: string): boolean {
+  return path === '/api/auth/oauth/authorize' || path.startsWith('/api/auth/oauth/authorize?');
+}
+
 /** Builds the sign-in path that comes back to `next` afterwards. */
 export function signInPath(next?: string): string {
   return next === undefined ? '/sign-in' : `/sign-in?${new URLSearchParams({ next }).toString()}`;

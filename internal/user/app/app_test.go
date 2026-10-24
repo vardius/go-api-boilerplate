@@ -178,7 +178,7 @@ func (r *rig) lastMail(t *testing.T) sent {
 
 func (r *rig) requestCode(t *testing.T, email string) string {
 	t.Helper()
-	if err := r.svc.RequestLoginLink(t.Context(), email, ""); err != nil {
+	if err := r.svc.RequestLoginLink(t.Context(), email, "", ""); err != nil {
 		t.Fatal(err)
 	}
 	return r.lastMail(t).url.Query().Get("code")
@@ -219,7 +219,7 @@ func assertKind(t *testing.T, what string, err, kind error) {
 
 func TestRequestLoginLinkMailsALink(t *testing.T) {
 	r := newRig(t)
-	if err := r.svc.RequestLoginLink(t.Context(), "  Ada@Example.com ", "/consent?request=42"); err != nil {
+	if err := r.svc.RequestLoginLink(t.Context(), "  Ada@Example.com ", "/consent?request=42", "browser-state_1"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -232,6 +232,9 @@ func TestRequestLoginLinkMailsALink(t *testing.T) {
 	}
 	if next := m.url.Query().Get("next"); next != "/consent?request=42" {
 		t.Errorf("next = %q", next)
+	}
+	if state := m.url.Query().Get("state"); state != "browser-state_1" {
+		t.Errorf("state = %q, want the asking browser's", state)
 	}
 	if code := m.url.Query().Get("code"); len(code) != 43 {
 		t.Errorf("code %q is %d characters, want 43 (32 bytes, base64url)", code, len(code))
@@ -250,7 +253,7 @@ func TestRequestLoginLinkSucceedsWhetherOrNotTheAccountExists(t *testing.T) {
 	r := newRig(t)
 	r.signUp(t, "ada@example.com")
 	for _, email := range []string{"ada@example.com", "nobody@example.com"} {
-		if err := r.svc.RequestLoginLink(t.Context(), email, ""); err != nil {
+		if err := r.svc.RequestLoginLink(t.Context(), email, "", ""); err != nil {
 			t.Errorf("RequestLoginLink(%s) = %v", email, err)
 		}
 	}
@@ -261,7 +264,7 @@ func TestRequestLoginLinkSucceedsWhetherOrNotTheAccountExists(t *testing.T) {
 
 func TestRequestLoginLinkDropsAnUnsafeNext(t *testing.T) {
 	r := newRig(t)
-	if err := r.svc.RequestLoginLink(t.Context(), "ada@example.com", "https://evil.example/phish"); err != nil {
+	if err := r.svc.RequestLoginLink(t.Context(), "ada@example.com", "https://evil.example/phish", ""); err != nil {
 		t.Fatal(err)
 	}
 	if q := r.lastMail(t).url.Query(); q.Has("next") {
@@ -271,7 +274,7 @@ func TestRequestLoginLinkDropsAnUnsafeNext(t *testing.T) {
 
 func TestRequestLoginLinkRejectsABadAddress(t *testing.T) {
 	r := newRig(t)
-	err := r.svc.RequestLoginLink(t.Context(), "not an address", "")
+	err := r.svc.RequestLoginLink(t.Context(), "not an address", "", "")
 	assertKind(t, "RequestLoginLink", err, apperr.ErrInvalid)
 	if n := len(r.mailed(t)); n != 0 {
 		t.Errorf("mailed %d links", n)
@@ -465,7 +468,7 @@ func TestUseCasesReportStoreFailures(t *testing.T) {
 	r.users.set(func(u *users) { u.fail = down })
 
 	calls := map[string]func() error{
-		"RequestLoginLink": func() error { return r.svc.RequestLoginLink(t.Context(), "ada@example.com", "") },
+		"RequestLoginLink": func() error { return r.svc.RequestLoginLink(t.Context(), "ada@example.com", "", "") },
 		"RedeemLoginCode": func() error {
 			_, err := r.svc.RedeemLoginCode(asAuth(t.Context()), code)
 			return err
@@ -476,7 +479,7 @@ func TestUseCasesReportStoreFailures(t *testing.T) {
 		},
 		"RequestEmailChange": func() error { return r.svc.RequestEmailChange(asOwner(t.Context(), u), "grace@example.com") },
 		"GoogleSignIn": func() error {
-			_, err := r.svc.GoogleSignIn(t.Context(), google("1084", "ada@example.com"), "")
+			_, err := r.svc.GoogleSignIn(t.Context(), google("1084", "ada@example.com"), "", "")
 			return err
 		},
 	}
@@ -495,7 +498,7 @@ func TestGoogleSignInsOfANewAccountConcurrently(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := range signIns {
 		wg.Go(func() {
-			to, err := r.svc.GoogleSignIn(t.Context(), google("1084", "ada@gmail.com"), "")
+			to, err := r.svc.GoogleSignIn(t.Context(), google("1084", "ada@gmail.com"), "", "")
 			if err == nil {
 				codes[i] = to.Query().Get("code")
 			}
@@ -672,7 +675,7 @@ func google(sub, email string) app.GoogleAccount {
 
 func (r *rig) googleSignIn(t *testing.T, g app.GoogleAccount, next string) (store.User, *url.URL) {
 	t.Helper()
-	to, err := r.svc.GoogleSignIn(t.Context(), g, next)
+	to, err := r.svc.GoogleSignIn(t.Context(), g, next, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -718,7 +721,7 @@ func TestGoogleSignInLinksTheAccountWithItsAddress(t *testing.T) {
 
 func TestGoogleSignInCodeIsShortLived(t *testing.T) {
 	r := newRig(t)
-	to, err := r.svc.GoogleSignIn(t.Context(), google("1084", "ada@gmail.com"), "")
+	to, err := r.svc.GoogleSignIn(t.Context(), google("1084", "ada@gmail.com"), "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -742,7 +745,7 @@ func TestGoogleSignInRefuses(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := r.svc.GoogleSignIn(t.Context(), tt.g, "")
+			_, err := r.svc.GoogleSignIn(t.Context(), tt.g, "", "")
 			assertKind(t, "GoogleSignIn", err, tt.want)
 		})
 	}
@@ -801,11 +804,11 @@ func TestLinkGoogleRefuses(t *testing.T) {
 
 func TestPurgeExpiredCodes(t *testing.T) {
 	r := newRig(t)
-	if err := r.svc.RequestLoginLink(t.Context(), "ada@example.com", ""); err != nil {
+	if err := r.svc.RequestLoginLink(t.Context(), "ada@example.com", "", ""); err != nil {
 		t.Fatal(err)
 	}
 	r.advance(time.Minute)
-	if err := r.svc.RequestLoginLink(t.Context(), "ada@example.com", ""); err != nil {
+	if err := r.svc.RequestLoginLink(t.Context(), "ada@example.com", "", ""); err != nil {
 		t.Fatal(err)
 	}
 	links := r.mailed(t)
@@ -830,6 +833,23 @@ func TestGoogleFailurePage(t *testing.T) {
 	}
 	if got := r.svc.GoogleFailurePage(true, app.GoogleTaken).String(); got != "https://app.example.com/profile?google=taken" {
 		t.Errorf("link failure page = %s", got)
+	}
+}
+
+func TestSafeSignInState(t *testing.T) {
+	for in, want := range map[string]string{
+		"":                      "",
+		"AbC-12_x":              "AbC-12_x",
+		strings.Repeat("a", 64): strings.Repeat("a", 64),
+		strings.Repeat("a", 65): "",
+		"a b":                   "",
+		"a&next=//evil.example": "",
+		"a%20b":                 "",
+		"ąę":                    "",
+	} {
+		if got := app.SafeSignInState(in); got != want {
+			t.Errorf("SafeSignInState(%q) = %q, want %q", in, got, want)
+		}
 	}
 }
 

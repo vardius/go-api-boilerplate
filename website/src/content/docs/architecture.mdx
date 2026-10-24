@@ -20,13 +20,13 @@ Only auth ever holds token material or sets cookies. The user service redeems th
 
 <Steps>
 
-1. The web app posts the address: `POST /api/user/v1/login-links` with `{email, next?}`. user answers `202` whether or not the address has an account, so the endpoint can't be used to find out who has one. Only a malformed address (`400`) or too many requests from the client or for the address (`429`) get another answer.
+1. The web app posts the address: `POST /api/user/v1/login-links` with `{email, next?, state}`, where `state` is a random value it keeps for 15 minutes. user answers `202` whether or not the address has an account, so the endpoint can't be used to find out who has one. Only a malformed address (`400`) or too many requests from the client or for the address (`429`) get another answer.
 
 2. In one transaction, user stores a login code (only its SHA-256 hash) with the email, and adds a `mail.login_link` message to the outbox.
 
-3. The outbox relay sends the email. The link points at `{WEB_URL}/sign-in/complete?code=…`.
+3. The outbox relay sends the email. The link points at `{WEB_URL}/sign-in/complete?code=…&state=…`.
 
-4. The web app posts the code to auth: `POST /api/auth/v1/sessions` with `{code}`. It does so at once only when this browser asked for the link and has no session. Otherwise it asks first: whether to sign in with a link this browser didn't ask for (one opened on another device, say), or whether to switch accounts or stay signed in. A link someone else sent therefore can't quietly sign the reader in to their account, and a sign-in this browser didn't start goes to the profile, never on to a server route such as linking Google. Only the web app can post the code, because auth refuses cross-origin calls.
+4. The web app posts the code to auth: `POST /api/auth/v1/sessions` with `{code}`. It does so at once only when the link's `state` is one this browser made and it has no session. Otherwise it asks first: whether to sign in with a link this browser didn't ask for (one opened on another device, say), or whether to switch accounts or stay signed in. A link someone else sent carries their state, which this browser never made, so it can't quietly sign the reader in to their account. Such a sign-in goes to the profile, or to the OAuth authorize endpoint, which asks for consent; never on to another server route, such as linking Google. Only the web app can post the code, because auth refuses cross-origin calls, and no other site can read the states it keeps. Google sign-in carries a state the same way.
 
 5. auth calls `user.v1.LoginService/RedeemLoginCode` over Connect, authenticated with a short-lived token it signs for itself, with `client_id` `auth`. In one transaction, user marks the code used, registers the user if the address is new, and returns the user's ID and email.
 

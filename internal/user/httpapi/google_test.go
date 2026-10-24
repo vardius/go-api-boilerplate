@@ -65,7 +65,7 @@ func TestGoogleIsOffWithoutAClient(t *testing.T) {
 func TestGoogleSignInRegisters(t *testing.T) {
 	r := newRig(t, options{google: true})
 	b := r.browser()
-	res := r.expect(b, http.MethodGet, "/v1/google/start?next=%2Fconsent%3Frequest%3D42", nil, http.StatusFound)
+	res := r.expect(b, http.MethodGet, "/v1/google/start?next=%2Fconsent%3Frequest%3D42&state=browser-state_1", nil, http.StatusFound)
 
 	cookie := res.header.Get("Set-Cookie")
 	for _, attr := range []string{"google_flow=", "Path=/api/user/v1/google", "Max-Age=600", "HttpOnly", "SameSite=Lax"} {
@@ -94,6 +94,10 @@ func TestGoogleSignInRegisters(t *testing.T) {
 	to := cb.location(t)
 	if next := to.Query().Get("next"); next != "/consent?request=42" {
 		t.Errorf("next = %q", next)
+	}
+	// The web app's state comes back, so the browser that started knows the link is its own.
+	if state := to.Query().Get("state"); state != "browser-state_1" {
+		t.Errorf("state = %q, want the one the browser started with", state)
 	}
 	u := r.redeem(to)
 	if u.Email != "ada@gmail.com" || u.GoogleSubject != "1084" {

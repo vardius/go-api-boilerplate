@@ -1,41 +1,67 @@
-/**
- * Remembers that this browser started a sign-in, by email or with Google, so
- * the link or callback that finishes it can go straight in. A sign-in this
- * browser didn't start may be someone else's code, sent to sign the reader in
- * to the sender's account (login CSRF), so that one asks first.
- *
- * Only this app can redeem a code (the auth service refuses cross-origin
- * calls), and other sites can't write this origin's storage, so the mark
- * can't be forged.
- */
-const storageKey = 'sign-in-started';
+import { z } from 'zod';
 
-/** A login code works for 15 minutes (LoginCodeTTL in internal/user/app); a start older than that has nothing left to finish. */
+/**
+ * Lets this browser recognise its own sign-in links. Starting a sign-in, by
+ * email or with Google, makes a random state that the user service puts in
+ * the link it sends back, and the link finishes at once only when its state
+ * is one this browser made. Any other link may be someone else's code, sent
+ * to sign the reader in to the sender's account (login CSRF), so that one
+ * asks first.
+ *
+ * Other sites can't read this origin's storage, so they can't learn a
+ * state, and only this app can redeem a code: the auth service refuses
+ * cross-origin calls.
+ */
+const storageKey = 'sign-in-states';
+
+/** A login code works for 15 minutes (LoginCodeTTL in internal/user/app); a state older than that has nothing left to finish. */
 const lifetimeMs = 15 * 60 * 1000;
 
-export function markSignInStarted(now: number = Date.now()): void {
+/** Enough for a few links asked for in a row; the oldest goes first. */
+const kept = 5;
+
+const startedSchema = z.array(z.object({ state: z.string(), at: z.number() }));
+type Started = z.infer<typeof startedSchema>[number];
+
+function load(now: number): Started[] {
   try {
-    window.localStorage.setItem(storageKey, String(now));
+    const stored: unknown = JSON.parse(window.localStorage.getItem(storageKey) ?? '[]');
+    const parsed = startedSchema.safeParse(stored);
+    if (!parsed.success) return [];
+    return parsed.data.filter((started) => now >= started.at && now - started.at < lifetimeMs);
   } catch {
-    // Storage is unavailable (private mode): the sign-in asks before it completes.
+    return [];
   }
 }
 
-/** Whether this browser started a sign-in in the last 15 minutes. */
-export function signInStartedHere(now: number = Date.now()): boolean {
+function save(started: Started[]): void {
   try {
-    const at = Number(window.localStorage.getItem(storageKey));
-    return at > 0 && now >= at && now - at < lifetimeMs;
+    window.localStorage.setItem(storageKey, JSON.stringify(started.slice(-kept)));
   } catch {
-    return false;
+    // Storage is unavailable (private mode): every link asks before it signs in.
   }
 }
 
-/** One start finishes one sign-in: called as its code is used, whatever the answer. */
-export function forgetSignInStarted(): void {
-  try {
-    window.localStorage.removeItem(storageKey);
-  } catch {
-    // Storage is unavailable, so there is nothing to forget.
-  }
+/** A new state for one sign-in: 16 random bytes, base64url, as the user service accepts. */
+export function newSignInState(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return btoa(String.fromCharCode(...bytes))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/, '');
+}
+
+/** Remembers state as one this browser started a sign-in with. */
+export function rememberSignInState(state: string, now: number = Date.now()): void {
+  save([...load(now), { state, at: now }]);
+}
+
+/** Whether state is one this browser started a sign-in with in the last 15 minutes. */
+export function isOwnSignInState(state: string | null, now: number = Date.now()): boolean {
+  return state !== null && state !== '' && load(now).some((started) => started.state === state);
+}
+
+/** One state finishes one sign-in: forgotten as its link's code is used, whatever the answer. */
+export function forgetSignInState(state: string | null, now: number = Date.now()): void {
+  save(load(now).filter((started) => started.state !== state));
 }

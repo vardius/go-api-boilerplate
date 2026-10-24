@@ -160,6 +160,10 @@ paths:
           in: query
           description: Link the Google account to the signed-in user.
           schema: { type: string, enum: ["1"] }
+        - name: state
+          in: query
+          description: The browser's value, carried back on the sign-in link as with a mailed one.
+          schema: { $ref: "#/components/schemas/SignInState" }
       responses:
         "302": { $ref: "#/components/responses/Redirect" }
         "400": { $ref: "#/components/responses/BadRequest" }
@@ -228,6 +232,17 @@ components:
           type: string
           maxLength: 2048
           description: A path on the web app to go to after signing in, such as /consent?request=42. Anything else is dropped.
+        state:
+          $ref: "#/components/schemas/SignInState"
+    SignInState:
+      type: string
+      maxLength: 64
+      pattern: "^[A-Za-z0-9_-]*$"
+      description: |
+        A random value the browser keeps and the link carries back as
+        `state`, so that browser can tell the link is its own and use it at
+        once. The web app asks before using any other link, which may be
+        someone else's (login CSRF). Anything that doesn't match is dropped.
     EmailChangeRequest:
       type: object
       additionalProperties: false

@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadPage } from '../lib/browser';
-import { markSignInStarted, signInStartedHere } from '../lib/signInStart';
+import { isOwnSignInState, rememberSignInState } from '../lib/signInStart';
 import { json, mockApi, offline, problem } from '../test/api';
 import { apiUser, renderApp } from '../test/render';
 
@@ -15,10 +15,10 @@ const created = json(201, { session: { id: 's1', expires_at: '2026-11-23T10:00:0
 const signedOut = { [me]: problem(401), [refresh]: problem(401) };
 
 describe('Complete sign-in', () => {
-  // Most links finish a sign-in this browser started; the block at the end covers one it didn't.
+  // Most links finish a sign-in this browser started, so they carry its state; the block at the end covers others.
   beforeEach(() => {
     window.localStorage.clear();
-    markSignInStarted();
+    rememberSignInState('own-state');
   });
 
   it('with no session, trades the code for a session at once, then goes to next', async () => {
@@ -27,7 +27,7 @@ describe('Complete sign-in', () => {
       [sessions]: created,
       'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20, offset: 0 }),
     });
-    const { router } = renderApp('/sign-in/complete?code=abc&next=%2Fapps');
+    const { router } = renderApp('/sign-in/complete?state=own-state&code=abc&next=%2Fapps');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'OAuth apps' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/apps');
@@ -41,7 +41,7 @@ describe('Complete sign-in', () => {
       [sessions]: created,
       'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20, offset: 0 }),
     });
-    const { user, router } = renderApp('/sign-in/complete?code=abc&next=%2Fapps');
+    const { user, router } = renderApp('/sign-in/complete?state=own-state&code=abc&next=%2Fapps');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Sign in to a different account?' })).toBeInTheDocument();
     expect(screen.getByText('ada@example.com')).toBeInTheDocument();
@@ -60,7 +60,7 @@ describe('Complete sign-in', () => {
       [me]: json(200, apiUser()),
       'GET /api/user/v1/config': json(200, { google_enabled: false }),
     });
-    const { user, router } = renderApp('/sign-in/complete?code=abc');
+    const { user, router } = renderApp('/sign-in/complete?state=own-state&code=abc');
 
     await user.click(await screen.findByRole('link', { name: 'Stay signed in as ada@example.com' }));
 
@@ -71,7 +71,7 @@ describe('Complete sign-in', () => {
 
   it("doesn't use the code while it can't tell whether someone is signed in", async () => {
     const api = mockApi({ [me]: [offline(), problem(401)], [refresh]: problem(401), [sessions]: created });
-    const { user } = renderApp('/sign-in/complete?code=abc&next=%2Fapps');
+    const { user } = renderApp('/sign-in/complete?state=own-state&code=abc&next=%2Fapps');
 
     expect(await screen.findByRole('button', { name: 'Try again' })).toBeInTheDocument();
     expect(api.callsTo(sessions)).toHaveLength(0);
@@ -90,7 +90,7 @@ describe('Complete sign-in', () => {
       [sessions]: created,
       'GET /api/user/v1/config': json(200, { google_enabled: false }),
     });
-    const { router } = renderApp('/sign-in/complete?code=abc');
+    const { router } = renderApp('/sign-in/complete?state=own-state&code=abc');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Profile' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/profile');
@@ -99,7 +99,7 @@ describe('Complete sign-in', () => {
   it('loads a server route such as the OAuth authorize endpoint as a full page', async () => {
     mockApi({ ...signedOut, [sessions]: created });
     const next = '/api/auth/oauth/authorize?client_id=c1&state=xyz';
-    renderApp(`/sign-in/complete?code=abc&next=${encodeURIComponent(next)}`);
+    renderApp(`/sign-in/complete?state=own-state&code=abc&next=${encodeURIComponent(next)}`);
 
     await waitFor(() => {
       expect(loadPage).toHaveBeenCalledWith(next);
@@ -108,7 +108,7 @@ describe('Complete sign-in', () => {
 
   it('explains an expired or used code and offers a new link that keeps next', async () => {
     mockApi({ ...signedOut, [sessions]: problem(401) });
-    renderApp('/sign-in/complete?code=old&next=%2Fapps');
+    renderApp('/sign-in/complete?state=own-state&code=old&next=%2Fapps');
 
     expect(await screen.findByRole('heading', { name: 'This sign-in link has expired' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Send me a new link' })).toHaveAttribute('href', '/sign-in?next=%2Fapps');
@@ -130,7 +130,7 @@ describe('Complete sign-in', () => {
       [sessions]: [offline(), created],
       'GET /api/user/v1/config': json(200, { google_enabled: false }),
     });
-    const { user } = renderApp('/sign-in/complete?code=abc');
+    const { user } = renderApp('/sign-in/complete?state=own-state&code=abc');
 
     await user.click(await screen.findByRole('button', { name: 'Try again' }));
 
@@ -186,13 +186,36 @@ describe('Complete sign-in', () => {
       expect(router.state.location.pathname).toBe('/profile');
       expect(loadPage).not.toHaveBeenCalled();
     });
+
+    it("asks when the link's state isn't this browser's, even while it has a sign-in of its own going", async () => {
+      // Someone got the reader to start a sign-in, then sent their own code before the reader's link came.
+      rememberSignInState('own-state');
+      const api = mockApi({ ...signedOut, [sessions]: created });
+      renderApp('/sign-in/complete?state=their-state&code=theirs&next=%2Fapps');
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Sign in with this link?' })).toBeInTheDocument();
+      expect(api.callsTo(sessions)).toHaveLength(0);
+    });
+
+    it('still goes on to the OAuth authorize endpoint, which asks for consent itself', async () => {
+      vi.mocked(loadPage).mockClear();
+      mockApi({ ...signedOut, [sessions]: created });
+      const next = '/api/auth/oauth/authorize?client_id=c1&state=xyz';
+      const { user } = renderApp(`/sign-in/complete?code=abc&next=${encodeURIComponent(next)}`);
+
+      await user.click(await screen.findByRole('button', { name: 'Sign in with this link' }));
+
+      await waitFor(() => {
+        expect(loadPage).toHaveBeenCalledWith(next);
+      });
+    });
   });
 
   it('forgets the start once its code is used, so one start finishes one sign-in', async () => {
     mockApi({ ...signedOut, [sessions]: problem(401) });
-    renderApp('/sign-in/complete?code=old');
+    renderApp('/sign-in/complete?state=own-state&code=old');
 
     expect(await screen.findByRole('heading', { name: 'This sign-in link has expired' })).toBeInTheDocument();
-    expect(signInStartedHere()).toBe(false);
+    expect(isOwnSignInState('own-state')).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { signInStartedHere } from '../lib/signInStart';
+import { z } from 'zod';
+import { isOwnSignInState } from '../lib/signInStart';
 import { json, mockApi, offline, problem } from '../test/api';
 import { renderApp } from '../test/render';
 
@@ -26,7 +27,8 @@ describe('Sign in', () => {
     expect(screen.getByText('ada@example.com')).toBeInTheDocument();
     expect(screen.getByText('In local development, emails go to Mailpit')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Open Mailpit/ })).toHaveAttribute('href', 'http://localhost:8025');
-    expect(api.callsTo(loginLinks)[0]?.body).toEqual({ email: 'ada@example.com', next: '/apps' });
+    // The state is checked in its own test below.
+    expect(api.callsTo(loginLinks)[0]?.body).toMatchObject({ email: 'ada@example.com', next: '/apps' });
 
     await user.click(screen.getByRole('button', { name: 'Use a different email' }));
     expect(screen.getByLabelText('Email')).toHaveFocus();
@@ -51,7 +53,7 @@ describe('Sign in', () => {
     await user.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
 
     await screen.findByRole('heading', { name: 'Check your inbox' });
-    expect(api.callsTo(loginLinks)[0]?.body).toEqual({ email: 'ada@example.com' });
+    expect(api.callsTo(loginLinks)[0]?.body).not.toHaveProperty('next');
   });
 
   it.each([
@@ -135,24 +137,28 @@ describe('Sign in', () => {
 
     expect(await screen.findByRole('link', { name: 'Continue with Google' })).toHaveAttribute(
       'href',
-      '/api/user/v1/google/start?next=%2Fapps',
+      expect.stringMatching(/^\/api\/user\/v1\/google\/start\?next=%2Fapps&state=[A-Za-z0-9_-]{22}$/),
     );
   });
-  it('remembers that this browser started a sign-in, so its link goes straight in', async () => {
-    mockApi({ [config]: json(200, { google_enabled: true }), [loginLinks]: json(202, {}) });
+  it('sends a state with each sign-in and remembers it, so its own link goes straight in', async () => {
+    const api = mockApi({ [config]: json(200, { google_enabled: true }), [loginLinks]: json(202, {}) });
     const { user } = renderApp('/sign-in');
 
     await user.type(screen.getByLabelText('Email'), 'ada@example.com');
     await user.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Check your inbox' })).toBeInTheDocument();
-    expect(signInStartedHere()).toBe(true);
+    const sent = z.object({ state: z.string() }).parse(api.callsTo(loginLinks)[0]?.body).state;
+    expect(sent).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    expect(isOwnSignInState(sent)).toBe(true);
 
-    window.localStorage.clear();
     await user.click(screen.getByRole('button', { name: 'Use a different email' }));
     const google = screen.getByRole('link', { name: 'Continue with Google' });
-    // jsdom can't follow the link to Google; the click is what matters.
+    const state = new URL(google.getAttribute('href') ?? '', window.location.origin).searchParams.get('state');
+    expect(state).not.toBe(sent);
+    // Showing the button remembers nothing; picking it does. jsdom can't follow the link to Google.
+    expect(isOwnSignInState(state)).toBe(false);
     google.addEventListener('click', (event) => event.preventDefault());
     await user.click(google);
-    expect(signInStartedHere()).toBe(true);
+    expect(isOwnSignInState(state)).toBe(true);
   });
 });

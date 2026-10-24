@@ -73,7 +73,7 @@ func (r *rig) authToken(t *testing.T) string {
 // code asks for a login link to email and returns its code.
 func (r *rig) code(t *testing.T, email string) string {
 	t.Helper()
-	if err := r.app.RequestLoginLink(t.Context(), email, ""); err != nil {
+	if err := r.app.RequestLoginLink(t.Context(), email, "", ""); err != nil {
 		t.Fatal(err)
 	}
 	msgs, err := r.outbox.Claim(t.Context(), t0, time.Minute, 10)

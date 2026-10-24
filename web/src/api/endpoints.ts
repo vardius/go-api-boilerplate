@@ -16,10 +16,11 @@ export function getConfig(signal?: AbortSignal) {
   return request(`${user}/config`, { schema: configSchema, session: false, signal });
 }
 
-export function requestLoginLink(email: string, next: string | undefined) {
+/** state is this browser's, from lib/signInStart: the link carries it back. */
+export function requestLoginLink(email: string, next: string | undefined, state: string) {
   return request(`${user}/login-links`, {
     method: 'POST',
-    body: next === undefined ? { email } : { email, next },
+    body: next === undefined ? { email, state } : { email, next, state },
     schema: emptyBody,
     session: false,
   });
@@ -102,10 +103,11 @@ export function getAuthorizationRequest(id: string, signal?: AbortSignal) {
 }
 
 /** Where a browser starts Google sign-in; a full navigation, since it redirects to Google. */
-export function googleStartURL(options: { next?: string | undefined; link?: boolean }): string {
+export function googleStartURL(options: { next?: string | undefined; link?: boolean; state?: string }): string {
   const params = new URLSearchParams();
   if (options.link) params.set('link', '1');
   if (options.next !== undefined) params.set('next', options.next);
+  if (options.state !== undefined) params.set('state', options.state);
   const query = params.toString();
   return `${user}/google/start${query === '' ? '' : `?${query}`}`;
 }

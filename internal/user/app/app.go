@@ -201,10 +201,32 @@ func (s *Service) link(query url.Values, path ...string) *url.URL {
 	return u
 }
 
-func (s *Service) signInLink(code, next string) *url.URL {
+// maxSignInStateBytes bounds the value a browser sends to recognise its
+// own sign-in link.
+const maxSignInStateBytes = 64
+
+// SafeSignInState returns state when it is a value to put in a link: 1 to
+// 64 base64url characters, as the web app makes it. Anything else is "".
+func SafeSignInState(state string) string {
+	if len(state) > maxSignInStateBytes || strings.ContainsFunc(state, func(r rune) bool {
+		return !('a' <= r && r <= 'z' || 'A' <= r && r <= 'Z' || '0' <= r && r <= '9' || r == '-' || r == '_')
+	}) {
+		return ""
+	}
+	return state
+}
+
+// signInLink returns the web app's page that redeems code. state is what
+// the browser that asked for the link sent, so that browser can tell the
+// link is its own and use it at once; with any other state the web app asks
+// first, since the link may be someone else's (login CSRF).
+func (s *Service) signInLink(code, next, state string) *url.URL {
 	q := url.Values{"code": {code}}
 	if next != "" {
 		q.Set("next", next)
+	}
+	if state = SafeSignInState(state); state != "" {
+		q.Set("state", state)
 	}
 	return s.link(q, "sign-in", "complete")
 }
@@ -213,8 +235,8 @@ func (s *Service) signInLink(code, next string) *url.URL {
 // has the address: redeeming the link registers one. It reports nothing
 // about the address beyond whether it is one, so it can't tell anyone who
 // has an account. next, if it is a SafeNext path, is where the link leads
-// after signing in.
-func (s *Service) RequestLoginLink(ctx context.Context, email, next string) error {
+// after signing in; state goes in the link for the browser that asked.
+func (s *Service) RequestLoginLink(ctx context.Context, email, next, state string) error {
 	addr, err := domain.ParseEmail(email)
 	if err != nil {
 		return err
@@ -231,7 +253,7 @@ func (s *Service) RequestLoginLink(ctx context.Context, email, next string) erro
 	now := s.clock()
 	code, hash := newCode()
 	lc := store.LoginCode{Hash: hash, Purpose: store.PurposeLogin, Email: addr.String(), UserID: userID, Next: next, ExpiresAt: now.Add(LoginCodeTTL)}
-	msg, err := outbox.NewMessage(mail.TopicLoginLink, mail.Link{To: addr.String(), URL: s.signInLink(code, next).String(), ExpiresAt: lc.ExpiresAt}, now)
+	msg, err := outbox.NewMessage(mail.TopicLoginLink, mail.Link{To: addr.String(), URL: s.signInLink(code, next, state).String(), ExpiresAt: lc.ExpiresAt}, now)
 	if err != nil {
 		return fmt.Errorf("request login link: %w", err)
 	}
@@ -475,8 +497,9 @@ type GoogleAccount struct {
 // linked to, else the user with its address, whom it links, else a new user
 // with both. It returns the web app's sign-in page with a short-lived code
 // for the auth service to redeem, the same way a mailed link ends. Google
-// must have verified the address, or anyone could claim one.
-func (s *Service) GoogleSignIn(ctx context.Context, g GoogleAccount, next string) (*url.URL, error) {
+// must have verified the address, or anyone could claim one. state is the
+// browser's, as with RequestLoginLink.
+func (s *Service) GoogleSignIn(ctx context.Context, g GoogleAccount, next, state string) (*url.URL, error) {
 	if !g.EmailVerified {
 		return nil, apperr.New(apperr.ErrForbidden, "Google hasn't verified this account's email address.")
 	}
@@ -495,7 +518,7 @@ func (s *Service) GoogleSignIn(ctx context.Context, g GoogleAccount, next string
 	if err != nil {
 		return nil, fmt.Errorf("google sign-in: %w", err)
 	}
-	return s.signInLink(code, next), nil
+	return s.signInLink(code, next, state), nil
 }
 
 // googleSignIn saves the user a Google account signs in, when it changed,

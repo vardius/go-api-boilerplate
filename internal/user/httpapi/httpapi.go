@@ -135,6 +135,7 @@ func (h *handler) requestLoginLink(w http.ResponseWriter, r *http.Request) error
 	body, err := httpx.DecodeJSON[struct {
 		Email string `json:"email"`
 		Next  string `json:"next"`
+		State string `json:"state"`
 	}](r, maxBody)
 	if err != nil {
 		return err
@@ -148,7 +149,7 @@ func (h *handler) requestLoginLink(w http.ResponseWriter, r *http.Request) error
 	if err := h.perEmail.Allow(addr.String(), h.now()); err != nil {
 		return err
 	}
-	if err := h.app.RequestLoginLink(r.Context(), addr.String(), body.Next); err != nil {
+	if err := h.app.RequestLoginLink(r.Context(), addr.String(), body.Next, body.State); err != nil {
 		return err
 	}
 	return httpx.WriteJSON(w, http.StatusAccepted, accepted{})
@@ -210,7 +211,7 @@ func (h *handler) googleStart(w http.ResponseWriter, r *http.Request) error {
 	default:
 		return apperr.Invalid("link", "must be 1 or absent")
 	}
-	to, cookie, err := h.google.begin(r.Context(), newFlow(q.Get("next"), linkTo, h.now()))
+	to, cookie, err := h.google.begin(r.Context(), newFlow(q.Get("next"), q.Get("state"), linkTo, h.now()))
 	if err != nil {
 		return err
 	}
@@ -254,7 +255,7 @@ func (h *handler) finishGoogle(ctx context.Context, q url.Values, f flow) (*url.
 		return nil, err
 	}
 	if !f.linking() {
-		return h.app.GoogleSignIn(ctx, account, f.Next)
+		return h.app.GoogleSignIn(ctx, account, f.Next, f.SignInState)
 	}
 	// Linking needs the same user at both ends of the round trip.
 	if id, err := app.Actor(ctx, app.ScopeUserWrite); err != nil || id != f.LinkTo {

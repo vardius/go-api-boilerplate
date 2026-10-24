@@ -6,8 +6,8 @@ import { isProblem } from '../api/describe';
 import { createSession } from '../api/endpoints';
 import { useSignedInUser } from '../api/queries';
 import { loadPage } from '../lib/browser';
-import { isServerPath, safeNext, signInPath } from '../lib/next';
-import { forgetSignInStarted, signInStartedHere } from '../lib/signInStart';
+import { isAuthorizePath, isServerPath, safeNext, signInPath } from '../lib/next';
+import { forgetSignInState, isOwnSignInState } from '../lib/signInStart';
 import { Actions, Button, ButtonAnchor, ButtonLink } from '../ui/Button';
 import { ErrorState } from '../ui/ErrorState';
 import { Loading } from '../ui/Loading';
@@ -19,23 +19,27 @@ import { Card, Page } from '../ui/Page';
  *
  * Signing in replaces this browser's session, so a link someone else sent
  * could quietly sign the reader in to that person's account (login CSRF).
- * The code is redeemed at once only when this browser started the sign-in
- * and has no session; otherwise the reader chooses.
+ * The code is redeemed at once only when the link carries a state this
+ * browser made (lib/signInStart) and it has no session; otherwise the
+ * reader chooses.
  */
 export function CompleteSignIn() {
   const intl = useIntl();
   const [params] = useSearchParams();
   const code = params.get('code');
   const next = safeNext(params.get('next'));
-  const [startedHere] = useState(signInStartedHere);
-  // A sign-in this browser didn't start never goes on to a server route, such as linking Google, by itself.
-  const destination = next !== undefined && (startedHere || !isServerPath(next)) ? next : '/profile';
+  const state = params.get('state');
+  const [startedHere] = useState(() => isOwnSignInState(state));
+  // A sign-in this browser didn't start goes on to no server route, such as linking Google, but the
+  // OAuth authorize endpoint, which still asks for consent.
+  const destination =
+    next !== undefined && (startedHere || !isServerPath(next) || isAuthorizePath(next)) ? next : '/profile';
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const signIn = useMutation({
     mutationFn: (signInCode: string) => {
-      forgetSignInStarted();
+      forgetSignInState(state);
       return createSession(signInCode);
     },
     onSuccess: () => {

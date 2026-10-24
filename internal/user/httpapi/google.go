@@ -121,24 +121,27 @@ func (g *Google) discover(ctx context.Context) (*oauth2.Config, *oidc.IDTokenVer
 // callback. Nothing in it is a credential on its own: the verifier is
 // useless without Google's code, which goes only to the redirect URI.
 type flow struct {
-	State    string    `json:"state"`
-	Nonce    string    `json:"nonce"`
-	Verifier string    `json:"verifier"`
-	Next     string    `json:"next,omitzero"`
-	LinkTo   uuid.UUID `json:"link_to,omitzero"` // the user linking Google; zero for a sign-in
-	Started  time.Time `json:"started"`
+	State    string `json:"state"`
+	Nonce    string `json:"nonce"`
+	Verifier string `json:"verifier"`
+	Next     string `json:"next,omitzero"`
+	// SignInState is the web app's, for its sign-in link; not Google's State.
+	SignInState string    `json:"sign_in_state,omitzero"`
+	LinkTo      uuid.UUID `json:"link_to,omitzero"` // the user linking Google; zero for a sign-in
+	Started     time.Time `json:"started"`
 }
 
 func (f flow) linking() bool { return f.LinkTo != uuid.Nil() }
 
-func newFlow(next string, linkTo uuid.UUID, now time.Time) flow {
+func newFlow(next, signInState string, linkTo uuid.UUID, now time.Time) flow {
 	return flow{
-		State:    rand.Text(),
-		Nonce:    rand.Text(),
-		Verifier: oauth2.GenerateVerifier(),
-		Next:     app.SafeNext(next),
-		LinkTo:   linkTo,
-		Started:  now,
+		State:       rand.Text(),
+		Nonce:       rand.Text(),
+		Verifier:    oauth2.GenerateVerifier(),
+		Next:        app.SafeNext(next),
+		SignInState: app.SafeSignInState(signInState),
+		LinkTo:      linkTo,
+		Started:     now,
 	}
 }
 
