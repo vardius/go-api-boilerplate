@@ -4,7 +4,7 @@ Runs the auth and user services and the web app. The web pods serve the
 single-page app and proxy `/api/auth` and `/api/user` to the services, so
 the route below points at one Service and the browser sees one origin.
 
-The database is yours: a managed MySQL 8.4 or MongoDB replica set. The
+The database is yours: a managed MySQL 9.7 or MongoDB replica set. The
 `memory` store is for trying the chart and allows one replica per service.
 
 ## Install

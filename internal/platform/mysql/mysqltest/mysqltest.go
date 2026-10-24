@@ -20,8 +20,8 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/platform/mysql"
 )
 
-// image is the MySQL 8.4 LTS release the tests run on.
-const image = "mysql:8.4.13"
+// image is the MySQL 9.7 LTS release the tests run on.
+const image = "mysql:9.7.4"
 
 // New returns a connection to a new database with mysql.Migrations
 // applied, dropped when the test ends. All tests in a test binary share one
