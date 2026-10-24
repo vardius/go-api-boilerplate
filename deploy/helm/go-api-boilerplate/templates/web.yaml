@@ -1,0 +1,57 @@
+{{- $ctx := dict "root" . "component" "web" -}}
+{{- $name := printf "%s-web" (include "gab.fullname" .) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "gab.labels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      {{- include "gab.selector" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gab.labels" $ctx | nindent 8 }}
+    spec:
+      {{- include "gab.podSecurity" . | nindent 6 }}
+      containers:
+        - name: web
+          image: {{ include "gab.image" $ctx }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - { name: http, containerPort: 8080 }
+          env:
+            - name: AUTH_UPSTREAM
+              value: {{ printf "http://%s-auth:8080" (include "gab.fullname" .) | quote }}
+            - name: USER_UPSTREAM
+              value: {{ printf "http://%s-user:8080" (include "gab.fullname" .) | quote }}
+          volumeMounts:
+            # nginx renders its config from a template at start and keeps its pid and buffers in /tmp.
+            - { name: conf, mountPath: /etc/nginx/conf.d }
+            - { name: tmp, mountPath: /tmp }
+          livenessProbe:
+            httpGet: { path: /, port: http }
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+          {{- include "gab.containerSecurity" . | nindent 10 }}
+      volumes:
+        - { name: conf, emptyDir: {} }
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "gab.labels" $ctx | nindent 4 }}
+spec:
+  selector:
+    {{- include "gab.selector" $ctx | nindent 4 }}
+  ports:
+    - { name: http, port: 8080, targetPort: http }

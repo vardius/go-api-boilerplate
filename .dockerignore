@@ -1,12 +1,11 @@
-.editorconfig
+# The Go build copies only cmd/, internal/ and gen/; keep the context small.
 .git
-.gitattributes
-.gitignore
-
-.DS_Store
-.idea
-.vscode
-
-stats.json
+.github
+.claude
+**/node_modules
+web
+website
+docs
+deploy
+e2e
 *.md
-*.log*

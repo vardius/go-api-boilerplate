@@ -1,118 +1,141 @@
+// Command auth is the auth service: sessions for the web app, OAuth 2 for
+// third-party apps, and the keys that verify every access token.
+//
+//	auth              serve
+//	auth migrate      apply the store's migrations and exit
+//	auth env          print the configuration reference as Markdown
+//	auth healthcheck  exit 0 if the service on this host is ready, 1 if not
 package main
 
 import (
 	"context"
 	"fmt"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/domain"
-	"github.com/vardius/go-api-boilerplate/pkg/grpc/middleware"
-	"math/rand"
+	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/vardius/gocontainer"
-	"google.golang.org/grpc"
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/config"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services"
-	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/application/services/oauth2"
-	authgrpc "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/grpc"
-	authhttp "github.com/vardius/go-api-boilerplate/cmd/auth/internal/interfaces/http"
-	authproto "github.com/vardius/go-api-boilerplate/cmd/auth/proto"
-	"github.com/vardius/go-api-boilerplate/pkg/application"
-	"github.com/vardius/go-api-boilerplate/pkg/buildinfo"
-	grpcutils "github.com/vardius/go-api-boilerplate/pkg/grpc"
-	httputils "github.com/vardius/go-api-boilerplate/pkg/http"
+	"github.com/vardius/go-api-boilerplate/gen/user/v1/userv1connect"
+	"github.com/vardius/go-api-boilerplate/internal/auth/app"
+	"github.com/vardius/go-api-boilerplate/internal/auth/httpapi"
+	"github.com/vardius/go-api-boilerplate/internal/auth/keys"
+	"github.com/vardius/go-api-boilerplate/internal/auth/store"
+	"github.com/vardius/go-api-boilerplate/internal/platform/config"
+	"github.com/vardius/go-api-boilerplate/internal/platform/connectx"
+	"github.com/vardius/go-api-boilerplate/internal/platform/httpx"
+	"github.com/vardius/go-api-boilerplate/internal/platform/obs"
+	"github.com/vardius/go-api-boilerplate/internal/platform/run"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-
-	gocontainer.GlobalContainer = nil // disable global container instance
-}
+// version is set at build time with -ldflags "-X main.version=…".
+var version = "dev"
 
 func main() {
-	buildinfo.PrintVersionOrContinue()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	cfg := config.FromEnv()
-
-	container, err := services.NewServiceContainer(ctx, cfg)
+	cmd := "serve"
+	if len(os.Args) > 1 {
+		cmd = os.Args[1]
+	}
+	var err error
+	switch cmd {
+	case "serve":
+		err = serve(context.Background())
+	case "migrate":
+		err = migrate(context.Background())
+	case "env":
+		fmt.Print(config.Markdown(config.Describe[Config]()))
+	case "healthcheck":
+		err = healthcheck(context.Background())
+	default:
+		err = fmt.Errorf("unknown command %q: want serve, migrate, env or healthcheck", cmd)
+	}
 	if err != nil {
-		panic(fmt.Errorf("failed to create service container: %w", err))
+		fmt.Fprintln(os.Stderr, "auth:", err)
+		os.Exit(1)
 	}
-	defer container.Close()
+}
 
-	if err := domain.RegisterClientDomain(ctx, cfg, container); err != nil {
-		panic(err)
+func serve(ctx context.Context) error {
+	cfg, err := config.Load[Config]()
+	if err != nil {
+		return err
 	}
-	if err := domain.RegisterTokenDomain(ctx, cfg, container); err != nil {
-		panic(err)
+	log := obs.NewLogger(os.Stderr, cfg.Log)
+	slog.SetDefault(log)
+	shutdown, err := obs.Setup(ctx, "auth", version)
+	if err != nil {
+		return err
 	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+		if err := shutdown(ctx); err != nil {
+			log.Error("flush telemetry", "err", err)
+		}
+	}()
 
-	grpcServer := grpcutils.NewServer(
-		grpcutils.ServerConfig{
-			ServerMinTime: cfg.GRPC.ServerMinTime,
-			ServerTime:    cfg.GRPC.ServerTime,
-			ServerTimeout: cfg.GRPC.ServerTimeout,
-		},
-		[]grpc.UnaryServerInterceptor{
-			middleware.TransformUnaryOutgoingError(),
-			middleware.CountIncomingUnaryRequests(),
-		},
-		[]grpc.StreamServerInterceptor{
-			middleware.TransformStreamOutgoingError(),
-			middleware.CountIncomingStreamRequests(),
-		},
-	)
-
-	oauth2Server := oauth2.InitServer(cfg, container.OAuth2Manager, container.ClientPersistenceRepository, cfg.OAuth.InitTimeout)
-	grpcAuthServer := authgrpc.NewServer(oauth2Server, container.CommandBus)
-
-	router := authhttp.NewRouter(
-		cfg,
-		container.TokenAuthorizer,
-		oauth2Server,
-		container.CommandBus,
-		container.SQL,
-		container.Mongo,
-		map[string]*grpc.ClientConn{
-			"auth": container.AuthConn,
-		},
-		container.TokenPersistenceRepository,
-		container.ClientPersistenceRepository,
-	)
-
-	authproto.RegisterAuthenticationServiceServer(grpcServer, grpcAuthServer)
-
-	app := application.New()
-	app.AddAdapters(
-		httputils.NewAdapter(
-			&http.Server{
-				Addr:         fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port),
-				ReadTimeout:  cfg.HTTP.ReadTimeout,
-				WriteTimeout: cfg.HTTP.WriteTimeout,
-				IdleTimeout:  cfg.HTTP.IdleTimeout, // limits server-side the amount of time a Keep-Alive connection will be kept idle before being reused
-				Handler:      router,
-			},
-		),
-		grpcutils.NewAdapter(
-			"auth",
-			fmt.Sprintf("%s:%d", cfg.GRPC.Host, cfg.GRPC.Port),
-			grpcServer,
-		),
-	)
-
-	if cfg.App.Environment == "development" {
-		app.AddAdapters(
-			application.NewDebugAdapter(
-				fmt.Sprintf("%s:%d", cfg.Debug.Host, cfg.Debug.Port),
-			),
-		)
+	backend, err := openStore(ctx, cfg.Store, log)
+	if err != nil {
+		return err
 	}
+	defer backend.close()
+	if cfg.MigrateOnStart {
+		if err := backend.migrate(ctx); err != nil {
+			return fmt.Errorf("migrate: %w", err)
+		}
+	}
+	k, err := keys.Load(cfg.Keys, cfg.AppEnv == development, log)
+	if err != nil {
+		return err
+	}
+	signer := keys.NewSigner(k, cfg.Issuer, cfg.Audience)
 
-	app.WithShutdownTimeout(cfg.App.ShutdownTimeout)
-	app.Run(ctx)
+	rpc := &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport), Timeout: 10 * time.Second}
+	tokens := keys.NewServiceToken(signer, time.Now)
+	logins := userv1connect.NewLoginServiceClient(connect.NewClient(connecthttp.NewTransport(rpc, cfg.UserRPCURL), connectx.Bearer(tokens.Token)))
+
+	probe := run.NewProbe(backend.checks)
+	router, err := httpapi.New(httpapi.Config{
+		App:               app.New(backend.store, signer, logins, time.Now),
+		Keys:              k,
+		Probe:             probe,
+		Verifier:          signer.Verifier(),
+		Issuer:            cfg.Issuer,
+		WebURL:            cfg.WebURL,
+		CookieSecure:      cfg.CookieSecure,
+		RefreshCookiePath: cfg.RefreshCookiePath,
+		TrustedProxies:    cfg.TrustedProxies,
+		RateLimit:         cfg.RateLimit,
+		Logger:            log,
+	})
+	if err != nil {
+		return err
+	}
+	log.Info("serving", "version", version, "addr", cfg.HTTP.Addr, "issuer", cfg.Issuer)
+	servers := []run.Server{run.HTTP(httpx.NewServer(cfg.HTTP, router))}
+	if backend.purger != nil {
+		servers = append(servers, store.PurgeWorker(backend.purger, purgeInterval, time.Now, log))
+	}
+	return run.Run(ctx, cfg.Run, probe, log, servers...)
+}
+
+func migrate(ctx context.Context) error {
+	cfg, err := config.Load[migrateConfig]()
+	if err != nil {
+		return err
+	}
+	log := obs.NewLogger(os.Stderr, cfg.Log)
+	backend, err := openStore(ctx, cfg.Store, log)
+	if err != nil {
+		return err
+	}
+	defer backend.close()
+	if err := backend.migrate(ctx); err != nil {
+		return err
+	}
+	log.Info("migrated", "version", version)
+	return nil
 }

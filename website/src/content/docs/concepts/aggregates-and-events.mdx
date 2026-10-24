@@ -1,0 +1,67 @@
+---
+title: Aggregates and events
+description: How an aggregate changes only by raising events, how events are named and versioned, and the rules that keep a permanent log safe to keep.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import {
+	aggregateBase,
+	counterUpcastTest,
+	eventEnvelope,
+	registryApi,
+	userAggregate,
+	userEvents,
+	userRegistry,
+} from '../../../lib/samples';
+
+An **aggregate** is a consistency boundary: one thing whose rules can be checked without looking at anything else, such as a user. It is rebuilt from its own **stream** of events, and it changes only by raising new ones.
+
+Why events rather than rows? Because the history is the data. You can answer "when did this user change their email, and why?" from the stream, build a new read model from old events, and test a rule by saying what happened before and what should happen next.
+
+## An aggregate
+
+An aggregate embeds `es.Changes`, which tracks its version and the events it raised. `Apply` changes state from one event and only assigns. Rules are checked in the methods that raise events, before the event exists. This is the user service's `User`:
+
+<Code {...userAggregate} />
+
+The kit gives you three functions around it. `Raise` applies an event and records it for the next save. `Replay` rebuilds an aggregate from stored events. `Pending` lists what was raised since the aggregate was loaded:
+
+<Code {...aggregateBase} />
+
+## Events
+
+An event is a plain struct with JSON tags, named in the past tense. It holds what the fact needs and nothing else:
+
+<Code {...userEvents} />
+
+Stored, every event travels in an envelope. `Meta` says why it happened, using identifiers only:
+
+<Code {...eventEnvelope} />
+
+The user service's events are `user.registered.v1` (`user_id`, `email`), `user.email_changed.v1` (`old`, `new`) and `user.google_linked.v1` (`subject`). The aggregate enforces that a user has at most one Google subject.
+
+## Names and versions
+
+Each payload type is registered under an explicit name. The name is stored with the event, so it never changes. Registering by name rather than by Go type means renaming a type can't orphan the events already stored:
+
+<Code {...userRegistry} />
+
+When a payload's shape has to change, the new shape gets a new name and an upcaster converts the old JSON as it is read. The stored events stay exactly as they were written:
+
+<Code {...registryApi} />
+
+The user events have no second version yet, so this example comes from the kit's own tests and their small `counter` aggregate. Upcasts chain, so a stream written by three versions of the code still loads:
+
+<Code {...counterUpcastTest} />
+
+## Rules for a permanent log
+
+Stored events are kept forever. The rules in `internal/platform/es/AGENTS.md` follow from that:
+
+- Events are immutable facts. To fix data, append a correcting event; never edit or delete a stored one.
+- A registered name never changes, and neither does the shape stored under it. A new shape gets `.v2` and an upcast from `.v1`.
+- Events hold no secrets: no tokens, passwords or codes. They hold no personal data beyond what the fact needs, and `Meta` holds identifiers only.
+- `Apply` only assigns. Validation happens before `Raise`.
+- Decoding an event type that isn't registered returns `es.ErrUnknownEventType`, never a panic.
+
+Next: how events are stored, and what happens when two requests change the same aggregate, in [Event store and concurrency](../event-store-and-concurrency/).

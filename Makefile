@@ -1,98 +1,84 @@
-# This version-strategy uses git tags to set the version string
-VERSION := $(shell git describe --tags --always --dirty)
-GIT_COMMIT := $(shell git rev-list -1 HEAD)
-
-# HELP
-# This will output the help for each task
-# thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
-.PHONY: help
-
-help:
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-
+# Run `make` for the list. `make check` is what CI runs.
 .DEFAULT_GOAL := help
+SHELL := /bin/bash
 
-version: ## Show version
-	@echo $(VERSION) \(git commit: $(GIT_COMMIT)\)
+STORE ?= memory
+FOLLOW ?= --follow
+COMPOSE := docker compose -f compose.yaml \
+	$(if $(filter mysql,$(STORE)),-f compose.mysql.yaml) \
+	$(if $(filter mongodb,$(STORE)),-f compose.mongodb.yaml) \
+	$(if $(OBSERVABILITY),-f compose.observability.yaml)
+TAGS := persistence_mysql persistence_mongodb
+BUF := go run github.com/bufbuild/buf/cmd/buf@v1.75.0
+STATICCHECK := go run honnef.co/go/tools/cmd/staticcheck@v0.8.2
+GOVULNCHECK := go run golang.org/x/vuln/cmd/govulncheck@v1.9.0
+KUBECONFORM := go run github.com/yannh/kubeconform/cmd/kubeconform@v0.8.0
+CHART := deploy/helm/go-api-boilerplate
 
-# HTTPS TASK
-cert: ## [HTTP] Generate a self-signed development certificate into k8s/tls (gitignored)
-	mkdir -p k8s/tls
-	openssl ecparam -genkey -name secp384r1 -out k8s/tls/server.key
-	openssl req -new -x509 -sha256 -key k8s/tls/server.key -out k8s/tls/server.pem -days 365 -subj "/CN=go-api-boilerplate.local" -addext "subjectAltName=DNS:go-api-boilerplate.local,DNS:*.go-api-boilerplate.local"
+.PHONY: help
+help: ## Show this list
+	@grep -hE '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
 
-# DOCKER TASKS
-docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`
-	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) --build-arg VERSION=$(VERSION) --build-arg GIT_COMMIT=$(GIT_COMMIT) -t go-api-boilerplate-$(BIN) .
+.PHONY: check
+check: check-go check-contracts check-web check-deploy ## Everything CI runs, except containers and e2e
 
-docker-run: ## [DOCKER] Run container on given port. Needs AUTH_SECRET (32+ random bytes) in the environment. Example: `make docker-run BIN=user PORT=3000`
-	docker run -i -t --rm -e AUTH_SECRET -p=$(PORT):$(PORT) --name="go-api-boilerplate-$(BIN)" go-api-boilerplate-$(BIN)
+.PHONY: check-go
+check-go: ## Format, vet and lint every build, then unit tests (no Docker)
+	@test -z "$$(gofmt -l .)" || (gofmt -l . && echo "run gofmt -w ." && false)
+	go fix -diff ./...
+	go vet ./...
+	$(STATICCHECK) ./...
+	@for tag in $(TAGS); do echo "vet and staticcheck -tags $$tag"; go vet -tags $$tag ./... && $(STATICCHECK) -tags $$tag ./... || exit 1; done
+	go vet -tags e2e ./e2e/... && $(STATICCHECK) -tags e2e ./e2e/...
+	go test -race -shuffle=on -short ./...
 
-docker-stop: ## [DOCKER] Stop docker container. Example: `make docker-stop BIN=user`
-	docker stop go-api-boilerplate-$(BIN)
+.PHONY: test
+test: ## All Go tests, including the MySQL and MongoDB containers
+	go test -race -shuffle=on ./...
 
-docker-rm: docker-stop ## [DOCKER] Stop and then remove docker container. Example: `make docker-rm BIN=user`
-	docker rm go-api-boilerplate-$(BIN)
+.PHONY: vuln
+vuln: ## Check dependencies for known vulnerabilities
+	$(GOVULNCHECK) ./...
 
-docker-publish: docker-tag-latest docker-tag-version docker-publish-latest docker-publish-version ## [DOCKER] Docker publish. Example: `make docker-publish BIN=user REGISTRY=https://your-registry.com`
+.PHONY: check-contracts
+check-contracts: gen ## Lint the proto and fail if generated files are stale
+	$(BUF) lint
+	@git diff --exit-code -- gen website/src/content/docs/reference/environment-variables.md || (echo "generated files changed: commit the output of make gen" && false)
 
-docker-publish-latest:
-	@echo 'publish latest to $(REGISTRY)'
-	docker push $(REGISTRY)/go-api-boilerplate-$(BIN):latest
+.PHONY: check-web
+check-web: ## Typecheck, lint, test and build the web app
+	cd web && npm ci && npm run check && npm run build
 
-docker-publish-version:
-	@echo 'publish $(VERSION) to $(REGISTRY)'
-	docker push $(REGISTRY)/go-api-boilerplate-$(BIN):$(VERSION)
+.PHONY: check-deploy
+check-deploy: ## Lint the Helm chart and validate it for each store
+	@for store in memory mysql mongodb; do \
+		helm lint $(CHART) --strict --quiet -f $(CHART)/ci/$$store-values.yaml && \
+		helm template ci $(CHART) -f $(CHART)/ci/$$store-values.yaml | $(KUBECONFORM) -strict -summary \
+			-schema-location default \
+			-schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' || exit 1; \
+	done
 
-docker-tag: docker-tag-latest docker-tag-version ## [DOCKER] Tag current container. Example: `make docker-tag BIN=user REGISTRY=https://your-registry.com`
+.PHONY: gen
+gen: ## Regenerate Connect stubs and the configuration reference
+	$(BUF) generate
+	scripts/env-reference.sh
 
-docker-tag-latest:
-	@echo 'create tag latest'
-	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/go-api-boilerplate-$(BIN):latest
+.PHONY: up
+up: ## Start the stack (STORE=memory|mysql|mongodb, OBSERVABILITY=1 adds Grafana)
+	$(COMPOSE) up --build --wait
 
-docker-tag-version:
-	@echo 'create tag $(VERSION)'
-	docker tag go-api-boilerplate-$(BIN) $(REGISTRY)/go-api-boilerplate-$(BIN):$(VERSION)
+.PHONY: down
+down: ## Stop the stack and remove its volumes
+	$(COMPOSE) down --volumes
 
-docker-release: docker-build docker-publish ## [DOCKER] Docker release - build, tag and push the container. Example: `make docker-release BIN=user REGISTRY=https://your-registry.com`
+.PHONY: logs
+logs: ## Follow the services' logs (FOLLOW= prints them and exits)
+	$(COMPOSE) logs $(FOLLOW) auth user
 
-# TERRAFORM TASKS
-terraform-install: ## [TERRAFORM] Install terraform deployment to your kubernetes cluster. Example: `make terraform-install`
-	cd k8s \
-  kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.3.1/cert-manager.crds.yaml \
-	terraform init \
-	terraform apply \
-  terraform output -raw templates | kubectl apply -f -
+.PHONY: e2e
+e2e: ## End-to-end tests against a running stack (make up first)
+	go test -tags e2e -count=1 ./e2e/...
 
-terraform-destroy: ## [TERRAFORM] Remove deployment kubernetes cluster. Example: `make terraform-destroy`
-	cd k8s \
-  terraform destroy
-
-# TELEPRESENCE TASKS
-telepresence-swap-local: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local process. Example: `make telepresence-swap-local BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
-	go build -o cmd/$(BIN)/$(BIN) cmd/$(BIN)/main.go
-	telepresence \
-	--swap-deployment $(DEPLOYMENT) \
-	--expose 3000 \
-	--run ./cmd/$(BIN)/$(BIN) \
-	--port=$(PORT) \
-	--method vpn-tcp
-
-telepresence-swap-docker: ## [TELEPRESENCE] Replace the existing deployment with the Telepresence proxy for local docker image. Example: `make telepresence-swap-docker BIN=user PORT=3000 DEPLOYMENT=go-api-boilerplate-user`
-	telepresence \
-	--swap-deployment $(DEPLOYMENT) \
-	--docker-run -i -t --rm -p=$(PORT):$(PORT) --name="$(BIN)" $(BIN):latest
-
-# HELPERS
-# generate script to login to aws docker repo
-CMD_REPOLOGIN := "eval $$\( aws ecr"
-ifdef AWS_CLI_PROFILE
-CMD_REPOLOGIN += " --profile $(AWS_CLI_PROFILE)"
-endif
-ifdef AWS_CLI_REGION
-CMD_REPOLOGIN += " --region $(AWS_CLI_REGION)"
-endif
-CMD_REPOLOGIN += " get-login \)"
-
-aws-repo-login: ## [HELPER] login to AWS-ECR
-	@eval $(CMD_REPOLOGIN)
+.PHONY: e2e-web
+e2e-web: ## Browser tests against a running stack
+	cd web && E2E_STACK_UP=1 npm run e2e

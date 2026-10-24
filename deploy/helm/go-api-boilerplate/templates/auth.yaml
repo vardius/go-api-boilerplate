@@ -1,0 +1,82 @@
+{{- include "gab.validate" . -}}
+{{- $ctx := dict "root" . "component" "auth" -}}
+{{- $name := printf "%s-auth" (include "gab.fullname" .) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "gab.labels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.auth.replicas }}
+  selector:
+    matchLabels:
+      {{- include "gab.selector" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gab.labels" $ctx | nindent 8 }}
+    spec:
+      {{- include "gab.podSecurity" . | nindent 6 }}
+      containers:
+        - name: auth
+          image: {{ include "gab.image" $ctx }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - { name: http, containerPort: 8080 }
+          env:
+            {{- include "gab.env" $ctx | nindent 12 }}
+            - name: ISSUER
+              value: {{ printf "%s/api/auth" .Values.publicURL | quote }}
+            - name: WEB_URL
+              value: {{ .Values.publicURL | quote }}
+            - name: USER_RPC_URL
+              value: {{ printf "http://%s-user:8081" (include "gab.fullname" .) | quote }}
+            - name: TRUSTED_PROXIES
+              value: {{ .Values.trustedProxies | quote }}
+            - name: SIGNING_KEY_FILE
+              value: /etc/auth/keys/signing-key.pem
+            {{- if .Values.auth.previousKeysSecret }}
+            - name: PREVIOUS_KEYS_DIR
+              value: /etc/auth/previous-keys
+            {{- end }}
+            {{- range $k, $val := .Values.auth.env }}
+            - name: {{ $k }}
+              value: {{ $val | quote }}
+            {{- end }}
+          volumeMounts:
+            - { name: signing-key, mountPath: /etc/auth/keys, readOnly: true }
+            {{- if .Values.auth.previousKeysSecret }}
+            - { name: previous-keys, mountPath: /etc/auth/previous-keys, readOnly: true }
+            {{- end }}
+          livenessProbe:
+            httpGet: { path: /livez, port: http }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.auth.resources | nindent 12 }}
+          {{- include "gab.containerSecurity" . | nindent 10 }}
+      volumes:
+        - name: signing-key
+          secret:
+            secretName: {{ .Values.auth.existingSecret }}
+            items:
+              - { key: signing-key.pem, path: signing-key.pem }
+        {{- if .Values.auth.previousKeysSecret }}
+        - name: previous-keys
+          secret:
+            secretName: {{ .Values.auth.previousKeysSecret }}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "gab.labels" $ctx | nindent 4 }}
+spec:
+  selector:
+    {{- include "gab.selector" $ctx | nindent 4 }}
+  ports:
+    - { name: http, port: 8080, targetPort: http }

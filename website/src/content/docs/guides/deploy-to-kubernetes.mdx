@@ -1,0 +1,103 @@
+---
+title: Deploy to Kubernetes
+description: Deploy both services and the gateway with the one Helm chart, against a managed MySQL or MongoDB, with secrets you create and migrations that run before each release.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+Kubernetes is optional. The services are ordinary containers that read the environment and answer `/livez` and `/readyz`, so anything that runs containers can run them. For Kubernetes, the repository ships one Helm chart in `deploy/helm/go-api-boilerplate`.
+
+The chart doesn't create a cluster or a database. Use any cluster: a managed one, or `kind` or minikube on your machine. Use a managed MySQL 8.4 or MongoDB replica set, or one you already run. The `memory` store is there to try the chart: it keeps data in the pod, so the chart refuses more than one replica per service with it.
+
+## Images
+
+Each release builds multi-arch images (`linux/amd64` and `linux/arm64`) to the GitHub Container Registry, with provenance and an SBOM:
+
+| Image | Tags |
+|---|---|
+| `ghcr.io/vardius/go-api-boilerplate-auth` | `<version>-memory`, `<version>-mysql`, `<version>-mongodb` |
+| `ghcr.io/vardius/go-api-boilerplate-user` | `<version>-memory`, `<version>-mysql`, `<version>-mongodb` |
+| `ghcr.io/vardius/go-api-boilerplate-web` | `<version>` |
+
+The store is part of the tag because it is compiled in. The chart's `store` value picks the matching variant for both services, and `image.tag` defaults to the chart's version. The Go images run as a numeric non-root user on a distroless base, with nothing in them but the binary.
+
+Building your own? The release workflow names the images after the GitHub repository it runs in, so a copy of the template publishes under its own name. Point the chart at it with `image.registry` and `image.repository`. If the registry is private, list the pull secret in `imagePullSecrets`: see [Pull an image from a private registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+
+## Install
+
+<Steps>
+
+1. **Create the secrets.** The chart refers to Secrets you create by name and never templates one from values.
+
+   | Value | Keys |
+   |---|---|
+   | `auth.existingSecret` | `signing-key.pem` (required), `mysql-password` with `store: mysql`, `mongodb-uri` with `store: mongodb` |
+   | `user.existingSecret` | `smtp-password` (optional), `google-client-secret` with `user.google.clientID`, and the same database key |
+
+   ```sh
+   openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out signing-key.pem
+   kubectl create secret generic gab-auth --from-file=signing-key.pem --from-literal=mysql-password=…
+   kubectl create secret generic gab-user --from-literal=smtp-password=… --from-literal=mysql-password=…
+   ```
+
+2. **Write your values.** The chart refuses to render without `auth.existingSecret`, `trustedProxies`, `user.smtp.addr` and `user.smtp.from`, and, with `store: mysql`, each service's `mysql.addr`. Set `publicURL` to the origin the browser sees: the chart derives `ISSUER`, `WEB_URL` and the Google callback from it. `trustedProxies` must cover the web pods, usually the cluster's pod CIDR, because every request reaches the services through them. Other settings from [Environment variables](../../reference/environment-variables/) go in `auth.env` and `user.env`. `ci/mysql-values.yaml` in the chart is a complete example, and `values.yaml` describes every value.
+
+3. **Install or upgrade:**
+
+   ```sh
+   helm upgrade --install my-api deploy/helm/go-api-boilerplate -f values.yaml
+   ```
+
+   With `store: mysql` or `mongodb`, and `migrations.enabled` (the default), a pre-install and pre-upgrade hook runs a Job per service with the same image's `migrate` command before the Deployments roll: the MySQL migrations, or the MongoDB indexes.
+
+4. **Check it:**
+
+   ```sh
+   helm status my-api
+   kubectl get pods
+   ```
+
+   A pod is ready when `/readyz` answers `200`.
+
+</Steps>
+
+## Routing
+
+By default the chart creates a Gateway API `HTTPRoute` (`httpRoute.parentRefs` and `httpRoute.hostnames`) that sends traffic to the web pods, which serve the app and forward `/api/auth/` and `/api/user/` to the services, so the browser sees one origin. For a cluster without a Gateway API controller, set `httpRoute.enabled: false` and `ingress.enabled: true`, with `ingress.className`, `ingress.host` and `ingress.tls`.
+
+The user service's Connect port, 8081, is on its Service for auth to call inside the cluster; neither route exposes it.
+
+## Rotating the signing key
+
+Services keep the auth service's public keys for up to an hour, so publish a new key before signing with it:
+
+<Steps>
+
+1. Add the new key's public half to a Secret named in `auth.previousKeysSecret`, upgrade, and restart auth: it reads its keys only at start, and a changed Secret alone doesn't roll the pods. The JWKS now lists the new key.
+
+   ```sh
+   openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out new-signing-key.pem
+   openssl pkey -in new-signing-key.pem -pubout -out new.pem
+   kubectl create secret generic gab-auth-previous --from-file=new.pem --dry-run=client -o yaml | kubectl apply -f -
+   helm upgrade my-api deploy/helm/go-api-boilerplate -f values.yaml --set auth.previousKeysSecret=gab-auth-previous
+   kubectl rollout restart deployment/my-api-auth
+   ```
+
+2. Wait more than an hour, so every service has fetched it.
+
+3. Put the new private key in `signing-key.pem`, add the old key's public half to the previous-keys Secret, and restart auth again. A previous key that is also the signing key is published once, so `new.pem` can stay.
+
+4. After another hour, remove the old public key and restart auth. Its last tokens expired 15 minutes after the switch.
+
+</Steps>
+
+## What the chart sets for you
+
+- Pods that run as non-root with the runtime's default seccomp profile and no service-account token, and containers with a read-only root filesystem, no privilege escalation and every capability dropped.
+- Liveness and readiness probes on `/livez` and `/readyz`, and resource requests and limits you can change per component.
+
+The drain on shutdown is the services' own: on `SIGTERM`, readiness reports `503` for `SHUTDOWN_DELAY`, so the cluster stops routing to the pod, and then in-flight requests get `SHUTDOWN_TIMEOUT` to finish.
+
+<Aside title="Checking the chart">
+CI runs `helm lint --strict` and validates the rendered chart with `kubeconform` for each store's values in `ci/`, so a template that Kubernetes would reject fails the pull request.
+</Aside>

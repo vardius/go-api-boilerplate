@@ -1,0 +1,94 @@
+---
+title: Architecture
+description: The two services, the gateway in front of them, what happens on each kind of sign-in, and where the trust boundaries are.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Architecture from '../../components/Architecture.astro';
+
+<Architecture />
+
+## Why two services
+
+auth holds every secret: the signing key, OAuth client secrets and refresh tokens. user holds personal data. Keeping them apart limits what a bug in either can leak, and it shows how services talk without coupling: one internal RPC where a call is unavoidable, and public keys for everything else.
+
+They live in one Go module with one binary each, so a change that spans both is one pull request. Services never import each other. The only shared code is `internal/platform` and the generated Connect stubs in `gen/`.
+
+## Signing in by email
+
+Only auth ever holds token material or sets cookies. The user service redeems the code, but never sees a token it didn't verify.
+
+<Steps>
+
+1. The web app posts the address: `POST /api/user/v1/login-links` with `{email, next?, state}`, where `state` is a random value it keeps for 15 minutes. user answers `202` whether or not the address has an account, so the endpoint can't be used to find out who has one. Only a malformed address (`400`) or too many requests from the client or for the address (`429`) get another answer.
+
+2. In one transaction, user stores a login code (only its SHA-256 hash) with the email, and adds a `mail.login_link` message to the outbox.
+
+3. The outbox relay sends the email. The link points at `{WEB_URL}/sign-in/complete?code=…&state=…`.
+
+4. The web app posts the code to auth: `POST /api/auth/v1/sessions` with `{code}`. It does so at once only when the link's `state` is one this browser made and it has no session. Otherwise it asks first: whether to sign in with a link this browser didn't ask for (one opened on another device, say), or whether to switch accounts or stay signed in. A link someone else sent carries their state, which this browser never made, so it can't quietly sign the reader in to their account. Such a sign-in goes to the profile, or to the OAuth authorize endpoint, which asks for consent; never on to another server route, such as linking Google. Only the web app can post the code, because auth refuses cross-origin calls, and no other site can read the states it keeps. Google sign-in carries a state the same way.
+
+5. auth calls `user.v1.LoginService/RedeemLoginCode` over Connect, authenticated with a short-lived token it signs for itself, with `client_id` `auth`. In one transaction, user marks the code used, registers the user if the address is new, and returns the user's ID and email.
+
+6. auth creates a grant for the first-party client `web` and answers `201` with two cookies: `access_token` (15 minutes) and `refresh_token` (30 days).
+
+7. From then on, every API call carries the `access_token` cookie. On a `401`, the web app calls `POST /api/auth/v1/sessions/refresh` once and retries.
+
+</Steps>
+
+## Signing in with Google
+
+Google sign-in is optional. It is off until `GOOGLE_CLIENT_ID` is set, and the web app then says how to turn it on.
+
+<Steps>
+
+1. The web app sends the browser to `GET /api/user/v1/google/start`. user redirects to Google with PKCE S256, keeping the state and nonce in a 10-minute HttpOnly cookie.
+
+2. Google redirects back to `GET /api/user/v1/google/callback`. user exchanges the code, verifies the ID token and requires `email_verified`.
+
+3. user finds the account by its Google subject, or else by email (and links it), or else registers a new one. Then it creates a login code that lives two minutes and redirects to `{WEB_URL}/sign-in/complete?code=…`.
+
+4. From there it is the email flow from step 4: one way to start a session.
+
+</Steps>
+
+A signed-in user links Google to their account through `/google/start?link=1`. The callback then links the Google subject to the caller and redirects to `{WEB_URL}/profile?google=linked`.
+
+## A third-party app
+
+An OAuth app gets tokens through the authorization code grant, with PKCE S256 required.
+
+<Steps>
+
+1. The app sends the user to `GET /api/auth/oauth/authorize` with `response_type=code`, its `client_id`, `redirect_uri`, `scope`, `state`, and a `code_challenge` with `code_challenge_method=S256`.
+
+2. Any bad request, such as an unknown client, a `redirect_uri` that doesn't match exactly, no PKCE or a scope the client didn't register, goes to the web app's error page with a reason, never back to the app: anyone can register a client, so its redirect URI hears only what the user decides. Without a session, the user signs in first and comes back.
+
+3. auth stores the request for ten minutes and sends the browser to the web app's consent screen, which shows the app's name and the scopes it asks for.
+
+4. The user allows or denies. The consent form posts to `/api/auth/oauth/authorize` from the same origin, and auth redirects to the app with a `code`, or with `error=access_denied`, both with `state` and `iss`. This answer is the only thing that ever goes back to the app's redirect URI.
+
+5. The app exchanges the code at `POST /api/auth/oauth/token` with its client credentials and the `code_verifier`, and gets an access token, a refresh token and the granted scopes.
+
+</Steps>
+
+[Authentication](../concepts/authentication/) covers the grants, the scopes and how tokens rotate.
+
+## Trust boundaries
+
+**The gateway is the only way in.** It forwards `/api/auth/` and `/api/user/`, and auth's RFC 8414 metadata at `/.well-known/oauth-authorization-server/api/auth`, and nothing else. user's Connect listener (`RPC_ADDR`, `:8081` by default) isn't behind it, so `RedeemLoginCode` can only be called from inside the network, and only with the right scope.
+
+**Tokens are verified, never trusted.** Every API checks the signature against auth's JWKS, accepts ES256 only, and requires `exp`, `iss` and `aud`. Tokens are read from the `Authorization: Bearer` header or the `access_token` cookie, never from the query string.
+
+**The internal RPC has no shared secret.** auth signs a short-lived token for itself, with `client_id` `auth` and the `login-codes:redeem` scope. user verifies it through JWKS like any other token, and refuses any other client's token with `permission_denied`, even one holding the scope. No OAuth client can be granted that scope.
+
+**The actor comes from the token.** A use case takes the user from the verified identity, never from the request body, so one user can't act as another by changing an ID.
+
+## What runs where
+
+| Process | Listens on | Reached through | Store |
+|---|---|---|---|
+| auth | `HTTP_ADDR` (`:8080`) | gateway, `/api/auth/` | clients, grants, refresh tokens, authorization requests and codes |
+| user | `HTTP_ADDR` (`:8080`), `RPC_ADDR` (`:8081`) | gateway, `/api/user/`; Connect from auth only | events, the `users` projection, login codes, the outbox |
+| web | `:8080` | your browser | none |
+| Mailpit | `:8025` (UI), `:1025` (SMTP) | your browser and the user service, in development | none |

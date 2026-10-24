@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package user.v1;
+
+// LoginService turns one-time login codes into the users they sign in. Only
+// the auth service calls it, with a token carrying the login-codes:redeem
+// scope; it isn't reachable through the gateway.
+service LoginService {
+  // RedeemLoginCode consumes a login code and returns the user it signs in,
+  // registering them first when the code was sent to a new email. A code
+  // works once: an unknown, used or expired code fails with UNAUTHENTICATED.
+  rpc RedeemLoginCode(RedeemLoginCodeRequest) returns (RedeemLoginCodeResponse);
+}
+
+message RedeemLoginCodeRequest {
+  // The code from the sign-in link, as the browser sent it.
+  string code = 1;
+}
+
+message RedeemLoginCodeResponse {
+  string user_id = 1;
+  string email = 2;
+}

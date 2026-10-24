@@ -1,0 +1,45 @@
+# docker compose -f compose.yaml -f compose.mysql.yaml up --wait  (make up STORE=mysql)
+# Rebuilds both services with the MySQL store and runs their migrations at start.
+services:
+  mysql:
+    image: mysql:8.4.13
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dev-only-root}
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./deploy/compose/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-dev-only-root}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  auth:
+    build:
+      args:
+        STORE: mysql
+    environment:
+      MYSQL_ADDR: mysql:3306
+      MYSQL_USER: auth
+      MYSQL_PASSWORD: dev-only-auth
+      MYSQL_DATABASE: auth
+      MIGRATE_ON_START: "true"
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  user:
+    build:
+      args:
+        STORE: mysql
+    environment:
+      MYSQL_ADDR: mysql:3306
+      MYSQL_USER: user
+      MYSQL_PASSWORD: dev-only-user
+      MYSQL_DATABASE: user
+      MIGRATE_ON_START: "true"
+    depends_on:
+      mysql: { condition: service_healthy }
+
+volumes:
+  mysql:

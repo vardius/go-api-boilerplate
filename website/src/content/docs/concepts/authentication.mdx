@@ -1,0 +1,95 @@
+---
+title: Authentication
+description: Sessions with one-time codes and HttpOnly cookies, ES256 access tokens verified through JWKS, OAuth2 with PKCE for third-party apps, and the scopes that limit each token.
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+import { loginService } from '../../../lib/samples';
+
+The auth service is a small token service you own. It does three jobs: signs people in to the web app, lets third-party apps act for them through OAuth2, and publishes the public keys every API uses to check tokens.
+
+Running your own instead of an external identity provider costs some code, but it keeps the whole flow in one repository you can read, test and change. If you'd rather use a hosted provider later, note that the user service checks tokens with three settings only: a JWKS URL, an issuer and an audience.
+
+## Sessions
+
+A user signs in with a one-time code from an email or from the Google callback. auth redeems it and sets two cookies. Only auth ever sets cookies.
+
+| Cookie | Holds | Attributes |
+|---|---|---|
+| `access_token` | The access JWT | HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age 15 minutes |
+| `refresh_token` | The refresh token | HttpOnly; Secure; SameSite=Strict; Path=`/api/auth/v1/sessions`; Max-Age 30 days |
+
+Neither is readable from JavaScript, so a script injected into the page can't steal a token. The refresh cookie is only sent to the session routes, so ordinary API calls never carry it. Locally, compose sets `COOKIE_SECURE=false` because `localhost` is plain HTTP.
+
+| Token | What it is | Lifetime |
+|---|---|---|
+| Login code | 32 random bytes, stored as a SHA-256 hash, single use | 15 minutes; 2 minutes from the Google callback |
+| Access token | An ES256 JWT | 15 minutes |
+| Refresh token | 32 random bytes, stored as a SHA-256 hash, rotated on every use | 30 days |
+
+**Reuse detection.** Each refresh returns a new refresh token and retires the old one. If a retired token is presented again, someone copied it, so auth revokes the whole grant and every token in it. The real user has to sign in again; the thief is locked out too.
+
+A session is a grant to the first-party client `web`. Users list their sessions with `GET /api/auth/v1/sessions` and revoke one with `DELETE /api/auth/v1/sessions/{id}`. `DELETE /api/auth/v1/sessions/current` signs out. Listing and revoking need the web app's own session token, so an OAuth app can't list or revoke a user's devices.
+
+## Access tokens and JWKS
+
+Access tokens follow RFC 9068, JWT profile for OAuth 2.0 access tokens:
+
+- header: `typ: at+jwt`, `alg: ES256`, and `kid`;
+- claims: `iss`, `sub`, `aud`, `exp`, `iat`, `jti`, `client_id`, and `scope` (space-separated).
+
+For a user's token, `sub` is the user ID. For a client-credentials token, `sub` equals `client_id`.
+
+auth publishes its public keys at `GET /api/auth/.well-known/jwks.json`. Every API fetches that set once, caches it, and verifies each token locally. An unknown `kid` triggers a refetch, at most once a minute, and a set an hour old is fetched again, so a key auth stops publishing stops being trusted. Verification accepts ES256 only and requires `typ: at+jwt`, `exp`, `iss` and `aud`, with 30 seconds of leeway for clock skew. Any failure is a `401`.
+
+Why asymmetric keys? With a shared HMAC secret, every service that can verify a token can also forge one. With ES256, only auth holds the private key.
+
+<Aside title="Rotating the signing key">
+auth signs with the key in `SIGNING_KEY_FILE` and also publishes the public keys in `PREVIOUS_KEYS_DIR`. Services keep the key set they fetched for up to an hour, so a new key is published before anything is signed with it: add its public half to `PREVIOUS_KEYS_DIR`, wait more than an hour, then switch `SIGNING_KEY_FILE` to it and move the old key's public half into `PREVIOUS_KEYS_DIR`. Tokens signed before the switch keep verifying until they expire, 15 minutes later. [Configuration](../../guides/configuration/#the-signing-key) has the steps and commands.
+</Aside>
+
+## OAuth2 for third-party apps
+
+auth runs an OAuth2 server with three grants and nothing else:
+
+- **authorization_code**, with PKCE S256 required. `plain` is rejected.
+- **client_credentials**, for a client acting as itself.
+- **refresh_token**, with the same rotation and reuse detection as sessions.
+
+The rules that matter:
+
+- Redirect URIs match exactly. They are registered as absolute `https` URLs, or `http` only for `localhost` and `127.0.0.1`, with no fragment.
+- Granted scopes are a subset of the client's scopes, which are a subset of what may be granted at all.
+- An authorization code works once, for one minute, bound to its client, redirect URI and PKCE verifier. A code presented again revokes the grant it created.
+- The client secret is 32 random bytes, shown once at creation, stored as an argon2id hash and compared in constant time.
+- Deleting a client revokes every grant it holds.
+- The user sees a consent screen with the app's name and scopes before anything is granted.
+- A refused authorization request, such as an unknown client, a redirect URI that doesn't match or a missing PKCE challenge, goes to the web app's `/oauth/error` page with a reason, never to the redirect URI: anyone can register a client, so sending errors there would make auth an open redirector. Only the user's decision goes back to the app, with `state` and `iss`. RFC 6749 §4.1.2.1 sends most of these errors to the client; RFC 9700 §4.11.2 lets a server keep an untrusted redirect URI out of them, as auth does. A client in development therefore sees its mistakes on that page, not in its callback.
+
+Users manage their apps with `GET /api/auth/v1/clients`, `POST /api/auth/v1/clients` and `DELETE /api/auth/v1/clients/{id}`. A list never includes a secret. Clients find the server's RFC 8414 metadata at `/.well-known/oauth-authorization-server/api/auth`, where RFC 8414 puts it for the issuer `/api/auth`, and at `/api/auth/.well-known/oauth-authorization-server`.
+
+## Scopes
+
+| Scope | Allows | Grantable to OAuth apps |
+|---|---|---|
+| `user:read` | `GET /api/user/v1/me` | yes |
+| `user:write` | Change email, link Google | yes |
+| `clients:read` | List your OAuth apps | yes |
+| `clients:write` | Create and delete your OAuth apps | yes |
+| `login-codes:redeem` | `user.v1.LoginService/RedeemLoginCode` | no: only auth's own service token |
+
+There is no catch-all scope. A session gets the four user scopes. A route asks for what it needs: `401` if there is no token, `403` if the token lacks the scope, and `403` for a client token on a route that needs a user.
+
+## The one internal call
+
+To redeem a login code, auth calls the user service over Connect:
+
+<Code {...loginService} />
+
+auth authenticates with a short-lived token it signs for itself, with `client_id` `auth` and the `login-codes:redeem` scope. user verifies it with the JWKS like any other token, and refuses a token issued to any other client with `permission_denied`, even if it holds the scope. There's no shared secret to configure or leak, and the RPC listener isn't reachable through the gateway.
+
+## What is never done
+
+- Tokens are never accepted from a query string, where they end up in logs and browser history.
+- Tokens, codes and secrets are never stored in events, never written to logs, and never put in error messages. The logger redacts keys such as `token`, `code`, `client_secret` and `authorization`.
+- A use case never takes the acting user from the request body. It comes from the verified token.

@@ -1,0 +1,45 @@
+---
+title: Add a service
+description: Add a third service by copying the user service's layout, then register it everywhere a service is listed.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+A new service earns its place when it owns data nobody else should write, or has a different reason to change. If it would share a database with an existing service, or call it on every request, it is probably a package inside that service instead.
+
+<Aside title="Using a coding agent?">
+The `add-service` skill in `.agents/skills/` holds this checklist in short form.
+</Aside>
+
+<Steps>
+
+1. **Copy the layout** of `internal/user/`: `domain/` if it is event-sourced, `app/`, `store/` with its `storetest` contract suite and the `memory`, `mysql` and `mongodb` backends, `httpapi/`, `rpc/` if others call it, and an `AGENTS.md` that says what is true only there. Start state-stored like auth unless the history is worth keeping; event sourcing is a choice per service.
+
+2. **Extend the boundary test** in `internal/archtest/archtest_test.go`, so the new service imports no other service and none imports it.
+
+3. **Add the binary,** copied from `cmd/user/`: `main.go`, the composition root, kept under 150 lines, `config.go`, `healthcheck.go`, and one `store_<backend>.go` per backend. Only those store files carry build tags. Keep the `migrate`, `env` and `healthcheck` subcommands.
+
+4. **Describe its API** in `api/<service>.openapi.yaml`, with the OpenAPI and authorization-matrix tests copied from `internal/user/httpapi`. Its RPCs, if any, go in `proto/<service>/v1/`, followed by `make gen`: see [Add an RPC](../add-an-rpc/).
+
+5. **Give it scopes.** A scope users may grant to OAuth apps goes in the `grantable` list in `internal/auth/app/scopes.go`. A scope that only another service holds stays out of it, like the one auth uses to redeem login codes.
+
+6. **Register it in compose:** a service in `compose.yaml` built with `SERVICE=<service>`, with the health check `/service healthcheck` (it asks the service's own `/readyz`), its store settings in `compose.mysql.yaml` and `compose.mongodb.yaml`, and a database and user in `deploy/compose/mysql-init.sql`. Add it to the `logs` target in the `Makefile`.
+
+7. **Route it through the gateway,** if it has public routes: a `/api/<service>/` location in `web/nginx.conf`, with its upstream as an environment variable next to `AUTH_UPSTREAM` and `USER_UPSTREAM` in `web/Dockerfile`.
+
+8. **Add it to the Helm chart:** a template in `deploy/helm/go-api-boilerplate/templates/`, its values, the list of services in `templates/migrate.yaml`, and the `ci/*-values.yaml` files.
+
+9. **Release and document it:** add it to the `service` matrix in `.github/workflows/release.yml` and to the `for svc in auth user` loop in `scripts/env-reference.sh`, so its variables reach [Environment variables](../../reference/environment-variables/). Update the map and scope router in the root `AGENTS.md`, so an agent working in the new folder finds its rules, and this site's [architecture](../../architecture/) and [project layout](../../project-layout/) pages.
+
+10. **Run everything,** with each store:
+
+    ```sh
+    make check
+    make up && make e2e
+    make up STORE=mysql && make e2e
+    make up STORE=mongodb && make e2e
+    ```
+
+</Steps>
+
+CI needs no change for Go: it builds and tests `./...` for each store tag, and runs the container tests of every `mysql` and `mongodb` package, so the new packages are covered as soon as they exist.

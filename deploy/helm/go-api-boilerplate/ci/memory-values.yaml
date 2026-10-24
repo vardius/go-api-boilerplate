@@ -1,0 +1,12 @@
+# Values CI renders the chart with (helm lint, helm template | kubeconform).
+publicURL: https://app.example.com
+trustedProxies: 10.244.0.0/16
+auth:
+  existingSecret: gab-auth
+user:
+  smtp:
+    addr: smtp.example.com:587
+    from: Example <no-reply@example.com>
+httpRoute:
+  parentRefs:
+    - name: gateway

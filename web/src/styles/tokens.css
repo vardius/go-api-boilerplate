@@ -1,0 +1,95 @@
+/*
+ * Design tokens. Sizes are rem so the layout follows the reader's text size;
+ * colours meet WCAG AA in both schemes (text 4.5:1, controls and focus 3:1).
+ */
+:root {
+  color-scheme: light dark;
+
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.625rem;
+  --leading: 1.5;
+  --leading-tight: 1.25;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --content-width: 40rem;
+  --control-height: 2.75rem;
+  --focus-width: 0.1875rem;
+
+  --duration: 120ms;
+
+  --color-bg: #f5f6f8;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #eef0f3;
+  --color-text: #15171c;
+  --color-text-muted: #4f5664;
+  --color-border: #d6dae1;
+  --color-border-strong: #737b8a;
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-on-primary: #ffffff;
+  --color-danger: #b42318;
+  --color-danger-hover: #912018;
+  --color-on-danger: #ffffff;
+  --color-focus: #1d4ed8;
+  --color-link: #1d4ed8;
+
+  --color-info-bg: #e9f0ff;
+  --color-info-text: #1e3a8a;
+  --color-success-bg: #e6f4ec;
+  --color-success-text: #0d5a32;
+  --color-warning-bg: #fff3dc;
+  --color-warning-text: #6b4300;
+  --color-danger-bg: #fdeceb;
+  --color-danger-text: #8f1d14;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1115;
+    --color-surface: #181b22;
+    --color-surface-sunken: #12151b;
+    --color-text: #e9ebef;
+    --color-text-muted: #a8aeba;
+    --color-border: #2d323d;
+    --color-border-strong: #7c8494;
+    --color-primary: #8db4ff;
+    --color-primary-hover: #b0caff;
+    --color-on-primary: #0b1220;
+    --color-danger: #ff9b91;
+    --color-danger-hover: #ffbab3;
+    --color-on-danger: #2a0805;
+    --color-focus: #8db4ff;
+    --color-link: #9dbfff;
+
+    --color-info-bg: #13213f;
+    --color-info-text: #c3d5ff;
+    --color-success-bg: #0f2a1d;
+    --color-success-text: #a3e4bd;
+    --color-warning-bg: #2c2108;
+    --color-warning-text: #f3d28a;
+    --color-danger-bg: #3a1411;
+    --color-danger-text: #ffc0b8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration: 0ms;
+  }
+}

@@ -1,0 +1,59 @@
+---
+title: Add an endpoint
+description: Add a REST route with the right authentication and scope, document it in OpenAPI, and give it a row in the authorization matrix.
+---
+
+import { Aside, Code, Steps } from '@astrojs/starlight/components';
+import { userActor, userEmailChangeHandler, userMatrixRows, userRequestEmailChange } from '../../../lib/samples';
+
+Every public route has four parts that change together: the handler, its OpenAPI entry, its row in the authorization matrix, and the web app's schema for its response. Tests fail when the route, its document or its row is missing, which is the point: a route nobody thought about authorizing is how the 2022 layout got its worst bugs.
+
+<Aside title="Using a coding agent?">
+The `add-endpoint` skill in `.agents/skills/` holds these steps as a checklist.
+</Aside>
+
+<Steps>
+
+1. **Pick the route.** Name the resource, not the action: `POST /v1/me/email-change`, not `/v1/changeEmail`. A route under `/v1/me` acts on the caller, which keeps IDs of other users out of URLs.
+
+2. **Check who may call it in the use case.** In the user service the `app` method decides, from the identity in the context, never from the body or the path. `app.Actor` refuses an anonymous caller with `401`, and a client acting for itself or a token without the scopes with `403`:
+
+   <Code {...userActor} />
+
+   <Code {...userRequestEmailChange} />
+
+   auth checks in its routes instead, after `identify` (`authn.Authenticate`), with the narrowest guard that fits from `internal/platform/authn`:
+   - `authn.Require(scopes...)`: any valid token with these scopes;
+   - `authn.RequireUser(scopes...)`: a user's token, not a client's;
+   - `authn.RequireFirstParty()`: only the web app's own session, the `firstParty` chain in its router.
+
+   In auth, a route with none of these is public. Rate-limit a public route that sends email or creates anything.
+
+3. **Write the handler** with `httpx.Handle`. It returns an error instead of writing one, so every failure goes through the one error table and becomes a problem response. It decodes the body with `httpx.DecodeJSON[T](r, maxBytes)`, which rejects the wrong content type, unknown or duplicate fields, trailing data and oversized bodies, calls one use case, and writes the result with `httpx.WriteJSON`:
+
+   <Code {...userEmailChangeHandler} />
+
+4. **Register it** on the service's gorouter v5 router in `internal/<service>/httpapi/httpapi.go`. In the user service, a route that has a caller is wrapped in `identify` (`authn.Authenticate`), which puts the identity in the context. Without it, `app.Actor` finds no identity and every call is a `401`. A route that takes no caller isn't wrapped, so a stale cookie can't fail it. In auth, a route that reads a cookie and changes state also gets `cookie` (`httpx.CrossOrigin`). Handlers read path parameters with the standard `r.PathValue`.
+
+5. **Document it** in `api/<service>.openapi.yaml` (OpenAPI 3.1): request body, every response status, and the problem response for errors. `TestOpenAPIDocumentsEveryRoute` fails if a route is missing from the file or the file lists a route that doesn't exist, and the tests' rig checks every response against its schema.
+
+6. **Add its authorization-matrix row** in `internal/<service>/httpapi/matrix_test.go`. `TestAuthorizationMatrix` calls every route as each caller that file lists and checks the status each must get, and a route with no row fails it. The user service's callers are `anonymous`, `client` (a client-credentials token, with no user), `noScope` (the owner, without the route's scope), `other` (another user) and `owner`. auth's are anonymous, another user, the owner, a token without the scope, a client's own token, and a third-party app's token for the user. In the user service, a route that answers with the caller's user is also checked to return the caller, not someone else. The user service's rows:
+
+   <Code {...userMatrixRows} />
+
+7. **Update the web app** if it calls the route: the zod schema that validates the response in `web/src/api/schemas.ts`, which must match the OpenAPI schema, the call in `web/src/api/endpoints.ts`, and the screen, with every message in both `web/src/i18n/en.ts` and `pl.ts`.
+
+8. **Add an end-to-end case** in `e2e/e2e_test.go` for a flow people use, and update this site's page for the flow. The [REST reference](../../reference/rest-api/) is generated from the OpenAPI document, so it follows on its own.
+
+9. **Run the checks:**
+
+   ```sh
+   go test -race -shuffle=on ./internal/<service>/...
+   make check
+   ```
+
+</Steps>
+
+## Cookies and cross-site requests
+
+Browser requests carry the `access_token` cookie, so unsafe methods (`POST`, `PATCH`, `DELETE`) go through `httpx.CrossOrigin`, built on `http.CrossOriginProtection`: the user service applies it to every route, and auth to each route that reads a cookie. A cross-site form post gets a `403` problem. You don't need CSRF tokens: the gateway puts the app and the APIs on one origin.

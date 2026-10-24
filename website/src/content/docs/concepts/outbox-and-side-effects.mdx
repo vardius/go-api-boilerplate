@@ -1,0 +1,60 @@
+---
+title: Outbox and side effects
+description: How emails and other side effects are queued in the same transaction as the change that causes them, then delivered at least once with retries.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import { outboxNewMessage, outboxStore, relayBackoff, relayConfig, relayRetryTest } from '../../../lib/samples';
+
+A use case that changes data and then sends an email has a gap between the two. If the process dies after the commit, the email is never sent. If the email goes first and the commit fails, the user gets a link for a change that never happened.
+
+The outbox closes the gap. The use case doesn't send the email: it adds a message to an `outbox` table in the same transaction as the change. The message exists exactly when the change does. A relay then delivers it.
+
+## Adding a message
+
+<Code {...outboxNewMessage} />
+
+A message has a topic, a JSON payload and an ID. Its store has the same interface on every backend, and `Add` takes the same `uow.Tx` as the event store:
+
+<Code {...outboxStore} />
+
+## Delivery
+
+The relay polls for due messages, claims a batch under a lease, and hands each to the handler for its topic. A handler that returns an error gets the message again later:
+
+<Code {...relayConfig} />
+
+Each `RelayConfig` field is read from the environment with the service's `OUTBOX_` prefix: `OUTBOX_INTERVAL`, `OUTBOX_LEASE`, `OUTBOX_TIMEOUT`, `OUTBOX_BATCH` and `OUTBOX_MAX_ATTEMPTS`.
+
+Retries back off from one second, doubling each time, up to five minutes:
+
+<Code {...relayBackoff} />
+
+The test drives the relay with an injected clock, so it needs no sleeps:
+
+<Code {...relayRetryTest} />
+
+## At least once, so handlers are idempotent
+
+A relay can crash after the handler succeeded but before it acknowledged the message. When the lease runs out, another relay claims the message and delivers it again. So delivery is **at least once**, and every handler must make a repeat harmless.
+
+The message ID is the tool for that. The mail handler sets the email's `Message-ID` header from it, `<message-id@domain>`, so a mail system that sees a resend can tell it is the same message. A link that has expired by the time its message is delivered is dropped rather than sent, since it would only fail.
+
+## When a message keeps failing
+
+After `MaxAttempts` failures, the relay **buries** the message: it stops trying and keeps it, with the last error, for someone to look at. It does the same for a topic with no handler, and for a message that was claimed more often than allowed without finishing, because that message may be what crashes the relay.
+
+Two metrics count the outcomes: `outbox.delivered` and `outbox.buried`, both tagged with the topic. Alert on `outbox.buried`.
+
+## Topics
+
+| Topic | Sent when | Handler |
+|---|---|---|
+| `mail.login_link` | Someone asks for a sign-in link | Emails the link with its one-time code |
+| `mail.email_change` | A user asks to change their email | Emails a confirmation link to the new address |
+
+The topic names are constants in `internal/user/mail`, which also holds the handlers.
+
+## Where a broker would go
+
+Nothing in this system needs a message broker. If another system should hear about a change, publish to NATS, Kafka or a webhook from an outbox handler. The message is committed with the change and retried until the publish succeeds, which is the guarantee a broker integration needs.

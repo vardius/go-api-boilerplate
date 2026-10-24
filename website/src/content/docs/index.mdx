@@ -1,0 +1,89 @@
+---
+title: A Go API template with auth, events and an outbox in place
+description: A Go API template with passwordless sign-in, an OAuth2 token service, an event-sourced user service and a transactional outbox, on memory, MySQL or MongoDB.
+template: splash
+editUrl: false
+hero:
+  title: Start a Go API with auth, events and an <span class="accent">outbox</span> in place
+  tagline: Two services in one module. A token service with OAuth2, PKCE and JWKS, and an event-sourced user service that sends mail through a transactional outbox. Memory, MySQL or MongoDB, and one command to run it all.
+  actions:
+    - text: Get started
+      link: quick-start/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/vardius/go-api-boilerplate
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkButton, LinkCard } from '@astrojs/starlight/components';
+import Architecture from '../../components/Architecture.astro';
+
+<div class="landing-section">
+
+<p class="eyebrow">Features</p>
+
+## What you start with
+
+<CardGrid>
+	<Card title="Event-sourced user service" icon="list-format">
+		Users are rebuilt from their own event stream. Event names are versioned, old shapes are upcast, and every
+		append checks the stream's version.
+	</Card>
+	<Card title="Your own token service" icon="padlock">
+		OAuth2 with PKCE S256, client credentials and refresh-token rotation with reuse detection. ES256 access
+		tokens, verified with the keys it publishes as a JWKS.
+	</Card>
+	<Card title="Transactional outbox" icon="email">
+		Emails are queued in the same transaction as the change that causes them, then delivered at least once
+		with backoff.
+	</Card>
+	<Card title="Three stores, one contract" icon="seti:db">
+		Memory, MySQL and MongoDB pass the same contract suite. A build tag picks one per binary.
+	</Card>
+	<Card title="One command to run" icon="rocket">
+		`docker compose up --wait` starts both services and the web app on `localhost:8080`, and Mailpit on
+		`localhost:8025`. No cluster, no hosts file.
+	</Card>
+	<Card title="OpenTelemetry" icon="analytics">
+		JSON logs with trace and request IDs. Traces and metrics go out over OTLP once you set an endpoint.
+	</Card>
+	<Card title="Ready for AI agents" icon="document">
+		An `AGENTS.md` in every area, written code standards, and checks that enforce the rules agents tend to
+		break.
+	</Card>
+</CardGrid>
+
+</div>
+
+<div class="landing-section">
+
+<p class="eyebrow">Architecture</p>
+
+## How it fits together
+
+<p class="landing-lead">
+	A browser talks to one origin. Behind it, auth owns tokens and user owns users, and neither calls the other on
+	a normal request.
+</p>
+
+<Architecture id="landing-architecture" />
+
+<LinkCard
+	title="Architecture"
+	href="architecture/"
+	description="The request flows for sign-in, Google and third-party apps, and where the trust boundaries are."
+/>
+
+</div>
+
+<div class="cta not-content">
+	<h2>Run it on your machine in five minutes</h2>
+	<p>Create your repository from the template, start it with Docker Compose, and sign in with a link from Mailpit.</p>
+	<div class="cta-actions">
+		<LinkButton href="quick-start/" icon="right-arrow">Get started</LinkButton>
+		<LinkButton href="introduction/" variant="minimal">
+			Read the introduction
+		</LinkButton>
+	</div>
+</div>

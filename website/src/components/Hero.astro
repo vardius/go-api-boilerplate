@@ -1,0 +1,287 @@
+---
+// Replaces Starlight's hero: the pitch and its actions on one side, the code they lead to on the other.
+import { Code, LinkButton, TabItem, Tabs } from '@astrojs/starlight/components';
+import { userChangeEmailTest, userDecide, userLinkGoogle } from '../lib/samples';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+const create = 'gh repo create my-api --template vardius/go-api-boilerplate --private --clone';
+// Each word wraps as a unit, so a flag never splits at its dashes; the repository may also break after its slash.
+const words = create.split(' ').map((word) => word.split(/(?<=\/)/));
+---
+
+<div class="hero">
+	<div class="pitch">
+		<a class="release" href="reference/migrating-from-2022/">
+			<span class="release-tag">Go 1.27</span>
+			<span>What changed</span>
+			<span aria-hidden="true">→</span>
+		</a>
+		<h1 id="_top" data-page-title set:html={title} />
+		{tagline && <p class="tagline" set:html={tagline} />}
+		{
+			actions.length > 0 && (
+				<div class="actions">
+					{actions.map(({ attrs: { class: className, ...attrs } = {}, icon, link: href, text, variant }) => (
+						<LinkButton {href} {variant} icon={icon?.name} class:list={[className]} {...attrs}>
+							{text}
+							{icon?.html && <Fragment set:html={icon.html} />}
+						</LinkButton>
+					))}
+				</div>
+			)
+		}
+		<div class="install">
+			<button type="button" class="copy" data-copy={create} aria-label="Copy the command that creates your repository">
+				<svg class="icon-copy" viewBox="0 0 24 24" aria-hidden="true">
+					<rect x="9" y="9" width="11" height="11" rx="2"></rect>
+					<path d="M5 15V6a2 2 0 0 1 2-2h9"></path>
+				</svg>
+				<svg class="icon-done" viewBox="0 0 24 24" aria-hidden="true">
+					<path d="m5 12 5 5 9-10"></path>
+				</svg>
+			</button>
+			<code>
+				{words.map((parts, i) => [
+					i > 0 && ' ',
+					parts.map((part, j) => [j > 0 && <wbr />, <span class="word">{part}</span>]),
+				])}
+			</code>
+			<span class="sr-only" role="status"></span>
+		</div>
+	</div>
+
+	<div class="sample">
+		<Tabs syncKey="sample">
+			<TabItem label="Aggregate">
+				<Code {...userDecide} />
+			</TabItem>
+			<TabItem label="Save">
+				<Code {...userLinkGoogle} />
+			</TabItem>
+			<TabItem label="Test">
+				<Code {...userChangeEmailTest} />
+			</TabItem>
+		</Tabs>
+	</div>
+</div>
+
+<script>
+	for (const button of document.querySelectorAll<HTMLButtonElement>('.install .copy')) {
+		const command = button.parentElement?.querySelector('code');
+		const status = button.parentElement?.querySelector('[role="status"]');
+		button.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(button.dataset.copy ?? '');
+			} catch {
+				// No clipboard access: select the command so it can be copied by hand.
+				if (command) getSelection()?.selectAllChildren(command);
+				return;
+			}
+			button.dataset.copied = '';
+			if (status) status.textContent = 'Copied';
+			setTimeout(() => {
+				delete button.dataset.copied;
+				if (status) status.textContent = '';
+			}, 1500);
+		});
+	}
+</script>
+
+<style>
+	.hero {
+		display: grid;
+		gap: 2.5rem;
+		align-items: center;
+		padding-block: 2rem 1rem;
+	}
+
+	.pitch {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1.25rem;
+		min-width: 0;
+	}
+
+	.release {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		max-width: 100%;
+		padding: 0.25rem 0.875rem 0.25rem 0.25rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 1.25rem;
+		background: var(--sl-color-bg-nav);
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+		text-decoration: none;
+	}
+
+	.release:hover {
+		border-color: var(--sl-color-text-accent);
+		color: var(--sl-color-white);
+	}
+
+	.release-tag {
+		flex-shrink: 0;
+		padding: 0.0625rem 0.625rem;
+		border-radius: 999px;
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+		font-weight: 600;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: clamp(2rem, calc(1rem + 4vw), 3.5rem);
+		font-weight: 700;
+		line-height: 1.08;
+		letter-spacing: -0.025em;
+		color: var(--sl-color-white);
+		overflow-wrap: break-word;
+	}
+
+	h1 :global(.accent) {
+		background: linear-gradient(100deg, var(--sl-color-text-accent), var(--sl-color-accent-high));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	@media (forced-colors: active) {
+		h1 :global(.accent) {
+			background: none;
+			color: inherit;
+		}
+	}
+
+	.tagline {
+		margin: 0;
+		max-width: 36rem;
+		font-size: clamp(var(--sl-text-base), calc(0.5rem + 1vw), var(--sl-text-xl));
+		color: var(--sl-color-gray-2);
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 1rem 2rem;
+	}
+
+	/* The copy button floats beside the first lines of the command, never over it; lines below it use the full width. */
+	.install {
+		display: flow-root;
+		width: 100%;
+		max-width: 32rem;
+		padding: 0.5rem 0.5rem 0.5rem 1rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.5rem;
+		background: var(--sl-color-bg-inline-code);
+	}
+
+	/* The padding centres the first line on the button. */
+	.install code {
+		display: block;
+		padding: 0.375rem 0;
+		background: none;
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-sm);
+		overflow-wrap: anywhere;
+	}
+
+	/* A word breaks inside only when it is wider than the box on its own. */
+	.install .word {
+		display: inline-block;
+		max-width: 100%;
+	}
+
+	.install code::before {
+		content: '$ ';
+		color: var(--sl-color-gray-3);
+	}
+
+	.copy {
+		float: inline-end;
+		margin-inline-start: 0.75rem;
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0;
+		border: 1px solid transparent;
+		border-radius: 0.375rem;
+		background: none;
+		color: var(--sl-color-gray-3);
+		cursor: pointer;
+	}
+
+	.copy:hover,
+	.copy:focus-visible {
+		border-color: var(--sl-color-hairline-light);
+		color: var(--sl-color-white);
+	}
+
+	.copy svg {
+		grid-area: 1 / 1;
+		width: 1.125rem;
+		height: 1.125rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.icon-done,
+	.copy[data-copied] .icon-copy {
+		visibility: hidden;
+	}
+
+	.copy[data-copied] .icon-done {
+		visibility: visible;
+		color: var(--sl-color-text-accent);
+	}
+
+	.sample {
+		min-width: 0;
+		position: relative;
+	}
+
+	/* A soft glow behind the code, so the eye lands on it after the headline. */
+	.sample::before {
+		content: '';
+		position: absolute;
+		inset: 10% 5%;
+		z-index: -1;
+		border-radius: 50%;
+		background: var(--sl-color-accent);
+		opacity: 0.18;
+		filter: blur(64px);
+		pointer-events: none;
+	}
+
+	.sample :global(starlight-tabs .tab) {
+		margin: 0;
+	}
+
+	.sample :global(.expressive-code) {
+		margin-top: 0.75rem;
+	}
+
+	/* Tighter tabs keep all three labels in view on a phone. */
+	@media (max-width: 40rem) {
+		.sample :global(.tab > [role='tab']) {
+			padding-inline: 0.75rem;
+		}
+	}
+
+	@media (min-width: 64rem) {
+		.hero {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+			gap: 3.5rem;
+			padding-block: 4rem 2rem;
+		}
+	}
+</style>

@@ -1,0 +1,74 @@
+---
+title: Add a command
+description: Change the domain end to end, from a new event and the rule that raises it to the use case, its transaction and its tests.
+---
+
+import { Aside, Code, Steps } from '@astrojs/starlight/components';
+import {
+	userAggregate,
+	userChangeEmailTests,
+	userConfirmEmailChange,
+	userEmailChanged,
+	userRegistry,
+	userRequestEmailChange,
+} from '../../../lib/samples';
+
+A command is anything that changes an aggregate: register a user, change their email, link Google. There is no command bus. A command is a method on the aggregate, called from a use case, which is a method on the service's app.
+
+This guide adds one in the order that keeps each step testable. The samples are the user service's own email change, from `internal/user/domain` and `internal/user/app`.
+
+<Aside title="Using a coding agent?">
+The `add-command` skill in `.agents/skills/` holds these steps as a checklist.
+</Aside>
+
+<Steps>
+
+1. **Name the event.** It is a fact, in the past tense, with a versioned name: `user.display_name_changed.v1`. Its payload is a struct with JSON tags in `internal/user/domain/events.go`, holding only what the fact needs. No secrets, and no personal data beyond that.
+
+   <Code {...userEmailChanged} />
+
+2. **Register it** in `RegisterEvents`, next to the others. The name is stored with every event and never changes.
+
+   <Code {...userRegistry} />
+
+3. **Add the aggregate method and its `Apply` case.** The method checks the rule and raises the event. `Apply` only assigns: it never fails on a rule, because stored events are facts.
+
+   <Code {...userAggregate} />
+
+4. **Test the aggregate with Given/When/Then.** Given the history, when the method runs, then exactly these events are raised, or this error and nothing else.
+
+   <Code {...userChangeEmailTests} />
+
+   Write one test per rule, for both outcomes. These tests need no database. Add the event to `TestEventsKeepTheirStoredShape` too, which pins each event's stored JSON.
+
+5. **Project it in every backend.** Each store's `Project`, in `internal/user/store/memory`, `mysql` and `mongodb`, refuses an event it has no case for, so a new event can't be saved until all three handle it, even when it changes no column. Write the rule into `internal/user/store/storetest` first; a new `store.User` field also goes in its `assertUser`. In MongoDB the write is the `bson.D` in `project`; `userDoc` is only for reads. [Add a projection](../add-a-projection/) covers new columns and indexes.
+
+6. **Write the use case** in `internal/user/app/app.go`. It gets the caller from `Actor(ctx, scope)`, which also checks the scope, never from the request body. Load the user and call the aggregate method *before* `s.uow.Do`. Inside it, only write: `s.repo.Save`, with `meta` naming the actor, and `s.outbox.Add` for any message. A backend may run that function again, so it must not change the aggregate:
+
+   <Code {...userConfirmEmailChange} />
+
+   If the change has a side effect, such as an email, make the message with `outbox.NewMessage` and add it inside the same `Do` call:
+
+   <Code {...userRequestEmailChange} />
+
+   Test it in `app_test.go`, with the memory stores and an injected clock.
+
+7. **Expose it** through an endpoint, its OpenAPI entry and an authorization-matrix row. See [Add an endpoint](../add-an-endpoint/). Add the event to the list on [Aggregates and events](../../concepts/aggregates-and-events/).
+
+8. **Run the checks:**
+
+   ```sh
+   go test -race -shuffle=on ./internal/user/... ./internal/archtest/...
+   make check
+   ```
+
+   Without Docker, add `-short`: the MySQL and MongoDB store tests then run only in CI.
+
+</Steps>
+
+## Mistakes the checks won't catch
+
+- **Validating in `Apply`.** Old events would fail to load the day the rule changes. Check rules in the method, before `Raise`.
+- **Renaming a stored event.** Existing streams stop loading. Add a `.v2` with an upcast instead; see [Aggregates and events](../../concepts/aggregates-and-events/#names-and-versions).
+- **Doing I/O inside `Do`.** A backend may run the function twice. Send nothing from it; add an outbox message.
+- **Retrying `es.ErrConcurrency` in the use case.** Return it. The client gets a `409` and decides with fresh data.

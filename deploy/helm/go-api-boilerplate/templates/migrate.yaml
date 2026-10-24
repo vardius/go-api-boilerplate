@@ -1,0 +1,34 @@
+{{- if and .Values.migrations.enabled (ne .Values.store "memory") }}
+{{- range $component := list "auth" "user" }}
+{{- $ctx := dict "root" $ "component" $component }}
+---
+# Runs before the Deployments roll, so new pods start on the new schema.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-%s-migrate" (include "gab.fullname" $) $component }}
+  labels:
+    {{- include "gab.labels" $ctx | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        {{- include "gab.labels" $ctx | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- include "gab.podSecurity" $ | nindent 6 }}
+      containers:
+        - name: migrate
+          image: {{ include "gab.image" $ctx }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args: [migrate]
+          env:
+            {{- include "gab.env" $ctx | nindent 12 }}
+          {{- include "gab.containerSecurity" $ | nindent 10 }}
+{{- end }}
+{{- end }}

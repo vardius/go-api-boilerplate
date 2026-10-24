@@ -1,0 +1,23 @@
+store: mysql
+publicURL: https://app.example.com
+trustedProxies: 10.0.0.0/8
+auth:
+  replicas: 2
+  existingSecret: gab-auth
+  mysql: { addr: mysql.example.internal:3306 }
+user:
+  replicas: 2
+  existingSecret: gab-user
+  mysql: { addr: mysql.example.internal:3306 }
+  smtp:
+    addr: smtp.example.com:587
+    username: apikey
+    from: Example <no-reply@example.com>
+  google:
+    clientID: example.apps.googleusercontent.com
+httpRoute:
+  enabled: false
+ingress:
+  enabled: true
+  className: nginx
+  host: app.example.com

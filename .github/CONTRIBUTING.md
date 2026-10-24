@@ -1,53 +1,36 @@
 # Contributing
 
-We are open to, and grateful for, any contributions made by the community. By contributing to **go-api-boilerplate**, you agree to abide by the [code of conduct](https://github.com/vardius/go-api-boilerplate/blob/master/CODE_OF_CONDUCT.md).
+Thank you for helping. By taking part you agree to the
+[code of conduct](CODE_OF_CONDUCT.md).
 
-## Reporting Issues and Asking Questions
+## Questions and bugs
 
-Before opening an issue, please search the [issue tracker](https://github.com/vardius/go-api-boilerplate/issues) to make sure your issue hasn't already been reported.
+Search the [issues](https://github.com/vardius/go-api-boilerplate/issues)
+first. If nothing matches, open one with the template that fits. For a
+security problem, don't open an issue: follow [SECURITY.md](SECURITY.md).
 
-### Bugs and Improvements
+For a change bigger than a bug fix, open an issue with the proposal before
+writing code, so we can agree on the shape first.
 
-We use the issue tracker to keep track of bugs and improvements to **go-api-boilerplate** itself, its examples, and the documentation. We encourage you to open issues to discuss improvements, architecture, theory, internal implementation, etc. If a topic has been discussed before, we will ask you to join the previous discussion.
+## Making a change
 
-Any pull requests that involve breaking changes should be made against the `next` branch.
+1. Fork the repository and branch from `master`.
+2. Read [`AGENTS.md`](../AGENTS.md): the repo map, the rules for the folder
+   you're changing, and the commands below. The code bar is in
+   [`docs/standards/`](../docs/standards/shared.md). Both apply whether you
+   write the code yourself or with an AI agent.
+3. Run the stack locally with `docker compose up --wait` (see the
+   [quick start](https://vardius.github.io/go-api-boilerplate/quick-start/)).
+4. Before you push, run everything CI runs:
 
-### Getting Help
+   ```bash
+   make check
+   ```
 
-For support or usage questions like “how do I do X with **go-api-boilerplate**” and “my code doesn't work”, we encourage you to post an issue.
+5. Open a pull request against `master` and fill in its template. Keep it to
+   one change; unrelated fixes go in their own pull request.
 
-Please be considerate when doing this as this is not the primary purpose of the issue tracker.
+## Documentation
 
-## Development
-
-Visit the [issue tracker](https://github.com/vardius/go-api-boilerplate/issues) to find a list of open issues that need attention.
-
-Fork, then clone the repo:
-
-```
-git clone https://github.com/your-username/go-api-boilerplate.git
-```
-
-### Docs
-
-Improvements to the documentation are always welcome. In the docs we abide by typographic rules, so instead of ' you should use '. Same goes for “ ” and dashes (—) where appropriate. These rules only apply to the text, not to code blocks.
-
-### Sending a Pull Request
-
-For non-trivial changes, please open an issue with a proposal for a new feature or refactoring before starting on the work. We don't want you to waste your efforts on a pull request that we won't want to accept.
-
-On the other hand, sometimes the best way to start a conversation *is* to send a pull request. Use your best judgement!
-
-In general, the contribution workflow looks like this:
-
-* Open a new issue in the [Issue tracker](https://github.com/vardius/go-api-boilerplate/issues).
-* Fork the repo.
-* Create a new feature branch based off the `master` branch.
-* Make sure all tests pass and there are no linting errors.
-* Submit a pull request, referencing any issues it addresses.
-
-Please try to keep your pull request focused in scope and avoid including unrelated commits.
-
-After you have submitted your pull request, we'll try to get back to you as soon as possible. We may suggest some changes or improvements.
-
-Thank you for contributing!
+The website lives in [`website/`](../website/). Code samples there are
+imported from real files, so a change to a sample is a change to the code.

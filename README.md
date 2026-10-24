@@ -1,224 +1,101 @@
-🧰 Golang API Starter Kit
-================
+# 🧰 go-api-boilerplate
+
 [![CI](https://github.com/vardius/go-api-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/vardius/go-api-boilerplate/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vardius/go-api-boilerplate)](https://goreportcard.com/report/github.com/vardius/go-api-boilerplate)
-[![](https://godoc.org/github.com/vardius/go-api-boilerplate?status.svg)](https://pkg.go.dev/github.com/vardius/go-api-boilerplate)
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/vardius/go-api-boilerplate/blob/master/LICENSE.md)
-[![baker](https://opencollective.com/go-api-boilerplate/tiers/backer/badge.svg?label=backer&color=brightgreen)](https://opencollective.com/go-api-boilerplate/contribute/backer-10349/checkout)
-[![sponsor](https://opencollective.com/go-api-boilerplate/tiers/sponsor/badge.svg?label=sponsor&color=brightgreen)](https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
-<img align="right" height="180px" src="https://github.com/vardius/gorouter/blob/master/website/src/static/img/logo.png?raw=true" alt="logo" />
+A starting point for a Go API that has to be right from day one: two
+services, real sign-in, OAuth 2 for third-party apps, and the tests and
+tooling to keep it that way.
 
-Go Server/API boilerplate using best practices, DDD, CQRS, ES, gRPC.
+- **Event-sourced user service.** DDD aggregate, versioned events with
+  upcasters, projections in the same transaction, and a transactional
+  outbox for email.
+- **OAuth 2 auth service.** Email and Google sign-in, rotating refresh
+  tokens with reuse detection, authorization code with PKCE, client
+  credentials, ES256 access tokens (RFC 9068) verified through JWKS.
+- **Three stores, one contract.** Memory, MySQL or MongoDB, picked at build
+  time; every backend passes the same contract suites.
+- **Standard library first.** Plain `net/http` handlers on
+  [gorouter](https://github.com/vardius/gorouter), `log/slog`, OpenTelemetry,
+  Connect between the services, RFC 9457 errors.
+- **Ready for AI-assisted work.** `AGENTS.md` in every area, code
+  standards, recipes for common changes, and import rules enforced by a
+  test.
 
-<details>
-  <summary>Table of Contents</summary>
+📖 **[Documentation](https://vardius.github.io/go-api-boilerplate/)**
 
-<!-- toc -->
-
-- [About](#about)
-- [Documentation](#documentation)
-- [Example](#example)
-  - [Quick start](#quick-start)
-    - [Build release](#build-release)
-        - [Local image](#local-image)
-        - [GitHub Package Registry](#github-package-registry)
-        - [Private Registry](#private-registry)
-    - [Deploy release](#build-release)
-  - [Dashboard](#dashboard)
-  - [Domain](#domain)
-    - [Dispatching command](#dispatching-command)
-  - [View](#view)
-    - [Protected routes](#protected-routes)
-- [Sponsoring](#sponsoring)
-<!-- tocstop -->
-
-</details>
-
-📖 ABOUT
-==================================================
-The main purpose of this project is to provide boilerplate project setup using best practices, DDD, CQRS, ES, gRPC. Featuring kubernetes for both development and production environments. Allowing to work with environment reflecting production one, allowing to reduce any misconfigurations.
-
-This is mono-repository of many services such as authentication or user domain. Each service has it own code base with exception of shared packages to simplify things for this boilerplate. Services communicate witch each other using gRPC. Each service might expose HTTP API for external communication or/and gRPC.
-
-This project setup should reduce the time spent on environment configuration for the whole kubernetes cluster and/or each of microservice. Extracting each of services to own repository or keeping it as mono-repo should be a matter of preference.
-
-*Please look for comments like `@TODO` and `@FIXME` to better understand things than need attention.*
-
-### Web UI example (React)
-This boilerplate includes simple Web UI to demonstrate example interaction with API.
-Once deployed and hosts are set please visit [https://api.go-api-boilerplate.local](https://api.go-api-boilerplate.local) to access UI.
-
-<img align="center" src="https://github.com/vardius/go-api-boilerplate/blob/master/.github/Web%20UI.jpg?raw=true" alt="Web UI" />
-
-### Key concepts:
-1. Rest API
-2. [Docker](https://www.docker.com/what-docker)
-3. [Kubernetes](https://kubernetes.io/)
-4. [Helm chart](https://helm.sh/)
-5. [Terraform](https://terraform.io/)
-6. [gRPC](https://grpc.io/docs/)
-7. [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design) (DDD)
-8. [CQRS](https://martinfowler.com/bliki/CQRS.html)
-9. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
-10. [Hexagonal, Onion, Clean Architecture](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)
-11. [oAuth2](https://github.com/go-oauth2/oauth2)
-
-Worth getting to know packages used in this boilerplate:
-1. [gorouter](https://github.com/vardius/gorouter)
-2. [message-bus](https://github.com/vardius/message-bus)
-3. [gollback](https://github.com/vardius/gollback)
-4. [shutdown](https://github.com/vardius/shutdown)
-5. [pubsub](https://github.com/vardius/pubsub)
-6. [pushpull](https://github.com/vardius/pushpull)
-7. [gocontainer](https://github.com/vardius/gocontainer)
-
-📚 DOCUMENTATION
-==================================================
-
-* [Wiki](https://github.com/vardius/go-api-boilerplate/wiki)
-* [Package level docs](https://godoc.org/github.com/vardius/go-api-boilerplate#pkg-subdirectories)
-* [Getting Started](https://github.com/vardius/go-api-boilerplate/wiki/1.-Getting-Started)
-* [Installing and Setting up](https://github.com/vardius/go-api-boilerplate/wiki/2.-Installing-and-Setting-up)
-* [Configuration](https://github.com/vardius/go-api-boilerplate/wiki/3.-Configuration)
-* [Guides](https://github.com/vardius/go-api-boilerplate/wiki/4.-Guides)
-
-🏫 EXAMPLE
-==================================================
 ## Quick start
 
-### Localhost alias
-Edit `/etc/hosts` to add localhost alias
+You need Docker.
+
 ```bash
-➜ go-api-boilerplate git:(master) cat /etc/hosts
-##
-# Host Database
-#
-# localhost is used to configure the loopback interface
-# when the system is booting. Do not change this entry.
-##
-127.0.0.1 go-api-boilerplate.local api.go-api-boilerplate.local maildev.go-api-boilerplate.local mysql.go-api-boilerplate.local
-```
-### Build release
-#### Local image
-```sh
-make docker-build BIN=auth
-make docker-build BIN=migrate
-make docker-build BIN=user
-make docker-build BIN=web
-```
-#### Container registry
-Tag and push the local images to your registry with `make docker-publish BIN=user REGISTRY=…` (see `make help`).
-
-Replace image details in [main.yaml](cmd/user/main.yaml)
-```diff
-  image:
--    repository: go-api-boilerplate-user
-+    repository: docker.pkg.github.com/vardius/go-api-boilerplate/go-api-boilerplate-user
--    tag: latest
-+    tag: 1.0.0
-    pullPolicy: IfNotPresent
-```
-repeat for all services and `migrate` init containers.
-#### Private Registry
-[Log in to Docker](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#log-in-to-docker)
-```shell
-docker login
-```
-### Deploy release
-Terraform reads three local files that are gitignored, so create them first, whichever registry you use:
-
-1. A registry config for the cluster at `k8s/.docker/config.json`. It holds your registry credentials; never commit it. For local images with no registry, `echo '{"auths":{}}'` is enough.
-   ```shell
-   mkdir -p k8s/.docker && cp ~/.docker/config.json k8s/.docker/config.json
-   ```
-2. The development TLS certificate:
-   ```shell
-   make cert
-   ```
-3. The JWT signing secret, at least 32 random bytes. Both services refuse to start without it.
-   ```shell
-   export TF_VAR_auth_secret="$(openssl rand -base64 48)"
-   ```
-
-```shell
-make terraform-install
-```
-#### Destroy
-```shell
-make terraform-destroy
-```
-If persistent volume is stack in terminating, this happens when persistent volume is protected. You should be able to cross verify this:
-```shell
-kubectl describe pvc PVC_NAME --namespace=go-api-boilerplate | grep Finalizers
-
-Output:
-Finalizers:    [kubernetes.io/pvc-protection]
-```
-You can fix this by setting finalizers to null using kubectl patch:
-```shell
-kubectl patch pvc PVC_NAME --namespace=go-api-boilerplate -p '{"metadata":{"finalizers": []}}' --type=merge
-```
-## Build tags
-Build flags are used for different persistence layers. Please see `services.go` file for details. Provided layers are `mysql`, `mongo` and `memory`.
-If desired in similar way new layer can be easily added, following given patter.
-
-```shell
-go build -tags=persistence_mysql
+git clone https://github.com/vardius/go-api-boilerplate.git
+cd go-api-boilerplate
+docker compose up --wait
 ```
 
-### Available build tags
-- persistence_mysql (mysql service container)
-- persistence_mongodb (mongodb service container)
+Open http://localhost:8080 and sign in with any email address; the link
+arrives in Mailpit at http://localhost:8025. The quick start keeps data in
+memory, so a restart clears it. For a database:
 
-**Important**
-persistence layer defaults to memory if no flag is provided (Docker image sets persistence_mysql flag), see each service Dockerfile for details.
-
-## Domain
-### Dispatching command
-Send example JSON via POST request
-```sh
-curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/user/user-register-with-email --insecure
-```
-## View
-### Protected routes
-Every user route needs an auth token, and users can read only their own record.
-
-Get user details [https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812](https://api.go-api-boilerplate.local/users/v1/34e7ed39-aa94-4ef2-9422-401bba9fc812)
-```json
-{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
-```
-Access protected route using auth token [https://api.go-api-boilerplate.local/users/v1/me](https://api.go-api-boilerplate.local/users/v1/me).
-```json
-{"code": "401","message": "Unauthorized"}
-```
-Request access token for user
-```sh
-curl -d '{"email":"test@test.com"}' -H "Content-Type: application/json" -X POST https://api.go-api-boilerplate.local/users/v1/dispatch/user/user-request-access-token --insecure
-```
-Get your access token from mail catcher [https://maildev.go-api-boilerplate.local](https://maildev.go-api-boilerplate.local).
-
-Access protected route using auth token [https://api.go-api-boilerplate.local/users/v1/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ](https://api.go-api-boilerplate.local/users/v1/me?authToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyXHUwMDE277-977-977-977-9IiwiZXhwIjoxNTU5NjEwOTc2LCJzdWIiOiIzNGU3ZWQzOS1hYTk0LTRlZjItOTQyMi00MDFiYmE5ZmM4MTIifQ.pEkgtDAvNh2D3Dtgfpu4tt-Atn1h6QwMkDhz4KpgFxNX8jE7fQH00J6K5V7CV063pigxWhOMMTRLmQdhzhajzQ)
-```json
-{"id":"34e7ed39-aa94-4ef2-9422-401bba9fc812","email":"test@test.com"}
+```bash
+make up STORE=mysql
 ```
 
-💲 Sponsoring
-==================================================
+`make help` lists the rest. `make check` runs what CI runs.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  browser[Browser] --> web
+  app[Third-party app] --> web
+  subgraph gateway [One origin, :8080]
+    web[web: nginx + React]
+  end
+  web -- /api/auth --> auth[auth service]
+  web -- /api/user --> user[user service]
+  auth -- Connect: redeem login code --> user
+  user -. JWKS .-> auth
+  user -- outbox --> mail[SMTP]
+  auth --- authdb[(auth store)]
+  user --- userdb[(events + projections)]
+```
+
+The browser holds only HttpOnly cookies, set by the auth service. Both
+services verify access tokens locally against the auth service's JWKS.
+
+## Layout
+
+| Path | What lives there |
+| --- | --- |
+| [`cmd/`](cmd) | one binary per service |
+| [`internal/platform/`](internal/platform) | the shared kit: config, observability, HTTP, tokens, event sourcing, outbox, databases |
+| [`internal/user/`](internal/user), [`internal/auth/`](internal/auth) | the services |
+| [`proto/`](proto), [`gen/`](gen), [`api/`](api) | the Connect contract and the OpenAPI documents |
+| [`web/`](web) | the React app |
+| [`e2e/`](e2e) | end-to-end tests against the running stack |
+| [`deploy/`](deploy) | compose extras and the Helm chart |
+| [`website/`](website) | the documentation site |
+
+Upgrading from the 2022 layout? It is tagged
+[`legacy-2022`](https://github.com/vardius/go-api-boilerplate/tree/legacy-2022).
+
+## Contributing
+
+Read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
+Report security problems privately, as [SECURITY.md](.github/SECURITY.md)
+describes.
+
+## 💲 Sponsoring
 
 <p align="center">
   <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10349/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/backer.svg"></a>
   <a href="https://opencollective.com/go-api-boilerplate/contribute/sponsor-10350/checkout"><img src="https://opencollective.com/go-api-boilerplate/tiers/sponsor.svg"></a>
 </p>
 
-## 🚀 Contributing
-
-Want to contribute ? Feel free to send pull requests!
-
-Have problems, bugs, feature ideas?
-We are using the github [issue tracker](https://github.com/vardius/go-api-boilerplate/issues) to manage them.
-
-## 👨🏻‍💻👩🏾‍💻 Core Team:
+## 👨🏻‍💻👩🏾‍💻 Core Team
 
 <table>
   <tbody>
