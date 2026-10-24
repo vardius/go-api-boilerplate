@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/vardius/go-api-boilerplate/internal/platform/apperr"
 	"github.com/vardius/go-api-boilerplate/internal/platform/obs"
@@ -32,6 +34,8 @@ func status(err error) int {
 	switch {
 	case isMaxBytes(err):
 		return http.StatusRequestEntityTooLarge
+	case isTooManyRequests(err):
+		return http.StatusTooManyRequests
 	case errors.Is(err, apperr.ErrInvalid):
 		return http.StatusBadRequest
 	case errors.Is(err, apperr.ErrUnauthorized):
@@ -53,6 +57,11 @@ func status(err error) int {
 
 func isMaxBytes(err error) bool {
 	_, ok := errors.AsType[*http.MaxBytesError](err)
+	return ok
+}
+
+func isTooManyRequests(err error) bool {
+	_, ok := errors.AsType[*TooManyRequestsError](err)
 	return ok
 }
 
@@ -91,6 +100,13 @@ func WriteError(w http.ResponseWriter, r *http.Request, err error) {
 	}
 	if mbe, ok := errors.AsType[*http.MaxBytesError](err); ok && detail == "" {
 		detail = fmt.Sprintf("The request body is larger than %d bytes.", mbe.Limit)
+	}
+	if tmr, ok := errors.AsType[*TooManyRequestsError](err); ok {
+		secs := tmr.retryAfterSeconds()
+		w.Header().Set("Retry-After", strconv.Itoa(secs))
+		if detail == "" {
+			detail = fmt.Sprintf("Too many requests; try again in %s.", time.Duration(secs)*time.Second)
+		}
 	}
 	if code == http.StatusUnauthorized {
 		w.Header().Set("WWW-Authenticate", "Bearer")

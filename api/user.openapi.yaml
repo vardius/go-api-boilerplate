@@ -1,0 +1,340 @@
+openapi: 3.1.0
+info:
+  title: go-api-boilerplate user service
+  version: "1"
+  summary: Sign-in links, the signed-in user, email change and Google sign-in.
+  description: |
+    Every route is served through the gateway under /api/user. Errors are
+    RFC 9457 problem details. Routes that act for a user take its access
+    token from `Authorization: Bearer` or the `access_token` cookie the auth
+    service sets; unsafe requests from another origin are refused with 403.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: /api/user
+    description: Through the gateway.
+tags:
+  - name: probes
+  - name: sign-in
+  - name: profile
+paths:
+  /livez:
+    get:
+      tags: [probes]
+      operationId: live
+      summary: The process is up.
+      responses:
+        "200":
+          description: Alive.
+          content:
+            text/plain:
+              schema: { type: string }
+  /readyz:
+    get:
+      tags: [probes]
+      operationId: ready
+      summary: The stores answer and the service isn't shutting down.
+      responses:
+        "200":
+          description: Ready for traffic.
+          content:
+            text/plain:
+              schema: { type: string }
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /v1/config:
+    get:
+      tags: [sign-in]
+      operationId: getConfig
+      summary: What the web app's sign-in page offers.
+      responses:
+        "200":
+          description: The sign-in options.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Config" }
+  /v1/login-links:
+    post:
+      tags: [sign-in]
+      operationId: requestLoginLink
+      summary: Mail a sign-in link.
+      description: |
+        Mails a one-time link, valid for 15 minutes, to the address. The
+        answer is the same whether or not an account has the address:
+        redeeming the link with the auth service registers one. Limited per
+        client IP and per address.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginLinkRequest" }
+      responses:
+        "202": { $ref: "#/components/responses/Accepted" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/me:
+    get:
+      tags: [profile]
+      operationId: getMe
+      summary: The signed-in user.
+      security: [{ bearer: [user:read] }, { cookie: [] }]
+      responses:
+        "200":
+          description: The user the token is for.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/me/email-change:
+    post:
+      tags: [profile]
+      operationId: requestEmailChange
+      summary: Mail a confirmation link to a new address.
+      description: |
+        The address changes only once the code in the link comes back
+        through /v1/me/email-change/confirm, valid for 15 minutes. Whether
+        another account has the address is told only then.
+      security: [{ bearer: [user:write] }, { cookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmailChangeRequest" }
+      responses:
+        "202": { $ref: "#/components/responses/Accepted" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/me/email-change/confirm:
+    post:
+      tags: [profile]
+      operationId: confirmEmailChange
+      summary: Change the address to the one the code was mailed to.
+      security: [{ bearer: [user:write] }, { cookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CodeRequest" }
+      responses:
+        "200":
+          description: The user, with the new address.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          description: A malformed body, or a code that is unknown, used, expired or another user's.
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409":
+          $ref: "#/components/responses/Conflict"
+          description: Another account has the address now. The code stays usable.
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/google/start:
+    get:
+      tags: [sign-in]
+      operationId: startGoogle
+      summary: Go to Google to sign in, or to link a Google account.
+      description: |
+        Redirects to Google's consent page, keeping the round trip's state,
+        nonce and PKCE verifier in a 10-minute HttpOnly cookie. With
+        `link=1` the signed-in user links the Google account instead, which
+        needs the user:write scope.
+      security: [{}, { bearer: [user:write] }, { cookie: [] }]
+      parameters:
+        - name: next
+          in: query
+          description: Where the web app goes after signing in; kept only when it is a path on the web app.
+          schema: { type: string, maxLength: 2048 }
+        - name: link
+          in: query
+          description: Link the Google account to the signed-in user.
+          schema: { type: string, enum: ["1"] }
+      responses:
+        "302": { $ref: "#/components/responses/Redirect" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+          description: Google sign-in isn't set up on this server.
+        "500": { $ref: "#/components/responses/InternalError" }
+  /v1/google/callback:
+    get:
+      tags: [sign-in]
+      operationId: finishGoogle
+      summary: Google's redirect back.
+      description: |
+        Redirects to the web app. A sign-in goes to `/sign-in/complete?code=…&next=…`
+        with a login code, valid for 2 minutes, for the auth service to
+        redeem; a link goes to `/profile?google=linked`. A failure goes to
+        `/sign-in?google=<outcome>`, or `/profile?google=<outcome>` when
+        linking, where the outcome is `denied` (the user said no at
+        Google), `expired` (start again), `unverified` (Google hasn't
+        verified the address), `taken` (the Google account or its address
+        belongs to another account) or `failed`.
+      parameters:
+        - { name: code, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+        - { name: error, in: query, schema: { type: string } }
+      responses:
+        "302": { $ref: "#/components/responses/Redirect" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+          description: Google sign-in isn't set up on this server.
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: An access token from the auth service.
+    cookie:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: The browser session's access token, set by the auth service.
+  schemas:
+    Config:
+      type: object
+      additionalProperties: false
+      required: [google_enabled]
+      properties:
+        google_enabled:
+          type: boolean
+          description: Whether /v1/google/start works on this server.
+        mail_preview_url:
+          type: string
+          format: uri
+          description: A local mail catcher to show next to "check your inbox", in development only.
+    LoginLinkRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        next:
+          type: string
+          maxLength: 2048
+          description: A path on the web app to go to after signing in, such as /consent?request=42. Anything else is dropped.
+    EmailChangeRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+    CodeRequest:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code: { type: string, description: The code from the mailed link. }
+    User:
+      type: object
+      additionalProperties: false
+      required: [id, email, google_linked, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        google_linked: { type: boolean }
+        created_at: { type: string, format: date-time }
+    Accepted:
+      type: object
+      additionalProperties: false
+      description: Nothing to report; the mail is on its way.
+    Problem:
+      type: object
+      description: An RFC 9457 problem.
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string, description: Written for the user. }
+        instance: { type: string }
+        request_id: { type: string }
+        errors:
+          type: object
+          description: What is wrong with each field of the request.
+          additionalProperties: { type: string }
+  headers:
+    Location:
+      required: true
+      schema: { type: string, format: uri-reference }
+    RetryAfter:
+      required: true
+      description: Seconds until a request may succeed.
+      schema: { type: string, pattern: "^[1-9][0-9]*$" }
+    WWWAuthenticate:
+      required: true
+      schema: { type: string, const: Bearer }
+  responses:
+    Accepted:
+      description: Accepted; the mail goes out shortly.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Accepted" }
+    Redirect:
+      description: Go there.
+      headers:
+        Location: { $ref: "#/components/headers/Location" }
+    BadRequest:
+      description: The request is malformed.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Unauthorized:
+      description: No access token, or one that is invalid or expired.
+      headers:
+        WWW-Authenticate: { $ref: "#/components/headers/WWWAuthenticate" }
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Forbidden:
+      description: The token isn't a user's, lacks the scope, or the request came from another origin.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    NotFound:
+      description: Not found.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Conflict:
+      description: Conflicts with another account.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    PayloadTooLarge:
+      description: The body is larger than 4 KiB.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    TooManyRequests:
+      description: Too many links asked for, from this client or for this address.
+      headers:
+        Retry-After: { $ref: "#/components/headers/RetryAfter" }
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    ServiceUnavailable:
+      description: Not ready.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    InternalError:
+      description: Something failed on the server; the request ID leads to the log line.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }

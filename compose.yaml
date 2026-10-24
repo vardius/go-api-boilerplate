@@ -45,7 +45,6 @@ services:
         SERVICE: user
         STORE: memory
     environment:
-      APP_ENV: development
       LOG_FORMAT: text
       LOG_LEVEL: ${LOG_LEVEL:-info}
       WEB_URL: http://localhost:8080
