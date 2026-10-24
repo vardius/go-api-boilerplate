@@ -64,7 +64,7 @@ An OAuth app gets tokens through the authorization code grant, with PKCE S256 re
 
 1. The app sends the user to `GET /api/auth/oauth/authorize` with `response_type=code`, its `client_id`, `redirect_uri`, `scope`, `state`, and a `code_challenge` with `code_challenge_method=S256`.
 
-2. An unknown client or a `redirect_uri` that doesn't match exactly goes to the web app's error page, never back to the unverified URI. Without a session, the user signs in first and comes back.
+2. Any bad request, such as an unknown client, a `redirect_uri` that doesn't match exactly, no PKCE or a scope the client didn't register, goes to the web app's error page with a reason, never back to the app: anyone can register a client, so its redirect URI hears only what the user decides. Without a session, the user signs in first and comes back.
 
 3. auth stores the request for ten minutes and sends the browser to the web app's consent screen, which shows the app's name and the scopes it asks for.
 

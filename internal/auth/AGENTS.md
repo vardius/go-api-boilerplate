@@ -7,6 +7,11 @@ core, so a change here is exact or it waits.
 - OAuth changes follow RFC 9700 (OAuth 2.0 Security BCP): PKCE S256 only,
   exact redirect URI matching, single-use codes, refresh token rotation with
   reuse detection. Cite the RFC section where the code enforces a rule.
+- Nothing goes to a redirect URI before its user has decided on the
+  consent page: anyone can register a client, so an error there would make
+  an open redirector (RFC 9700 §4.11.2). Errors go to the web app's error
+  page with one of `app.Reasons`, which the OpenAPI document and
+  `web/src/screens/OAuthError.tsx` list too.
 - Token material (access, refresh and service tokens, codes, client
   secrets) is never logged and never in error text. Carry it as
   `config.Secret` and call `Reveal` only where it is written to the wire.

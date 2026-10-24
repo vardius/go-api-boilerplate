@@ -205,9 +205,17 @@ export const en = {
   'oauthError.title': "This app can't sign you in",
   'oauthError.invalid_client': "The app that sent you here isn't registered here, or it was deleted.",
   'oauthError.invalid_redirect_uri': "The app that sent you here asked to return to an address it didn't register.",
+  'oauthError.invalid_request': 'The app that sent you here made a request that is incomplete or malformed.',
+  'oauthError.pkce_required': "The app that sent you here didn't secure its request the way we require (PKCE with S256).",
+  'oauthError.unsupported_response_type': "The app that sent you here asked for a kind of sign-in we don't offer.",
+  'oauthError.invalid_scope':
+    "The app that sent you here asked for access it isn't registered for, or that doesn't exist.",
+  'oauthError.login_required': "You weren't signed in when you answered, so nothing was decided.",
+  'oauthError.request_expired': 'This request is no longer waiting for an answer: it expired or was already answered.',
   'oauthError.generic': "The app that sent you here made a request we can't accept.",
   'oauthError.advice': 'Nothing was shared with the app. Let its developer know, and include the code below.',
   'oauthError.adviceNoCode': 'Nothing was shared with the app. Let its developer know.',
+  'oauthError.adviceStartAgain': 'Nothing was shared with the app. Go back to it and start again.',
   'oauthError.code': 'Error code: {code}',
   'oauthError.home': 'Go to your account',
 

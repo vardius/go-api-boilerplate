@@ -5,27 +5,45 @@ import { Actions, ButtonLink } from '../ui/Button';
 import { Card, Page } from '../ui/Page';
 import styles from './screens.module.css';
 
-// A Map, so a reason like "constructor" can't reach Object.prototype.
-const explanations = new Map<string, MessageId>([
-  ['invalid_client', 'oauthError.invalid_client'],
-  ['invalid_redirect_uri', 'oauthError.invalid_redirect_uri'],
+/** What a reason means to the reader, and what they can do about it. */
+interface Explanation {
+  explanation: MessageId;
+  advice: MessageId;
+}
+
+// The app is at fault: its developer has to fix the request.
+const appFault = (explanation: MessageId): Explanation => ({ explanation, advice: 'oauthError.advice' });
+// Nothing is wrong with the app: starting again from it works.
+const startAgain = (explanation: MessageId): Explanation => ({ explanation, advice: 'oauthError.adviceStartAgain' });
+
+// Exactly the reasons the auth service sends (app.Reasons in internal/auth/app;
+// a test in internal/auth/httpapi checks this list). A Map, so a reason like
+// "constructor" can't reach Object.prototype.
+const reasons = new Map<string, Explanation>([
+  ['invalid_client', appFault('oauthError.invalid_client')],
+  ['invalid_redirect_uri', appFault('oauthError.invalid_redirect_uri')],
+  ['invalid_request', appFault('oauthError.invalid_request')],
+  ['pkce_required', appFault('oauthError.pkce_required')],
+  ['unsupported_response_type', appFault('oauthError.unsupported_response_type')],
+  ['invalid_scope', appFault('oauthError.invalid_scope')],
+  ['login_required', startAgain('oauthError.login_required')],
+  ['request_expired', startAgain('oauthError.request_expired')],
 ]);
 
-/** Where the auth service sends a browser whose authorize request it can't safely redirect back to the app. */
+/** Where the auth service sends a browser whose authorize request it refused. */
 export function OAuthError() {
   const intl = useIntl();
   const [params] = useSearchParams();
-  const raw = params.get('reason') ?? '';
-  // Only an error code is shown, never arbitrary text from the address bar.
-  const reason = /^[a-z0-9_.-]{1,64}$/i.test(raw) ? raw : undefined;
-  const explanation = (reason === undefined ? undefined : explanations.get(reason)) ?? 'oauthError.generic';
+  // Only a reason from the list is shown, never other text from the address bar.
+  const reason = params.get('reason') ?? '';
+  const known = reasons.get(reason);
 
   return (
     <Page title={intl.formatMessage({ id: 'oauthError.title' })}>
       <Card>
-        <p>{intl.formatMessage({ id: explanation })}</p>
-        <p>{intl.formatMessage({ id: reason === undefined ? 'oauthError.adviceNoCode' : 'oauthError.advice' })}</p>
-        {reason !== undefined && (
+        <p>{intl.formatMessage({ id: known?.explanation ?? 'oauthError.generic' })}</p>
+        <p>{intl.formatMessage({ id: known?.advice ?? 'oauthError.adviceNoCode' })}</p>
+        {known !== undefined && (
           <p className={styles.muted}>
             {intl.formatMessage({ id: 'oauthError.code' }, { code: <code key="code">{reason}</code> })}
           </p>
