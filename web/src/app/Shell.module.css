@@ -1,0 +1,116 @@
+.shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.skip {
+  position: absolute;
+  inset-inline-start: var(--space-4);
+  top: var(--space-2);
+  z-index: 1;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skip:focus {
+  transform: none;
+}
+
+.header {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.headerInner,
+.main,
+.footerInner {
+  width: 100%;
+  max-width: calc(var(--content-width) + 2 * var(--space-4));
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+.headerInner {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+}
+
+.brand {
+  justify-self: start;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.navList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: inset 0 -0.1875rem 0 transparent;
+}
+
+.navLink:hover {
+  color: var(--color-text);
+}
+
+.navLink[aria-current='page'] {
+  color: var(--color-text);
+  box-shadow: inset 0 -0.1875rem 0 var(--color-primary);
+}
+
+.main {
+  padding-block: var(--space-5) var(--space-7);
+}
+
+.main:focus {
+  outline: none;
+}
+
+.footer {
+  border-top: 1px solid var(--color-border);
+}
+
+.footerInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-4);
+}
+
+.footerLabel {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.select {
+  min-height: var(--control-height);
+  max-width: 100%;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
