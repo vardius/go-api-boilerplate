@@ -14,6 +14,11 @@ updates:
     groups:
       npm:
         patterns: ['*']
+    ignore:
+      # typescript-eslint, which lints the web app, accepts only TypeScript
+      # below 6.1; lift this once a release of it accepts 7.
+      - dependency-name: typescript
+        versions: ['>= 7']
   # The Dockerfiles and compose files pin exact image tags.
   - package-ecosystem: docker
     directories: [/, /web]
