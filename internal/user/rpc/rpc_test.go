@@ -7,6 +7,9 @@ import (
 	"log/slog"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 	"uuid"
@@ -127,6 +130,8 @@ func TestRedeemLoginCodeRefuses(t *testing.T) {
 		{"a bad token", "not-a-jwt", code, connect.CodeUnauthenticated},
 		{"a user's token", r.iss.Token(t, authn.Identity{Subject: user.String(), UserID: user, Scopes: []string{"user:read", "user:write"}}), code, connect.CodePermissionDenied},
 		{"a client without the scope", r.iss.Token(t, authn.Identity{Subject: "app-1", ClientID: "app-1", Scopes: []string{"user:read"}}), code, connect.CodePermissionDenied},
+		{"another client with the scope", r.iss.Token(t, authn.Identity{Subject: "app-1", ClientID: "app-1", Scopes: []string{app.ScopeRedeemLoginCodes}}), code, connect.CodePermissionDenied},
+		{"a user's token with the scope", r.iss.Token(t, authn.Identity{Subject: user.String(), UserID: user, ClientID: "web", Scopes: []string{app.ScopeRedeemLoginCodes}}), code, connect.CodePermissionDenied},
 		{"a tampered token", r.authToken(t) + "x", code, connect.CodeUnauthenticated},
 		{"an expired token", r.iss.Token(t, authn.Identity{Subject: "auth", ClientID: "auth", Scopes: []string{app.ScopeRedeemLoginCodes}}, authntest.WithExpiry(-time.Minute)), code, connect.CodeUnauthenticated},
 		{"a made-up code", r.authToken(t), "made-up", connect.CodeUnauthenticated},
@@ -143,5 +148,18 @@ func TestRedeemLoginCodeRefuses(t *testing.T) {
 	// None of the refusals used the code up.
 	if _, err := r.client(r.authToken(t)).RedeemLoginCode(t.Context(), &userv1.RedeemLoginCodeRequest{Code: code}); err != nil {
 		t.Errorf("redeeming after the refusals: %v", err)
+	}
+}
+
+// AuthClientID is the client_id the auth service signs its own token with.
+// The test reads the auth service's source, since importing it would join
+// the two services (internal/archtest).
+func TestAuthClientIDIsTheAuthServiceTokens(t *testing.T) {
+	src, err := os.ReadFile("../../auth/keys/signer.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "const ServiceClientID = " + strconv.Quote(rpc.AuthClientID) + "\n"; !strings.Contains(string(src), want) {
+		t.Errorf("internal/auth/keys has no %q", want)
 	}
 }
