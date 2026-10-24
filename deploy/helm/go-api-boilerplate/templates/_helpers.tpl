@@ -36,6 +36,9 @@ app.kubernetes.io/component: {{ .component }}
 {{- if not .Values.auth.existingSecret -}}
 {{- fail "auth.existingSecret is required: a Secret with signing-key.pem (see values.yaml)" -}}
 {{- end -}}
+{{- if not .Values.trustedProxies -}}
+{{- fail "trustedProxies is required: the CIDR of the web pods (usually the cluster's pod CIDR), so rate limits see real client addresses" -}}
+{{- end -}}
 {{- if not .Values.user.smtp.addr -}}
 {{- fail "user.smtp.addr is required: the SMTP server for sign-in links" -}}
 {{- end -}}

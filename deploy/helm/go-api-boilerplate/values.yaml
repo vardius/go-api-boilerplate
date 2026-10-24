@@ -15,7 +15,10 @@ imagePullSecrets: []
 # issued for <publicURL>/api/auth and email links point here.
 publicURL: https://app.example.com
 
-# CIDRs whose X-Forwarded-For is trusted: your gateway or ingress pods.
+# Required: CIDRs whose X-Forwarded-For the services believe. Every request
+# reaches them through the web pods, so this must cover the web pods (usually
+# your cluster's pod CIDR) and anything in front of them. Left out, every
+# client would share the web pod's address, and one rate-limit bucket.
 trustedProxies: ""
 
 logLevel: info
