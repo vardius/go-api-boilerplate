@@ -28,8 +28,8 @@ cert: ## [HTTP] Generate a self-signed development certificate into k8s/tls (git
 docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`
 	docker build -f cmd/$(BIN)/Dockerfile --no-cache --build-arg BIN=$(BIN) --build-arg VERSION=$(VERSION) --build-arg GIT_COMMIT=$(GIT_COMMIT) -t go-api-boilerplate-$(BIN) .
 
-docker-run: ## [DOCKER] Run container on given port. Example: `make docker-run BIN=user PORT=3000`
-	docker run -i -t --rm -p=$(PORT):$(PORT) --name="go-api-boilerplate-$(BIN)" go-api-boilerplate-$(BIN)
+docker-run: ## [DOCKER] Run container on given port. Needs AUTH_SECRET (32+ random bytes) in the environment. Example: `make docker-run BIN=user PORT=3000`
+	docker run -i -t --rm -e AUTH_SECRET -p=$(PORT):$(PORT) --name="go-api-boilerplate-$(BIN)" go-api-boilerplate-$(BIN)
 
 docker-stop: ## [DOCKER] Stop docker container. Example: `make docker-stop BIN=user`
 	docker stop go-api-boilerplate-$(BIN)

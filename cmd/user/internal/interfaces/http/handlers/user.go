@@ -3,9 +3,7 @@ package handlers
 import (
 	"fmt"
 	"io/ioutil"
-	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/vardius/gorouter/v4/context"
 
@@ -107,7 +105,16 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 			return apperrors.Wrap(ErrInvalidURLParams)
 		}
 
-		u, err := repository.Get(r.Context(), params.Value("id"))
+		i, ok := identity.FromContext(r.Context())
+		if !ok {
+			return apperrors.Wrap(apperrors.ErrUnauthorized)
+		}
+		// Users may read only their own record: emails and provider IDs are personal data.
+		if params.Value("id") != i.UserID.String() {
+			return apperrors.Wrap(fmt.Errorf("%w: users can read only their own record", apperrors.ErrForbidden))
+		}
+
+		u, err := repository.Get(r.Context(), i.UserID.String())
 		if err != nil {
 			return apperrors.Wrap(err)
 		}
@@ -122,20 +129,18 @@ func BuildGetUserHandler(repository persistence.UserRepository) http.Handler {
 	return httpjson.HandlerFunc(fn)
 }
 
-// BuildListUserHandler
+// BuildListUserHandler lists the users the caller may see, which is only the caller.
 func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
-		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
-		limitInt, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
-		page := int64(math.Max(float64(pageInt), 1))
-		limit := int64(math.Max(float64(limitInt), 20))
+		i, ok := identity.FromContext(r.Context())
+		if !ok {
+			return apperrors.Wrap(apperrors.ErrUnauthorized)
+		}
 
-		totalUsers, err := repository.Count(r.Context())
+		u, err := repository.Get(r.Context(), i.UserID.String())
 		if err != nil {
 			return apperrors.Wrap(err)
 		}
-
-		offset := (page * limit) - limit
 
 		paginatedList := struct {
 			Users []userView `json:"users"`
@@ -143,24 +148,10 @@ func BuildListUserHandler(repository persistence.UserRepository) http.Handler {
 			Limit int64      `json:"limit"`
 			Total int64      `json:"total"`
 		}{
-			Page:  page,
-			Limit: limit,
-			Total: totalUsers,
-		}
-
-		if totalUsers < 1 || offset > (totalUsers-1) {
-			if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
-				return apperrors.Wrap(err)
-			}
-			return nil
-		}
-
-		users, err := repository.FindAll(r.Context(), limit, offset)
-		if err != nil {
-			return apperrors.Wrap(err)
-		}
-		for _, u := range users {
-			paginatedList.Users = append(paginatedList.Users, newUserView(u))
+			Users: []userView{newUserView(u)},
+			Page:  1,
+			Limit: 1,
+			Total: 1,
 		}
 
 		if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {

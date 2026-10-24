@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/vardius/go-api-boilerplate/cmd/auth/internal/infrastructure/persistence"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
+	"sort"
 	"sync"
 )
 
@@ -151,8 +152,8 @@ func (r *tokenRepository) FindAllByUserID(ctx context.Context, userID, clientID 
 	r.RLock()
 	defer r.RUnlock()
 
-	var matched int64
-	var tokens []persistence.Token
+	// Map order is random, so sort by ID to keep pages stable.
+	var matched []persistence.Token
 	for _, v := range r.tokens {
 		ti, err := v.TokenInfo()
 		if err != nil {
@@ -161,20 +162,18 @@ func (r *tokenRepository) FindAllByUserID(ctx context.Context, userID, clientID 
 		if ti.GetUserID() != userID || ti.GetClientID() != clientID {
 			continue
 		}
-
-		matched++
-		if matched <= offset {
-			continue
-		}
-
-		tokens = append(tokens, v)
-
-		if int64(len(tokens)) == limit {
-			return tokens, nil
-		}
+		matched = append(matched, v)
 	}
+	sort.Slice(matched, func(i, j int) bool { return matched[i].GetID() < matched[j].GetID() })
 
-	return tokens, nil
+	if offset >= int64(len(matched)) {
+		return nil, nil
+	}
+	end := offset + limit
+	if end > int64(len(matched)) {
+		end = int64(len(matched))
+	}
+	return matched[offset:end], nil
 }
 
 func (r *tokenRepository) CountByUserID(ctx context.Context, userID, clientID string) (int64, error) {

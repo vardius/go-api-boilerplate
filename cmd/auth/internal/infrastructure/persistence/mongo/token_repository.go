@@ -194,7 +194,7 @@ func (r *tokenRepository) CountByClientID(ctx context.Context, clientID string) 
 }
 
 func (r *tokenRepository) FindAllByUserID(ctx context.Context, userID, clientID string, limit, offset int64) ([]persistence.Token, error) {
-	findOptions := options.Find().SetLimit(limit).SetSkip(offset)
+	findOptions := options.Find().SetSort(bson.D{{Key: "id", Value: 1}}).SetLimit(limit).SetSkip(offset)
 	filter := bson.M{
 		"user_id":   userID,
 		"client_id": clientID,
