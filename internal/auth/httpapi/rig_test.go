@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -229,12 +230,8 @@ func (b *browser) request(method, path string, body io.Reader, header http.Heade
 	if err != nil {
 		b.t.Fatal(err)
 	}
-	for k, v := range b.header {
-		req.Header[k] = v
-	}
-	for k, v := range header {
-		req.Header[k] = v
-	}
+	maps.Copy(req.Header, b.header)
+	maps.Copy(req.Header, header)
 	return req
 }
 

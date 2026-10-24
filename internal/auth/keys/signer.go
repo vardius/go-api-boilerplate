@@ -77,16 +77,14 @@ func (s *Signer) sign(c Claims, ttl time.Duration) (string, error) {
 		ClientID string `json:"client_id"`
 		Scope    string `json:"scope"`
 	}{
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    s.issuer,
-			Subject:   c.Subject,
-			Audience:  jwt.ClaimStrings{s.audience},
-			ExpiresAt: jwt.NewNumericDate(c.IssuedAt.Add(ttl)),
-			IssuedAt:  jwt.NewNumericDate(c.IssuedAt),
-			ID:        uuid.New().String(),
-		},
-		ClientID: c.ClientID,
-		Scope:    strings.Join(c.Scopes, " "),
+		Issuer:    s.issuer,
+		Subject:   c.Subject,
+		Audience:  jwt.ClaimStrings{s.audience},
+		ExpiresAt: jwt.NewNumericDate(c.IssuedAt.Add(ttl)),
+		IssuedAt:  jwt.NewNumericDate(c.IssuedAt),
+		ID:        uuid.New().String(),
+		ClientID:  c.ClientID,
+		Scope:     strings.Join(c.Scopes, " "),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
 	token.Header["typ"] = "at+jwt"

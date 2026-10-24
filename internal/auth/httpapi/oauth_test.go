@@ -6,6 +6,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -373,9 +374,7 @@ func TestTokenEndpointAuthenticatesTheClient(t *testing.T) {
 	}
 	with := func(extra url.Values) url.Values {
 		form := url.Values{"grant_type": {"client_credentials"}}
-		for k, v := range extra {
-			form[k] = v
-		}
+		maps.Copy(form, extra)
 		return form
 	}
 

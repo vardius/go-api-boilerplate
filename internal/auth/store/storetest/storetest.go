@@ -115,9 +115,9 @@ func newCode(user uuid.UUID, client string) store.AuthorizationCode {
 // zone a driver hands back.
 func utc(v any) {
 	rv := reflect.ValueOf(v).Elem()
-	for i := range rv.NumField() {
-		if f, ok := rv.Field(i).Interface().(time.Time); ok {
-			rv.Field(i).Set(reflect.ValueOf(f.UTC()))
+	for _, field := range rv.Fields() {
+		if f, ok := field.Interface().(time.Time); ok {
+			field.Set(reflect.ValueOf(f.UTC()))
 		}
 	}
 }

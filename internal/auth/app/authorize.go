@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"net/url"
 	"slices"
 	"strings"
@@ -118,9 +119,7 @@ func (s *Service) redirect(uri string, params url.Values) string {
 		panic(fmt.Sprintf("app: a registered redirect URI doesn't parse: %v", err))
 	}
 	q := u.Query()
-	for k, v := range params {
-		q[k] = v
-	}
+	maps.Copy(q, params)
 	q.Set("iss", s.signer.Issuer())
 	u.RawQuery = q.Encode()
 	return u.String()
