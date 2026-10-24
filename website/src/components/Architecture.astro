@@ -1,0 +1,227 @@
+---
+// The system on one picture, drawn narrow so it stays legible on a 320 px phone, with the same facts as a list beside it.
+// Colours come from the --diagram-* tokens in custom.css, so it follows the light and dark themes.
+interface Props {
+	/** Prefixes the SVG's element IDs, so the diagram can appear on more than one page. */
+	id?: string;
+}
+const { id = 'architecture' } = Astro.props;
+const arrow = `${id}-arrow`;
+---
+
+<div class="frame not-content">
+<figure class="architecture">
+	<svg
+		viewBox="0 0 320 484"
+		role="img"
+		aria-labelledby={`${id}-title ${id}-desc`}
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<title id={`${id}-title`}>How go-api-boilerplate fits together</title>
+		<desc id={`${id}-desc`}>
+			A browser and third-party OAuth apps reach the system through one web gateway on port 8080, which serves the
+			web app and forwards /api/auth/ to the auth service and /api/user/ to the user service. Auth calls user's
+			LoginService over Connect to redeem login codes; user fetches auth's JWKS to verify access tokens. Each
+			service keeps its own store, memory, MySQL or MongoDB. The user service's outbox relay sends mail to
+			Mailpit locally, or to any SMTP server.
+		</desc>
+		<defs>
+			<marker id={arrow} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+				<path d="M0 0 10 5 0 10z" class="head"></path>
+			</marker>
+		</defs>
+
+		<g class="box">
+			<rect x="8" y="8" width="120" height="40" rx="8"></rect>
+			<text x="68" y="33" class="name">Browser</text>
+		</g>
+		<g class="box">
+			<rect x="192" y="8" width="120" height="40" rx="8"></rect>
+			<text x="252" y="33" class="name">OAuth app</text>
+		</g>
+		<path d="M68 48v38" class="line" marker-end={`url(#${arrow})`}></path>
+		<path d="M252 48v38" class="line" marker-end={`url(#${arrow})`}></path>
+
+		<g class="box">
+			<rect x="8" y="88" width="304" height="56" rx="8"></rect>
+			<text x="160" y="112" class="name">web gateway :8080</text>
+			<text x="160" y="132" class="note">the app, /api/auth/ and /api/user/</text>
+		</g>
+		<path d="M68 144v38" class="line" marker-end={`url(#${arrow})`}></path>
+		<path d="M252 144v38" class="line" marker-end={`url(#${arrow})`}></path>
+
+		<g class="box service">
+			<rect x="8" y="184" width="120" height="84" rx="8"></rect>
+			<text x="68" y="208" class="name">auth</text>
+			<text x="68" y="230" class="note">sessions, OAuth2</text>
+			<text x="68" y="249" class="note">and JWKS</text>
+		</g>
+		<g class="box service">
+			<rect x="192" y="184" width="120" height="84" rx="8"></rect>
+			<text x="252" y="208" class="name">user</text>
+			<text x="252" y="230" class="note">event-sourced</text>
+			<text x="252" y="249" class="note">login codes</text>
+		</g>
+		<path d="M128 214h62" class="line" marker-end={`url(#${arrow})`}></path>
+		<text x="160" y="206" class="label">Connect</text>
+		<path d="M192 240h-62" class="line" marker-end={`url(#${arrow})`}></path>
+		<text x="160" y="260" class="label">JWKS</text>
+
+		<path d="M68 268v38" class="line" marker-end={`url(#${arrow})`}></path>
+		<path d="M252 268v38" class="line" marker-end={`url(#${arrow})`}></path>
+
+		<g class="box store">
+			<path d="M8 316a60 8 0 0 1 120 0v66a60 8 0 0 1-120 0z"></path>
+			<path d="M8 316a60 8 0 0 0 120 0" class="rim"></path>
+			<text x="68" y="348" class="name">auth store</text>
+			<text x="68" y="368" class="note">clients, grants</text>
+		</g>
+		<g class="box store">
+			<path d="M192 316a60 8 0 0 1 120 0v66a60 8 0 0 1-120 0z"></path>
+			<path d="M192 316a60 8 0 0 0 120 0" class="rim"></path>
+			<text x="252" y="345" class="name">user store</text>
+			<text x="252" y="364" class="note">events, users</text>
+			<text x="252" y="381" class="note">and outbox</text>
+		</g>
+
+		<path d="M252 392v34" class="line" marker-end={`url(#${arrow})`}></path>
+		<text x="244" y="414" class="label end">outbox relay</text>
+
+		<g class="box">
+			<rect x="192" y="428" width="120" height="48" rx="8"></rect>
+			<text x="252" y="449" class="name">Mailpit</text>
+			<text x="252" y="467" class="note">or your SMTP</text>
+		</g>
+		<text x="8" y="447" class="label start">One store per service:</text>
+		<text x="8" y="466" class="label start">memory, MySQL or MongoDB</text>
+	</svg>
+
+	<ol class="legend">
+		<li>
+			<strong>One origin.</strong> The gateway serves the web app and forwards <code>/api/auth/</code> and
+			<code>/api/user/</code>, so cookies stay SameSite and nothing needs CORS.
+		</li>
+		<li>
+			<strong>auth</strong> issues every token and sets the only cookies. Clients and grants are plain rows: short-lived
+			secrets don't belong in a permanent log.
+		</li>
+		<li>
+			<strong>user</strong> is event-sourced. A change appends events, updates the <code>users</code> projection and
+			queues its emails in one transaction.
+		</li>
+		<li>
+			<strong>No call per request.</strong> Each API verifies access tokens itself with auth's JWKS, cached.
+		</li>
+		<li>
+			<strong>One internal RPC.</strong> auth redeems login codes with user over Connect, on a listener the gateway
+			doesn't expose.
+		</li>
+		<li>
+			<strong>Mail at least once.</strong> The outbox relay retries with backoff. Locally, Mailpit catches every
+			message.
+		</li>
+	</ol>
+</figure>
+</div>
+
+<style>
+	/* The figure sits beside its legend only when its own column is wide enough, which on a docs
+	   page with large text can be narrower than the viewport suggests. */
+	.frame {
+		container-type: inline-size;
+	}
+
+	.architecture {
+		display: grid;
+		gap: 1.5rem 2.5rem;
+		align-items: center;
+		margin: 0;
+	}
+
+	svg {
+		display: block;
+		width: 100%;
+		max-width: 26rem;
+		height: auto;
+		margin-inline: auto;
+		font-family: var(--__sl-font);
+	}
+
+	.box :is(rect, path:not(.rim)) {
+		fill: var(--diagram-surface);
+		stroke: var(--diagram-line);
+		stroke-width: 1.25;
+	}
+
+	.box .rim {
+		fill: none;
+		stroke: var(--diagram-line);
+		stroke-width: 1.25;
+	}
+
+	.service rect {
+		stroke: var(--diagram-accent);
+		stroke-width: 2;
+	}
+
+	text {
+		text-anchor: middle;
+	}
+
+	.name {
+		fill: var(--diagram-text);
+		font-size: 15px;
+		font-weight: 600;
+	}
+
+	.note,
+	.label {
+		fill: var(--diagram-muted);
+		font-size: 12.5px;
+	}
+
+	.label.start {
+		text-anchor: start;
+	}
+
+	.label.end {
+		text-anchor: end;
+	}
+
+	.line {
+		fill: none;
+		stroke: var(--diagram-line);
+		stroke-width: 1.5;
+	}
+
+	.head {
+		fill: var(--diagram-line);
+	}
+
+	.legend {
+		display: grid;
+		gap: 0.75rem;
+		margin: 0;
+		padding-inline-start: 1.25rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.legend strong {
+		color: var(--sl-color-white);
+	}
+
+	.legend code {
+		padding: 0.0625rem 0.25rem;
+		border-radius: 0.25rem;
+		background: var(--sl-color-bg-inline-code);
+		font-family: var(--__sl-font-mono);
+		font-size: 0.875em;
+		overflow-wrap: anywhere;
+	}
+
+	@container (min-width: 46rem) {
+		.architecture {
+			grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+		}
+	}
+</style>

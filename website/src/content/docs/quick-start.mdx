@@ -1,0 +1,108 @@
+---
+title: Quick start
+description: Create your repository from the template, run both services with Docker Compose, and sign in through Mailpit.
+---
+
+import { Aside, LinkCard, CardGrid, Steps } from '@astrojs/starlight/components';
+
+Everything runs in Docker Compose on `localhost`. You don't need a Kubernetes cluster, Helm, or an entry in `/etc/hosts`.
+
+{/* verify: compose.yaml, compose.mysql.yaml, compose.mongodb.yaml, .env.example and the Makefile targets below come with plan section F; run every command on this page once they exist */}
+
+## What you need
+
+- Docker with Compose v2, so that `docker compose` works.
+- Go 1.27, to run the tests and tools outside Docker.
+- The [GitHub CLI](https://cli.github.com/), or use the **Use this template** button on GitHub instead of the first step.
+
+## Run it
+
+<Steps>
+
+1. Create your repository from the template and clone it:
+
+   ```sh
+   gh repo create my-api --template vardius/go-api-boilerplate --private --clone
+   cd my-api
+   ```
+
+2. Give the module your own path. Go imports, the generated Connect code and `buf.gen.yaml` all carry the template's path, so replace it everywhere at once, then check that it still builds:
+
+   ```sh
+   go mod edit -module github.com/you/my-api
+   grep -rl github.com/vardius/go-api-boilerplate --include='*.go' --include='*.yaml' . \
+     | xargs perl -pi -e 's#github.com/vardius/go-api-boilerplate#github.com/you/my-api#g'
+   go build ./...
+   ```
+
+3. Copy the development settings. `.env` is gitignored, so your local secrets stay out of the repository:
+
+   ```sh
+   cp .env.example .env
+   ```
+
+4. Start everything and wait until each container reports healthy:
+
+   ```sh
+   docker compose up --wait
+   ```
+
+   This builds the auth and user services on the memory store, the web app behind its gateway, and Mailpit.
+
+5. Open [localhost:8080](http://localhost:8080) and sign in with any email address.
+
+6. Open Mailpit at [localhost:8025](http://localhost:8025), open the message, and follow the link. You are signed in.
+
+</Steps>
+
+<Aside type="caution" title="The memory store forgets">
+The default build keeps data in process memory. Restarting a container empties it. Use MySQL or MongoDB when you want data to survive a restart.
+</Aside>
+
+To stop everything:
+
+```sh
+docker compose down
+```
+
+## Use MySQL or MongoDB
+
+Each binary links exactly one store, chosen by a build tag. `make up` adds the database through an override file and rebuilds both services for it:
+
+```sh
+make up STORE=mysql
+make up STORE=mongodb
+```
+
+`STORE=mysql` runs MySQL 8.4 and applies migrations at start, which compose turns on with `MIGRATE_ON_START=true`. `STORE=mongodb` runs MongoDB as a single-node replica set, because multi-document transactions need one. Stop either with `make down`.
+
+## Work on the code
+
+| Command | What it does |
+|---|---|
+| `docker compose watch` | Rebuilds a service when its Go files change. |
+| `docker compose logs -f user` | Follows one service's logs. `make logs` follows all of them. |
+| `go test -race ./...` | Runs every test. Tests that start MySQL or MongoDB containers need Docker. |
+| `go test -short ./...` | Skips the container tests, for a quick run without Docker. |
+| `make check` | Runs everything CI runs. Do this before you push. |
+| `make gen` | Regenerates the Connect code and the configuration reference, and lints the OpenAPI files. |
+| `make e2e` | Runs the end-to-end tests against the running stack. |
+
+## Common questions
+
+**Do I need Kubernetes to develop?** No. Compose runs the whole system. The [Helm chart](../guides/deploy-to-kubernetes/) is for deploying.
+
+**How do users sign up?** There are no passwords. A user types an email address and gets a link with a one-time code. The first time a code is redeemed, the account is created. Typing an address alone creates nothing.
+
+**Where do the emails go?** Locally, to Mailpit, which accepts everything and sends nothing on. In production, set the `SMTP_*` variables in [Configuration](../guides/configuration/).
+
+**Can I use go-micro, NATS or Kafka?** You can, but nothing here needs a broker. If a side effect should reach another system, the [outbox](../concepts/outbox-and-side-effects/) is where you would publish it.
+
+**Can I add another database, such as DynamoDB?** Yes. Implement the store interfaces and pass the same contract suites the three built-in backends pass. See [Event store and concurrency](../concepts/event-store-and-concurrency/#adding-a-backend).
+
+## Next
+
+<CardGrid>
+	<LinkCard title="Architecture" href="../architecture/" description="What happens on sign-in, and where the trust boundaries are." />
+	<LinkCard title="Add a command" href="../guides/add-a-command/" description="Change the domain: an event, a rule, a use case and its tests." />
+</CardGrid>

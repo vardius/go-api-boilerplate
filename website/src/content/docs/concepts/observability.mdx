@@ -1,0 +1,64 @@
+---
+title: Observability
+description: Structured JSON logs tied to traces and requests, OpenTelemetry traces and metrics over OTLP, health probes, and a shutdown that drains before it stops.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import { relayMetrics } from '../../../lib/samples';
+
+Everything here uses the standard library and OpenTelemetry. There is no vendor SDK to swap out: point the OTLP exporter at whatever backend you run.
+
+{/* verify: the obs, httpx and run packages against this page once plan section C1 lands */}
+
+## Logs
+
+Both services log JSON lines with `log/slog`. Each line inside a request carries `request_id`, and `trace_id` and `span_id` when a trace is active, so you can go from a log line to its trace and back.
+
+- `LOG_LEVEL` sets the level (`debug`, `info`, `warn`, `error`; default `info`).
+- `LOG_FORMAT` is `json` (default) or `text`, which is easier to read in a terminal.
+
+Every HTTP request gets one line: method, route pattern, status, bytes, duration and request ID. A `5xx` logs at error level. The route pattern, such as `GET /v1/me`, is logged instead of the raw path, so IDs in paths don't explode your log index.
+
+**Request IDs.** An incoming `X-Request-Id` is kept if it is 1 to 64 characters of letters, digits, `.`, `_` or `-`. Otherwise the service makes a new one. Either way it is echoed in the response and in every problem body.
+
+**Redaction.** The handler replaces the values of keys that hold credentials with `[redacted]`: `password`, `secret`, `token`, `access_token`, `refresh_token`, `authorization`, `cookie`, `set-cookie`, `client_secret`, `code` and `code_verifier`. Secrets in config use a `Secret` type that prints `[redacted]` too.
+
+## Traces and metrics
+
+When `OTEL_EXPORTER_OTLP_ENDPOINT` is set, or one of its per-signal variants, the services export traces and metrics over OTLP/HTTP. When it isn't, the providers are no-ops and cost nothing. These are the OpenTelemetry SDK's standard variables, so any collector works.
+
+Incoming HTTP requests get a span named after the route, such as `GET /v1/me`. Trace context propagates with the W3C `traceparent` header and baggage.
+
+Packages record their own metrics with the global meter. The outbox relay, for example, counts delivered and buried messages:
+
+<Code {...relayMetrics} />
+
+Locally, the compose profile `observability` adds `grafana/otel-lgtm`, which bundles a collector, Grafana and storage for logs, traces and metrics, and points both services at it:
+
+```sh
+docker compose --profile observability up --wait
+```
+
+## Health probes
+
+| Route | Answers |
+|---|---|
+| `/livez` | `200` while the process runs. |
+| `/readyz` | `200` when every readiness check passes and the service isn't shutting down. Otherwise `503`, with a problem body naming the checks that failed. |
+
+The readiness checks cover what the service needs to serve, such as its database. Kubernetes and compose both use these routes.
+
+## Shutdown
+
+On `SIGINT` or `SIGTERM` a service:
+
+1. flips `/readyz` to `503`, so load balancers stop sending it traffic;
+2. waits `SHUTDOWN_DELAY` (default `5s`) for them to notice;
+3. shuts down every server and worker concurrently, allowing `SHUTDOWN_TIMEOUT` (default `20s`) for requests in flight to finish;
+4. exits non-zero if anything failed to stop cleanly.
+
+## Profiling
+
+pprof is served on a separate admin listener that is off by default, so it can't be reached through the gateway by accident.
+
+{/* verify: the admin listener's env var and port once plan section C1 lands; don't name one before it exists */}

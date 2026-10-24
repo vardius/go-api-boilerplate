@@ -1,0 +1,46 @@
+---
+title: Add a service
+description: Add a third service by copying the user service's layout, then register it everywhere a service is listed.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+A new service earns its place when it owns data nobody else should write, or has a different reason to change. If it would share a database with an existing service, or call it on every request, it is probably a package inside that service instead.
+
+{/* verify: every path, file and registration step below against the repository once plan sections D–I land */}
+
+<Aside title="Using a coding agent?">
+The `add-service` skill in `.agents/skills/` holds this checklist and the commands that check each step.
+</Aside>
+
+<Steps>
+
+1. **Copy the layout** of `internal/user/`: `domain/`, `app/`, `store/{memory,mysql,mongodb}/`, `httpapi/`, and an `AGENTS.md` that says what is true only there. Start state-stored like auth unless the history is worth keeping; event sourcing is a choice per service.
+
+2. **Add the binary:** `cmd/<service>/main.go`, the composition root, under 150 lines, and one `store_<backend>.go` per backend. Only those files carry build tags.
+
+3. **Describe its API** in `api/<service>.openapi.yaml`, and its RPCs, if any, in `proto/<service>/v1/`.
+
+4. **Give it scopes.** Add them to auth's scope table, and decide for each whether OAuth apps may be granted it.
+
+5. **Register it in compose:** a service in `compose.yaml` built with `SERVICE=<service>`, its health check on `/readyz`, and its database in the MySQL and MongoDB override files.
+
+6. **Route it through the gateway:** a `/api/<service>/` location in the web app's nginx configuration.
+
+7. **Add it to the Helm chart** with its own values: image, probes, resources, and `existingSecret`.
+
+8. **Update the scope router** in the root `AGENTS.md`, so an agent working in the new folder finds its rules.
+
+9. **Extend the boundary test** in `internal/archtest`, so the new service can't import the others.
+
+10. **Run everything:**
+
+    ```sh
+    make check
+    docker compose up --wait
+    make e2e
+    ```
+
+</Steps>
+
+CI needs no change for Go: it builds and tests `./...` for each store tag, so the new packages are covered as soon as they exist.

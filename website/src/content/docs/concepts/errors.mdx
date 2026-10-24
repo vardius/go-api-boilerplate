@@ -1,0 +1,64 @@
+---
+title: Errors as problem details
+description: Five error kinds shared by every layer, one table that maps them to HTTP statuses, and RFC 9457 problem details that never leak internals.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import { apperrKinds, eventStore } from '../../../lib/samples';
+
+Errors cross three boundaries: from the domain to the use case, from the use case to a transport, and from the transport to a client. Two rules keep that safe and readable:
+
+1. **Every layer shares five kinds,** so a store, a use case and a handler agree on what "not found" means without importing each other.
+2. **What a client reads is set on purpose.** Wrapped context is for logs. A message reaches a client only when the code says it may.
+
+## The kinds
+
+<Code {...apperrKinds} />
+
+Code wraps an error with context as it returns, `fmt.Errorf("load user %s: %w", id, err)`, and tests the kind with `errors.Is`. The kind survives any amount of wrapping.
+
+`apperr.New` attaches a message written for the client. The event store's conflict error is one:
+
+<Code {...eventStore} />
+
+## One table, one place
+
+Each transport maps kinds to its own codes in one table: `httpx` for HTTP, `connectx` for Connect. Handlers never pick a status code for an error themselves.
+
+| Error | HTTP status |
+|---|---|
+| `*apperr.ValidationError`, `apperr.ErrInvalid` | `400`, with `errors` set for a validation error |
+| `*http.MaxBytesError` | `413` |
+| `apperr.ErrUnauthorized` | `401`, with `WWW-Authenticate: Bearer` |
+| `apperr.ErrForbidden` | `403` |
+| `apperr.ErrNotFound` | `404` |
+| `apperr.ErrConflict` | `409` |
+| `context.DeadlineExceeded` | `503` |
+| `context.Canceled` | nothing is written: the client left |
+| anything else | `500`, with no detail; the error text goes to the log |
+
+{/* verify: the table against internal/platform/httpx, and add the Connect table from internal/platform/connectx once it exists */}
+
+## Problem details
+
+HTTP errors are RFC 9457 `application/problem+json`:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Conflict",
+  "status": 409,
+  "detail": "this was changed by another request; reload and try again",
+  "instance": "/v1/me/email-change/confirm",
+  "request_id": "0192c1b5-7f3e-7a51-9d2c-4b1f3e8a6c10"
+}
+```
+
+{/* verify: replace this example with one imported from api/user.openapi.yaml once it exists */}
+
+- `title` is the status text. `detail` is the client-safe message, omitted when there is none.
+- `request_id` matches the `X-Request-Id` response header and the request's log line, so a user's bug report leads straight to the logs.
+- A validation error adds `errors`, an object from field name to problem.
+- A `5xx` never carries `err.Error()`. It might hold a SQL query, a hostname or worse.
+
+The OAuth endpoints are the one exception. `/oauth/token` and `/oauth/revoke` answer in the RFC 6749 shape, `{"error", "error_description"}`, because that is what OAuth clients parse.

@@ -1,0 +1,75 @@
+---
+title: Event store and concurrency
+description: The two-method event store, the version check that stops two writers both succeeding, the shared transaction, and the contract every backend passes.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import {
+	counterConflictTest,
+	counterRepository,
+	eventStore,
+	memdbContractTests,
+	storeContract,
+	unitOfWork,
+} from '../../../lib/samples';
+
+The event store does two things: append events to the end of a stream, and load a stream in order. Everything else, such as decoding payloads and rebuilding aggregates, sits above it in `es.Repository`. A small interface is what lets three very different databases implement it the same way.
+
+<Code {...eventStore} />
+
+## Optimistic concurrency
+
+Two requests can load the same user, change it, and save. Without a check, both appends succeed and one change silently overwrites the other's assumptions.
+
+So every append says which version it expects the stream to be at. The repository passes the version the aggregate was loaded at. If another request appended first, the stream is ahead, nothing is written, and `Append` returns `es.ErrConcurrency`:
+
+<Code {...counterConflictTest} />
+
+`ErrConcurrency` is an `apperr.ErrConflict`, so it reaches an HTTP client as a `409` with the message "this was changed by another request; reload and try again". The client reloads and decides again. Stores never retry it themselves: only the caller knows whether the change still makes sense.
+
+## One transaction for everything
+
+`Append` takes a `uow.Tx`. Projections and the outbox take the same one, so a change's events, its read models and the messages it causes commit together:
+
+<Code {...unitOfWork} />
+
+A backend may run the function more than once to retry a transient failure, such as a MongoDB write conflict. That is why the function must only write through `tx` and do nothing else: no HTTP calls and no emails. A side effect goes into the outbox instead.
+
+The repository is configured once per aggregate type, with its store, registry and projection:
+
+<Code {...counterRepository} />
+
+## The backends
+
+| Backend | Package | How the version check works |
+|---|---|---|
+| Memory | `internal/platform/memdb` | A mutex-guarded map. A transaction holds the write lock and undoes its writes if it fails. Data is lost when the process stops. |
+| MySQL | `internal/platform/mysql` | An `events` table with `UNIQUE KEY (stream_id, version)`. Append checks the head version inside the transaction, and a duplicate key also maps to `es.ErrConcurrency`. |
+| MongoDB | `internal/platform/mongodb` | An `events` collection with a unique index on `{stream_id: 1, version: 1}`, written in a session transaction. Needs a replica set, even a single-node one. |
+
+{/* verify: the mysql and mongodb packages, their schema and their indexes against the code once plan section C4 lands */}
+
+Loading always sorts by version, never by time. Timestamps are kept to the millisecond, the finest every backend stores, and two events can share one.
+
+## The contract suite
+
+Every backend runs the same tests: append then load, continue a stream, a stale or future version conflicts, two concurrent appends where exactly one wins, a rollback leaves nothing, an unknown stream is empty, and streams don't affect each other.
+
+<Code {...storeContract} />
+
+A backend's own test only says how to open it:
+
+<Code {...memdbContractTests} />
+
+The MySQL and MongoDB suites start a container per test binary through testcontainers, and skip under `go test -short`. CI runs them in full.
+
+## Adding a backend
+
+To keep events in another database, such as DynamoDB or PostgreSQL, write a package that provides:
+
+1. a `uow.UnitOfWork` whose `Tx` your stores can unwrap,
+2. an `es.Store` and an `outbox.Store` that write through that `Tx`,
+3. a test that passes `estest.TestStore` and `outboxtest.TestStore`,
+4. the service stores (the user projection and login codes, auth's clients and grants), each passing its service's contract suite.
+
+Then add a `cmd/<service>/store_<backend>.go` with a new build tag that opens it. Nothing above the store changes. If the suite passes, the backend follows the same rules as the other three.

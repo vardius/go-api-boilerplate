@@ -1,0 +1,69 @@
+---
+title: Deploy to Kubernetes
+description: Deploy both services and the gateway with the one Helm chart, against a managed MySQL or MongoDB, with secrets you create and migrations that run before each release.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+Kubernetes is optional. The services are ordinary containers that read the environment and answer `/livez` and `/readyz`, so anything that runs containers can run them. For Kubernetes, the repository ships one Helm chart in `deploy/helm/go-api-boilerplate`.
+
+The chart doesn't create a cluster or a database. Use any cluster: a managed one, or `kind` or minikube on your machine. Use a managed MySQL or MongoDB, or one you already run.
+
+{/* verify: the chart's path, values and behaviour against deploy/helm once plan section F lands; this page names only what the plan specifies, so add the real value names then */}
+
+## Images
+
+Each release builds multi-arch images to the GitHub Container Registry, with provenance and an SBOM:
+
+| Image | Tags |
+|---|---|
+| `ghcr.io/vardius/go-api-boilerplate-auth` | `<version>-memory`, `<version>-mysql`, `<version>-mongodb` |
+| `ghcr.io/vardius/go-api-boilerplate-user` | `<version>-memory`, `<version>-mysql`, `<version>-mongodb` |
+| `ghcr.io/vardius/go-api-boilerplate-web` | `<version>` |
+
+The store is part of the tag because it is compiled in. The chart's `store` value picks the matching variant for both services. The images run as a non-root user on a distroless base, with nothing in them but the binary.
+
+Building your own? Change the image names in the release workflow to your registry. If the registry is private, the cluster needs credentials to pull from it: see [Pull an image from a private registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+
+## Install
+
+<Steps>
+
+1. **Create the secrets** the services need: the signing key for auth, the database credentials, and the SMTP password. Create them with `kubectl` or your secret manager. The chart refers to them by name through `existingSecret` and never templates a secret from values.
+
+2. **Write your values:** the `store`, the image version, each service's public settings (`ISSUER`, `WEB_URL`, `SMTP_ADDR` and the rest from [Environment variables](../../reference/environment-variables/)), resources, and the hostname.
+
+3. **Install or upgrade:**
+
+   ```sh
+   helm upgrade --install my-api deploy/helm/go-api-boilerplate -f values.yaml
+   ```
+
+   With `store: mysql`, a pre-install and pre-upgrade hook runs a Job with the same image's `migrate` subcommand before any pod of the new version starts. MongoDB needs no Job: each service ensures its indexes at start.
+
+4. **Check it:**
+
+   ```sh
+   helm status my-api
+   kubectl get pods
+   ```
+
+   A pod is ready when `/readyz` answers `200`.
+
+</Steps>
+
+## Routing
+
+By default the chart creates a Gateway API `HTTPRoute` that sends traffic to the web gateway, which forwards `/api/auth/` and `/api/user/` to the services. An `Ingress` is optional, for clusters without a Gateway API controller. The ingress-nginx project is archived upstream, so prefer a maintained controller.
+
+The user service's Connect listener is never exposed: auth reaches it inside the cluster.
+
+## What the chart sets for you
+
+- A `securityContext` with a non-root user, a read-only root filesystem and every capability dropped.
+- Liveness and readiness probes on `/livez` and `/readyz`, with resource requests and limits.
+- A shutdown that drains: readiness fails first, then the pod waits `SHUTDOWN_DELAY` before it stops accepting connections.
+
+<Aside title="Checking the chart">
+CI runs `helm lint` and renders the chart through `kubeconform`, so a template that Kubernetes would reject fails the pull request.
+</Aside>

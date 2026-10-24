@@ -1,0 +1,96 @@
+---
+title: Authentication
+description: Sessions with one-time codes and HttpOnly cookies, ES256 access tokens verified through JWKS, OAuth2 with PKCE for third-party apps, and the scopes that limit each token.
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+import { loginService } from '../../../lib/samples';
+
+The auth service is a small token service you own. It does three jobs: signs people in to the web app, lets third-party apps act for them through OAuth2, and publishes the public keys every API uses to check tokens.
+
+Running your own instead of an external identity provider costs some code, but it keeps the whole flow in one repository you can read, test and change. If you'd rather use a hosted provider later, note that the user service checks tokens with three settings only: a JWKS URL, an issuer and an audience.
+
+{/* verify: everything on this page comes from the design spec; check it against internal/auth and internal/platform/authn once they exist */}
+
+## Sessions
+
+A user signs in with a one-time code from an email or from the Google callback. auth redeems it and sets two cookies. Only auth ever sets cookies.
+
+| Cookie | Holds | Attributes |
+|---|---|---|
+| `access_token` | The access JWT | HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age 15 minutes |
+| `refresh_token` | The refresh token | HttpOnly; Secure; SameSite=Strict; Path=`/api/auth/v1/sessions`; Max-Age 30 days |
+
+Neither is readable from JavaScript, so a script injected into the page can't steal a token. The refresh cookie is only sent to the session routes, so ordinary API calls never carry it. Locally, compose sets `COOKIE_SECURE=false` because `localhost` is plain HTTP.
+
+| Token | What it is | Lifetime |
+|---|---|---|
+| Login code | 32 random bytes, stored as a SHA-256 hash, single use | 15 minutes; 2 minutes from the Google callback |
+| Access token | An ES256 JWT | 15 minutes |
+| Refresh token | 32 random bytes, stored as a SHA-256 hash, rotated on every use | 30 days |
+
+**Reuse detection.** Each refresh returns a new refresh token and retires the old one. If a retired token is presented again, someone copied it, so auth revokes the whole grant and every token in it. The real user has to sign in again; the thief is locked out too.
+
+A session is a grant to the first-party client `web`. Users list their sessions with `GET /api/auth/v1/sessions` and revoke one with `DELETE /api/auth/v1/sessions/{id}`. `DELETE /api/auth/v1/sessions/current` signs out. These routes need a first-party session, so an OAuth app can't list or revoke a user's devices.
+
+## Access tokens and JWKS
+
+Access tokens follow RFC 9068, JWT profile for OAuth 2.0 access tokens:
+
+- header: `typ: at+jwt`, `alg: ES256`, and `kid`;
+- claims: `iss`, `sub`, `aud`, `exp`, `iat`, `jti`, `client_id`, and `scope` (space-separated).
+
+For a user's token, `sub` is the user ID. For a client-credentials token, `sub` equals `client_id`.
+
+auth publishes its public keys at `GET /.well-known/jwks.json`. Every API fetches that set once, caches it, and verifies each token locally. An unknown `kid` triggers a refetch, at most once a minute. Verification accepts ES256 only and requires `exp`, `iss` and `aud`, with 30 seconds of leeway for clock skew. Any failure is a `401`.
+
+Why asymmetric keys? With a shared HMAC secret, every service that can verify a token can also forge one. With ES256, only auth holds the private key.
+
+<Aside title="Rotating the signing key">
+auth signs with the key in `SIGNING_KEY_FILE`. To rotate, put the old key's public half in `PREVIOUS_KEYS_DIR` and point `SIGNING_KEY_FILE` at the new one. The JWKS serves both, so tokens signed before the switch keep verifying until they expire. Remove the old key once the last token signed with it has expired, 15 minutes after the switch. [Configuration](../../guides/configuration/#the-signing-key) shows the commands.
+</Aside>
+
+## OAuth2 for third-party apps
+
+auth runs an OAuth2 server with three grants and nothing else:
+
+- **authorization_code**, with PKCE S256 required. `plain` is rejected.
+- **client_credentials**, for a client acting as itself.
+- **refresh_token**, with the same rotation and reuse detection as sessions.
+
+The rules that matter:
+
+- Redirect URIs match exactly. They are registered as absolute `https` URLs, or `http` only for `localhost`.
+- Granted scopes are a subset of the client's scopes, which are a subset of what may be granted at all.
+- An authorization code works once, for one minute, bound to its client, redirect URI and PKCE verifier.
+- The client secret is 32 random bytes, shown once at creation, stored as an argon2id hash and compared in constant time.
+- Deleting a client revokes every grant it holds.
+- The user sees a consent screen with the app's name and scopes before anything is granted.
+
+Users manage their apps with `GET /api/auth/v1/clients`, `POST /api/auth/v1/clients` and `DELETE /api/auth/v1/clients/{id}`. A list never includes a secret. Clients see the server's metadata at `/.well-known/oauth-authorization-server` (RFC 8414).
+
+## Scopes
+
+| Scope | Allows | Grantable to OAuth apps |
+|---|---|---|
+| `user:read` | `GET /api/user/v1/me` | yes |
+| `user:write` | Change email, link Google | yes |
+| `clients:read` | List your OAuth apps | yes |
+| `clients:write` | Create and delete your OAuth apps | yes |
+| `login-codes:redeem` | `user.v1.LoginService/RedeemLoginCode` | no: only auth's own service token |
+
+There is no catch-all scope. A session gets the four user scopes. A route asks for what it needs: `401` if there is no token, `403` if the token lacks the scope, and `403` for a client token on a route that needs a user.
+
+## The one internal call
+
+To redeem a login code, auth calls the user service over Connect:
+
+<Code {...loginService} />
+
+auth authenticates with a short-lived token it signs for itself, carrying `login-codes:redeem`. user verifies it with the JWKS like any other token. There's no shared secret to configure or leak, and the RPC listener isn't reachable through the gateway.
+
+## What is never done
+
+- Tokens are never accepted from a query string, where they end up in logs and browser history.
+- Tokens, codes and secrets are never stored in events, never written to logs, and never put in error messages. The logger redacts keys such as `token`, `code`, `client_secret` and `authorization`.
+- A use case never takes the acting user from the request body. It comes from the verified token.

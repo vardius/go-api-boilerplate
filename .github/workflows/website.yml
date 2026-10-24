@@ -1,0 +1,59 @@
+name: Website
+
+# The site imports its code samples from the Go, proto and buf files, so a change there rebuilds it.
+on:
+  push:
+    branches: [master]
+    paths: ['website/**', 'api/**', 'proto/**', 'internal/**/*.go', 'buf.yaml', 'buf.gen.yaml', '.github/workflows/website.yml']
+  pull_request:
+    paths: ['website/**', 'api/**', 'proto/**', 'internal/**/*.go', 'buf.yaml', 'buf.gen.yaml', '.github/workflows/website.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      # The site is served under /go-api-boilerplate/, so check it laid out the same way.
+      - name: Lay out the site as GitHub Pages serves it
+        run: mkdir -p ../_site && cp -R dist ../_site/go-api-boilerplate
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --include-fragments --root-dir "${{ github.workspace }}/_site" --index-files index.html --no-progress '_site/**/*.html'
+      - uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request'
+        with:
+          path: website/dist
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v6
+      - id: deployment
+        uses: actions/deploy-pages@v5
