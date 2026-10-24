@@ -81,4 +81,4 @@ e2e: ## End-to-end tests against a running stack (make up first)
 
 .PHONY: e2e-web
 e2e-web: ## Browser tests against a running stack
-	cd web && npx playwright test
+	cd web && E2E_STACK_UP=1 npm run e2e

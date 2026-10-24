@@ -1,6 +1,6 @@
 # web: rules for agents
 
-The code bar is the `standards` skill (its React/TypeScript file); these add to it.
+The code bar is [`docs/standards/typescript.md`](../docs/standards/typescript.md); these add to it.
 
 ## Commands
 
@@ -37,4 +37,4 @@ The code bar is the `standards` skill (its React/TypeScript file); these add to 
   `src/i18n/pl.ts`. Polish plurals need one, few, many and other;
   `messages.test.ts` checks that both locales match.
 - Never invent product facts in copy (lifetimes, env vars, limits): take them
-  from the design doc or the server.
+  from the server or the website's reference pages.

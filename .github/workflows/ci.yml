@@ -158,7 +158,7 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium
-          E2E=1 npx playwright test
+          E2E_STACK_UP=1 npm run e2e
       - name: Service logs
         if: failure()
         run: make logs STORE=${{ matrix.store }} FOLLOW=
