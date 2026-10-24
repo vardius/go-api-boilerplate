@@ -25,22 +25,32 @@ Read `internal/user/AGENTS.md` and `internal/platform/es/AGENTS.md` first.
    history. The domain imports only the standard library, `platform/es` and
    `platform/apperr` (`internal/archtest` fails otherwise).
 3. **Domain tests** in `domain/user_test.go` with `estest.Given(...).When(...).Then(...)`
-   or `.ThenError(...)`: the event raised, and every invariant refused.
-4. **Projection**: if the event changes a column of `store.User`, add the
-   case to `Project` in `store/memory`, `store/mysql` and `store/mongodb`.
-   A new column means a goose migration in `store/mysql/migrations` and, on
-   MongoDB, no `omitempty` on a field that must be written. Write the rule
-   into `store/storetest` first; all three backends run it.
+   or `.ThenError(...)`: the event raised, and every invariant refused. Add
+   the event to `TestEventsKeepTheirStoredShape`, which pins each event's
+   stored JSON.
+4. **Projection**: every new event needs a case in `Project` in
+   `store/memory`, `store/mysql` and `store/mongodb`, even one that changes
+   no column; their `default` refuses unknown events, so without it every
+   save fails. Write the rule into `store/storetest` first (a new
+   `store.User` field also goes in its `assertUser`); all three backends run
+   it. A new column means:
+   - MySQL: a goose migration in `store/mysql/migrations`, numbered after
+     the last, and the column in the reads.
+   - MongoDB: the field in the `bson.D` that `project` writes (the
+     registered event's `$setOnInsert` for a field every user has) and in
+     the read mapping; `userDoc` is only for reads.
 5. **Use case** in `internal/user/app/app.go`: a method on `Service` that
    gets the caller from `Actor(ctx, scope)`, which also checks the scope
-   (never from the body), then does the whole write in one `s.uow.Do`: load, call the aggregate method,
-   `s.repo.Save`, and any `outbox.NewMessage`. The function given to `Do`
-   only writes, because MongoDB may run it again. Test it in `app_test.go`
-   with the memory stores and an injected clock.
+   (never from the body). Load the user and call the aggregate method
+   *before* `s.uow.Do`; inside it only write: `s.repo.Save` and any
+   `outbox.NewMessage`. MongoDB may run that function again, so it must not
+   change the aggregate. Test it in `app_test.go` with the memory stores and
+   an injected clock.
 6. **Endpoint**: follow the add-endpoint skill (route, OpenAPI entry,
-   authorization matrix row, web schema).
+   authorization matrix row, web schema and screen).
 7. **Docs**: the website page that describes the flow, if a person would
-   notice the change.
+   notice the change, and the event list in
+   `website/src/content/docs/concepts/aggregates-and-events.mdx`.
 
 ## Verify
 
@@ -49,4 +59,5 @@ go test -race -shuffle=on ./internal/user/... ./internal/archtest/...
 make check
 ```
 
-Without Docker, add `-short`; CI runs the MySQL and MongoDB store tests.
+Without Docker, add `-short`; the MySQL and MongoDB store tests (including
+the migration count) then run only in CI.
