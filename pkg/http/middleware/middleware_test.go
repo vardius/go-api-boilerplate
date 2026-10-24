@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -58,7 +58,7 @@ func TestLimitRequestBody(t *testing.T) {
 	m := LimitRequestBody(10)
 	h := m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
-		_, err := ioutil.ReadAll(r.Body)
+		_, err := io.ReadAll(r.Body)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)

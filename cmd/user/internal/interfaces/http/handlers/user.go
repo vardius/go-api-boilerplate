@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
+
 	"math"
 	"net/http"
 	"strconv"
@@ -50,7 +51,7 @@ func BuildUserCommandDispatchHandler(cb commandbus.CommandBus) http.Handler {
 		}
 
 		defer r.Body.Close()
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			return apperrors.Wrap(err)
 		}

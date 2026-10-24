@@ -102,20 +102,17 @@ func (r *tokenRepository) Add(ctx context.Context, t persistence.Token) error {
 		t.GetID(),
 		ti.GetClientID(),
 		ti.GetUserID(),
-		mysql.NullString{NullString: sql.NullString{
+		mysql.NullString{
 			String: ti.GetCode(),
-			Valid:  ti.GetCode() != "",
-		}},
+			Valid:  ti.GetCode() != ""},
 		ti.GetAccess(),
-		mysql.NullString{NullString: sql.NullString{
+		mysql.NullString{
 			String: ti.GetRefresh(),
-			Valid:  ti.GetRefresh() != "",
-		}},
+			Valid:  ti.GetRefresh() != ""},
 		expiredAt.UTC(),
-		mysql.NullString{NullString: sql.NullString{
+		mysql.NullString{
 			String: t.GetUserAgent(),
-			Valid:  t.GetUserAgent() != "",
-		}},
+			Valid:  t.GetUserAgent() != ""},
 		t.GetData(),
 	)
 	if err != nil {

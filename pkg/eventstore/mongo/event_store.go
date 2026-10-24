@@ -76,11 +76,7 @@ func (s *eventStore) Store(ctx context.Context, events []*domain.Event) error {
 	const chunkSize = 500
 
 	for i := 0; i < len(buffer); i += chunkSize {
-		end := i + chunkSize
-
-		if end > len(buffer) {
-			end = len(buffer)
-		}
+		end := min(i+chunkSize, len(buffer))
 
 		if _, err := s.collection.BulkWrite(ctx, buffer[i:end], opts); err != nil {
 			return apperrors.Wrap(err)

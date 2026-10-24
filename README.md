@@ -1,9 +1,7 @@
 🧰 Golang API Starter Kit
 ================
-[![Build Status](https://travis-ci.com/vardius/go-api-boilerplate.svg?branch=master)](https://travis-ci.com/vardius/go-api-boilerplate)
-![Test](https://github.com/vardius/go-api-boilerplate/workflows/Test/badge.svg)
+[![CI](https://github.com/vardius/go-api-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/vardius/go-api-boilerplate/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vardius/go-api-boilerplate)](https://goreportcard.com/report/github.com/vardius/go-api-boilerplate)
-[![codecov](https://codecov.io/gh/vardius/go-api-boilerplate/branch/master/graph/badge.svg)](https://codecov.io/gh/vardius/go-api-boilerplate)
 [![](https://godoc.org/github.com/vardius/go-api-boilerplate?status.svg)](https://pkg.go.dev/github.com/vardius/go-api-boilerplate)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/vardius/go-api-boilerplate/blob/master/LICENSE.md)
 [![baker](https://opencollective.com/go-api-boilerplate/tiers/backer/badge.svg?label=backer&color=brightgreen)](https://opencollective.com/go-api-boilerplate/contribute/backer-10349/checkout)
@@ -110,17 +108,8 @@ make docker-build BIN=migrate
 make docker-build BIN=user
 make docker-build BIN=web
 ```
-#### GitHub Package Registry
-Creating tag with metadata will trigger [github workflow](https://github.com/vardius/go-api-boilerplate/actions) and publish docker image to GitHub Package Registry.
-
-Tag `v1.0.0+user` will trigger build for `user` service releasing `1.0.0` docker image tag.
-you can create release for all services in `cmd` directory.
-```sh
-v1.0.0+auth
-v1.0.0+user
-v1.0.0+web
-v1.0.0+migrate
-```
+#### Container registry
+Tag and push the local images to your registry with `make docker-publish BIN=user REGISTRY=…` (see `make help`).
 
 Replace image details in [main.yaml](cmd/user/main.yaml)
 ```diff

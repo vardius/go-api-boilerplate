@@ -34,7 +34,7 @@ func Logger() gorouter.MiddlewareFunc {
 				}
 			}
 
-			args := []interface{}{
+			args := []any{
 				r.Method,
 				r.URL.Path,
 				r.RemoteAddr,

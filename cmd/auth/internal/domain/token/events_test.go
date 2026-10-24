@@ -2,7 +2,8 @@ package token
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
+
 	"os"
 	"testing"
 )
@@ -13,7 +14,7 @@ func TestWasCreated_TokenInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer file.Close()
-	payload, err := ioutil.ReadAll(file)
+	payload, err := io.ReadAll(file)
 	if err != nil {
 		t.Fatal(err)
 	}

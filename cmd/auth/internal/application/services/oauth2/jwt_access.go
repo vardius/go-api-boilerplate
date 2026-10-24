@@ -86,18 +86,14 @@ func (a *JWTAccess) Token(ctx context.Context, data *oauth2.GenerateBasic, isGen
 	}
 
 	claims := &JWTAccessClaims{
-		Claims: auth.Claims{
-			StandardClaims: jwt.StandardClaims{
-				Audience:  data.Client.GetID(),
-				Subject:   data.UserID,
-				ExpiresAt: expiresAt,
-			},
-			Identity: &identity.Identity{
-				Permission:   permissions,
-				UserID:       userID,
-				ClientID:     clientID,
-				ClientDomain: c.GetDomain(),
-			},
+		Audience:  data.Client.GetID(),
+		Subject:   data.UserID,
+		ExpiresAt: expiresAt,
+		Identity: &identity.Identity{
+			Permission:   permissions,
+			UserID:       userID,
+			ClientID:     clientID,
+			ClientDomain: c.GetDomain(),
 		},
 	}
 

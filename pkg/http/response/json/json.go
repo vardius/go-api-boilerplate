@@ -23,7 +23,7 @@ func (f HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // JSON returns data as json response
-func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload interface{}) error {
+func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload any) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	// If there is nothing to marshal then set status code and return.
@@ -52,7 +52,7 @@ func JSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload in
 // MustJSON returns data as json response
 // will panic if unable to marshal payload into JSON object
 // uses JSON internally
-func MustJSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload interface{}) {
+func MustJSON(ctx context.Context, w http.ResponseWriter, statusCode int, payload any) {
 	if err := JSON(ctx, w, statusCode, payload); err != nil {
 		panic(err)
 	}

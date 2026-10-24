@@ -26,7 +26,7 @@ func (a secretAuthenticator) Sign(token *jwt.Token) (string, error) {
 }
 
 func (a secretAuthenticator) Verify(token string, claims jwt.Claims) (err error) {
-	accessToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+	accessToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, apperrors.New("failed to decode token, invalid signing method")
 		}

@@ -15,9 +15,6 @@ help:
 version: ## Show version
 	@echo $(VERSION) \(git commit: $(GIT_COMMIT)\)
 
-workflow-generate: ## Generate github workflows from templates
-	cd .github && sh workflows.sh
-
 # HTTPS TASK
 cert: ## [HTTP] Generate a self-signed development certificate into k8s/tls (gitignored)
 	mkdir -p k8s/tls

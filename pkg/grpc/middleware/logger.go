@@ -16,7 +16,7 @@ import (
 //
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(LogOutgoingUnaryRequest()))
 func LogOutgoingUnaryRequest() grpc.UnaryClientInterceptor {
-	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		// Skip health check requests
 		if _, ok := req.(*healthproto.HealthCheckRequest); ok {
 			return invoker(ctx, method, req, reply, cc, opts...)
@@ -62,15 +62,16 @@ func LogOutgoingStreamRequest() grpc.StreamClientInterceptor {
 
 // LogStreamRequest returns error if Identity not set within context or user does not have required role
 //
-// 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
+//	https://godoc.org/google.golang.org/grpc#StreamInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(LogStreamRequest(logger)),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(LogStreamRequest(logger)),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.LogStreamRequest(s, &server{})
 func LogStreamRequest() grpc.StreamServerInterceptor {
-	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		now := time.Now()
 
 		logger.Info(ss.Context(), fmt.Sprintf("[gRPC|Server] StreamRequest Start: %s", info.FullMethod))
@@ -88,15 +89,16 @@ func LogStreamRequest() grpc.StreamServerInterceptor {
 
 // LogUnaryRequest returns error if Identity not set within context or user does not have required role
 //
-// 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
+//	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(LogUnaryRequest(logger)),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(LogUnaryRequest(logger)),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func LogUnaryRequest() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// Skip health check requests
 		if _, ok := req.(*healthproto.HealthCheckRequest); ok {
 			return handler(ctx, req)

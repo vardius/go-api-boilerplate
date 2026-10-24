@@ -64,8 +64,7 @@ func (e *AppError) StackTrace() string {
 	}
 
 	if e.err != nil {
-		var next *AppError
-		if errors.As(e.err, &next) {
+		if next, ok := errors.AsType[*AppError](e.err); ok {
 			stack = append(stack, next.StackTrace())
 		}
 	}

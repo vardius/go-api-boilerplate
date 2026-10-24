@@ -1,5 +1,4 @@
 //go:build !persistence_mysql
-// +build !persistence_mysql
 
 package services
 

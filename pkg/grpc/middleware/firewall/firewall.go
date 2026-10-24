@@ -20,7 +20,7 @@ const mdIdentityKey = "identity"
 //
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(AppendIdentityToOutgoingUnaryContext()))
 func AppendIdentityToOutgoingUnaryContext() grpc.UnaryClientInterceptor {
-	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		if i, ok := identity.FromContext(ctx); ok {
 			jsn, err := json.Marshal(i)
 			if err != nil {
@@ -56,15 +56,16 @@ func AppendIdentityToOutgoingStreamContext() grpc.StreamClientInterceptor {
 
 // SetIdentityFromStreamRequest updates context with identity
 //
-// 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
+//	https://godoc.org/google.golang.org/grpc#StreamInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(SetIdentityFromStreamRequest()),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(SetIdentityFromStreamRequest()),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func SetIdentityFromStreamRequest() grpc.StreamServerInterceptor {
-	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
 			if values := md.Get(mdIdentityKey); len(values) > 0 {
 				var i identity.Identity
@@ -83,15 +84,16 @@ func SetIdentityFromStreamRequest() grpc.StreamServerInterceptor {
 
 // SetIdentityFromUnaryRequest updates context with identity
 //
-// 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
+//	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(SetIdentityFromUnaryRequest()),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(SetIdentityFromUnaryRequest()),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func SetIdentityFromUnaryRequest() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			if values := md.Get(mdIdentityKey); len(values) > 0 {
 				var i identity.Identity
@@ -109,15 +111,16 @@ func SetIdentityFromUnaryRequest() grpc.UnaryServerInterceptor {
 
 // GrantAccessForStreamRequest returns error if Identity not set within context or user does not have required permission
 //
-// 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
+//	https://godoc.org/google.golang.org/grpc#StreamInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.StreamInterceptor(GrantAccessForStreamRequest(identity.PermissionUserRead)),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.StreamInterceptor(GrantAccessForStreamRequest(identity.PermissionUserRead)),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func GrantAccessForStreamRequest(permission identity.Permission) grpc.StreamServerInterceptor {
-	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		i, ok := identity.FromContext(ss.Context())
 		if !ok {
 			return apperrors.Wrap(fmt.Errorf("%w: missing identity", apperrors.ErrUnauthorized))
@@ -132,15 +135,16 @@ func GrantAccessForStreamRequest(permission identity.Permission) grpc.StreamServ
 
 // CheckAccessForUnaryRequest returns error if Identity not set within context or user does not have required permission
 //
-// 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
+//	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(CheckAccessForUnaryRequest(identity.PermissionUserRead)),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(CheckAccessForUnaryRequest(identity.PermissionUserRead)),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func GrantAccessForUnaryRequest(permission identity.Permission) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		i, ok := identity.FromContext(ctx)
 		if !ok {
 			return nil, apperrors.Wrap(fmt.Errorf("%w: missing identity", apperrors.ErrUnauthorized))

@@ -19,7 +19,7 @@ const mdMetadataKey = "metadata"
 //
 // conn, err := grpc.Dial("localhost:5000", grpc.WithUnaryInterceptor(AppendMetadataToOutgoingUnaryContext()))
 func AppendMetadataToOutgoingUnaryContext() grpc.UnaryClientInterceptor {
-	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		if m, ok := mtd.FromContext(ctx); ok {
 			jsn, err := json.Marshal(m)
 			if err != nil {
@@ -56,15 +56,16 @@ func AppendMetadataToOutgoingStreamContext() grpc.StreamClientInterceptor {
 
 // SetMetadataFromStreamRequest updates context with metadata
 //
-// 	https://godoc.org/google.golang.org/grpc#StreamInterceptor
+//	https://godoc.org/google.golang.org/grpc#StreamInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(SetMetadataFromStreamRequest()),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(SetMetadataFromStreamRequest()),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func SetMetadataFromStreamRequest() grpc.StreamServerInterceptor {
-	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		if md, ok := metadata.FromIncomingContext(ss.Context()); ok {
 			var m mtd.Metadata
 			if values := md.Get(mdMetadataKey); len(values) > 0 {
@@ -85,15 +86,16 @@ func SetMetadataFromStreamRequest() grpc.StreamServerInterceptor {
 
 // SetMetadataFromUnaryRequest updates context with metadata
 //
-// 	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
+//	https://godoc.org/google.golang.org/grpc#UnaryInterceptor
 //
-// opts := []grpc.ServerOption{
-// 	grpc.UnaryInterceptor(SetMetadataFromUnaryRequest()),
-// }
+//	opts := []grpc.ServerOption{
+//		grpc.UnaryInterceptor(SetMetadataFromUnaryRequest()),
+//	}
+//
 // s := grpc.NewServer(opts...)
 // pb.RegisterGreeterServer(s, &server{})
 func SetMetadataFromUnaryRequest() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			var m mtd.Metadata
 			if values := md.Get(mdMetadataKey); len(values) > 0 {

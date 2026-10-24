@@ -5,10 +5,10 @@ import (
 	"sync"
 )
 
-var eventFactories = make(map[string]func() interface{})
+var eventFactories = make(map[string]func() any)
 var eventFactoriesMtx sync.RWMutex
 
-func RegisterEventFactory(eventType string, factory func() interface{}) error {
+func RegisterEventFactory(eventType string, factory func() any) error {
 	if eventType == "" {
 		return fmt.Errorf("invalid event type")
 	}
@@ -38,7 +38,7 @@ func UnregisterEventData(eventType string) error {
 	return nil
 }
 
-func NewRawEvent(eventType string) (interface{}, error) {
+func NewRawEvent(eventType string) (any, error) {
 	eventFactoriesMtx.RLock()
 	defer eventFactoriesMtx.RUnlock()
 	if factory, ok := eventFactories[eventType]; ok {
