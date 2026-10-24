@@ -216,9 +216,19 @@ export const pl: Record<MessageId, string> = {
   'oauthError.invalid_client': 'Aplikacja, która Cię tu przysłała, nie jest tu zarejestrowana albo została usunięta.',
   'oauthError.invalid_redirect_uri':
     'Aplikacja, która Cię tu przysłała, chce wrócić pod adres, którego nie zarejestrowała.',
+  'oauthError.invalid_request': 'Aplikacja, która Cię tu przysłała, wysłała niepełne lub błędne żądanie.',
+  'oauthError.pkce_required':
+    'Aplikacja, która Cię tu przysłała, nie zabezpieczyła żądania tak, jak tego wymagamy (PKCE z S256).',
+  'oauthError.unsupported_response_type':
+    'Aplikacja, która Cię tu przysłała, poprosiła o rodzaj logowania, którego nie oferujemy.',
+  'oauthError.invalid_scope':
+    'Aplikacja, która Cię tu przysłała, poprosiła o dostęp, którego nie zarejestrowała albo który nie istnieje.',
+  'oauthError.login_required': 'W chwili odpowiedzi nie było aktywnej sesji, więc nic nie zostało postanowione.',
+  'oauthError.request_expired': 'To żądanie nie czeka już na odpowiedź: wygasło albo zostało już rozpatrzone.',
   'oauthError.generic': 'Aplikacja, która Cię tu przysłała, wysłała żądanie, którego nie możemy przyjąć.',
   'oauthError.advice': 'Aplikacja nie dostała żadnych danych. Daj znać jej twórcom i podaj poniższy kod.',
   'oauthError.adviceNoCode': 'Aplikacja nie dostała żadnych danych. Daj znać jej twórcom.',
+  'oauthError.adviceStartAgain': 'Aplikacja nie dostała żadnych danych. Wróć do niej i zacznij od nowa.',
   'oauthError.code': 'Kod błędu: {code}',
   'oauthError.home': 'Przejdź do konta',
 

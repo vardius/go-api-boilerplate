@@ -33,75 +33,68 @@ var authorizeParams = []string{"response_type", "client_id", "redirect_uri", "sc
 
 // CheckAuthorization checks the query of an authorization request, RFC
 // 6749 §4.1.1 with PKCE, RFC 7636 §4.3. A request that fails is an
-// *AuthorizeError: an unknown client, or a redirect_uri that isn't exactly
-// one the client registered, is answered by the web app's error page, and
-// everything else at the redirect URI.
+// *AuthorizeError, for the web app's error page and never for the redirect
+// URI, even one the client registered: the client may be anyone's, and the
+// user hasn't decided anything yet (RFC 9700 §4.11.2).
 func (s *Service) CheckAuthorization(ctx context.Context, q url.Values) (Authorization, error) {
+	fail := func(reason, description string) (Authorization, error) {
+		return Authorization{}, &AuthorizeError{Code: reason, Description: description}
+	}
 	if len(q["client_id"]) != 1 {
-		return Authorization{}, &AuthorizeError{Code: ReasonInvalidClient, Description: "The request needs one client_id."}
+		return fail(ReasonInvalidClient, "The request needs one client_id.")
 	}
 	c, ok, err := s.lookupClient(ctx, q.Get("client_id"))
 	if err != nil {
 		return Authorization{}, err
 	}
 	if !ok {
-		return Authorization{}, &AuthorizeError{Code: ReasonInvalidClient, Description: "No client has this client_id."}
+		return fail(ReasonInvalidClient, "No client has this client_id.")
 	}
 	if len(q["redirect_uri"]) != 1 || !slices.Contains(c.RedirectURIs, q.Get("redirect_uri")) {
-		return Authorization{}, &AuthorizeError{Code: ReasonInvalidRedirectURI, Description: "The redirect_uri is missing or isn't one the client registered."}
-	}
-	a := Authorization{Client: c, RedirectURI: q.Get("redirect_uri")}
-
-	// From here on the redirect URI is trusted, so errors go back to it.
-	fail := func(code, description string) (Authorization, error) {
-		params := url.Values{"error": {code}, "error_description": {description}}
-		if a.State != "" {
-			params.Set("state", a.State)
-		}
-		return Authorization{}, &AuthorizeError{Code: code, Description: description, Location: s.redirect(a.RedirectURI, params)}
-	}
-	// The state goes back with any error but its own.
-	if st := q["state"]; len(st) == 1 && validState(st[0]) {
-		a.State = st[0]
+		return fail(ReasonInvalidRedirectURI, "The redirect_uri is missing or isn't one the client registered.")
 	}
 	for _, p := range authorizeParams {
 		if len(q[p]) > 1 {
-			return fail(ErrorInvalidRequest, "The "+p+" parameter is repeated.")
+			return fail(ReasonInvalidRequest, "The "+p+" parameter is repeated.")
 		}
 	}
 	if !validState(q.Get("state")) {
-		return fail(ErrorInvalidRequest, fmt.Sprintf("The state must be at most %d printable ASCII characters.", maxStateBytes))
+		return fail(ReasonInvalidRequest, fmt.Sprintf("The state must be at most %d printable ASCII characters.", maxStateBytes))
 	}
 
 	switch q.Get("response_type") {
 	case "code":
 	case "":
-		return fail(ErrorInvalidRequest, "The response_type parameter is required.")
+		return fail(ReasonInvalidRequest, "The response_type parameter is required.")
 	default:
-		return fail(ErrorUnsupportedResponseType, "Only the code response type is supported.")
+		return fail(ReasonUnsupportedResponseType, "Only the code response type is supported.")
 	}
 	// RFC 9700 §2.1.1: PKCE is required, and only S256, since plain
 	// protects nothing once the request is seen. A missing method means
 	// plain (RFC 7636 §4.3).
 	switch {
 	case q.Get("code_challenge") == "":
-		return fail(ErrorInvalidRequest, "PKCE is required: send a code_challenge with code_challenge_method S256.")
+		return fail(ReasonPKCERequired, "PKCE is required: send a code_challenge with code_challenge_method S256.")
 	case q.Get("code_challenge_method") != "S256":
-		return fail(ErrorInvalidRequest, "The code_challenge_method must be S256.")
+		return fail(ReasonPKCERequired, "The code_challenge_method must be S256.")
 	case !validChallenge(q.Get("code_challenge")):
-		return fail(ErrorInvalidRequest, "The code_challenge must be the base64url SHA-256 of the code verifier.")
+		return fail(ReasonPKCERequired, "The code_challenge must be the base64url SHA-256 of the code verifier.")
 	}
-	a.CodeChallenge = q.Get("code_challenge")
 
 	scopes, err := requestedScopes(q.Get("scope"), c.Scopes)
 	if oe, ok := errors.AsType[*OAuthError](err); ok {
-		return fail(oe.Code, oe.Description)
+		return fail(ReasonInvalidScope, oe.Description)
 	}
 	if err != nil {
 		return Authorization{}, err
 	}
-	a.Scopes = scopes
-	return a, nil
+	return Authorization{
+		Client:        c,
+		RedirectURI:   q.Get("redirect_uri"),
+		Scopes:        scopes,
+		State:         q.Get("state"),
+		CodeChallenge: q.Get("code_challenge"),
+	}, nil
 }
 
 // validState reports whether state is one to echo back: at most
@@ -177,13 +170,14 @@ func (s *Service) Consent(ctx context.Context, user, id uuid.UUID) (Consent, err
 
 // Decide answers user's pending request id and returns where to send the
 // user agent: back to the client with an authorization code when allow is
-// set, with access_denied otherwise. A request that is gone, or whose
-// client is, is an *AuthorizeError without a Location.
+// set, with access_denied otherwise. This is the only answer that goes to
+// a redirect URI. A request that is gone, or whose client is, is an
+// *AuthorizeError.
 func (s *Service) Decide(ctx context.Context, user, id uuid.UUID, allow bool) (string, error) {
 	now := s.clock()
 	r, err := s.store.TakeAuthorizationRequest(ctx, id, user, now)
 	if errors.Is(err, apperr.ErrNotFound) {
-		return "", &AuthorizeError{Code: ReasonInvalidRequest, Description: "No authorization request is waiting for this decision."}
+		return "", &AuthorizeError{Code: ReasonRequestExpired, Description: "No authorization request is waiting for this decision."}
 	}
 	if err != nil {
 		return "", fmt.Errorf("take authorization request %s: %w", id, err)

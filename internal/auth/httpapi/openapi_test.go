@@ -1,12 +1,17 @@
 package httpapi_test
 
 import (
+	"fmt"
 	"maps"
+	"os"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/getkin/kin-openapi/openapi3"
+
+	"github.com/vardius/go-api-boilerplate/internal/auth/app"
 )
 
 func TestOpenAPIDocumentIsValid(t *testing.T) {
@@ -69,3 +74,50 @@ func TestOAuthEndpointsDocumentOAuthErrors(t *testing.T) {
 		}
 	}
 }
+
+// The reasons the OAuth error page is given are the ones the document
+// lists and the ones the web app explains, no more and no fewer.
+func TestOAuthErrorReasonsAreDocumentedAndExplained(t *testing.T) {
+	doc, err := openapi3.NewLoader().LoadFromFile(openAPIPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := slices.Sorted(slices.Values(app.Reasons()))
+	schema := doc.Components.Schemas["OAuthErrorReason"]
+	if schema == nil {
+		t.Fatal("the document has no OAuthErrorReason")
+	}
+	var documented []string
+	for _, v := range schema.Value.Enum {
+		documented = append(documented, fmt.Sprint(v))
+	}
+	if slices.Sort(documented); !slices.Equal(documented, want) {
+		t.Errorf("the document lists %v, want %v", documented, want)
+	}
+	for _, reason := range want {
+		if !strings.Contains(schema.Value.Description, "- "+reason+": ") {
+			t.Errorf("the document doesn't say what %s means", reason)
+		}
+	}
+
+	screen, err := os.ReadFile(oauthErrorScreen)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var explained []string
+	for _, m := range webReason.FindAllStringSubmatch(string(screen), -1) {
+		if m[1] != m[2] {
+			t.Errorf("the web app explains %s with the message of %s", m[1], m[2])
+		}
+		explained = append(explained, m[1])
+	}
+	if slices.Sort(explained); !slices.Equal(explained, want) {
+		t.Errorf("the web app explains %v, want %v", explained, want)
+	}
+}
+
+const oauthErrorScreen = "../../../web/src/screens/OAuthError.tsx"
+
+// webReason is an entry of the web app's list of reasons, such as
+// ['pkce_required', appFault('oauthError.pkce_required')].
+var webReason = regexp.MustCompile(`\['([a-z_]+)', [a-zA-Z]+\('oauthError\.([a-z_]+)'\)\]`)

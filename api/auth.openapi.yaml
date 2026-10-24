@@ -267,12 +267,15 @@ paths:
         Only the authorization code flow, and only with PKCE S256. The user
         agent is sent:
 
-        - to {WEB_URL}/oauth/error?reason=… when the client_id is unknown
-          or the redirect_uri is not exactly one the client registered;
-        - back to the redirect_uri with error, error_description, state and
-          iss for any other bad request;
+        - to {WEB_URL}/oauth/error?reason=… for any bad request, with one of
+          the OAuthErrorReason values, signed in or not;
         - to {WEB_URL}/sign-in?next=… without a session;
         - to {WEB_URL}/consent?request=… with one.
+
+        It is never sent back to the redirect_uri from here, not even with
+        an error: any user can register a client, so that would be an open
+        redirector (RFC 9700 §4.11.2). Only the consent page's answer goes
+        back to the client.
       parameters:
         - { name: response_type, in: query, required: true, schema: { type: string, const: code } }
         - { name: client_id, in: query, required: true, schema: { type: string } }
@@ -289,10 +292,12 @@ paths:
       operationId: decide
       summary: The consent page's answer.
       description: |
-        Sends the user agent back to the client's redirect_uri with a code,
-        valid once for one minute, or with error=access_denied; or to
-        {WEB_URL}/oauth/error?reason=… when there is no session or no such
-        pending request.
+        Sends the user agent back to the client's redirect_uri, with state
+        and iss, and with a code, valid once for one minute, or with
+        error=access_denied. When there is no session, the form is
+        malformed or the caller has no such pending request, it goes to
+        {WEB_URL}/oauth/error?reason=… with one of the OAuthErrorReason
+        values instead.
       security: [{ cookie: [] }]
       requestBody:
         required: true
@@ -501,6 +506,38 @@ components:
           type: string
           enum: [invalid_request, invalid_client, invalid_grant, unauthorized_client, unsupported_grant_type, invalid_scope]
         error_description: { type: string }
+    OAuthErrorReason:
+      description: |
+        The reason query parameter of {WEB_URL}/oauth/error, where
+        /oauth/authorize sends a request it refuses. The set is fixed; the
+        web app explains each value.
+
+        - invalid_client: the client_id is missing, repeated or unknown, or
+          the client was deleted before the user decided.
+        - invalid_redirect_uri: the redirect_uri is missing, repeated or not
+          exactly one the client registered.
+        - invalid_request: a parameter is repeated, response_type is
+          missing, the state is longer than 1024 bytes or not printable
+          ASCII, or the consent form is malformed.
+        - pkce_required: there is no code_challenge, its method isn't S256,
+          or it isn't a base64url SHA-256.
+        - unsupported_response_type: the response_type isn't code.
+        - invalid_scope: a scope doesn't exist or the client didn't register
+          it.
+        - login_required: the consent form came without a session.
+        - request_expired: the consent form names no pending request of the
+          caller's: it expired, was answered already, or its client was
+          deleted.
+      type: string
+      enum:
+        - invalid_client
+        - invalid_redirect_uri
+        - invalid_request
+        - pkce_required
+        - unsupported_response_type
+        - invalid_scope
+        - login_required
+        - request_expired
     Scope:
       type: string
       enum: [user:read, user:write, clients:read, clients:write]
