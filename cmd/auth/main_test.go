@@ -147,7 +147,8 @@ func TestHealthcheck(t *testing.T) {
 	}
 }
 
-// needsNoDatabase skips a test of serve in a build with a database store.
+// needsNoDatabase skips a test of serve or migrate in a build with a
+// database store.
 func needsNoDatabase(t *testing.T) {
 	if reflect.TypeFor[storeConfig]().NumField() > 0 {
 		t.Skip("this build's store needs a database")
@@ -239,5 +240,14 @@ func TestServeRefusesAMissingKeyOutsideDevelopment(t *testing.T) {
 	}
 	if err := serve(t.Context()); err == nil || !strings.Contains(fmt.Sprint(err), "SIGNING_KEY_FILE") {
 		t.Fatalf("serve = %v, want a missing key error", err)
+	}
+}
+
+// The memory build has nothing to migrate, and migrate reads no other
+// configuration, as the chart's migration Job sets only the store's.
+func TestMigrate(t *testing.T) {
+	needsNoDatabase(t)
+	if err := migrate(t.Context()); err != nil {
+		t.Fatal(err)
 	}
 }
