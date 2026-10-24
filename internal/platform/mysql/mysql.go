@@ -15,16 +15,16 @@ import (
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 
+	"github.com/vardius/go-api-boilerplate/internal/platform/config"
 	"github.com/vardius/go-api-boilerplate/internal/platform/uow"
 )
 
 // Config names a MySQL database and sizes the connection pool. Services
 // nest it under their own prefix.
 type Config struct {
-	Addr string `env:"ADDR" envDefault:"localhost:3306" desc:"MySQL server address, host:port."`
-	User string `env:"USER,required" desc:"MySQL user name."`
-	// TODO(config.Secret): make Password a config.Secret once that type lands.
-	Password        string        `env:"PASSWORD,required" desc:"MySQL password."`
+	Addr            string        `env:"ADDR" envDefault:"localhost:3306" desc:"MySQL server address, host:port."`
+	User            string        `env:"USER,required" desc:"MySQL user name."`
+	Password        config.Secret `env:"PASSWORD,required" desc:"MySQL password."`
 	Database        string        `env:"DATABASE,required" desc:"MySQL database (schema) name."`
 	MaxOpenConns    int           `env:"MAX_OPEN_CONNS" envDefault:"20" desc:"Most connections open at once."`
 	MaxIdleConns    int           `env:"MAX_IDLE_CONNS" envDefault:"10" desc:"Most idle connections kept for reuse."`
@@ -38,7 +38,7 @@ func (c Config) dsn() string {
 	d.Net = "tcp"
 	d.Addr = c.Addr
 	d.User = c.User
-	d.Passwd = c.Password
+	d.Passwd = c.Password.Reveal()
 	d.DBName = c.Database
 	d.ParseTime = true
 	d.Collation = "utf8mb4_0900_ai_ci"

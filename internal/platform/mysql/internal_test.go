@@ -6,6 +6,8 @@ import (
 	"uuid"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
+
+	"github.com/vardius/go-api-boilerplate/internal/platform/config"
 )
 
 func TestConfigDSN(t *testing.T) {
@@ -21,7 +23,7 @@ func TestConfigDSN(t *testing.T) {
 	}
 	for _, password := range passwords {
 		t.Run(password, func(t *testing.T) {
-			cfg := Config{Addr: "db.internal:3307", User: "app", Password: password, Database: "users"}
+			cfg := Config{Addr: "db.internal:3307", User: "app", Password: config.Secret(password), Database: "users"}
 
 			got, err := mysqldriver.ParseDSN(cfg.dsn())
 			if err != nil {

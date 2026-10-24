@@ -22,14 +22,14 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 	"go.mongodb.org/mongo-driver/v2/mongo/writeconcern"
 
+	"github.com/vardius/go-api-boilerplate/internal/platform/config"
 	"github.com/vardius/go-api-boilerplate/internal/platform/uow"
 )
 
 // Config says where the database is.
 type Config struct {
-	// TODO(config.Secret): make URI a config.Secret once internal/platform/config lands.
-	URI      string `env:"URI,required" desc:"MongoDB connection string. Transactions need a replica set, so name one: mongodb://localhost:27017/?replicaSet=rs0"`
-	Database string `env:"DATABASE,required" desc:"Name of the MongoDB database the service keeps its data in"`
+	URI      config.Secret `env:"URI,required" desc:"MongoDB connection string. Transactions need a replica set, so name one: mongodb://localhost:27017/?replicaSet=rs0"`
+	Database string        `env:"DATABASE,required" desc:"Name of the MongoDB database the service keeps its data in"`
 }
 
 // DB is a connected database. It implements uow.UnitOfWork.
@@ -44,7 +44,7 @@ var _ uow.UnitOfWork = (*DB)(nil)
 // fails at start rather than on the first request. Close the connection
 // with db.Client.Disconnect.
 func Connect(ctx context.Context, cfg Config) (*DB, error) {
-	client, err := mongo.Connect(options.Client().ApplyURI(cfg.URI))
+	client, err := mongo.Connect(options.Client().ApplyURI(cfg.URI.Reveal()))
 	if err != nil {
 		return nil, fmt.Errorf("mongodb: connect: %w", err)
 	}

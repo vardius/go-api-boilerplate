@@ -19,6 +19,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"github.com/testcontainers/testcontainers-go/wait"
 
+	"github.com/vardius/go-api-boilerplate/internal/platform/config"
 	platform "github.com/vardius/go-api-boilerplate/internal/platform/mongodb"
 )
 
@@ -44,7 +45,7 @@ func New(t testing.TB) *platform.DB {
 	}
 
 	name := "test_" + strings.ReplaceAll(uuid.New().String(), "-", "")
-	db, err := platform.Connect(t.Context(), platform.Config{URI: uri, Database: name})
+	db, err := platform.Connect(t.Context(), platform.Config{URI: config.Secret(uri), Database: name})
 	if err != nil {
 		t.Fatalf("mongotest: %v", err)
 	}

@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/vardius/go-api-boilerplate/internal/platform/config"
 	"github.com/vardius/go-api-boilerplate/internal/platform/mongodb"
 	"github.com/vardius/go-api-boilerplate/internal/platform/mongodb/mongotest"
 	"github.com/vardius/go-api-boilerplate/internal/platform/outbox"
@@ -34,7 +35,7 @@ func TestConnectFails(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			db, err := mongodb.Connect(t.Context(), mongodb.Config{URI: tt.uri, Database: "test"})
+			db, err := mongodb.Connect(t.Context(), mongodb.Config{URI: config.Secret(tt.uri), Database: "test"})
 			if err == nil {
 				_ = db.Client.Disconnect(t.Context())
 				t.Fatal("Connect succeeded")

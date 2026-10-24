@@ -404,7 +404,7 @@ func TestOAuthAuthorizationCodeWithPKCE(t *testing.T) {
 	request := consent.Query().Get("request")
 
 	var details struct {
-		Client struct{ Name string } `json:"client"`
+		Client struct{ Name string }   `json:"client"`
 		Scopes []struct{ Name string } `json:"scopes"`
 	}
 	user.expect(http.MethodGet, "/api/auth/v1/authorization-requests/"+request, nil, http.StatusOK).decode(t, &details)

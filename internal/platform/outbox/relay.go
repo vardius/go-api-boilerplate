@@ -19,16 +19,16 @@ type Handler func(ctx context.Context, m Message) error
 // RelayConfig tunes a Relay. Zero fields take the defaults shown.
 type RelayConfig struct {
 	// Interval is the wait between polls once no message is due.
-	Interval time.Duration `env:"INTERVAL" envDefault:"1s"`
+	Interval time.Duration `env:"INTERVAL" envDefault:"1s" desc:"Wait between outbox polls once no message is due."`
 	// Lease is how long a claimed message stays claimed. It must outlast
 	// Timeout, or a slow delivery can overlap its own retry.
-	Lease time.Duration `env:"LEASE" envDefault:"2m"`
+	Lease time.Duration `env:"LEASE" envDefault:"2m" desc:"How long a claimed message stays claimed; must outlast the timeout."`
 	// Timeout bounds one handler call.
-	Timeout time.Duration `env:"TIMEOUT" envDefault:"30s"`
+	Timeout time.Duration `env:"TIMEOUT" envDefault:"30s" desc:"Longest one delivery may take."`
 	// Batch is how many messages one claim takes.
-	Batch int `env:"BATCH" envDefault:"10"`
+	Batch int `env:"BATCH" envDefault:"10" desc:"Messages claimed per poll."`
 	// MaxAttempts is how many times a message is tried before it is buried.
-	MaxAttempts int `env:"MAX_ATTEMPTS" envDefault:"8"`
+	MaxAttempts int `env:"MAX_ATTEMPTS" envDefault:"8" desc:"Deliveries tried before a message is buried."`
 }
 
 func (c RelayConfig) withDefaults() RelayConfig {

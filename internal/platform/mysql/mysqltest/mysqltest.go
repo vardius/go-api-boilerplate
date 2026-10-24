@@ -16,6 +16,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 
+	"github.com/vardius/go-api-boilerplate/internal/platform/config"
 	"github.com/vardius/go-api-boilerplate/internal/platform/mysql"
 )
 
@@ -106,7 +107,7 @@ func start() (_ *server, err error) {
 	cfg := mysql.Config{
 		Addr:            addr,
 		User:            "root",
-		Password:        password,
+		Password:        config.Secret(password),
 		MaxOpenConns:    20,
 		MaxIdleConns:    10,
 		ConnMaxLifetime: 30 * time.Minute,
