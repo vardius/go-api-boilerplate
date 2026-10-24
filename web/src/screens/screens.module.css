@@ -1,0 +1,154 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--color-border);
+}
+
+.value {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.itemCurrent {
+  border-color: var(--color-primary);
+}
+
+.itemHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.itemTitle {
+  font-size: var(--text-md);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.meta {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.details {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.details dt {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.details dd {
+  margin: 0 0 var(--space-2);
+  min-width: 0;
+}
+
+.code {
+  word-break: break-all;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.plainList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.plainList li {
+  overflow-wrap: anywhere;
+}
+
+.scopes {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scope {
+  display: grid;
+  gap: var(--space-1);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 0.1875rem solid var(--color-primary);
+}
+
+.scopeName {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}

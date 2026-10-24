@@ -1,9 +1,0 @@
-image:
-  repository: go-api-boilerplate-web
-  tag: latest
-  pullPolicy: IfNotPresent
-service:
-  ports:
-    - name: http
-      internalPort: 3000
-      externalPort: 3000

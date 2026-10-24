@@ -1,0 +1,101 @@
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.control {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  /* 1rem or more keeps iOS from zooming into the field. */
+  font-size: var(--text-md);
+}
+
+.control[aria-invalid='true'] {
+  border-color: var(--color-danger);
+  border-width: 2px;
+}
+
+textarea.control {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.fieldset {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: var(--space-1);
+  font-weight: 600;
+}
+
+.check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.check:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-info-bg);
+}
+
+.check input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.125rem 0 0;
+  accent-color: var(--color-primary);
+}
+
+.checkText {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.checkName {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.checkDescription {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.check:has(input:checked) .checkDescription {
+  color: var(--color-info-text);
+}
