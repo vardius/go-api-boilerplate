@@ -33,3 +33,40 @@ function decl(lines: string[], file: string, start: string): string {
 	}
 	return lines.slice(from, to + 1).join('\n');
 }
+
+/**
+ * Cuts one block out of a YAML file imported with `?raw`, such as a schema of an OpenAPI document,
+ * so a page shows the contract itself.
+ *
+ * The path names a key at each level, `'components', 'schemas', 'Problem'`, and the block runs from
+ * that key's line to the line before the next key at its level or above, dedented to the key.
+ *
+ * A key that matches no line at its level, or more than one, fails the build.
+ */
+export function yamlBlock(source: string, file: string, ...path: string[]): string {
+	const lines = source.split('\n');
+	const indent = (line: string) => line.length - line.trimStart().length;
+	const content = (line: string) => line.trim() !== '' && !line.trimStart().startsWith('#');
+
+	let from = -1;
+	let to = lines.length;
+	let level = 0;
+	for (const [depth, key] of path.entries()) {
+		const name = path.slice(0, depth + 1).join('.');
+		const first = lines.findIndex((line, i) => i > from && i < to && content(line));
+		if (first === -1) throw new Error(`${file}: nothing under ${name}`);
+		level = indent(lines[first]);
+		const matches = lines.flatMap((line, i) =>
+			i >= first && i < to && indent(line) === level && line.trimStart().startsWith(`${key}:`) ? [i] : [],
+		);
+		if (matches.length !== 1) throw new Error(`${file}: ${matches.length} keys ${name}; want exactly one`);
+		from = matches[0];
+		const end = lines.findIndex((line, i) => i > from && i < to && content(line) && indent(line) <= level);
+		if (end !== -1) to = end;
+	}
+	while (to > from && lines[to - 1].trim() === '') to--;
+	return lines
+		.slice(from, to)
+		.map((line) => line.slice(level))
+		.join('\n');
+}

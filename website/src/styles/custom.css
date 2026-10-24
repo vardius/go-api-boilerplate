@@ -223,3 +223,31 @@
 code > .nowrap {
 	white-space: nowrap;
 }
+
+/* The generated REST reference: in a narrow column the method and path take a row of their own,
+   under the URL button and the code-sample picker, and a long path wraps instead of being cut off. */
+:root .sl-openapi-operation-description .sl-openapi-operation-method {
+	min-width: 0;
+	overflow-x: visible;
+}
+
+:root .sl-openapi-operation-description .sl-openapi-operation-method-path {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 40rem) {
+	:root .sl-openapi-operation-description > .sl-openapi-operation-description-header:has(.sl-openapi-operation-method) {
+		grid-template-columns: min-content 1fr;
+		row-gap: 0.8rem;
+	}
+
+	:root .sl-openapi-operation-description-header > .sl-openapi-operation-method {
+		grid-column: 1 / -1;
+		grid-row: 2;
+	}
+
+	:root .sl-openapi-operation-description-header > sl-openapi-snippet-picker {
+		justify-self: end;
+	}
+}

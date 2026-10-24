@@ -9,8 +9,6 @@ The rewrite replaces the API outright. There is no compatibility layer: the old 
 
 The old code is tagged [`legacy-2022`](https://github.com/vardius/go-api-boilerplate/tree/legacy-2022), with the October 2026 security fixes applied; see the [changelog](../changelog/). Some reasons below describe the code before those fixes.
 
-{/* verify: every "Now" entry against the routes, packages and files once plan sections C–G land */}
-
 <Aside>
 Old paths are shown as the 2022 ingress served them, under `/users/v1/` and `/auth/v1/` on the API host. New paths are shown through the gateway, under `/api/user/` and `/api/auth/` on the same origin as the web app.
 </Aside>
@@ -54,37 +52,37 @@ Old paths are shown as the 2022 ingress served them, under `/users/v1/` and `/au
 | `UserService.GetUser`, `UserService.ListUsers` | removed | Nothing needs them: each API reads its own data. |
 | `AuthenticationService.ValidationBearerToken` | removed | Each API verifies tokens itself with auth's JWKS, with no call per request. |
 | `AuthenticationService.DispatchClientCommand`, `DispatchTokenCommand` | removed | Clients and sessions have explicit REST routes. |
-| | `user.v1.LoginService/RedeemLoginCode` | The one internal call, from auth only, with a scoped token. |
+| | `user.v1.LoginService/RedeemLoginCode`, in `proto/user/v1/login.proto` | The one internal call, from auth only, with a scoped token. |
 
 ## Tokens and cookies
 
 | 2022 | Now | Why |
 |---|---|---|
-| HS512 JWT signed with `AUTH_SECRET` or `USER_SECRET` | ES256 JWT, private key in auth only, public keys at `/.well-known/jwks.json` | With a shared secret, every service that can verify a token can also forge one. |
-| One 365-day token with every permission | 15-minute access token and a 30-day refresh token, rotated with reuse detection | A leaked token is worth minutes, not a year. |
-| `?authToken=` query parameter | `Authorization: Bearer` header or the `access_token` cookie | Query strings end up in logs and browser history. |
-| `at` cookie, readable from JavaScript, not cleared on logout | `access_token` and `refresh_token` cookies, HttpOnly, cleared on sign-out | A script on the page can't read them. |
-| Permissions from the client's registered scopes, scope `all` | Scopes `user:read`, `user:write`, `clients:read`, `clients:write`, granted at consent | There is no catch-all scope. |
+| HS512 JWT signed with `AUTH_SECRET` or `USER_SECRET` | ES256 JWT signed in `internal/auth/keys`, private key in auth only, public keys at `GET /api/auth/.well-known/jwks.json` | With a shared secret, every service that can verify a token can also forge one. |
+| One 365-day token with every permission | 15-minute access token and a 30-day refresh token, rotated with reuse detection at `POST /api/auth/v1/sessions/refresh` and `POST /api/auth/oauth/token` | A leaked token is worth minutes, not a year. |
+| `?authToken=` query parameter | `Authorization: Bearer` header or the `access_token` cookie, read by `internal/platform/authn` | Query strings end up in logs and browser history. |
+| `at` cookie, readable from JavaScript, not cleared on logout | `access_token` and `refresh_token` cookies, HttpOnly, set by `POST /api/auth/v1/sessions` and cleared by `DELETE /api/auth/v1/sessions/current` | A script on the page can't read them. |
+| Permissions from the client's registered scopes, scope `all` | Scopes `user:read`, `user:write`, `clients:read`, `clients:write` in `internal/auth/app/scopes.go`, granted at consent | There is no catch-all scope. |
 
 ## Concepts and layout
 
 | 2022 | Now | Why |
 |---|---|---|
 | `pkg/` | `internal/platform/` | Nothing imported it, and `internal` stops forks depending on a kit that isn't a stable API. |
-| `cmd/<service>/internal/{application,domain,infrastructure,interfaces}` | `internal/<service>/{domain,app,store,httpapi}` and a thin `cmd/<service>/main.go` | Grouped by what the code is about. |
+| `cmd/<service>/internal/{application,domain,infrastructure,interfaces}` | `internal/user/{domain,app,store,httpapi,mail,rpc}`, `internal/auth/{app,keys,store,httpapi}`, and a thin `cmd/user/main.go` and `cmd/auth/main.go` | Grouped by what the code is about. |
 | Command bus and command handlers | Use-case methods in `internal/user/app` | A bus hid the call graph and once crashed the process on a cancelled request. A method call does neither. |
-| Event bus and async event handlers | Projections in the append transaction, side effects through the outbox | Async handlers dropped errors and let read models drift for good. |
-| Event types named by their Go type | Registered, versioned names such as `user.registered.v1`, with upcasts | Renaming a type no longer orphans stored events. |
-| No version check on append | `es.ErrConcurrency`, a `409` | Two writers could both append the same version. |
-| `pkg/eventstore/{memory,mysql,mongo}` | `memdb`, `mysql` and `mongodb` behind one contract suite | The MySQL event store couldn't write or read. A shared suite holds every backend to the same rules. |
-| `pkg/errors` with stack traces | `apperr` kinds and `fmt.Errorf("…: %w")` | Nobody read the stacks. Kinds decide the status code. |
-| `{"code", "message"}` error bodies | RFC 9457 problem details | A standard shape with a request ID, and no internals in `5xx` bodies. |
-| `golog`, `trace`, expvar and the debug adapter | `log/slog`, OpenTelemetry, pprof on an admin listener | Standard tools, off by default where they cost anything. |
-| `gocontainer`, `message-bus`, `pubsub`, `pushpull`, `shutdown`, `gollback` | the standard library, or removed | Each has a standard replacement, or the redesign removed its job. |
-| Build tags inside packages | Build tags only in `cmd/<service>/store_<backend>.go` | Packages compile the same way for every store. |
-| `cmd/migrate` and an init container | `<service> migrate`, a Helm hook, `MIGRATE_ON_START` in compose | One image, one schema source. |
-| Terraform, Telepresence, `/etc/hosts` aliases, a self-signed TLS setup | Docker Compose on `localhost`, one Helm chart | No cluster or hosts edits needed to run it. |
-| maildev | Mailpit | |
+| Event bus and async event handlers | Projections in the append transaction (`internal/platform/es/repository.go`), side effects through `internal/platform/outbox` | Async handlers dropped errors and let read models drift for good. |
+| Event types named by their Go type | Registered, versioned names such as `user.registered.v1`, with upcasts: `internal/platform/es/registry.go`, and the names in `internal/user/domain/events.go` | Renaming a type no longer orphans stored events. |
+| No version check on append | `es.ErrConcurrency` in `internal/platform/es/es.go`, a `409` | Two writers could both append the same version. |
+| `pkg/eventstore/{memory,mysql,mongo}` | `internal/platform/{memdb,mysql,mongodb}`, behind one contract suite in `internal/platform/es/estest` | The MySQL event store couldn't write or read. A shared suite holds every backend to the same rules. |
+| `pkg/errors` with stack traces | `internal/platform/apperr` kinds and `fmt.Errorf("…: %w")` | Nobody read the stacks. Kinds decide the status code. |
+| `{"code", "message"}` error bodies | RFC 9457 problem details, written by `internal/platform/httpx/errors.go` | A standard shape with a request ID, and no internals in `5xx` bodies. |
+| `golog`, `trace`, expvar and the debug adapter | `log/slog` and OpenTelemetry, set up in `internal/platform/obs` | Standard tools, off by default where they cost anything. |
+| `gocontainer`, `message-bus`, `pubsub`, `pushpull`, `shutdown`, `gollback` | the standard library, `internal/platform/run` for shutdown, or removed | Each has a standard replacement, or the redesign removed its job. |
+| Build tags inside packages | Store build tags only in `cmd/user/store_*.go` and `cmd/auth/store_*.go` | Packages compile the same way for every store. |
+| `cmd/migrate` and an init container | `<service> migrate`, run by the Helm hook in `deploy/helm/go-api-boilerplate/templates/migrate.yaml`, or `MIGRATE_ON_START` in `compose.mysql.yaml` and `compose.mongodb.yaml` | One image, one schema source. |
+| Terraform, Telepresence, `/etc/hosts` aliases, a self-signed TLS setup | `compose.yaml` on `localhost`, and one Helm chart in `deploy/helm/go-api-boilerplate` | No cluster or hosts edits needed to run it. |
+| maildev | Mailpit, the `mailpit` service in `compose.yaml` | |
 | `cmd/web` | `web/`: Vite, React 19, strict TypeScript | Rebuilt small, with cookies only and no tokens in JavaScript. |
-| `go-oauth2/oauth2` | A small OAuth2 server in `internal/auth` | Three grants are a few hundred lines, and the library had no refresh-token reuse detection. |
-| Ingress `v1beta1` | Gateway API `HTTPRoute`, `Ingress` optional | `v1beta1` was removed in Kubernetes 1.22. |
+| `go-oauth2/oauth2` | A small OAuth2 server in `internal/auth/app` | Three grants are small enough to own, and the library had no refresh-token reuse detection. |
+| Ingress `v1beta1` | Gateway API `HTTPRoute`, `Ingress` optional, in `deploy/helm/go-api-boilerplate/templates/routes.yaml` | `v1beta1` was removed in Kubernetes 1.22. |

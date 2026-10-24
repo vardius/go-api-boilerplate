@@ -11,9 +11,7 @@ It holds two services in one Go module, and a small web app that shows them work
 - **user** owns accounts. It is event-sourced: every change is an event in the user's stream, and a `users` table is updated in the same transaction.
 - **web** is a Vite and React app, served by an nginx gateway that also forwards `/api/auth/` and `/api/user/`. The browser sees one origin.
 
-Both services build on a kit in `internal/platform`: event sourcing, a transactional outbox, error kinds, HTTP and Connect helpers, token verification, configuration and observability. Every store has three backends, memory, MySQL and MongoDB, held to the same rules by one contract suite.
-
-<!-- verify: web/, internal/auth, internal/user and the httpx, authn, connectx, config, obs and run packages are being written; check this summary against them before the first deploy -->
+Both services build on a kit in `internal/platform`: event sourcing, a transactional outbox, error kinds, HTTP and Connect helpers, token verification, configuration, observability, and a process runner that drains before it stops. Every store has three backends, memory, MySQL and MongoDB, held to the same rules by one contract suite.
 
 ## Why it is built this way
 
@@ -33,9 +31,9 @@ These are choices, not gaps. Each has a reason, and the docs show where you woul
 
 - **Asynchronous projections with checkpoints.** Projections run in the append transaction instead. When one needs to be asynchronous, move it onto the outbox: [CQRS and projections](../concepts/cqrs-and-projections/) shows how.
 - **A message broker** such as NATS or Kafka. No flow between the services needs one. The outbox is the place a broker would plug in.
-- **Code generators for SQL or HTTP** (sqlc, oapi-codegen, huma). About twenty queries and fifteen routes don't repay one, and the HTTP generators want to own the router.
-- **A CSS framework or component kit in the web app.** Six screens on CSS modules and design tokens need neither.
-- **Facebook login, generic command dispatch, a public user list.** None had a caller that needed it, and three of them were security holes.
+- **Code generators for SQL or HTTP** (sqlc, oapi-codegen, huma). Two services' worth of queries and routes don't repay one, and the HTTP generators want to own the router.
+- **A CSS framework or component kit in the web app.** A few screens on CSS modules and design tokens need neither.
+- **Facebook login, generic command dispatch, a public user list.** None had a caller that needed it, and dispatch and the user list were security holes.
 - **Terraform.** The Helm chart is what you deploy. How you provision a cluster is your choice.
 
 ## The 2022 layout

@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi';
 import { satteri } from '@astrojs/markdown-satteri';
 import inlineCode from './src/lib/inline-code.mjs';
 import tableLabels from './src/lib/table-labels.mjs';
@@ -27,6 +28,21 @@ export default defineConfig({
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/vardius/go-api-boilerplate' }],
 			editLink: { baseUrl: 'https://github.com/vardius/go-api-boilerplate/edit/master/website/' },
 			customCss: ['./src/styles/custom.css'],
+			// The REST reference is generated from the OpenAPI documents the services' tests hold to their routers.
+			plugins: [
+				starlightOpenAPI([
+					{
+						base: 'reference/rest-api/user',
+						schema: '../api/user.openapi.yaml',
+						sidebar: { label: 'User API', operations: { badges: true } },
+					},
+					{
+						base: 'reference/rest-api/auth',
+						schema: '../api/auth.openapi.yaml',
+						sidebar: { label: 'Auth API', operations: { badges: true } },
+					},
+				]),
+			],
 			sidebar: [
 				{
 					label: 'Start here',
@@ -62,6 +78,7 @@ export default defineConfig({
 					label: 'Reference',
 					items: [
 						'reference/rest-api',
+						...openAPISidebarGroups,
 						'reference/environment-variables',
 						'reference/proto',
 						'reference/migrating-from-2022',

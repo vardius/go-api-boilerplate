@@ -7,8 +7,6 @@ import { Aside, LinkCard, CardGrid, Steps } from '@astrojs/starlight/components'
 
 Everything runs in Docker Compose on `localhost`. You don't need a Kubernetes cluster, Helm, or an entry in `/etc/hosts`.
 
-{/* verify: compose.yaml, compose.mysql.yaml, compose.mongodb.yaml, .env.example and the Makefile targets below come with plan section F; run every command on this page once they exist */}
-
 ## What you need
 
 - Docker with Compose v2, so that `docker compose` works.
@@ -26,32 +24,27 @@ Everything runs in Docker Compose on `localhost`. You don't need a Kubernetes cl
    cd my-api
    ```
 
-2. Give the module your own path. Go imports, the generated Connect code and `buf.gen.yaml` all carry the template's path, so replace it everywhere at once, then check that it still builds:
+2. Give the module your own path. Go imports and `buf.gen.yaml` carry the template's path, so replace it everywhere at once. The generated Connect code also holds it inside binary descriptors that a text replacement breaks, so regenerate that with `make gen`, then check that the tests pass:
 
    ```sh
    go mod edit -module github.com/you/my-api
    grep -rl github.com/vardius/go-api-boilerplate --include='*.go' --include='*.yaml' . \
      | xargs perl -pi -e 's#github.com/vardius/go-api-boilerplate#github.com/you/my-api#g'
-   go build ./...
+   make gen
+   go test -short ./...
    ```
 
-3. Copy the development settings. `.env` is gitignored, so your local secrets stay out of the repository:
-
-   ```sh
-   cp .env.example .env
-   ```
-
-4. Start everything and wait until each container reports healthy:
+3. Start everything and wait until each container reports healthy:
 
    ```sh
    docker compose up --wait
    ```
 
-   This builds the auth and user services on the memory store, the web app behind its gateway, and Mailpit.
+   This builds the auth and user services on the memory store, the web app behind its gateway, and Mailpit. There is nothing to configure first: `compose.yaml` sets development values inline.
 
-5. Open [localhost:8080](http://localhost:8080) and sign in with any email address.
+4. Open [localhost:8080](http://localhost:8080) and sign in with any email address.
 
-6. Open Mailpit at [localhost:8025](http://localhost:8025), open the message, and follow the link. You are signed in.
+5. Open Mailpit at [localhost:8025](http://localhost:8025), open the message, and follow the link. You are signed in.
 
 </Steps>
 
@@ -65,6 +58,8 @@ To stop everything:
 docker compose down
 ```
 
+Google sign-in stays off until you set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in your shell before starting; compose passes both to the user service. [Configuration](../guides/configuration/#google-sign-in) shows how to get them.
+
 ## Use MySQL or MongoDB
 
 Each binary links exactly one store, chosen by a build tag. `make up` adds the database through an override file and rebuilds both services for it:
@@ -74,19 +69,20 @@ make up STORE=mysql
 make up STORE=mongodb
 ```
 
-`STORE=mysql` runs MySQL 8.4 and applies migrations at start, which compose turns on with `MIGRATE_ON_START=true`. `STORE=mongodb` runs MongoDB as a single-node replica set, because multi-document transactions need one. Stop either with `make down`.
+`STORE=mysql` runs MySQL 8.4 and applies the migrations at start, which compose turns on with `MIGRATE_ON_START=true`. `STORE=mongodb` runs MongoDB as a single-node replica set, because multi-document transactions need one, and creates the indexes at start the same way. Stop either with the same `STORE`, such as `make down STORE=mysql`; it also removes the database volume. `make up OBSERVABILITY=1` adds Grafana on [localhost:3000](http://localhost:3000), as [Observability](../concepts/observability/#traces-and-metrics) explains.
 
 ## Work on the code
 
 | Command | What it does |
 |---|---|
-| `docker compose watch` | Rebuilds a service when its Go files change. |
-| `docker compose logs -f user` | Follows one service's logs. `make logs` follows all of them. |
+| `docker compose watch` | Rebuilds a service when its code changes. |
+| `docker compose logs -f user` | Follows one service's logs. `make logs` follows both services. |
 | `go test -race ./...` | Runs every test. Tests that start MySQL or MongoDB containers need Docker. |
 | `go test -short ./...` | Skips the container tests, for a quick run without Docker. |
-| `make check` | Runs everything CI runs. Do this before you push. |
-| `make gen` | Regenerates the Connect code and the configuration reference, and lints the OpenAPI files. |
+| `make check` | Runs what CI runs, except the container tests and the end-to-end tests. Do this before you push. |
+| `make gen` | Regenerates the Connect code and the configuration reference. |
 | `make e2e` | Runs the end-to-end tests against the running stack. |
+| `make` | Lists every target. |
 
 ## Common questions
 

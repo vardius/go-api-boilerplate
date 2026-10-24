@@ -1,6 +1,6 @@
 // Every code sample on the site, cut from the files CI compiles and tests. Pages spread one into
-// Starlight's <Code>: <Code {...counterAggregate} />. Never paste code into a page instead.
-import { goDecls } from './snippet';
+// Starlight's <Code>: <Code {...userAggregate} />. Never paste code into a page instead.
+import { goDecls, yamlBlock } from './snippet';
 
 import aggregateGo from '../../../internal/platform/es/aggregate.go?raw';
 import apperrGo from '../../../internal/platform/apperr/apperr.go?raw';
@@ -18,6 +18,13 @@ import relayTestGo from '../../../internal/platform/outbox/relay_test.go?raw';
 import repositoryGo from '../../../internal/platform/es/repository.go?raw';
 import scenarioGo from '../../../internal/platform/es/estest/scenario.go?raw';
 import uowGo from '../../../internal/platform/uow/uow.go?raw';
+import userAppGo from '../../../internal/user/app/app.go?raw';
+import userEventsGo from '../../../internal/user/domain/events.go?raw';
+import userGo from '../../../internal/user/domain/user.go?raw';
+import userHttpapiGo from '../../../internal/user/httpapi/httpapi.go?raw';
+import userMatrixTestGo from '../../../internal/user/httpapi/matrix_test.go?raw';
+import userOpenAPI from '../../../api/user.openapi.yaml?raw';
+import userTestGo from '../../../internal/user/domain/user_test.go?raw';
 
 export interface Sample {
 	code: string;
@@ -29,23 +36,43 @@ function go(source: string, file: string, ...starts: string[]): Sample {
 	return { code: goDecls(source, file, ...starts), lang: 'go', title: file };
 }
 
-const ES_TEST = 'internal/platform/es/es_test.go';
+const USER = 'internal/user/domain/user.go';
+const USER_EVENTS = 'internal/user/domain/events.go';
+const USER_TEST = 'internal/user/domain/user_test.go';
+const USER_APP = 'internal/user/app/app.go';
 
-// The platform's own test aggregate stands in for the user aggregate until internal/user/domain exists.
-export const counterAggregate = go(
-	esTestGo,
-	ES_TEST,
-	'type counter struct',
-	'func (c *counter) ID',
-	'func (c *counter) Apply',
-	'func (c *counter) increment',
+export const userAggregate = go(
+	userGo,
+	USER,
+	'type User struct',
+	'func New()',
+	'func (u *User) ID',
+	'func (u *User) ChangeEmail(',
+	'func (u *User) Apply(',
 );
 // The landing page shows only the decision and how it is applied, so the hero stays short on a phone.
-export const counterDecide = go(esTestGo, ES_TEST, 'func (c *counter) increment', 'func (c *counter) Apply');
-export const counterEvents = go(esTestGo, ES_TEST, 'type opened struct', 'type incremented struct', 'var errLimit');
-export const counterRegistry = go(esTestGo, ES_TEST, 'func registry()');
+export const userDecide = go(userGo, USER, 'func (u *User) ChangeEmail(', 'func (u *User) Apply(');
+export const userEvents = go(userEventsGo, USER_EVENTS, 'type Registered struct', 'type EmailChanged struct', 'type GoogleLinked struct');
+export const userEmailChanged = go(userEventsGo, USER_EVENTS, 'type EmailChanged struct');
+export const userRegistry = go(userEventsGo, USER_EVENTS, 'func RegisterEvents(');
+export const userChangeEmailTest = go(userTestGo, USER_TEST, 'func TestChangeEmail(');
+export const userChangeEmailTests = go(userTestGo, USER_TEST, 'func TestChangeEmail(', 'func TestChangeEmailRules(');
+export const userLinkGoogle = go(userAppGo, USER_APP, 'func (s *Service) LinkGoogle(');
+export const userConfirmEmailChange = go(userAppGo, USER_APP, 'func (s *Service) ConfirmEmailChange(');
+export const userRequestEmailChange = go(userAppGo, USER_APP, 'func (s *Service) RequestEmailChange(');
+export const userActor = go(userAppGo, USER_APP, 'func Actor(');
+export const userEmailChangeHandler = go(
+	userHttpapiGo,
+	'internal/user/httpapi/httpapi.go',
+	'func (h *handler) requestEmailChange(',
+);
+export const userMatrixRows = go(userMatrixTestGo, 'internal/user/httpapi/matrix_test.go', 'var rows = []access{');
+
+// The event-sourcing kit's own test aggregate, a counter, shows what the user aggregate has no short
+// example of: a conflict, a rollback and an upcast.
+const ES_TEST = 'internal/platform/es/es_test.go';
+
 export const counterRepository = go(esTestGo, ES_TEST, 'func newRepository(');
-export const counterSave = go(esTestGo, ES_TEST, 'func save(');
 export const counterScenario = go(esTestGo, ES_TEST, 'func TestScenario');
 export const counterConflictTest = go(esTestGo, ES_TEST, 'func TestRepositoryConflict');
 export const counterProjectionRollbackTest = go(esTestGo, ES_TEST, 'func TestRepositoryProjectionFailureRollsBack');
@@ -106,6 +133,12 @@ export const apperrKinds = go(
 	'type ValidationError struct',
 	'func Invalid(',
 );
+
+export const problemSchema: Sample = {
+	code: yamlBlock(userOpenAPI, 'api/user.openapi.yaml', 'components', 'schemas', 'Problem'),
+	lang: 'yaml',
+	title: 'api/user.openapi.yaml',
+};
 
 export const loginService: Sample = { code: loginProto, lang: 'proto', title: 'proto/user/v1/login.proto' };
 export const bufConfig: Sample = { code: bufYaml, lang: 'yaml', title: 'buf.yaml' };

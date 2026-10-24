@@ -3,32 +3,26 @@ title: Aggregates and events
 description: How an aggregate changes only by raising events, how events are named and versioned, and the rules that keep a permanent log safe to keep.
 ---
 
-import { Aside, Code } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
 import {
 	aggregateBase,
-	counterAggregate,
-	counterEvents,
-	counterRegistry,
 	counterUpcastTest,
 	eventEnvelope,
 	registryApi,
+	userAggregate,
+	userEvents,
+	userRegistry,
 } from '../../../lib/samples';
 
 An **aggregate** is a consistency boundary: one thing whose rules can be checked without looking at anything else, such as a user. It is rebuilt from its own **stream** of events, and it changes only by raising new ones.
 
 Why events rather than rows? Because the history is the data. You can answer "when did this user change their email, and why?" from the stream, build a new read model from old events, and test a rule by saying what happened before and what should happen next.
 
-{/* verify: switch the samples on this page to internal/user/domain once it exists */}
-
-<Aside>
-The samples on this page come from the event-sourcing kit's own tests, which use a small `counter` aggregate. The user aggregate follows the same shape.
-</Aside>
-
 ## An aggregate
 
-An aggregate embeds `es.Changes`, which tracks its version and the events it raised. `Apply` changes state from one event and only assigns. Rules are checked in the methods that raise events, before the event exists:
+An aggregate embeds `es.Changes`, which tracks its version and the events it raised. `Apply` changes state from one event and only assigns. Rules are checked in the methods that raise events, before the event exists. This is the user service's `User`:
 
-<Code {...counterAggregate} />
+<Code {...userAggregate} />
 
 The kit gives you three functions around it. `Raise` applies an event and records it for the next save. `Replay` rebuilds an aggregate from stored events. `Pending` lists what was raised since the aggregate was loaded:
 
@@ -38,7 +32,7 @@ The kit gives you three functions around it. `Raise` applies an event and record
 
 An event is a plain struct with JSON tags, named in the past tense. It holds what the fact needs and nothing else:
 
-<Code {...counterEvents} />
+<Code {...userEvents} />
 
 Stored, every event travels in an envelope. `Meta` says why it happened, using identifiers only:
 
@@ -46,19 +40,17 @@ Stored, every event travels in an envelope. `Meta` says why it happened, using i
 
 The user service's events are `user.registered.v1` (`user_id`, `email`), `user.email_changed.v1` (`old`, `new`) and `user.google_linked.v1` (`subject`). The aggregate enforces that a user has at most one Google subject.
 
-{/* verify: the user event names and fields against internal/user/domain */}
-
 ## Names and versions
 
 Each payload type is registered under an explicit name. The name is stored with the event, so it never changes. Registering by name rather than by Go type means renaming a type can't orphan the events already stored:
 
-<Code {...counterRegistry} />
+<Code {...userRegistry} />
 
 When a payload's shape has to change, the new shape gets a new name and an upcaster converts the old JSON as it is read. The stored events stay exactly as they were written:
 
 <Code {...registryApi} />
 
-Upcasts chain, so a stream written by three versions of the code still loads:
+The user events have no second version yet, so this example comes from the kit's own tests and their small `counter` aggregate. Upcasts chain, so a stream written by three versions of the code still loads:
 
 <Code {...counterUpcastTest} />
 
