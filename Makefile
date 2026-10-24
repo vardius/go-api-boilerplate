@@ -42,7 +42,7 @@ vuln: ## Check dependencies for known vulnerabilities
 .PHONY: check-contracts
 check-contracts: gen ## Lint the proto and fail if generated files are stale
 	$(BUF) lint
-	@git diff --exit-code -- gen website/src/content/docs/reference || (echo "generated files changed: commit the output of make gen" && false)
+	@git diff --exit-code -- gen website/src/content/docs/reference/environment-variables.md || (echo "generated files changed: commit the output of make gen" && false)
 
 .PHONY: check-web
 check-web: ## Typecheck, lint, test and build the web app
@@ -60,8 +60,7 @@ check-deploy: ## Lint the Helm chart and validate it for each store
 .PHONY: gen
 gen: ## Regenerate Connect stubs and the configuration reference
 	$(BUF) generate
-	go run ./cmd/auth env > website/src/content/docs/reference/auth-configuration.md
-	go run ./cmd/user env > website/src/content/docs/reference/user-configuration.md
+	scripts/env-reference.sh
 
 .PHONY: up
 up: ## Start the stack (STORE=memory|mysql|mongodb, OBSERVABILITY=1 adds Grafana)

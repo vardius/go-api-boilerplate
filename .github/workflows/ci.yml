@@ -90,9 +90,8 @@ jobs:
       - name: Generated files are current
         run: |
           go run "$BUF" generate
-          go run ./cmd/auth env > website/src/content/docs/reference/auth-configuration.md
-          go run ./cmd/user env > website/src/content/docs/reference/user-configuration.md
-          git diff --exit-code -- gen website/src/content/docs/reference || (echo "::error::generated files changed: run make gen and commit" && exit 1)
+          scripts/env-reference.sh
+          git diff --exit-code -- gen website/src/content/docs/reference/environment-variables.md || (echo "::error::generated files changed: run make gen and commit" && exit 1)
 
   web:
     runs-on: ubuntu-latest
