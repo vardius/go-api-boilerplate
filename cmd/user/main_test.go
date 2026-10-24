@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -40,6 +41,7 @@ func setEnv(t *testing.T, env map[string]string) {
 }
 
 func TestComposeEnvironmentLoads(t *testing.T) {
+	needsNoDatabase(t)
 	setEnv(t, composeEnv)
 	cfg, err := config.Load[Config]()
 	if err != nil {
@@ -72,10 +74,19 @@ func TestDeployVariablesAreRead(t *testing.T) {
 }
 
 func TestServeRefusesABadWebURL(t *testing.T) {
+	needsNoDatabase(t)
 	setEnv(t, composeEnv)
 	t.Setenv("WEB_URL", "/relative")
 	if err := serve(t.Context()); err == nil || !strings.Contains(err.Error(), "WEB_URL") {
 		t.Fatalf("serve = %v, want a WEB_URL error", err)
+	}
+}
+
+// needsNoDatabase skips a test of serve or migrate in a build with a
+// database store.
+func needsNoDatabase(t *testing.T) {
+	if reflect.TypeFor[storeConfig]().NumField() > 0 {
+		t.Skip("this build's store needs a database")
 	}
 }
 
@@ -92,6 +103,7 @@ func freePort(t *testing.T) string {
 
 // serve starts with compose's environment and answers on both listeners.
 func TestServe(t *testing.T) {
+	needsNoDatabase(t)
 	setEnv(t, composeEnv)
 	httpPort, rpcPort := freePort(t), freePort(t)
 	t.Setenv("HTTP_ADDR", "127.0.0.1:"+httpPort)
@@ -170,6 +182,7 @@ func TestHealthcheck(t *testing.T) {
 // The memory build has nothing to migrate, and migrate reads no other
 // configuration, as the chart's migration Job sets only the store's.
 func TestMigrate(t *testing.T) {
+	needsNoDatabase(t)
 	if err := migrate(t.Context()); err != nil {
 		t.Fatal(err)
 	}
