@@ -5,12 +5,9 @@ package main
 import (
 	"context"
 	"log/slog"
-	"time"
 
-	"github.com/vardius/go-api-boilerplate/internal/auth/store"
 	"github.com/vardius/go-api-boilerplate/internal/auth/store/memory"
 	"github.com/vardius/go-api-boilerplate/internal/platform/memdb"
-	"github.com/vardius/go-api-boilerplate/internal/platform/run"
 )
 
 // storeConfig is empty: the memory store needs nothing.
@@ -21,7 +18,7 @@ func openStore(_ context.Context, _ storeConfig, log *slog.Logger) (*backend, er
 	s := memory.New(memdb.New())
 	return &backend{
 		store:   s,
-		workers: []run.Server{store.PurgeWorker(s, purgeInterval, time.Now, log)},
+		purger:  s,
 		migrate: func(context.Context) error { return nil },
 		close:   func() {},
 	}, nil

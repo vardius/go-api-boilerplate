@@ -23,6 +23,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/internal/auth/app"
 	"github.com/vardius/go-api-boilerplate/internal/auth/httpapi"
 	"github.com/vardius/go-api-boilerplate/internal/auth/keys"
+	"github.com/vardius/go-api-boilerplate/internal/auth/store"
 	"github.com/vardius/go-api-boilerplate/internal/platform/config"
 	"github.com/vardius/go-api-boilerplate/internal/platform/connectx"
 	"github.com/vardius/go-api-boilerplate/internal/platform/httpx"
@@ -114,7 +115,10 @@ func serve(ctx context.Context) error {
 		return err
 	}
 	log.Info("serving", "version", version, "addr", cfg.HTTP.Addr, "issuer", cfg.Issuer)
-	servers := append([]run.Server{run.HTTP(httpx.NewServer(cfg.HTTP, router))}, backend.workers...)
+	servers := []run.Server{run.HTTP(httpx.NewServer(cfg.HTTP, router))}
+	if backend.purger != nil {
+		servers = append(servers, store.PurgeWorker(backend.purger, purgeInterval, time.Now, log))
+	}
 	return run.Run(ctx, cfg.Run, probe, log, servers...)
 }
 

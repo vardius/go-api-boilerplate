@@ -12,14 +12,16 @@ import (
 // the one store_*.go file the build tags pick, returns it.
 type backend struct {
 	store store.Store
-	// checks are the readiness checks; workers run beside the server.
-	checks  map[string]run.Check
-	workers []run.Server
+	// checks are the readiness checks.
+	checks map[string]run.Check
+	// purger deletes what expired, every purgeInterval; nil where TTL
+	// indexes do it.
+	purger store.Purger
 	// migrate applies the store's migrations, or ensures its indexes.
 	migrate func(context.Context) error
 	close   func()
 }
 
-// purgeInterval is how often expired grants, tokens, requests and codes
-// are deleted where no TTL index does it.
+// purgeInterval is how often the purger deletes expired grants, tokens,
+// requests and codes.
 const purgeInterval = 10 * time.Minute
