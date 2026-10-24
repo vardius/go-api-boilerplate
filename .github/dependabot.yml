@@ -7,6 +7,22 @@ updates:
     groups:
       go:
         patterns: ['*']
+  - package-ecosystem: npm
+    directories: [/web, /website]
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ['*']
+  # The Dockerfiles and compose files pin exact image tags.
+  - package-ecosystem: docker
+    directories: [/, /web]
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
   - package-ecosystem: github-actions
     directory: /
     schedule:
