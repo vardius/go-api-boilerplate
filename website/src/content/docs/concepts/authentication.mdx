@@ -64,6 +64,7 @@ The rules that matter:
 - The client secret is 32 random bytes, shown once at creation, stored as an argon2id hash and compared in constant time.
 - Deleting a client revokes every grant it holds.
 - The user sees a consent screen with the app's name and scopes before anything is granted.
+- A refused authorization request, such as an unknown client, a redirect URI that doesn't match or a missing PKCE challenge, goes to the web app's `/oauth/error` page with a reason, never to the redirect URI: anyone can register a client, so sending errors there would make auth an open redirector. Only the user's decision goes back to the app, with `state` and `iss`.
 
 Users manage their apps with `GET /api/auth/v1/clients`, `POST /api/auth/v1/clients` and `DELETE /api/auth/v1/clients/{id}`. A list never includes a secret. Clients find the server's RFC 8414 metadata at `/.well-known/oauth-authorization-server/api/auth`, where RFC 8414 puts it for the issuer `/api/auth`, and at `/api/auth/.well-known/oauth-authorization-server`.
 
@@ -85,7 +86,7 @@ To redeem a login code, auth calls the user service over Connect:
 
 <Code {...loginService} />
 
-auth authenticates with a short-lived token it signs for itself, carrying `login-codes:redeem`. user verifies it with the JWKS like any other token. There's no shared secret to configure or leak, and the RPC listener isn't reachable through the gateway.
+auth authenticates with a short-lived token it signs for itself, with `client_id` `auth` and the `login-codes:redeem` scope. user verifies it with the JWKS like any other token, and refuses a token issued to any other client with `permission_denied`, even if it holds the scope. There's no shared secret to configure or leak, and the RPC listener isn't reachable through the gateway.
 
 ## What is never done
 

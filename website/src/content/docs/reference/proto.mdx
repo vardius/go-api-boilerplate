@@ -10,13 +10,13 @@ Internal calls between the services use [Connect](https://connectrpc.com/), defi
 
 ## LoginService
 
-`user.v1.LoginService` is called only by auth, with a token carrying the `login-codes:redeem` scope. It listens on the user service's `RPC_ADDR`.
+`user.v1.LoginService` is called only by auth, with its own token: `client_id` `auth`, carrying the `login-codes:redeem` scope. Any other token gets `PERMISSION_DENIED`, even one with the scope. It listens on the user service's `RPC_ADDR`.
 
 <Code {...loginService} />
 
 | Method | Request | Response | Errors |
 |---|---|---|---|
-| `RedeemLoginCode` | `code`: the code from the sign-in link | `user_id`, `email` | `UNAUTHENTICATED` for an unknown, used or expired code |
+| `RedeemLoginCode` | `code`: the code from the sign-in link | `user_id`, `email` | `UNAUTHENTICATED` for an unknown, used or expired code; `PERMISSION_DENIED` for a token not issued to auth |
 
 Generated code:
 

@@ -10,7 +10,7 @@ The OpenAPI 3.1 documents in `api/` are the source of truth for the REST API, an
 
 ## Paths
 
-Every route is served through the gateway, under `/api/user` or `/api/auth`, which are the documents' servers. The gateway strips the prefix, so the user service sees `/api/user/v1/me` as `/v1/me`. The reference shows the paths as the services see them.
+Every route is served through the gateway, under `/api/user` or `/api/auth`, which are the documents' servers. The gateway strips the prefix, so the user service sees `/api/user/v1/me` as `/v1/me`. The reference shows the paths as the services see them, and its code samples use `https://example.com` for your public address.
 
 ## Authentication
 

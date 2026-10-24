@@ -38,7 +38,7 @@ Today there is exactly one: auth redeems login codes with user.
 
 3. **Implement the server** in the called service, under `internal/<service>/rpc`, and mount it on its RPC listener (`RPC_ADDR`), not its public one. The gateway forwards only to the public listeners.
 
-4. **Require a scope.** Wrap the handler in `connectx.Errors(log)` and `connectx.Authenticate(verifier, scope)` from `internal/platform/connectx`, as `internal/user/rpc` does with `login-codes:redeem`. The caller sends a short-lived bearer token carrying that scope, verified through JWKS like any other token. Today only auth calls an RPC: the scope is `keys.ServiceScope`, which `app.GrantableScopes` never offers to an OAuth client and `Signer.Sign` refuses, so only auth's own `keys.ServiceToken` carries it.
+4. **Require a scope, and the caller.** Wrap the handler in `connectx.Errors(log)` and `connectx.Authenticate(verifier, scope)` from `internal/platform/connectx`, as `internal/user/rpc` does with `login-codes:redeem`. It also checks the token's `client_id`, so a token issued to anyone but auth is refused with `permission_denied` even if the scope ever leaked to a client. The caller sends a short-lived bearer token carrying that scope, verified through JWKS like any other token. Today only auth calls an RPC: the scope is `keys.ServiceScope`, which `app.GrantableScopes` never offers to an OAuth client and `Signer.Sign` refuses, so only auth's own `keys.ServiceToken` carries it.
 
 5. **Call it** from the other service with the generated client and the `connectx.Bearer` client interceptor, which attaches the token. `connectx.FromConnect` maps the Connect error codes back to `apperr` kinds, through the same table `connectx.Errors` uses on the server.
 
