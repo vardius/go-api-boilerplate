@@ -32,7 +32,6 @@ type rig struct {
 	iss    *authntest.Issuer
 	app    *app.Service
 	outbox *memdb.Outbox
-	url    string
 	srv    *httptest.Server
 }
 
