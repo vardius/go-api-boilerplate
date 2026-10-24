@@ -28,7 +28,6 @@ export function CompleteSignIn() {
   const destination = next ?? '/profile';
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const signedIn = useSignedInUser({ enabled: code !== null && code !== '' });
 
   const signIn = useMutation({
     mutationFn: createSession,
@@ -39,6 +38,8 @@ export function CompleteSignIn() {
       else void navigate(destination, { replace: true });
     },
   });
+  // Asked only until the code is used: clearing the cache would otherwise ask again.
+  const signedIn = useSignedInUser({ enabled: code !== null && code !== '' && signIn.isIdle });
 
   // The code works once, so it's posted once, even when React runs effects twice in development.
   const posted = useRef(false);
