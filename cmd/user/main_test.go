@@ -132,6 +132,9 @@ func TestServe(t *testing.T) {
 		t.Errorf("RPC without a token = %d, want 401", res.StatusCode)
 	}
 
+	// Shutdown waits up to 5s on a connection the client dialed and never
+	// used, so the client lets go of its spares first.
+	http.DefaultClient.CloseIdleConnections()
 	cancel()
 	if err := <-done; err != nil {
 		t.Fatalf("serve = %v", err)
