@@ -37,8 +37,9 @@ func load(t *testing.T) map[string]*pkg {
 			return err
 		}
 		if d.IsDir() {
-			switch d.Name() {
-			case "node_modules", "testdata", "website", "web", ".git":
+			// The go tool ignores dot and underscore directories too, and agent worktrees live in .claude.
+			name := d.Name()
+			if path != root && (strings.HasPrefix(name, ".") || strings.HasPrefix(name, "_") || name == "testdata" || name == "node_modules") {
 				return filepath.SkipDir
 			}
 			return nil
