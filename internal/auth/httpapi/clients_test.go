@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 	"uuid"
 )
 
@@ -41,6 +42,8 @@ func TestClients(t *testing.T) {
 	if c.Name != "Test app" || strings.Join(c.Scopes, " ") != "user:read clients:read" || c.RedirectURIs[0] != appRedirect {
 		t.Fatalf("created %+v", c)
 	}
+	// The clock is frozen: without a tick, the order would be the IDs'.
+	r.e.Clock.Advance(time.Millisecond)
 	createClient(t, owner, "user:read")
 
 	var list struct {
