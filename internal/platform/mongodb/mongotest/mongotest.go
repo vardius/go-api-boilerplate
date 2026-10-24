@@ -23,7 +23,7 @@ import (
 	platform "github.com/vardius/go-api-boilerplate/internal/platform/mongodb"
 )
 
-const image = "mongo:8.3.13"
+const image = "mongo:8.0.34"
 
 var (
 	startOnce sync.Once
