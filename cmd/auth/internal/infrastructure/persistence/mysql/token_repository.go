@@ -236,3 +236,60 @@ func (r *tokenRepository) CountByClientID(ctx context.Context, clientID string) 
 
 	return total, nil
 }
+
+func (r *tokenRepository) FindAllByUserID(ctx context.Context, userID, clientID string, limit, offset int64) ([]persistence.Token, error) {
+	rows, err := r.db.QueryContext(
+		ctx,
+		`SELECT id, client_id, user_id, code, access, refresh, expired_at, user_agent, data FROM auth_tokens WHERE user_id=? AND client_id=? LIMIT ? OFFSET ?`,
+		userID,
+		clientID,
+		limit,
+		offset)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	defer rows.Close()
+
+	var tokens []persistence.Token
+
+	for rows.Next() {
+		var token Token
+		if err := rows.Scan(
+			&token.ID,
+			&token.ClientID,
+			&token.UserID,
+			&token.Code,
+			&token.Access,
+			&token.Refresh,
+			&token.ExpiredAt,
+			&token.UserAgent,
+			&token.Data,
+		); err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+
+		tokens = append(tokens, &token)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+
+	return tokens, nil
+}
+
+func (r *tokenRepository) CountByUserID(ctx context.Context, userID, clientID string) (int64, error) {
+	var total int64
+
+	row := r.db.QueryRowContext(
+		ctx,
+		`SELECT COUNT(distinct_id) FROM auth_tokens WHERE user_id=? AND client_id=?`,
+		userID,
+		clientID,
+	)
+	if err := row.Scan(&total); err != nil {
+		return 0, apperrors.Wrap(err)
+	}
+
+	return total, nil
+}

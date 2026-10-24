@@ -146,3 +146,52 @@ func (r *tokenRepository) CountByClientID(ctx context.Context, clientID string) 
 
 	return i, nil
 }
+
+func (r *tokenRepository) FindAllByUserID(ctx context.Context, userID, clientID string, limit, offset int64) ([]persistence.Token, error) {
+	r.RLock()
+	defer r.RUnlock()
+
+	var matched int64
+	var tokens []persistence.Token
+	for _, v := range r.tokens {
+		ti, err := v.TokenInfo()
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+		if ti.GetUserID() != userID || ti.GetClientID() != clientID {
+			continue
+		}
+
+		matched++
+		if matched <= offset {
+			continue
+		}
+
+		tokens = append(tokens, v)
+
+		if int64(len(tokens)) == limit {
+			return tokens, nil
+		}
+	}
+
+	return tokens, nil
+}
+
+func (r *tokenRepository) CountByUserID(ctx context.Context, userID, clientID string) (int64, error) {
+	r.RLock()
+	defer r.RUnlock()
+
+	var i int64
+	for _, v := range r.tokens {
+		ti, err := v.TokenInfo()
+		if err != nil {
+			return 0, apperrors.Wrap(err)
+		}
+		if ti.GetUserID() != userID || ti.GetClientID() != clientID {
+			continue
+		}
+		i++
+	}
+
+	return i, nil
+}

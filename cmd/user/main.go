@@ -37,7 +37,6 @@ func main() {
 	defer cancel()
 
 	cfg := config.FromEnv()
-	fmt.Println("CONFIG:", cfg)
 
 	container, err := services.NewServiceContainer(ctx, cfg)
 	if err != nil {

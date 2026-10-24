@@ -19,12 +19,10 @@ workflow-generate: ## Generate github workflows from templates
 	cd .github && sh workflows.sh
 
 # HTTPS TASK
-key: ## [HTTP] Generate key
-	openssl genrsa -out server.key 2048
-	openssl ecparam -genkey -name secp384r1 -out server.key
-
-cert: ## [HTTP] Generate self signed certificate
-	openssl req -new -x509 -sha256 -key server.key -out server.pem -days 3650
+cert: ## [HTTP] Generate a self-signed development certificate into k8s/tls (gitignored)
+	mkdir -p k8s/tls
+	openssl ecparam -genkey -name secp384r1 -out k8s/tls/server.key
+	openssl req -new -x509 -sha256 -key k8s/tls/server.key -out k8s/tls/server.pem -days 365 -subj "/CN=go-api-boilerplate.local" -addext "subjectAltName=DNS:go-api-boilerplate.local,DNS:*.go-api-boilerplate.local"
 
 # DOCKER TASKS
 docker-build: ## [DOCKER] Build given container. Example: `make docker-build BIN=user`

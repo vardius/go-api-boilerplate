@@ -84,8 +84,10 @@ func NewRouter(
 	router.POST("/facebook", handlers.BuildSocialAuthHandler(facebookOauthConfig))
 	router.POST("/facebook/callback", handlers.BuildAuthCallbackHandler(facebookOauthConfig, facebookAPIURL, commandBus, user.RegisterUserWithGoogle))
 
+	// Middleware is matched by route pattern, so each guard names the exact pattern it protects.
+	router.USE(http.MethodGet, "/", httpmiddleware.GrantAccessFor(identity.PermissionUserRead))
 	router.USE(http.MethodGet, "/me", httpmiddleware.GrantAccessFor(identity.PermissionUserRead))
-	router.USE(http.MethodPost, "/dispatch/"+user.ChangeUserEmailAddress, httpmiddleware.GrantAccessFor(identity.PermissionUserWrite))
+	router.USE(http.MethodGet, "/{id}", httpmiddleware.GrantAccessFor(identity.PermissionUserRead))
 
 	mainRouter := gorouter.New()
 	mainRouter.NotFound(json.NotFound())

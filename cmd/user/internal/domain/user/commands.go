@@ -13,6 +13,7 @@ import (
 	"github.com/vardius/go-api-boilerplate/pkg/domain"
 	apperrors "github.com/vardius/go-api-boilerplate/pkg/errors"
 	"github.com/vardius/go-api-boilerplate/pkg/executioncontext"
+	"github.com/vardius/go-api-boilerplate/pkg/identity"
 )
 
 const (
@@ -96,6 +97,14 @@ func OnChangeEmailAddress(repository Repository, userRepository persistence.User
 		c, ok := command.(ChangeEmailAddress)
 		if !ok {
 			return apperrors.New("invalid command")
+		}
+
+		i, ok := identity.FromContext(ctx)
+		if !ok {
+			return apperrors.Wrap(fmt.Errorf("%w: changing an email address requires a signed-in user", apperrors.ErrUnauthorized))
+		}
+		if i.UserID != c.ID || !i.Permission.Has(identity.PermissionUserWrite) {
+			return apperrors.Wrap(fmt.Errorf("%w: users can only change their own email address", apperrors.ErrForbidden))
 		}
 
 		if _, err := userRepository.GetByEmail(ctx, c.Email.String()); err != nil && !errors.Is(err, apperrors.ErrNotFound) {

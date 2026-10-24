@@ -13,8 +13,10 @@ import (
 	"time"
 
 	"github.com/vardius/go-api-boilerplate/pkg/container"
+	"github.com/vardius/go-api-boilerplate/pkg/logger"
 	md "github.com/vardius/go-api-boilerplate/pkg/metadata"
 	"github.com/vardius/gocontainer"
+	"github.com/vardius/golog"
 )
 
 func TestHSTS(t *testing.T) {
@@ -138,6 +140,11 @@ func captureOutput(f func()) string {
 	old := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
+
+	// The console logger binds os.Stdout when it is created, so build one after the swap.
+	oldLogger := logger.Logger
+	logger.Logger = golog.New()
+	defer func() { logger.Logger = oldLogger }()
 
 	c := make(chan string)
 	go func() {

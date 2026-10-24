@@ -137,11 +137,14 @@ repeat for all services and `migrate` init containers.
 ```shell
 docker login
 ```
-Copy docker config
+Write a registry config for the cluster to `k8s/.docker/config.json` (gitignored: it holds your registry credentials, never commit it)
 ```shell
-cp ~/.docker/config.json ./k8s/.docker/config.json
+mkdir -p k8s/.docker && cp ~/.docker/config.json k8s/.docker/config.json
 ```
-Verify [config.json](k8s/.docker/config.json)
+Generate the development TLS certificate (also gitignored)
+```shell
+make cert
+```
 ### Deploy release
 ```shell
 make terraform-install

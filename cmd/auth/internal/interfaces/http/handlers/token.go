@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/vardius/gorouter/v4/context"
@@ -90,10 +92,10 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 		offset := (page * limit) - limit
 
 		paginatedList := struct {
-			Tokens []persistence.Token `json:"tokens"`
-			Page   int64               `json:"page"`
-			Limit  int64               `json:"limit"`
-			Total  int64               `json:"total"`
+			Tokens []tokenView `json:"tokens"`
+			Page   int64       `json:"page"`
+			Limit  int64       `json:"limit"`
+			Total  int64       `json:"total"`
 		}{
 			Page:  page,
 			Limit: limit,
@@ -107,7 +109,11 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 			return nil
 		}
 
-		paginatedList.Tokens, err = repository.FindAllByClientID(r.Context(), clientID, limit, offset)
+		tokens, err := repository.FindAllByClientID(r.Context(), clientID, limit, offset)
+		if err != nil {
+			return apperrors.Wrap(err)
+		}
+		paginatedList.Tokens, err = newTokenViews(tokens)
 		if err != nil {
 			return apperrors.Wrap(err)
 		}
@@ -122,7 +128,7 @@ func BuildListTokensHandler(repository persistence.TokenRepository, clientReposi
 	return httpjson.HandlerFunc(fn)
 }
 
-// BuildListUserAuthTokensHandler lists auth tokens by client and user IDs
+// BuildListUserAuthTokensHandler lists the signed-in user's own login tokens.
 func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) error {
 		i, hasIdentity := identity.FromContext(r.Context())
@@ -130,12 +136,23 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 			return apperrors.Wrap(apperrors.ErrUnauthorized)
 		}
 
+		params, ok := context.Parameters(r.Context())
+		if !ok {
+			return apperrors.Wrap(apperrors.ErrInvalid)
+		}
+		if params.Value("userID") != i.UserID.String() {
+			return apperrors.Wrap(fmt.Errorf("%w: users can only list their own tokens", apperrors.ErrForbidden))
+		}
+
 		pageInt, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 32)
 		limitInt, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
 		page := int64(math.Max(float64(pageInt), 1))
 		limit := int64(math.Max(float64(limitInt), 20))
 
-		totalUsers, err := repository.CountByClientID(r.Context(), uuid.Nil.String())
+		userID := i.UserID.String()
+		loginClientID := uuid.Nil.String()
+
+		total, err := repository.CountByUserID(r.Context(), userID, loginClientID)
 		if err != nil {
 			return apperrors.Wrap(err)
 		}
@@ -143,24 +160,28 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 		offset := (page * limit) - limit
 
 		paginatedList := struct {
-			AuthTokens []persistence.Token `json:"auth_tokens"`
-			Page       int64               `json:"page"`
-			Limit      int64               `json:"limit"`
-			Total      int64               `json:"total"`
+			AuthTokens []tokenView `json:"auth_tokens"`
+			Page       int64       `json:"page"`
+			Limit      int64       `json:"limit"`
+			Total      int64       `json:"total"`
 		}{
 			Page:  page,
 			Limit: limit,
-			Total: totalUsers,
+			Total: total,
 		}
 
-		if totalUsers < 1 || offset > (totalUsers-1) {
+		if total < 1 || offset > (total-1) {
 			if err := httpjson.JSON(r.Context(), w, http.StatusOK, paginatedList); err != nil {
 				return apperrors.Wrap(err)
 			}
 			return nil
 		}
 
-		paginatedList.AuthTokens, err = repository.FindAllByClientID(r.Context(), i.ClientID.String(), limit, offset)
+		tokens, err := repository.FindAllByUserID(r.Context(), userID, loginClientID, limit, offset)
+		if err != nil {
+			return apperrors.Wrap(err)
+		}
+		paginatedList.AuthTokens, err = newTokenViews(tokens)
 		if err != nil {
 			return apperrors.Wrap(err)
 		}
@@ -173,4 +194,29 @@ func BuildListUserAuthTokensHandler(repository persistence.TokenRepository) http
 	}
 
 	return httpjson.HandlerFunc(fn)
+}
+
+// tokenView is what the API shows of a token: never the access or refresh token itself.
+type tokenView struct {
+	ID        string    `json:"id"`
+	ClientID  string    `json:"client_id"`
+	UserAgent string    `json:"user_agent,omitempty"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+func newTokenViews(tokens []persistence.Token) ([]tokenView, error) {
+	views := make([]tokenView, 0, len(tokens))
+	for _, t := range tokens {
+		ti, err := t.TokenInfo()
+		if err != nil {
+			return nil, err
+		}
+		views = append(views, tokenView{
+			ID:        t.GetID(),
+			ClientID:  ti.GetClientID(),
+			UserAgent: t.GetUserAgent(),
+			ExpiresAt: ti.GetAccessCreateAt().Add(ti.GetAccessExpiresIn()),
+		})
+	}
+	return views, nil
 }

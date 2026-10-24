@@ -88,3 +88,9 @@ locals {
     }
   ]
 }
+
+variable "auth_secret" {
+  description = "Token signing secret shared by the auth and user services: at least 32 random bytes, e.g. `openssl rand -base64 48`."
+  type        = string
+  sensitive   = true
+}
