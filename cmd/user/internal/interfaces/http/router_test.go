@@ -3,10 +3,12 @@ package http
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/google/uuid"
@@ -69,16 +71,21 @@ func testRouter(t *testing.T) http.Handler {
 
 		authorizer := tokenAuthorizer{
 			"reader": {UserID: uuid.New(), Permission: identity.PermissionUserRead},
+			"victim": {UserID: victimID, Permission: identity.PermissionUserRead},
 		}
 		router = NewRouter(&config.Config{}, authorizer, repository, bus, nil, nil, nil)
 	})
 	return router
 }
 
+// clients counts requests so each comes from its own address and none hits the rate limit.
+var clients atomic.Uint32
+
 func serve(t *testing.T, method, target, token, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	req := httptest.NewRequest(method, target, strings.NewReader(body))
-	req.RemoteAddr = "192.0.2.1:1234"
+	n := clients.Add(1)
+	req.RemoteAddr = fmt.Sprintf("10.%d.%d.%d:1234", n>>16&0xff, n>>8&0xff, n&0xff)
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
@@ -97,10 +104,24 @@ func TestReadingUsersNeedsPermission(t *testing.T) {
 	}
 }
 
+func TestUsersReadOnlyTheirOwnRecord(t *testing.T) {
+	w := serve(t, http.MethodGet, "/v1/"+victimID.String(), "reader", "")
+	if w.Code != http.StatusForbidden {
+		t.Errorf("GET another user's record = %d, want %d", w.Code, http.StatusForbidden)
+	}
+	if strings.Contains(w.Body.String(), "victim@example.com") {
+		t.Errorf("GET another user's record leaks their email: %s", w.Body)
+	}
+
+	if w := serve(t, http.MethodGet, "/v1/", "reader", ""); strings.Contains(w.Body.String(), "victim@example.com") {
+		t.Errorf("the user list shows other users: %s", w.Body)
+	}
+}
+
 func TestUserResponsesHideProviderTokens(t *testing.T) {
 	for _, target := range []string{"/v1/", "/v1/" + victimID.String()} {
 		t.Run(target, func(t *testing.T) {
-			w := serve(t, http.MethodGet, target, "reader", "")
+			w := serve(t, http.MethodGet, target, "victim", "")
 			if w.Code != http.StatusOK {
 				t.Fatalf("GET %s = %d, want %d: %s", target, w.Code, http.StatusOK, w.Body)
 			}

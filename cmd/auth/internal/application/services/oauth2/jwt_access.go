@@ -75,13 +75,11 @@ func (a *JWTAccess) Token(ctx context.Context, data *oauth2.GenerateBasic, isGen
 	for _, scope := range c.GetScopes() {
 		switch access.Scope(scope) {
 		case access.ScopeAll:
-			permissions.Add(identity.PermissionUserRead)
-			permissions.Add(identity.PermissionUserWrite)
-			break
+			permissions = permissions.Add(identity.PermissionUserRead).Add(identity.PermissionUserWrite)
 		case access.ScopeUserRead:
-			permissions.Add(identity.PermissionUserRead)
+			permissions = permissions.Add(identity.PermissionUserRead)
 		case access.ScopeUserWrite:
-			permissions.Add(identity.PermissionUserWrite)
+			permissions = permissions.Add(identity.PermissionUserWrite)
 		}
 	}
 

@@ -71,10 +71,10 @@ function AuthTokenList() {
 
   return (
     <Box>
-      {tokens.map(({id, access, user_agent}) => <AuthToken
+      {tokens.map(({id, expires_at, user_agent}) => <AuthToken
         key={id}
         id={id}
-        authToken={access}
+        expiresAt={expires_at}
         title={user_agent || id}
         onRemove={handleRemoveToken}
       />)}

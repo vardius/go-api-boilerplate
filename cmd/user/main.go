@@ -78,7 +78,7 @@ func main() {
 		},
 	)
 
-	grpcUserServer := usergrpc.NewServer(container.CommandBus, container.UserPersistenceRepository)
+	grpcUserServer := usergrpc.NewServer(container.UserPersistenceRepository)
 	userproto.RegisterUserServiceServer(grpcServer, grpcUserServer)
 
 	app := application.New()

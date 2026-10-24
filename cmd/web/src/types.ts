@@ -16,11 +16,12 @@ export interface Client {
   scopes: Array<string>;
 }
 
+// Token is a session as the API lists it: never the token itself.
 export interface Token {
   id: string;
-  access: string;
-  refresh?: string;
+  client_id: string;
   user_agent?: string;
+  expires_at?: string;
 }
 
 export type AuthToken = string | null;

@@ -1,11 +1,11 @@
 import React, {useCallback, useState} from "react";
 import {defineMessages, useIntl} from "react-intl";
-import {Box, Button, Code, Flex, Heading, Text, useToast} from "@chakra-ui/core";
+import {Box, Button, Flex, Heading, Text, useToast} from "@chakra-ui/core";
 import {useApi} from "src/hooks";
 
 interface Props {
   id: string;
-  authToken: string;
+  expiresAt?: string;
   title: string;
   onRemove?: () => void;
 }
@@ -22,6 +22,10 @@ const messages = defineMessages({
   remove_error_title: {
     id: "security.auth_token.remove.error_title",
     defaultMessage: "Action failed",
+  },
+  expires: {
+    id: "security.auth_token.expires",
+    defaultMessage: "Expires {date}",
   },
 });
 
@@ -84,13 +88,11 @@ const AuthToken = (props: Props) => {
           {intl.formatMessage(messages.remove)}
         </Button>
       </Flex>
-      <pre>
+      {props.expiresAt && (
         <Text mt={4}>
-            <Code>
-              {props.authToken}
-            </Code>
+          {intl.formatMessage(messages.expires, {date: new Date(props.expiresAt).toLocaleString()})}
         </Text>
-      </pre>
+      )}
     </Box>
   );
 };

@@ -320,7 +320,7 @@ const ClientCredentials = (props: Props) => {
         {isTokensLoading ? (
           <CircularProgress/>
         ) : (
-          tokens.map(({id, access}) => <AuthToken key={id} id={id} authToken={access} title={id}/>)
+          tokens.map(({id, expires_at}) => <AuthToken key={id} id={id} expiresAt={expires_at} title={id}/>)
         )}
       </Collapse>
       <Collapse isOpen={showSnippet}>
