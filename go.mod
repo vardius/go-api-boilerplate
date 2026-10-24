@@ -103,3 +103,6 @@ tool (
 	connectrpc.com/connect/v2/cmd/protoc-gen-connect-go
 	google.golang.org/protobuf/cmd/protoc-gen-go
 )
+
+// npm packages can ship Go files; keep them out of ./... after npm ci.
+ignore node_modules

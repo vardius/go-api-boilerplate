@@ -3,6 +3,7 @@ package app_test
 import (
 	"errors"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -70,7 +71,11 @@ func TestCheckAuthorization(t *testing.T) {
 	}
 }
 
-func TestCheckAuthorizationNeverRedirectsToAnUnverifiedURI(t *testing.T) {
+// No failed authorization request goes back to the client, not even to a
+// redirect URI it registered: any user can register a client, so that would
+// be an open redirector (RFC 9700 §4.11.2). Each fails with a reason for the
+// web app's error page.
+func TestCheckAuthorizationNeverRedirects(t *testing.T) {
 	e := apptest.New(t)
 	c, _ := newClient(t, e, uuid.NewV7(), "user:read")
 	challenge := oauth2.S256ChallengeFromVerifier(oauth2.GenerateVerifier())
@@ -90,6 +95,20 @@ func TestCheckAuthorizationNeverRedirectsToAnUnverifiedURI(t *testing.T) {
 		{"another case", func(q url.Values) { q.Set("redirect_uri", strings.ToUpper(redirectURI)) }, app.ReasonInvalidRedirectURI},
 		{"a trailing slash", func(q url.Values) { q.Set("redirect_uri", redirectURI+"/") }, app.ReasonInvalidRedirectURI},
 		{"another port on localhost", func(q url.Values) { q.Set("redirect_uri", "http://localhost:9998/cb") }, app.ReasonInvalidRedirectURI},
+		{"a repeated parameter", func(q url.Values) { q.Add("response_type", "code") }, app.ReasonInvalidRequest},
+		{"a repeated state", func(q url.Values) { q.Add("state", "other") }, app.ReasonInvalidRequest},
+		{"a long state", func(q url.Values) { q.Set("state", strings.Repeat("s", 1025)) }, app.ReasonInvalidRequest},
+		{"a state with a control character", func(q url.Values) { q.Set("state", "a\nb") }, app.ReasonInvalidRequest},
+		{"no response_type", func(q url.Values) { q.Del("response_type") }, app.ReasonInvalidRequest},
+		{"the implicit grant", func(q url.Values) { q.Set("response_type", "token") }, app.ReasonUnsupportedResponseType},
+		{"no PKCE", func(q url.Values) { q.Del("code_challenge"); q.Del("code_challenge_method") }, app.ReasonPKCERequired},
+		{"PKCE plain", func(q url.Values) { q.Set("code_challenge_method", "plain") }, app.ReasonPKCERequired},
+		{"no method, which means plain", func(q url.Values) { q.Del("code_challenge_method") }, app.ReasonPKCERequired},
+		{"a short challenge", func(q url.Values) { q.Set("code_challenge", challenge[1:]) }, app.ReasonPKCERequired},
+		{"a challenge outside base64url", func(q url.Values) { q.Set("code_challenge", challenge[1:]+"=") }, app.ReasonPKCERequired},
+		{"a scope wider than the client's", func(q url.Values) { q.Set("scope", "user:read user:write") }, app.ReasonInvalidScope},
+		{"an unknown scope", func(q url.Values) { q.Set("scope", "everything") }, app.ReasonInvalidScope},
+		{"the service scope", func(q url.Values) { q.Set("scope", "login-codes:redeem") }, app.ReasonInvalidScope},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -97,55 +116,11 @@ func TestCheckAuthorizationNeverRedirectsToAnUnverifiedURI(t *testing.T) {
 			tt.edit(q)
 			_, err := e.Service.CheckAuthorization(t.Context(), q)
 			ae, ok := errors.AsType[*app.AuthorizeError](err)
-			if !ok || ae.Code != tt.reason || ae.Location != "" {
-				t.Fatalf("err = %#v, want %s with no Location", err, tt.reason)
+			if !ok || ae.Code != tt.reason || ae.Description == "" {
+				t.Fatalf("err = %#v, want %s", err, tt.reason)
 			}
-		})
-	}
-}
-
-func TestCheckAuthorizationErrorsGoBackToTheClient(t *testing.T) {
-	e := apptest.New(t)
-	c, _ := newClient(t, e, uuid.NewV7(), "user:read")
-	challenge := oauth2.S256ChallengeFromVerifier(oauth2.GenerateVerifier())
-	tests := []struct {
-		name      string
-		edit      func(url.Values)
-		code      string
-		keepState bool
-	}{
-		{"no response_type", func(q url.Values) { q.Del("response_type") }, app.ErrorInvalidRequest, true},
-		{"the implicit grant", func(q url.Values) { q.Set("response_type", "token") }, app.ErrorUnsupportedResponseType, true},
-		{"a repeated parameter", func(q url.Values) { q.Add("response_type", "code") }, app.ErrorInvalidRequest, true},
-		{"no PKCE", func(q url.Values) { q.Del("code_challenge"); q.Del("code_challenge_method") }, app.ErrorInvalidRequest, true},
-		{"PKCE plain", func(q url.Values) { q.Set("code_challenge_method", "plain") }, app.ErrorInvalidRequest, true},
-		{"no method, which means plain", func(q url.Values) { q.Del("code_challenge_method") }, app.ErrorInvalidRequest, true},
-		{"a short challenge", func(q url.Values) { q.Set("code_challenge", challenge[1:]) }, app.ErrorInvalidRequest, true},
-		{"a challenge outside base64url", func(q url.Values) { q.Set("code_challenge", challenge[1:]+"=") }, app.ErrorInvalidRequest, true},
-		{"a scope wider than the client's", func(q url.Values) { q.Set("scope", "user:read user:write") }, app.ErrorInvalidScope, true},
-		{"an unknown scope", func(q url.Values) { q.Set("scope", "everything") }, app.ErrorInvalidScope, true},
-		{"the service scope", func(q url.Values) { q.Set("scope", "login-codes:redeem") }, app.ErrorInvalidScope, true},
-		{"a long state", func(q url.Values) { q.Set("state", strings.Repeat("s", 1025)) }, app.ErrorInvalidRequest, false},
-		{"a state with a control character", func(q url.Values) { q.Set("state", "a\nb") }, app.ErrorInvalidRequest, false},
-		{"a repeated state", func(q url.Values) { q.Add("state", "other") }, app.ErrorInvalidRequest, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			q := authorizeQuery(c, challenge)
-			tt.edit(q)
-			_, err := e.Service.CheckAuthorization(t.Context(), q)
-			ae, ok := errors.AsType[*app.AuthorizeError](err)
-			if !ok || ae.Code != tt.code {
-				t.Fatalf("err = %v, want %s", err, tt.code)
-			}
-			loc := must(url.Parse(ae.Location))(t)
-			back := loc.Query()
-			loc.RawQuery = ""
-			if loc.String() != redirectURI || back.Get("error") != tt.code || back.Get("error_description") == "" || back.Get("iss") != apptest.Issuer {
-				t.Fatalf("redirected to %s", ae.Location)
-			}
-			if got, want := back.Get("state"), map[bool]string{true: "the state"}[tt.keepState]; got != want {
-				t.Fatalf("state = %q, want %q", got, want)
+			if !slices.Contains(app.Reasons(), ae.Code) {
+				t.Fatalf("%s isn't one of the Reasons", ae.Code)
 			}
 		})
 	}
@@ -186,7 +161,7 @@ func TestConsent(t *testing.T) {
 		_, err := e.Service.Consent(t.Context(), uuid.NewV7(), id)
 		isKind(t, err, apperr.ErrNotFound)
 		_, err = e.Service.Decide(t.Context(), uuid.NewV7(), id, true)
-		if ae, ok := errors.AsType[*app.AuthorizeError](err); !ok || ae.Location != "" || ae.Code != app.ReasonInvalidRequest {
+		if ae, ok := errors.AsType[*app.AuthorizeError](err); !ok || ae.Code != app.ReasonRequestExpired {
 			t.Fatalf("deciding someone else's request: %v", err)
 		}
 		must(e.Service.Consent(t.Context(), user, id))(t)
@@ -222,7 +197,7 @@ func TestDecide(t *testing.T) {
 			t.Fatalf("redirected to %s", back)
 		}
 		_, err := e.Service.Decide(t.Context(), user, id, true)
-		if _, ok := errors.AsType[*app.AuthorizeError](err); !ok {
+		if ae, ok := errors.AsType[*app.AuthorizeError](err); !ok || ae.Code != app.ReasonRequestExpired {
 			t.Fatalf("deciding twice: %v", err)
 		}
 	})
@@ -237,14 +212,14 @@ func TestDecide(t *testing.T) {
 		}
 	})
 
-	t.Run("a client deleted meanwhile", func(t *testing.T) {
+	t.Run("a client deleted meanwhile takes its requests", func(t *testing.T) {
 		id := must(e.Service.RequestConsent(t.Context(), user, a))(t)
 		if err := e.Service.DeleteClient(t.Context(), c.OwnerID, c.ID); err != nil {
 			t.Fatal(err)
 		}
 		_, err := e.Service.Decide(t.Context(), user, id, true)
-		if ae, ok := errors.AsType[*app.AuthorizeError](err); !ok || ae.Location != "" {
-			t.Fatalf("err = %v, want an AuthorizeError without a Location", err)
+		if ae, ok := errors.AsType[*app.AuthorizeError](err); !ok || ae.Code != app.ReasonRequestExpired {
+			t.Fatalf("err = %v, want %s", err, app.ReasonRequestExpired)
 		}
 	})
 }

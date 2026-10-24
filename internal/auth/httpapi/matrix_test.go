@@ -3,6 +3,7 @@ package httpapi_test
 import (
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"uuid"
 
@@ -117,8 +118,32 @@ type cell = [6]int
 
 func all(status int) cell { return cell{status, status, status, status, status, status} }
 
-// The authorization matrix: what every route answers each kind of caller.
-// A route without a row fails the test.
+// sentTo is where a redirect sends each caller, as destination names it.
+type sentTo = [6]string
+
+func allTo(where string) sentTo { return sentTo{where, where, where, where, where, where} }
+
+// destination names where loc sends the user agent: a web app page by its
+// path, the error page as "error" and its reason, or "client" for the
+// client's redirect URI.
+func destination(loc string) string {
+	u, err := url.Parse(loc)
+	switch {
+	case err != nil:
+		return loc
+	case strings.HasPrefix(loc, "https://app.example.test/cb?"):
+		return "client"
+	case strings.HasPrefix(loc, webURL+"/oauth/error?"):
+		return "error " + u.Query().Get("reason")
+	case strings.HasPrefix(loc, webURL+"/"):
+		return u.Path
+	}
+	return loc
+}
+
+// The authorization matrix: what every route answers each kind of caller,
+// and where the OAuth pages send them. A route without a row fails the
+// test.
 func TestAuthorizationMatrix(t *testing.T) {
 	setup := apptest.New(t)
 	c, secret, err := setup.Service.CreateClient(t.Context(), uuid.NewV7(), app.NewClient{Name: "x", RedirectURIs: []string{"https://app.example.test/cb"}, Scopes: []string{app.ScopeUserRead}})
@@ -133,78 +158,96 @@ func TestAuthorizationMatrix(t *testing.T) {
 
 	rows := []struct {
 		method, pattern string
-		send            func(f *fixture, b *browser) response
-		want            cell
+		// variant tells apart rows of one route.
+		variant string
+		send    func(f *fixture, b *browser) response
+		want    cell
+		to      sentTo
 	}{
-		{"GET", "/livez", get("/livez"), all(200)},
-		{"GET", "/readyz", get("/readyz"), all(200)},
-		{"GET", "/.well-known/jwks.json", get("/.well-known/jwks.json"), all(200)},
-		{"GET", "/.well-known/oauth-authorization-server", get("/.well-known/oauth-authorization-server"), all(200)},
-		{"POST", "/v1/sessions", func(f *fixture, b *browser) response {
+		{"GET", "/livez", "", get("/livez"), all(200), sentTo{}},
+		{"GET", "/readyz", "", get("/readyz"), all(200), sentTo{}},
+		{"GET", "/.well-known/jwks.json", "", get("/.well-known/jwks.json"), all(200), sentTo{}},
+		{"GET", "/.well-known/oauth-authorization-server", "", get("/.well-known/oauth-authorization-server"), all(200), sentTo{}},
+		{"POST", "/v1/sessions", "", func(f *fixture, b *browser) response {
 			code := "code-" + uuid.NewV4().String()
 			f.r.e.Logins.Add(code, uuid.NewV7(), "a@example.com")
 			return b.do(http.MethodPost, "/v1/sessions", map[string]string{"code": code}, nil)
-		}, all(201)},
-		{"GET", "/v1/sessions", get("/v1/sessions"), cell{401, 200, 200, 200, 403, 403}},
-		{"POST", "/v1/sessions/refresh", func(_ *fixture, b *browser) response {
+		}, all(201), sentTo{}},
+		{"GET", "/v1/sessions", "", get("/v1/sessions"), cell{401, 200, 200, 200, 403, 403}, sentTo{}},
+		{"POST", "/v1/sessions/refresh", "", func(_ *fixture, b *browser) response {
 			return b.do(http.MethodPost, "/v1/sessions/refresh", nil, nil)
-		}, cell{401, 200, 200, 401, 401, 401}},
-		{"DELETE", "/v1/sessions/current", func(_ *fixture, b *browser) response {
+		}, cell{401, 200, 200, 401, 401, 401}, sentTo{}},
+		{"DELETE", "/v1/sessions/current", "", func(_ *fixture, b *browser) response {
 			return b.do(http.MethodDelete, "/v1/sessions/current", nil, nil)
-		}, all(204)},
-		{"DELETE", "/v1/sessions/{id}", func(f *fixture, b *browser) response {
+		}, all(204), sentTo{}},
+		{"DELETE", "/v1/sessions/{id}", "", func(f *fixture, b *browser) response {
 			return b.do(http.MethodDelete, "/v1/sessions/"+f.session.String(), nil, nil)
-		}, cell{401, 404, 204, 204, 403, 403}},
-		{"GET", "/v1/clients", get("/v1/clients"), cell{401, 200, 200, 403, 403, 200}},
-		{"POST", "/v1/clients", func(_ *fixture, b *browser) response {
+		}, cell{401, 404, 204, 204, 403, 403}, sentTo{}},
+		{"GET", "/v1/clients", "", get("/v1/clients"), cell{401, 200, 200, 403, 403, 200}, sentTo{}},
+		{"POST", "/v1/clients", "", func(_ *fixture, b *browser) response {
 			return b.do(http.MethodPost, "/v1/clients", map[string]any{"name": "New", "redirect_uris": []string{"https://new.example.test/cb"}, "scopes": []string{"user:read"}}, nil)
-		}, cell{401, 201, 201, 403, 403, 201}},
-		{"DELETE", "/v1/clients/{id}", func(f *fixture, b *browser) response {
+		}, cell{401, 201, 201, 403, 403, 201}, sentTo{}},
+		{"DELETE", "/v1/clients/{id}", "", func(f *fixture, b *browser) response {
 			return b.do(http.MethodDelete, "/v1/clients/"+f.client.ID, nil, nil)
-		}, cell{401, 404, 204, 403, 403, 204}},
-		{"GET", "/v1/authorization-requests/{id}", func(f *fixture, b *browser) response {
+		}, cell{401, 404, 204, 403, 403, 204}, sentTo{}},
+		{"GET", "/v1/authorization-requests/{id}", "", func(f *fixture, b *browser) response {
 			return b.do(http.MethodGet, "/v1/authorization-requests/"+f.request.String(), nil, nil)
-		}, cell{401, 404, 200, 200, 403, 403}},
-		// The OAuth pages answer by redirecting; where to is tested on its own.
-		{"GET", "/oauth/authorize", func(f *fixture, b *browser) response {
+		}, cell{401, 404, 200, 200, 403, 403}, sentTo{}},
+		// The OAuth pages answer by redirecting. Only the user who made a
+		// request is sent back to the client, and only once they decided:
+		// before that the redirect URI is anyone's (RFC 9700 §4.11.2). A
+		// bearer token is no session.
+		{"GET", "/oauth/authorize", "", func(f *fixture, b *browser) response {
 			return b.do(http.MethodGet, "/oauth/authorize?"+f.authorizeQuery().Encode(), nil, nil)
-		}, all(302)},
-		{"POST", "/oauth/authorize", func(f *fixture, b *browser) response {
+		}, all(302), sentTo{"/sign-in", "/consent", "/consent", "/sign-in", "/sign-in", "/sign-in"}},
+		{"GET", "/oauth/authorize", "without PKCE", func(f *fixture, b *browser) response {
+			q := f.authorizeQuery()
+			q.Del("code_challenge")
+			return b.do(http.MethodGet, "/oauth/authorize?"+q.Encode(), nil, nil)
+		}, all(302), allTo("error " + app.ReasonPKCERequired)},
+		{"POST", "/oauth/authorize", "", func(f *fixture, b *browser) response {
 			return b.form("/oauth/authorize", url.Values{"request": {f.request.String()}, "decision": {"allow"}}, nil)
-		}, all(303)},
+		}, all(303), sentTo{"error login_required", "error request_expired", "client", "error login_required", "error login_required", "error login_required"}},
 		// The client authenticates itself, so whoever else the caller is
 		// makes no difference.
-		{"POST", "/oauth/token", func(f *fixture, b *browser) response {
+		{"POST", "/oauth/token", "", func(f *fixture, b *browser) response {
 			return b.form("/oauth/token", url.Values{"grant_type": {"client_credentials"}}, f.basic())
-		}, all(200)},
-		{"POST", "/oauth/revoke", func(f *fixture, b *browser) response {
+		}, all(200), sentTo{}},
+		{"POST", "/oauth/revoke", "", func(f *fixture, b *browser) response {
 			return b.form("/oauth/revoke", url.Values{"token": {"unknown"}}, f.basic())
-		}, all(200)},
+		}, all(200), sentTo{}},
 	}
 
 	served := map[string]bool{}
 	for _, route := range newRig(t, options{}).router.Routes() {
-		served[route.Method+" "+route.Pattern] = true
+		served[route.Method+" "+route.Pattern] = false
 	}
 	for _, row := range rows {
 		route := row.method + " " + row.pattern
-		if !served[route] {
+		if _, ok := served[route]; !ok {
 			t.Errorf("the matrix has %s, which is not served", route)
 		}
-		delete(served, route)
+		served[route] = true
+		name := strings.TrimSpace(route + " " + row.variant)
 		for i, caller := range callers {
-			t.Run(route+" by "+caller, func(t *testing.T) {
+			t.Run(name+" by "+caller, func(t *testing.T) {
 				f := newFixture(t, reg)
 				b := f.callers[caller]
 				b.t = t
-				if res := row.send(f, b); res.status != row.want[i] {
-					t.Errorf("%s by %s = %d, want %d: %s", route, caller, res.status, row.want[i], res.body)
+				res := row.send(f, b)
+				if res.status != row.want[i] {
+					t.Errorf("%s by %s = %d, want %d: %s", name, caller, res.status, row.want[i], res.body)
+				}
+				if got := destination(res.header.Get("Location")); got != row.to[i] {
+					t.Errorf("%s by %s is sent to %q, want %q", name, caller, got, row.to[i])
 				}
 			})
 		}
 	}
-	for route := range served {
-		t.Errorf("%s has no row in the authorization matrix", route)
+	for route, covered := range served {
+		if !covered {
+			t.Errorf("%s has no row in the authorization matrix", route)
+		}
 	}
 }
 

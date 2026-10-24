@@ -65,8 +65,9 @@ func (h *handler) serveMetadata(w http.ResponseWriter, _ *http.Request) {
 }
 
 // authorize answers an authorization request (RFC 6749 §4.1.1): by sending
-// the user agent to sign in, then to the consent page, or back with an
-// error.
+// the user agent to sign in, then to the consent page, or to the web app's
+// error page. Never back to the client: only decide does that, once the
+// user has answered.
 func (h *handler) authorize(w http.ResponseWriter, r *http.Request) error {
 	a, err := h.app.CheckAuthorization(r.Context(), r.URL.Query())
 	if err != nil {
@@ -86,20 +87,16 @@ func (h *handler) authorize(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// authorizeFailed sends the user agent where an *app.AuthorizeError says:
-// back to the client, or to the web app's error page when the client can't
-// be trusted with it.
+// authorizeFailed sends the user agent to the web app's error page with
+// the reason of an *app.AuthorizeError, whose description goes only to the
+// log.
 func (h *handler) authorizeFailed(w http.ResponseWriter, r *http.Request, err error, status int) error {
 	ae, ok := errors.AsType[*app.AuthorizeError](err)
 	if !ok {
 		return err
 	}
 	httpx.RecordError(w, err)
-	loc := ae.Location
-	if loc == "" {
-		loc = h.webPage("/oauth/error", url.Values{"reason": {ae.Code}})
-	}
-	http.Redirect(w, r, loc, status)
+	http.Redirect(w, r, h.webPage("/oauth/error", url.Values{"reason": {ae.Code}}), status)
 	return nil
 }
 

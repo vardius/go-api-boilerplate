@@ -12,19 +12,47 @@ const (
 	ErrorUnsupportedResponseType = "unsupported_response_type"
 )
 
-// Reasons the web app's OAuth error page is given, for an authorization
-// request that can't be answered at its redirect URI.
+// Reasons the web app's OAuth error page, {WEB_URL}/oauth/error?reason=…,
+// is given. Every authorization request that fails before its user has
+// decided on the consent page goes there, never to the redirect URI: any
+// user can register a client, so a redirect URI is trusted only with an
+// answer the user chose, or the endpoint is an open redirector (RFC 9700
+// §4.11.2). The set is fixed: api/auth.openapi.yaml documents it and the
+// web app explains each one.
 const (
-	// ReasonInvalidClient is an unknown or malformed client_id.
+	// ReasonInvalidClient is a client_id that is missing, repeated or
+	// unknown, or a client deleted before its user decided.
 	ReasonInvalidClient = ErrorInvalidClient
-	// ReasonInvalidRedirectURI is a redirect_uri the client didn't
-	// register.
+	// ReasonInvalidRedirectURI is a redirect_uri that is missing, repeated
+	// or not exactly one the client registered.
 	ReasonInvalidRedirectURI = "invalid_redirect_uri"
-	// ReasonInvalidRequest is a consent form for no pending request.
+	// ReasonInvalidRequest is a malformed request: a repeated parameter,
+	// no response_type, a state that can't be echoed, or a consent form
+	// that doesn't parse.
 	ReasonInvalidRequest = ErrorInvalidRequest
+	// ReasonPKCERequired is a request without a valid S256 code challenge
+	// (RFC 9700 §2.1.1).
+	ReasonPKCERequired = "pkce_required"
+	// ReasonUnsupportedResponseType is a response_type other than code.
+	ReasonUnsupportedResponseType = ErrorUnsupportedResponseType
+	// ReasonInvalidScope is a scope that doesn't exist or that the client
+	// didn't register.
+	ReasonInvalidScope = ErrorInvalidScope
 	// ReasonLoginRequired is a consent form sent without a session.
 	ReasonLoginRequired = "login_required"
+	// ReasonRequestExpired is a consent form for no pending request of
+	// its user: it expired, was answered already, went with its deleted
+	// client, or is someone else's.
+	ReasonRequestExpired = "request_expired"
 )
+
+// Reasons returns every reason the OAuth error page is given.
+func Reasons() []string {
+	return []string{
+		ReasonInvalidClient, ReasonInvalidRedirectURI, ReasonInvalidRequest, ReasonPKCERequired,
+		ReasonUnsupportedResponseType, ReasonInvalidScope, ReasonLoginRequired, ReasonRequestExpired,
+	}
+}
 
 // OAuthError is an error response of the token or revocation endpoint, RFC
 // 6749 §5.2. Code and Description are written for the client; what
@@ -52,15 +80,13 @@ func (e *OAuthError) Error() string {
 	return e.Code + ": " + e.Description
 }
 
-// AuthorizeError is an authorization request that failed. When the client
-// and its redirect URI check out, Location is that URI with the error, RFC
-// 6749 §4.1.2.1. When they don't, Location is empty: the user agent must
-// not be sent to an unverified URI, so it goes to the web app's error page
-// with Code as the reason.
+// AuthorizeError is an authorization request, or an answer to one, that
+// failed before a redirect URI could be trusted with it. The user agent
+// goes to the web app's error page with Code, one of the Reason constants,
+// as the reason; Description is for the log.
 type AuthorizeError struct {
 	Code        string
 	Description string
-	Location    string
 }
 
 func (e *AuthorizeError) Error() string { return "authorize: " + e.Code + ": " + e.Description }

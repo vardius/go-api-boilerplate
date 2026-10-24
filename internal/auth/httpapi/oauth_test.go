@@ -242,34 +242,54 @@ func TestAuthorizeRedirects(t *testing.T) {
 		return "/oauth/authorize?" + q.Encode()
 	}
 
+	// A bad request goes to the error page, signed in or not, and never
+	// back to the client, not even to a redirect URI it registered: anyone
+	// can register a client, so that would make this an open redirector
+	// (RFC 9700 §4.11.2). The client hears only the answer of a user who
+	// saw the consent page.
+	anonymous := r.browser(t)
 	for name, tt := range map[string]struct {
-		edit func(url.Values)
-		want string
+		edit   func(url.Values)
+		reason string
 	}{
-		"an unknown client":           {func(q url.Values) { q.Set("client_id", uuid.NewV4().String()) }, webURL + "/oauth/error?reason=invalid_client"},
-		"an unregistered redirect":    {func(q url.Values) { q.Set("redirect_uri", "https://evil.example/cb") }, webURL + "/oauth/error?reason=invalid_redirect_uri"},
-		"a redirect with a parameter": {func(q url.Values) { q.Set("redirect_uri", appRedirect+"?evil=1") }, webURL + "/oauth/error?reason=invalid_redirect_uri"},
+		"an unknown client":               {func(q url.Values) { q.Set("client_id", uuid.NewV4().String()) }, "invalid_client"},
+		"an unregistered redirect":        {func(q url.Values) { q.Set("redirect_uri", "https://evil.example/cb") }, "invalid_redirect_uri"},
+		"a redirect with a parameter":     {func(q url.Values) { q.Set("redirect_uri", appRedirect+"?evil=1") }, "invalid_redirect_uri"},
+		"a repeated parameter":            {func(q url.Values) { q.Add("state", "other") }, "invalid_request"},
+		"no response_type":                {func(q url.Values) { q.Del("response_type") }, "invalid_request"},
+		"the implicit grant":              {func(q url.Values) { q.Set("response_type", "token") }, "unsupported_response_type"},
+		"no PKCE":                         {func(q url.Values) { q.Del("code_challenge"); q.Del("code_challenge_method") }, "pkce_required"},
+		"PKCE plain":                      {func(q url.Values) { q.Set("code_challenge_method", "plain") }, "pkce_required"},
+		"a scope wider than the client's": {func(q url.Values) { q.Set("scope", "user:read user:write") }, "invalid_scope"},
 	} {
-		t.Run(name, func(t *testing.T) {
-			res := b.expect(http.MethodGet, query(tt.edit), nil, http.StatusFound)
-			if loc := res.header.Get("Location"); loc != tt.want {
-				t.Fatalf("sent to %s, want %s", loc, tt.want)
-			}
-		})
+		for who, from := range map[string]*browser{"signed in": b, "anonymous": anonymous} {
+			t.Run(name+", "+who, func(t *testing.T) {
+				res := from.expect(http.MethodGet, query(tt.edit), nil, http.StatusFound)
+				if loc, want := res.header.Get("Location"), webURL+"/oauth/error?reason="+tt.reason; loc != want {
+					t.Fatalf("sent to %s, want %s", loc, want)
+				}
+			})
+		}
 	}
 
-	t.Run("PKCE plain is refused at the redirect URI", func(t *testing.T) {
-		loc := b.expect(http.MethodGet, query(func(q url.Values) { q.Set("code_challenge_method", "plain") }), nil, http.StatusFound).location(t)
-		q := loc.Query()
-		if !strings.HasPrefix(loc.String(), appRedirect+"?") || q.Get("error") != "invalid_request" || q.Get("state") != "st" || q.Get("iss") != apptest.Issuer {
-			t.Fatalf("sent to %s", loc)
+	t.Run("a client registered by an attacker sends no one to them", func(t *testing.T) {
+		const landing = "https://evil.example/landing"
+		var created struct {
+			Client clientJSON `json:"client"`
+		}
+		r.signIn(t, uuid.NewV7()).expect(http.MethodPost, "/v1/clients", map[string]any{
+			"name": "Totally legit", "redirect_uris": []string{landing}, "scopes": []string{"user:read"},
+		}, http.StatusCreated).decode(t, &created)
+		q := url.Values{"client_id": {created.Client.ID}, "redirect_uri": {landing}, "response_type": {"code"}}
+		loc := r.browser(t).expect(http.MethodGet, "/oauth/authorize?"+q.Encode(), nil, http.StatusFound).header.Get("Location")
+		if loc != webURL+"/oauth/error?reason=pkce_required" {
+			t.Fatalf("a visitor is sent to %s", loc)
 		}
 	})
 
-	t.Run("a scope wider than the client's is refused", func(t *testing.T) {
-		loc := b.expect(http.MethodGet, query(func(q url.Values) { q.Set("scope", "user:read user:write") }), nil, http.StatusFound).location(t)
-		if loc.Query().Get("error") != "invalid_scope" {
-			t.Fatalf("sent to %s", loc)
+	t.Run("the log says what was wrong", func(t *testing.T) {
+		if logs := r.logs.String(); !strings.Contains(logs, "The code_challenge_method must be S256.") {
+			t.Fatalf("the logs don't say why the request failed:\n%s", logs)
 		}
 	})
 
@@ -337,8 +357,8 @@ func TestDecide(t *testing.T) {
 		{"no request", b, url.Values{"decision": {"allow"}}, errorPage("invalid_request")},
 		{"a malformed request", b, url.Values{"request": {"x"}, "decision": {"allow"}}, errorPage("invalid_request")},
 		{"two requests", b, url.Values{"request": {request(), request()}, "decision": {"allow"}}, errorPage("invalid_request")},
-		{"an unknown request", b, url.Values{"request": {uuid.NewV4().String()}, "decision": {"allow"}}, errorPage("invalid_request")},
-		{"someone else's request", r.signIn(t, uuid.NewV7()), url.Values{"request": {request()}, "decision": {"allow"}}, errorPage("invalid_request")},
+		{"an unknown request", b, url.Values{"request": {uuid.NewV4().String()}, "decision": {"allow"}}, errorPage("request_expired")},
+		{"someone else's request", r.signIn(t, uuid.NewV7()), url.Values{"request": {request()}, "decision": {"allow"}}, errorPage("request_expired")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -353,6 +373,16 @@ func TestDecide(t *testing.T) {
 		loc := b.form("/oauth/authorize", url.Values{"request": {request()}, "decision": {"deny"}}, nil).location(t)
 		if q := loc.Query(); q.Get("error") != "access_denied" || q.Get("state") != "st" || q.Get("iss") != apptest.Issuer || q.Has("code") {
 			t.Fatalf("sent to %s", loc)
+		}
+	})
+
+	t.Run("a request is answered once", func(t *testing.T) {
+		form := url.Values{"request": {request()}, "decision": {"allow"}}
+		if loc := b.form("/oauth/authorize", form, nil).location(t); !strings.HasPrefix(loc.String(), appRedirect+"?") {
+			t.Fatalf("allowed, sent to %s", loc)
+		}
+		if loc := b.form("/oauth/authorize", form, nil).header.Get("Location"); loc != errorPage("request_expired") {
+			t.Fatalf("answered again, sent to %s", loc)
 		}
 	})
 }
