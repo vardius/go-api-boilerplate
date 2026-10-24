@@ -823,6 +823,16 @@ func TestPurgeExpiredCodes(t *testing.T) {
 	}
 }
 
+func TestGoogleFailurePage(t *testing.T) {
+	r := newRig(t)
+	if got := r.svc.GoogleFailurePage(false, app.GoogleDenied).String(); got != "https://app.example.com/sign-in?google=denied" {
+		t.Errorf("sign-in failure page = %s", got)
+	}
+	if got := r.svc.GoogleFailurePage(true, app.GoogleTaken).String(); got != "https://app.example.com/profile?google=taken" {
+		t.Errorf("link failure page = %s", got)
+	}
+}
+
 func TestSafeNext(t *testing.T) {
 	tests := []struct {
 		in, want string

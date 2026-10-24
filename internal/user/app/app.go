@@ -565,7 +565,28 @@ func (s *Service) LinkGoogle(ctx context.Context, subject string) (*url.URL, err
 	if err != nil {
 		return nil, fmt.Errorf("link google: %w", err)
 	}
-	return s.link(url.Values{"google": {"linked"}}, "profile"), nil
+	return s.link(url.Values{"google": {GoogleLinked}}, "profile"), nil
+}
+
+// How a Google sign-in or link ended, as the web app reads it from
+// ?google= on the page GoogleFailurePage or LinkGoogle returns.
+const (
+	GoogleLinked     = "linked"
+	GoogleDenied     = "denied"     // the user said no at Google
+	GoogleExpired    = "expired"    // the round trip took too long or lost its state: start again
+	GoogleUnverified = "unverified" // Google hasn't verified the account's address
+	GoogleTaken      = "taken"      // the Google account, or the account with its address, is linked elsewhere
+	GoogleFailed     = "failed"
+)
+
+// GoogleFailurePage returns the web app's page that tells the user why a
+// Google sign-in, or with linking a link from the profile, didn't finish.
+func (s *Service) GoogleFailurePage(linking bool, outcome string) *url.URL {
+	page := "sign-in"
+	if linking {
+		page = "profile"
+	}
+	return s.link(url.Values{"google": {outcome}}, page)
 }
 
 // PurgeExpiredCodes deletes the login codes that have expired, which can
