@@ -5,51 +5,49 @@ description: Change the domain end to end, from a new event and the rule that ra
 
 import { Aside, Code, Steps } from '@astrojs/starlight/components';
 import {
-	counterAggregate,
-	counterEvents,
-	counterRegistry,
-	counterSave,
-	counterScenario,
-	outboxNewMessage,
+	userAggregate,
+	userChangeEmailTests,
+	userConfirmEmailChange,
+	userEmailChanged,
+	userRegistry,
+	userRequestEmailChange,
 } from '../../../lib/samples';
 
 A command is anything that changes an aggregate: register a user, change their email, link Google. There is no command bus. A command is a method on the aggregate, called from a use case, which is a method on the service's app.
 
-This guide adds one in the order that keeps each step testable. The samples come from the event-sourcing kit's `counter` test aggregate, which has the same shape as the user aggregate.
-
-{/* verify: switch the samples to internal/user/domain and internal/user/app, and check the paths below, once they exist */}
+This guide adds one in the order that keeps each step testable. The samples are the user service's own email change, from `internal/user/domain` and `internal/user/app`.
 
 <Aside title="Using a coding agent?">
-The `add-command` skill in `.agents/skills/` walks an agent through these steps and the checks to run.
+The `add-command` skill in `.agents/skills/` holds these steps as a checklist.
 </Aside>
 
 <Steps>
 
-1. **Name the event.** It is a fact, in the past tense, with a versioned name: `user.display_name_changed.v1`. Its payload is a struct with JSON tags, holding only what the fact needs. No secrets, and no personal data beyond that.
+1. **Name the event.** It is a fact, in the past tense, with a versioned name: `user.display_name_changed.v1`. Its payload is a struct with JSON tags in `internal/user/domain/events.go`, holding only what the fact needs. No secrets, and no personal data beyond that.
 
-   <Code {...counterEvents} />
+   <Code {...userEmailChanged} />
 
-2. **Register it** in the service's registry, next to the others. The name is stored with every event and never changes.
+2. **Register it** in `RegisterEvents`, next to the others. The name is stored with every event and never changes.
 
-   <Code {...counterRegistry} />
+   <Code {...userRegistry} />
 
 3. **Add the aggregate method and its `Apply` case.** The method checks the rule and raises the event. `Apply` only assigns: it never fails on a rule, because stored events are facts.
 
-   <Code {...counterAggregate} />
+   <Code {...userAggregate} />
 
 4. **Test the aggregate with Given/When/Then.** Given the history, when the method runs, then exactly these events are raised, or this error and nothing else.
 
-   <Code {...counterScenario} />
+   <Code {...userChangeEmailTests} />
 
    Write one test per rule, for both outcomes. These tests need no database.
 
-5. **Write the use case** in `internal/user/app`. It takes the actor from `authn.Identity`, never from the request body. It loads the aggregate, calls the method, and saves inside one unit of work, with `Meta` naming the actor:
+5. **Write the use case** in `internal/user/app`. It takes the actor from the identity in the context with `Actor`, never from the request body. It loads the aggregate and calls the method, then saves inside one unit of work, with `meta` naming the actor:
 
-   <Code {...counterSave} />
+   <Code {...userConfirmEmailChange} />
 
    If the change has a side effect, such as an email, add an outbox message inside the same `Do` call:
 
-   <Code {...outboxNewMessage} />
+   <Code {...userRequestEmailChange} />
 
 6. **Update the projection** if the read model changes. See [Add a projection](../add-a-projection/).
 

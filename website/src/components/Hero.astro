@@ -1,7 +1,7 @@
 ---
 // Replaces Starlight's hero: the pitch and its actions on one side, the code they lead to on the other.
 import { Code, LinkButton, TabItem, Tabs } from '@astrojs/starlight/components';
-import { counterDecide, counterSave, counterScenario } from '../lib/samples';
+import { userChangeEmailTest, userDecide, userLinkGoogle } from '../lib/samples';
 
 const { data } = Astro.locals.starlightRoute.entry;
 const { title = data.title, tagline, actions = [] } = data.hero || {};
@@ -31,7 +31,6 @@ const words = create.split(' ').map((word) => word.split(/(?<=\/)/));
 				</div>
 			)
 		}
-		<!-- verify: `gh repo create --template` works only once the repository is marked as a template (plan J step 6) -->
 		<div class="install">
 			<button type="button" class="copy" data-copy={create} aria-label="Copy the command that creates your repository">
 				<svg class="icon-copy" viewBox="0 0 24 24" aria-hidden="true">
@@ -53,16 +52,15 @@ const words = create.split(' ').map((word) => word.split(/(?<=\/)/));
 	</div>
 
 	<div class="sample">
-		<!-- verify: switch to internal/user/domain, internal/user/app and their test once they exist -->
 		<Tabs syncKey="sample">
 			<TabItem label="Aggregate">
-				<Code {...counterDecide} />
+				<Code {...userDecide} />
 			</TabItem>
 			<TabItem label="Save">
-				<Code {...counterSave} />
+				<Code {...userLinkGoogle} />
 			</TabItem>
 			<TabItem label="Test">
-				<Code {...counterScenario} />
+				<Code {...userChangeEmailTest} />
 			</TabItem>
 		</Tabs>
 	</div>

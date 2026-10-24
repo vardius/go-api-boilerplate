@@ -10,8 +10,6 @@ The auth service is a small token service you own. It does three jobs: signs peo
 
 Running your own instead of an external identity provider costs some code, but it keeps the whole flow in one repository you can read, test and change. If you'd rather use a hosted provider later, note that the user service checks tokens with three settings only: a JWKS URL, an issuer and an audience.
 
-{/* verify: everything on this page comes from the design spec; check it against internal/auth and internal/platform/authn once they exist */}
-
 ## Sessions
 
 A user signs in with a one-time code from an email or from the Google callback. auth redeems it and sets two cookies. Only auth ever sets cookies.
@@ -31,7 +29,7 @@ Neither is readable from JavaScript, so a script injected into the page can't st
 
 **Reuse detection.** Each refresh returns a new refresh token and retires the old one. If a retired token is presented again, someone copied it, so auth revokes the whole grant and every token in it. The real user has to sign in again; the thief is locked out too.
 
-A session is a grant to the first-party client `web`. Users list their sessions with `GET /api/auth/v1/sessions` and revoke one with `DELETE /api/auth/v1/sessions/{id}`. `DELETE /api/auth/v1/sessions/current` signs out. These routes need a first-party session, so an OAuth app can't list or revoke a user's devices.
+A session is a grant to the first-party client `web`. Users list their sessions with `GET /api/auth/v1/sessions` and revoke one with `DELETE /api/auth/v1/sessions/{id}`. `DELETE /api/auth/v1/sessions/current` signs out. Listing and revoking need the web app's own session token, so an OAuth app can't list or revoke a user's devices.
 
 ## Access tokens and JWKS
 
@@ -42,12 +40,12 @@ Access tokens follow RFC 9068, JWT profile for OAuth 2.0 access tokens:
 
 For a user's token, `sub` is the user ID. For a client-credentials token, `sub` equals `client_id`.
 
-auth publishes its public keys at `GET /.well-known/jwks.json`. Every API fetches that set once, caches it, and verifies each token locally. An unknown `kid` triggers a refetch, at most once a minute. Verification accepts ES256 only and requires `exp`, `iss` and `aud`, with 30 seconds of leeway for clock skew. Any failure is a `401`.
+auth publishes its public keys at `GET /api/auth/.well-known/jwks.json`. Every API fetches that set once, caches it, and verifies each token locally. An unknown `kid` triggers a refetch, at most once a minute, and a set an hour old is fetched again, so a key auth stops publishing stops being trusted. Verification accepts ES256 only and requires `typ: at+jwt`, `exp`, `iss` and `aud`, with 30 seconds of leeway for clock skew. Any failure is a `401`.
 
 Why asymmetric keys? With a shared HMAC secret, every service that can verify a token can also forge one. With ES256, only auth holds the private key.
 
 <Aside title="Rotating the signing key">
-auth signs with the key in `SIGNING_KEY_FILE`. To rotate, put the old key's public half in `PREVIOUS_KEYS_DIR` and point `SIGNING_KEY_FILE` at the new one. The JWKS serves both, so tokens signed before the switch keep verifying until they expire. Remove the old key once the last token signed with it has expired, 15 minutes after the switch. [Configuration](../../guides/configuration/#the-signing-key) shows the commands.
+auth signs with the key in `SIGNING_KEY_FILE` and also publishes the public keys in `PREVIOUS_KEYS_DIR`. Services keep the key set they fetched for up to an hour, so a new key is published before anything is signed with it: add its public half to `PREVIOUS_KEYS_DIR`, wait more than an hour, then switch `SIGNING_KEY_FILE` to it and move the old key's public half into `PREVIOUS_KEYS_DIR`. Tokens signed before the switch keep verifying until they expire, 15 minutes later. [Configuration](../../guides/configuration/#the-signing-key) has the steps and commands.
 </Aside>
 
 ## OAuth2 for third-party apps
@@ -60,14 +58,14 @@ auth runs an OAuth2 server with three grants and nothing else:
 
 The rules that matter:
 
-- Redirect URIs match exactly. They are registered as absolute `https` URLs, or `http` only for `localhost`.
+- Redirect URIs match exactly. They are registered as absolute `https` URLs, or `http` only for `localhost` and `127.0.0.1`, with no fragment.
 - Granted scopes are a subset of the client's scopes, which are a subset of what may be granted at all.
-- An authorization code works once, for one minute, bound to its client, redirect URI and PKCE verifier.
+- An authorization code works once, for one minute, bound to its client, redirect URI and PKCE verifier. A code presented again revokes the grant it created.
 - The client secret is 32 random bytes, shown once at creation, stored as an argon2id hash and compared in constant time.
 - Deleting a client revokes every grant it holds.
 - The user sees a consent screen with the app's name and scopes before anything is granted.
 
-Users manage their apps with `GET /api/auth/v1/clients`, `POST /api/auth/v1/clients` and `DELETE /api/auth/v1/clients/{id}`. A list never includes a secret. Clients see the server's metadata at `/.well-known/oauth-authorization-server` (RFC 8414).
+Users manage their apps with `GET /api/auth/v1/clients`, `POST /api/auth/v1/clients` and `DELETE /api/auth/v1/clients/{id}`. A list never includes a secret. Clients find the server's RFC 8414 metadata at `/.well-known/oauth-authorization-server/api/auth`, where RFC 8414 puts it for the issuer `/api/auth`, and at `/api/auth/.well-known/oauth-authorization-server`.
 
 ## Scopes
 

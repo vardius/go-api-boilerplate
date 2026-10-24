@@ -9,11 +9,9 @@ Both services read every setting from environment variables, once, at start. The
 
 The full list, with defaults, is in [Environment variables](../../reference/environment-variables/).
 
-{/* verify: config.Load, config.Secret, the env subcommand and every variable on this page against internal/platform/config and the services' config structs once plan sections C1, D and E land */}
-
 ## How names are built
 
-Shared settings are defined once in the platform with short names, and each service adds a prefix when it uses them. The HTTP server's `ADDR` becomes `HTTP_ADDR`; the MySQL `PASSWORD` becomes `MYSQL_PASSWORD`; the token verifier's `JWKS_URL` becomes `AUTH_JWKS_URL` in the user service.
+Shared settings are defined once in the platform with short names, and each service adds a prefix when it uses them. The services' own settings have no prefix. The HTTP server's `ADDR` becomes `HTTP_ADDR`; the MySQL `PASSWORD` becomes `MYSQL_PASSWORD`; the token verifier's `JWKS_URL` becomes `AUTH_JWKS_URL` in the user service.
 
 Every field carries a description, and the services can print their own reference:
 
@@ -27,7 +25,7 @@ The website's environment-variable page is generated from that output, so the do
 
 Secrets, such as `MYSQL_PASSWORD` or `SMTP_PASSWORD`, use a `Secret` type. It prints `[redacted]` in logs, in JSON and with `fmt`, so a config struct can be logged safely. Code that needs the value calls `Reveal()`.
 
-Locally, compose reads development values from `.env`, which you copy from `.env.example` and never commit. In Kubernetes, secrets come from a Secret you create, referenced by name; they are never written into Helm values.
+Locally, `compose.yaml` sets development values inline, such as the `dev-only-*` database passwords, so there is no file to copy. In Kubernetes, secrets come from Secrets you create and name in `auth.existingSecret` and `user.existingSecret`; they are never written into Helm values.
 
 ## Environment
 
@@ -43,16 +41,27 @@ openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out signing-key.
 
 Point `SIGNING_KEY_FILE` at it. In a cluster, mount it from a Secret.
 
-To rotate, keep the old key's public half where auth still serves it, then switch to a new key:
+auth also publishes every `*.pem` in `PREVIOUS_KEYS_DIR`, in name order, in its JWKS. Each must be a P-256 public key in PKIX PEM format (`-----BEGIN PUBLIC KEY-----`). A file that holds the signing key's own public half is published once.
 
-```sh
-openssl pkey -in signing-key.pem -pubout -out previous-keys/old.pem
-openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out signing-key.pem
-```
+The other services keep the key set they fetched for up to an hour, so a token signed with a key they haven't fetched yet can be refused. Publish a new key before signing with it:
 
-With `PREVIOUS_KEYS_DIR` pointing at `previous-keys/`, the JWKS lists both keys. Tokens signed with the old one keep verifying until they expire, 15 minutes later. Then remove its file.
+1. Make the new key and put its public half in `previous-keys/`, on every auth replica, then restart them. The JWKS now lists it.
 
-{/* verify: how auth reads PREVIOUS_KEYS_DIR (which file names it accepts) once internal/auth exists */}
+   ```sh
+   openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out new-signing-key.pem
+   openssl pkey -in new-signing-key.pem -pubout -out previous-keys/new.pem
+   ```
+
+2. Wait more than an hour, so every service has fetched it.
+3. Put the old key's public half in `previous-keys/`, point `SIGNING_KEY_FILE` at the new key, and restart auth. `new.pem` can stay.
+
+   ```sh
+   openssl pkey -in signing-key.pem -pubout -out previous-keys/old.pem
+   ```
+
+4. Tokens signed with the old key keep verifying until they expire, 15 minutes later. After another hour, remove `old.pem`.
+
+[Deploy to Kubernetes](../deploy-to-kubernetes/) does the same with the chart's Secrets.
 
 ## Choosing a store
 
@@ -64,19 +73,19 @@ The store is chosen when the binary is built, not when it starts: a build tag li
 | MySQL | `persistence_mysql` | `STORE=mysql` |
 | MongoDB | `persistence_mongodb` | `STORE=mongodb` |
 
-MySQL needs its schema applied. Run `<service> migrate` before starting the new version, which is what the Helm chart's migration hook does, or set `MIGRATE_ON_START=true` to migrate at start, which compose does. MongoDB has no migrations: each service ensures its indexes at start.
+MySQL needs its schema applied. Run `<service> migrate` before starting the new version, which is what the Helm chart's migration hook does, or set `MIGRATE_ON_START=true` to migrate at start, which compose does. MongoDB has no schema to migrate: the same `migrate` command, or `MIGRATE_ON_START`, ensures its indexes, and running it again changes nothing.
 
 MongoDB must run as a replica set, even a single node, because the services write events, projections and the outbox in one multi-document transaction.
 
 ## Behind a proxy
 
-The rate limiter and the logs need the client's address. By default a service uses the TCP peer. Behind a load balancer, that is the load balancer, so set `TRUSTED_PROXIES` to its CIDRs, comma-separated. The service then takes the right-most `X-Forwarded-For` hop that isn't a trusted proxy. A client can prepend anything to that header, so only hops your own proxies added are believed.
+The rate limiter needs the client's address. By default a service uses the TCP peer. Behind a load balancer, that is the load balancer, so set `TRUSTED_PROXIES` to its CIDRs, comma-separated. The service then takes the right-most `X-Forwarded-For` hop that isn't a trusted proxy. A client can prepend anything to that header, so only hops your own proxies added are believed.
 
 The limiter is a token bucket per client: `RATE_LIMIT_RATE` requests per second, bursts up to `RATE_LIMIT_BURST`, and at most `RATE_LIMIT_VISITORS` clients tracked.
 
 ## Email
 
-The user service sends mail through SMTP with `SMTP_ADDR`, `SMTP_USERNAME`, `SMTP_PASSWORD` and `SMTP_FROM`. It requires STARTTLS, so credentials never travel in clear text. `SMTP_ALLOW_INSECURE=true` turns that off, for Mailpit on your machine only.
+The user service sends mail through SMTP with `SMTP_ADDR`, `SMTP_USERNAME`, `SMTP_PASSWORD` and `SMTP_FROM`. It refuses a server that doesn't offer STARTTLS. `SMTP_ALLOW_INSECURE=true` allows one, for Mailpit on your machine only, and even then the password is sent in clear text only to localhost.
 
 `WEB_URL` is the web app's public address. Links in emails point there.
 
@@ -91,5 +100,5 @@ Google sign-in is off until `GOOGLE_CLIENT_ID` is set. To turn it on:
 The web app shows the Google button once the user service reports it enabled.
 
 <Aside title="Which version is running?">
-`go version -m ./user` prints the module versions and the commit a binary was built from. Released images are tagged with the version and the store: `<version>-memory`, `<version>-mysql` or `<version>-mongodb`.
+Released images are tagged with the version and the store: `<version>-memory`, `<version>-mysql` or `<version>-mongodb`.
 </Aside>

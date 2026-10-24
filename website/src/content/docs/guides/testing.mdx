@@ -21,12 +21,12 @@ Tests are written against behaviour you can name: "a stale version conflicts", "
 | Command | Runs |
 |---|---|
 | `go test -short ./...` | Everything except tests that start containers. No Docker needed. |
-| `go test -race -shuffle=on ./...` | Everything, in random order, with the race detector. This is what CI runs. |
-| `go test -race -tags persistence_mysql ./...` | The same with the MySQL build. CI runs the memory, MySQL and MongoDB builds. |
-| `make check` | Formatting, vet, lint, tests and the generated-code check: all of CI. |
-| `make e2e` | The end-to-end suite against `docker compose up`. |
+| `make test` | `go test -race -shuffle=on ./...`: everything, in random order, with the race detector, including the MySQL and MongoDB containers. |
+| `make check` | What CI runs, except the container and end-to-end tests: formatting, `go fix`, vet and staticcheck for every store build, the short tests with the race detector, the proto lint and generated-file check, the web app's checks and the Helm chart's. |
+| `make e2e` | The end-to-end suite, against a stack started with `make up`. |
+| `make e2e-web` | The Playwright suite, against the same stack. |
 
-{/* verify: make check and make e2e once the Makefile targets from plan section F exist */}
+CI runs the short tests once per store build (memory, `persistence_mysql` and `persistence_mongodb`), and the container tests in a job per database.
 
 ## Aggregates: Given, When, Then
 
@@ -66,20 +66,14 @@ Code that waits on timers runs inside `testing/synctest`, where time only moves 
 
 <Code {...relayRunTest} />
 
-CI also runs once with `TZ=Pacific/Kiritimati`, a UTC+14 zone, to catch code that assumes the local time zone.
-
 ## HTTP: the authorization matrix
 
-Each service has a table-driven test that calls every route as anonymous, another user, the owner, and a token with the wrong scope, and checks the status each gets. A route with no row fails the test. This is the test that would have caught the 2022 layout's account-takeover bug.
+Each service has a table-driven test, `TestAuthorizationMatrix`, that calls every route as each kind of caller and checks the status each gets: anonymous, the owner, another user, a token without the route's scope, and an OAuth app's own client-credentials token. auth also calls its routes with a third-party app's token for a user, which may not manage sessions or apps. A route with no row fails the test: in user, through `TestEveryRouteHasARow`. This is the test that would have caught the 2022 layout's account-takeover bug.
 
-A second test checks the router against `api/<service>.openapi.yaml`: every route is documented, every documented route exists, and every response matches its schema.
-
-{/* verify: the authorization-matrix and OpenAPI contract tests, the TZ run and the container helpers (mysqltest, mongotest) against plan sections D, E and H */}
+`TestOpenAPIDocumentsEveryRoute` checks the router against `api/<service>.openapi.yaml`: every route is documented and every documented route exists. The tests' HTTP rig also checks every response against its schema in that document.
 
 ## End to end
 
-`go test -tags e2e ./e2e/...` drives the running stack over HTTP. CI runs it against the memory, MySQL and MongoDB builds, each started with `docker compose up --wait`.
+`make e2e`, which runs `go test -tags e2e ./e2e/...`, drives the running stack through the gateway. CI runs it against the memory, MySQL and MongoDB builds, each started with `make up STORE=<store>`.
 
 Playwright drives the web app on the memory build: it signs in through the Mailpit API, creates an OAuth app, runs the client-credentials flow and revokes a session.
-
-{/* verify: e2e/ and the Playwright suite against plan sections G and H */}

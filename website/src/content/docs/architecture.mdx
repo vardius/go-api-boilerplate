@@ -8,8 +8,6 @@ import Architecture from '../../components/Architecture.astro';
 
 <Architecture />
 
-{/* verify: every route, port and flow on this page comes from the design spec; check each against internal/auth, internal/user, web/nginx.conf and compose.yaml once they exist */}
-
 ## Why two services
 
 auth holds every secret: the signing key, OAuth client secrets and refresh tokens. user holds personal data. Keeping them apart limits what a bug in either can leak, and it shows how services talk without coupling: one internal RPC where a call is unavoidable, and public keys for everything else.
@@ -22,7 +20,7 @@ Only auth ever holds token material or sets cookies. The user service redeems th
 
 <Steps>
 
-1. The web app posts the address: `POST /api/user/v1/login-links` with `{email, next?}`. user always answers `202`, whether or not the address has an account, so the endpoint can't be used to find out who has one.
+1. The web app posts the address: `POST /api/user/v1/login-links` with `{email, next?}`. user answers `202` whether or not the address has an account, so the endpoint can't be used to find out who has one. Only a malformed address (`400`) or too many requests from the client or for the address (`429`) get another answer.
 
 2. In one transaction, user stores a login code (only its SHA-256 hash) with the email, and adds a `mail.login_link` message to the outbox.
 
@@ -78,7 +76,7 @@ An OAuth app gets tokens through the authorization code grant, with PKCE S256 re
 
 ## Trust boundaries
 
-**The gateway is the only way in.** It forwards `/api/auth/` and `/api/user/` and nothing else. user's Connect listener (`RPC_ADDR`, `:8081` by default) isn't behind it, so `RedeemLoginCode` can only be called from inside the network, and only with the right scope.
+**The gateway is the only way in.** It forwards `/api/auth/` and `/api/user/`, and auth's RFC 8414 metadata at `/.well-known/oauth-authorization-server/api/auth`, and nothing else. user's Connect listener (`RPC_ADDR`, `:8081` by default) isn't behind it, so `RedeemLoginCode` can only be called from inside the network, and only with the right scope.
 
 **Tokens are verified, never trusted.** Every API checks the signature against auth's JWKS, accepts ES256 only, and requires `exp`, `iss` and `aud`. Tokens are read from the `Authorization: Bearer` header or the `access_token` cookie, never from the query string.
 
@@ -90,7 +88,7 @@ An OAuth app gets tokens through the authorization code grant, with PKCE S256 re
 
 | Process | Listens on | Reached through | Store |
 |---|---|---|---|
-| auth | `HTTP_ADDR` (`:8080`) | gateway, `/api/auth/` | clients, grants, authorization requests and codes |
+| auth | `HTTP_ADDR` (`:8080`) | gateway, `/api/auth/` | clients, grants, refresh tokens, authorization requests and codes |
 | user | `HTTP_ADDR` (`:8080`), `RPC_ADDR` (`:8081`) | gateway, `/api/user/`; Connect from auth only | events, the `users` projection, login codes, the outbox |
 | web | `:8080` | your browser | none |
-| Mailpit | `:8025` (UI) | your browser, in development | none |
+| Mailpit | `:8025` (UI), `:1025` (SMTP) | your browser and the user service, in development | none |

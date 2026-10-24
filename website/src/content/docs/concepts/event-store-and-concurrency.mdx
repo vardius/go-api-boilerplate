@@ -44,10 +44,8 @@ The repository is configured once per aggregate type, with its store, registry a
 | Backend | Package | How the version check works |
 |---|---|---|
 | Memory | `internal/platform/memdb` | A mutex-guarded map. A transaction holds the write lock and undoes its writes if it fails. Data is lost when the process stops. |
-| MySQL | `internal/platform/mysql` | An `events` table with `UNIQUE KEY (stream_id, version)`. Append checks the head version inside the transaction, and a duplicate key also maps to `es.ErrConcurrency`. |
+| MySQL | `internal/platform/mysql` | An `events` table with `UNIQUE KEY events_stream_version (stream_id, version)`. Append checks the head version inside the transaction, and a duplicate key also maps to `es.ErrConcurrency`. |
 | MongoDB | `internal/platform/mongodb` | An `events` collection with a unique index on `{stream_id: 1, version: 1}`, written in a session transaction. Needs a replica set, even a single-node one. |
-
-{/* verify: the mysql and mongodb packages, their schema and their indexes against the code once plan section C4 lands */}
 
 Loading always sorts by version, never by time. Timestamps are kept to the millisecond, the finest every backend stores, and two events can share one.
 

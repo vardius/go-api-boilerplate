@@ -16,35 +16,32 @@ Today there is exactly one: auth redeems login codes with user.
 
 1. **Write the method** in `proto/<service>/v1/`. Comment the service and every method: say who may call it and what each failure means.
 
-2. **Lint it and check compatibility.** buf enforces the standard lint rules and rejects breaking changes against `master`:
+2. **Generate the code and lint it.** buf enforces the standard lint rules and, on a pull request, rejects breaking changes against the base branch:
 
    <Code {...bufConfig} />
 
-   ```sh
-   buf lint
-   buf breaking --against '.git#branch=master'
-   ```
-
-   A field once released is never renumbered or reused. To change one, add a new field and deprecate the old.
-
-3. **Generate the code.** buf runs the generators pinned as tools in `go.mod`, so everyone generates with the same versions:
+   buf runs the generators pinned in the `tool` block of `go.mod`, so everyone generates with the same versions:
 
    <Code {...bufGenConfig} />
 
    ```sh
-   buf generate
+   make check-contracts
    ```
 
-   The output in `gen/` is committed, so the build needs no generator. CI fails if it is out of date.
+   That runs `make gen`, which regenerates `gen/` and the [environment-variable reference](../../reference/environment-variables/), then lints the proto and fails if a generated file changed. To check compatibility before CI does:
 
-4. **Implement the server** in the called service and mount it on its RPC listener, not its public one. The gateway never forwards to the RPC listener.
+   ```sh
+   go run github.com/bufbuild/buf/cmd/buf@v1.75.0 breaking --against '.git#branch=master'
+   ```
 
-5. **Require a scope.** Add the scope to auth's scope table, marked not grantable to OAuth clients, and require it with the Connect server interceptor from `internal/platform/connectx`. The caller sends a short-lived bearer token carrying that scope, verified through JWKS like any other token. Today only auth calls an RPC, and it signs that token for itself.
+   A field once released is never renumbered or reused. To change one, add a new field and deprecate the old. The output in `gen/` is committed, so the build needs no generator, and CI fails if it is out of date.
 
-6. **Call it** from the other service with the generated client and the `connectx` client interceptor, which attaches the bearer token. Map the Connect error codes back to `apperr` kinds through the same `connectx` table.
+3. **Implement the server** in the called service, under `internal/<service>/rpc`, and mount it on its RPC listener (`RPC_ADDR`), not its public one. The gateway forwards only to the public listeners.
 
-7. **Test both sides:** the server with a token from `authntest`, including a token without the scope, and the client against a fake server.
+4. **Require a scope.** Wrap the handler in `connectx.Errors(log)` and `connectx.Authenticate(verifier, scope)` from `internal/platform/connectx`, as `internal/user/rpc` does with `login-codes:redeem`. The caller sends a short-lived bearer token carrying that scope, verified through JWKS like any other token. Today only auth calls an RPC: the scope is `keys.ServiceScope`, which `app.GrantableScopes` never offers to an OAuth client and `Signer.Sign` refuses, so only auth's own `keys.ServiceToken` carries it.
+
+5. **Call it** from the other service with the generated client and the `connectx.Bearer` client interceptor, which attaches the token. `connectx.FromConnect` maps the Connect error codes back to `apperr` kinds, through the same table `connectx.Errors` uses on the server.
+
+6. **Test both sides:** the server with tokens from `authntest`, including one without the scope, as `internal/user/rpc/rpc_test.go` does, and the client against a fake server, as `internal/auth/app/apptest` fakes the user service for auth's tests.
 
 </Steps>
-
-{/* verify: connectx's interceptors and error table, authntest, and the "CI fails if gen is out of date" check against plan sections C and H once they land */}

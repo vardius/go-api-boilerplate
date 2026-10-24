@@ -26,8 +26,6 @@ The relay polls for due messages, claims a batch under a lease, and hands each t
 
 Each `RelayConfig` field is read from the environment with the service's `OUTBOX_` prefix: `OUTBOX_INTERVAL`, `OUTBOX_LEASE`, `OUTBOX_TIMEOUT`, `OUTBOX_BATCH` and `OUTBOX_MAX_ATTEMPTS`.
 
-{/* verify: the OUTBOX_ prefix in the user service's config */}
-
 Retries back off from one second, doubling each time, up to five minutes:
 
 <Code {...relayBackoff} />
@@ -40,9 +38,7 @@ The test drives the relay with an injected clock, so it needs no sleeps:
 
 A relay can crash after the handler succeeded but before it acknowledged the message. When the lease runs out, another relay claims the message and delivers it again. So delivery is **at least once**, and every handler must make a repeat harmless.
 
-The message ID is the tool for that. The mail handler sets the email's `Message-ID` header from it, so a resend is recognisably the same message.
-
-{/* verify: the mail handler's dedupe and Message-ID header against internal/user/mail */}
+The message ID is the tool for that. The mail handler sets the email's `Message-ID` header from it, `<message-id@domain>`, so a mail system that sees a resend can tell it is the same message. A link that has expired by the time its message is delivered is dropped rather than sent, since it would only fail.
 
 ## When a message keeps failing
 
@@ -55,9 +51,9 @@ Two metrics count the outcomes: `outbox.delivered` and `outbox.buried`, both tag
 | Topic | Sent when | Handler |
 |---|---|---|
 | `mail.login_link` | Someone asks for a sign-in link | Emails the link with its one-time code |
-| `mail.email_change` | A user asks to change their email | Emails a confirmation code to the new address |
+| `mail.email_change` | A user asks to change their email | Emails a confirmation link to the new address |
 
-{/* verify: topic names against internal/user/app */}
+The topic names are constants in `internal/user/mail`, which also holds the handlers.
 
 ## Where a broker would go
 

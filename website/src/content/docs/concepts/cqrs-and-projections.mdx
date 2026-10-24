@@ -32,7 +32,7 @@ The user service turns that duplicate-key error into `apperr.ErrConflict`, which
 | `users` | `id`, `email`, `google_sub`, `created_at` | `email` unique. `google_sub` unique when set, so any number of users can have none. |
 | `login_codes` | `code_hash`, `purpose`, `email`, `user_id`, `next`, `expires_at`, `used_at` | Consumed atomically: a code works once, and two concurrent uses can't both succeed. |
 
-{/* verify: the users projection and login_codes columns, and the MongoDB partial index on google_sub, against internal/user/store */}
+In MySQL, `google_sub` is `NULL` for a user without Google, and a unique key allows any number of `NULL`s. In MongoDB, the unique index on `google_sub` is partial: it covers only documents where it is a string. MongoDB also removes expired login codes itself, through a TTL index on `expires_at`; every backend checks the time when a code is used regardless.
 
 Login codes aren't a projection: they are short-lived state written directly by the use cases. They live beside the projection because they share its transaction.
 

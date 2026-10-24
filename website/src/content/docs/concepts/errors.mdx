@@ -4,7 +4,7 @@ description: Five error kinds shared by every layer, one table that maps them to
 ---
 
 import { Code } from '@astrojs/starlight/components';
-import { apperrKinds, eventStore } from '../../../lib/samples';
+import { apperrKinds, eventStore, problemSchema } from '../../../lib/samples';
 
 Errors cross three boundaries: from the domain to the use case, from the use case to a transport, and from the transport to a client. Two rules keep that safe and readable:
 
@@ -29,6 +29,7 @@ Each transport maps kinds to its own codes in one table: `httpx` for HTTP, `conn
 |---|---|
 | `*apperr.ValidationError`, `apperr.ErrInvalid` | `400`, with `errors` set for a validation error |
 | `*http.MaxBytesError` | `413` |
+| `*httpx.TooManyRequestsError` | `429`, with `Retry-After` in seconds |
 | `apperr.ErrUnauthorized` | `401`, with `WWW-Authenticate: Bearer` |
 | `apperr.ErrForbidden` | `403` |
 | `apperr.ErrNotFound` | `404` |
@@ -37,24 +38,39 @@ Each transport maps kinds to its own codes in one table: `httpx` for HTTP, `conn
 | `context.Canceled` | nothing is written: the client left |
 | anything else | `500`, with no detail; the error text goes to the log |
 
-{/* verify: the table against internal/platform/httpx, and add the Connect table from internal/platform/connectx once it exists */}
+Over Connect, `connectx.Errors` sends the same client-safe message with these codes:
+
+| Error | Connect code |
+|---|---|
+| `apperr.ErrInvalid` | `invalid_argument` |
+| `apperr.ErrUnauthorized` | `unauthenticated` |
+| `apperr.ErrForbidden` | `permission_denied` |
+| `apperr.ErrNotFound` | `not_found` |
+| `apperr.ErrConflict` | `aborted` |
+| `context.DeadlineExceeded` | `deadline_exceeded` |
+| `context.Canceled` | `canceled` |
+| anything else | `internal`, with no message |
+
+On the calling side, `connectx.FromConnect` turns the codes back into kinds, and reads `already_exists` as a conflict too.
 
 ## Problem details
 
-HTTP errors are RFC 9457 `application/problem+json`:
+HTTP errors are RFC 9457 `application/problem+json`, as both OpenAPI documents describe them:
+
+<Code {...problemSchema} />
+
+Confirming an email change to an address another account took meanwhile answers:
 
 ```json
 {
   "type": "about:blank",
   "title": "Conflict",
   "status": 409,
-  "detail": "this was changed by another request; reload and try again",
+  "detail": "This email address belongs to another account.",
   "instance": "/v1/me/email-change/confirm",
   "request_id": "0192c1b5-7f3e-7a51-9d2c-4b1f3e8a6c10"
 }
 ```
-
-{/* verify: replace this example with one imported from api/user.openapi.yaml once it exists */}
 
 - `title` is the status text. `detail` is the client-safe message, omitted when there is none.
 - `request_id` matches the `X-Request-Id` response header and the request's log line, so a user's bug report leads straight to the logs.

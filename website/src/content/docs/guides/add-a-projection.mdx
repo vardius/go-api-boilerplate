@@ -8,16 +8,14 @@ import { counterProjectionRollbackTest, counterRepository, projectionApi } from 
 
 Queries never read the event store. They read projections: tables or collections shaped for the question, kept current by a function that runs in the same transaction as every append. Read [CQRS and projections](../../concepts/cqrs-and-projections/) first for why.
 
-{/* verify: the paths under internal/user/store against the code once plan section D lands */}
-
 <Steps>
 
 1. **Decide the shape from the query.** Write down the question and the lookup it needs: "find a user by email" needs a unique index on `email`. Add only the columns the query reads.
 
 2. **Change the schema on each backend.**
-   - MySQL: add a goose migration under `internal/user/store/migrations/`. Migrations run with `user migrate`, from the Helm hook in a cluster, or at start when `MIGRATE_ON_START=true`.
-   - MongoDB: declare the index next to the store. Indexes are ensured at start and are idempotent; MongoDB has no migrations.
-   - Memory: add the field and, for a unique rule, a map that enforces it.
+   - MySQL: add a goose migration under `internal/user/store/mysql/migrations/`. Migrations run with `user migrate`, from the Helm hook in a cluster, or at start when `MIGRATE_ON_START=true`.
+   - MongoDB: add the index to `Indexes` in `internal/user/store/mongodb`. The same `user migrate`, or `MIGRATE_ON_START`, ensures them, and ensuring them again changes nothing.
+   - Memory: add the field in `internal/user/store/memory` and, for a unique rule, a map that enforces it.
 
 3. **Update the projection function.** It receives the events of one save and the transaction. Switch on each payload type, ignore the rest, and write with upserts so that running it twice changes nothing.
 
@@ -31,7 +29,7 @@ Queries never read the event store. They read projections: tables or collections
 
    <Code {...counterProjectionRollbackTest} />
 
-5. **Add the rule to the store contract suite,** then make each backend pass it. A rule that lives in one backend only is a bug waiting for someone to switch stores.
+5. **Add the rule to the store contract suite** in `internal/user/store/storetest`, then make each backend pass it. A rule that lives in one backend only is a bug waiting for someone to switch stores.
 
 6. **Write the query.** A query method on the store reads the projection, and a use case or handler calls it. Queries take the actor from the identity, like commands, and only return what that actor may see.
 
@@ -47,6 +45,4 @@ Queries never read the event store. They read projections: tables or collections
 
 ## Rebuilding a projection
 
-Events are kept, so a projection added to a running system can be backfilled from them. `es.Store` has no way to list every stream, so a backfill reads the backend's events table or collection directly, stream by stream in version order, and runs the projection function over each. After that, the inline projection keeps it current. Make the backfill idempotent, for the same reason the projection is.
-
-{/* verify: no backfill tool ships; this paragraph describes the approach. Check it still holds once the mysql and mongodb event stores exist */}
+Events are kept, so a projection added to a running system can be backfilled from them. `es.Store` has no way to list every stream, so a backfill reads the backend's events table or collection directly, stream by stream in version order, and runs the projection function over each. After that, the inline projection keeps it current. Make the backfill idempotent, for the same reason the projection is. No backfill tool ships with the repository.
