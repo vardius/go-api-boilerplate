@@ -1,10 +1,11 @@
 // Package run starts a process's servers and stops them cleanly.
 //
-// Run serves until the process gets SIGINT or SIGTERM, its context ends, or
-// a server fails. Then it drains: readiness turns 503 so load balancers stop
-// sending traffic, it waits ShutdownDelay for them to notice, and it shuts
-// every server down at once, giving them ShutdownTimeout to finish what
-// they are doing. It returns what failed; main decides the exit code.
+// Run serves until the process gets SIGINT, SIGTERM or SIGHUP, its context
+// ends, or a server fails. Then it drains: readiness turns 503 so load
+// balancers stop sending traffic, it waits ShutdownDelay for them to
+// notice, and it shuts every server down at once, giving them
+// ShutdownTimeout to finish what they are doing. A second signal ends the
+// process at once. It returns what failed; main decides the exit code.
 package run
 
 import (
@@ -12,11 +13,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
+
+	"github.com/vardius/shutdown/v2"
 )
 
 // Config times the shutdown. Services embed it without a prefix.
@@ -40,8 +40,6 @@ type Server interface {
 // It returns the joined errors of the servers that failed, nil after a
 // clean stop.
 func Run(ctx context.Context, cfg Config, probe *Probe, log *slog.Logger, servers ...Server) error {
-	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
-	defer stop()
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
 
@@ -64,36 +62,41 @@ func Run(ctx context.Context, cfg Config, probe *Probe, log *slog.Logger, server
 		})
 	}
 
-	<-ctx.Done()
-	// A second signal now kills the process instead of waiting for the drain.
-	stop()
-	log.Info("draining", "reason", context.Cause(ctx).Error(), "delay", cfg.ShutdownDelay)
-	probe.drain()
-	time.Sleep(cfg.ShutdownDelay)
+	// The stop's context ends ShutdownDelay+ShutdownTimeout after the
+	// shutdown starts, which leaves the servers ShutdownTimeout once the
+	// delay is over.
+	_ = shutdown.GracefulStop(ctx, cfg.ShutdownDelay+cfg.ShutdownTimeout, func(shutdownCtx context.Context) error {
+		reason := "signal"
+		if cause := context.Cause(ctx); cause != nil {
+			reason = cause.Error()
+		}
+		log.Info("draining", "reason", reason, "delay", cfg.ShutdownDelay)
+		probe.drain()
+		time.Sleep(cfg.ShutdownDelay)
 
-	log.Info("shutting down", "timeout", cfg.ShutdownTimeout)
-	shutdownCtx, cancelShutdown := context.WithTimeout(context.WithoutCancel(ctx), cfg.ShutdownTimeout)
-	defer cancelShutdown()
-	var shutdowns sync.WaitGroup
-	for _, s := range servers {
-		shutdowns.Go(func() {
-			if err := s.Shutdown(shutdownCtx); err != nil {
-				fail(fmt.Errorf("shutdown: %w", err))
-			}
-		})
-	}
-	shutdowns.Wait()
+		log.Info("shutting down", "timeout", cfg.ShutdownTimeout)
+		var shutdowns sync.WaitGroup
+		for _, s := range servers {
+			shutdowns.Go(func() {
+				if err := s.Shutdown(shutdownCtx); err != nil {
+					fail(fmt.Errorf("shutdown: %w", err))
+				}
+			})
+		}
+		shutdowns.Wait()
 
-	served := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(served)
-	}()
-	select {
-	case <-served:
-	case <-shutdownCtx.Done():
-		fail(fmt.Errorf("servers still running %s after shutdown began", cfg.ShutdownTimeout))
-	}
+		served := make(chan struct{})
+		go func() {
+			wg.Wait()
+			close(served)
+		}()
+		select {
+		case <-served:
+		case <-shutdownCtx.Done():
+			fail(fmt.Errorf("servers still running %s after shutdown began", cfg.ShutdownTimeout))
+		}
+		return nil
+	})
 
 	mu.Lock()
 	defer mu.Unlock()

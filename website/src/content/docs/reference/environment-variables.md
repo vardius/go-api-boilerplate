@@ -99,6 +99,7 @@ Built with `-tags persistence_mongodb`, it also reads:
 | `OUTBOX_LEASE` | `2m` |  | How long a claimed message stays claimed; must outlast the timeout. |
 | `OUTBOX_TIMEOUT` | `30s` |  | Longest one delivery may take. |
 | `OUTBOX_BATCH` | `10` |  | Messages claimed per poll. |
+| `OUTBOX_WORKERS` | `10` |  | Messages of a batch delivered at once; ceil(batch/workers) × timeout must stay under the lease. |
 | `OUTBOX_MAX_ATTEMPTS` | `8` |  | Deliveries tried before a message is buried. |
 | `MIGRATE_ON_START` | `false` |  | Apply the migrations (MySQL) or ensure the indexes (MongoDB) before serving. |
 

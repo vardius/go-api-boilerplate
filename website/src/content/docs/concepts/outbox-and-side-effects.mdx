@@ -20,11 +20,11 @@ A message has a topic, a JSON payload and an ID. Its store has the same interfac
 
 ## Delivery
 
-The relay polls for due messages, claims a batch under a lease, and hands each to the handler for its topic. A handler that returns an error gets the message again later:
+The relay polls for due messages, claims a batch under a lease, and hands each to the handler for its topic. A batch is delivered on a [worker pool](https://vardius.github.io/worker-pool/) of `Workers` goroutines, so one slow mail server doesn't hold up the rest while their leases run. A handler that returns an error gets the message again later:
 
 <Code {...relayConfig} />
 
-Each `RelayConfig` field is read from the environment with the service's `OUTBOX_` prefix: `OUTBOX_INTERVAL`, `OUTBOX_LEASE`, `OUTBOX_TIMEOUT`, `OUTBOX_BATCH` and `OUTBOX_MAX_ATTEMPTS`.
+Each `RelayConfig` field is read from the environment with the service's `OUTBOX_` prefix: `OUTBOX_INTERVAL`, `OUTBOX_LEASE`, `OUTBOX_TIMEOUT`, `OUTBOX_BATCH`, `OUTBOX_WORKERS` and `OUTBOX_MAX_ATTEMPTS`.
 
 Retries back off from one second, doubling each time, up to five minutes:
 

@@ -158,6 +158,45 @@ func TestRelayBuriesMessagesThatCrashTheRelay(t *testing.T) {
 	}
 }
 
+func TestRelayDeliversABatchOnItsWorkers(t *testing.T) {
+	for _, tc := range []struct {
+		workers int
+		want    int32
+	}{{workers: 2, want: 2}, {workers: 5, want: 3}} {
+		synctest.Test(t, func(t *testing.T) {
+			f := newFixture(t)
+			f.relay.Config.Workers = tc.workers
+			var running atomic.Int32
+			release := make(chan struct{})
+			f.handle = func(context.Context, outbox.Message) error {
+				running.Add(1)
+				<-release
+				return nil
+			}
+			for range 3 {
+				f.add(t, "mail")
+			}
+
+			done := make(chan int)
+			go func() {
+				n, err := f.relay.Drain(t.Context())
+				if err != nil {
+					t.Error(err)
+				}
+				done <- n
+			}()
+			synctest.Wait()
+			if got := running.Load(); got != tc.want {
+				t.Errorf("%d workers: %d deliveries running at once, want %d", tc.workers, got, tc.want)
+			}
+			close(release)
+			if n := <-done; n != 3 {
+				t.Errorf("Drain handled %d, want 3", n)
+			}
+		})
+	}
+}
+
 func TestRelayRunPollsUntilCancelled(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		db := memdb.New()

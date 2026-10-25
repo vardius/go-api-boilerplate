@@ -17,6 +17,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/vardius/golog/v2"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -49,10 +50,9 @@ func (f *Format) UnmarshalText(text []byte) error {
 // NewLogger returns a logger writing cfg.Format records of at least
 // cfg.Level to w.
 func NewLogger(w io.Writer, cfg Config) *slog.Logger {
-	opts := &slog.HandlerOptions{Level: cfg.Level, ReplaceAttr: redact}
-	var h slog.Handler = slog.NewJSONHandler(w, opts)
+	var h slog.Handler = slog.NewJSONHandler(w, &slog.HandlerOptions{Level: cfg.Level, ReplaceAttr: redact})
 	if cfg.Format == FormatText {
-		h = slog.NewTextHandler(w, opts)
+		h = golog.NewHandler(w, &golog.Options{Level: cfg.Level, ReplaceAttr: redact})
 	}
 	return slog.New(contextHandler{h})
 }

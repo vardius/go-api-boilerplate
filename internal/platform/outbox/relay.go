@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vardius/worker-pool/v3"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -27,6 +28,10 @@ type RelayConfig struct {
 	Timeout time.Duration `env:"TIMEOUT" envDefault:"30s" desc:"Longest one delivery may take."`
 	// Batch is how many messages one claim takes.
 	Batch int `env:"BATCH" envDefault:"10" desc:"Messages claimed per poll."`
+	// Workers is how many messages of a batch are delivered at once. A
+	// message waiting for a worker is still on its lease, so Batch/Workers
+	// rounded up, times Timeout, must stay under Lease.
+	Workers int `env:"WORKERS" envDefault:"10" desc:"Messages of a batch delivered at once; ceil(batch/workers) × timeout must stay under the lease."`
 	// MaxAttempts is how many times a message is tried before it is buried.
 	MaxAttempts int `env:"MAX_ATTEMPTS" envDefault:"8" desc:"Deliveries tried before a message is buried."`
 }
@@ -43,6 +48,9 @@ func (c RelayConfig) withDefaults() RelayConfig {
 	}
 	if c.Batch <= 0 {
 		c.Batch = 10
+	}
+	if c.Workers <= 0 {
+		c.Workers = 10
 	}
 	if c.MaxAttempts <= 0 {
 		c.MaxAttempts = 8
@@ -109,14 +117,34 @@ func (r *Relay) Drain(ctx context.Context) (int, error) {
 		if err != nil {
 			return handled, fmt.Errorf("outbox: claim: %w", err)
 		}
-		for _, m := range msgs {
-			r.deliver(ctx, m)
-			handled++
-		}
+		handled += r.deliverAll(ctx, msgs)
 		if len(msgs) < r.Config.Batch {
 			return handled, nil
 		}
 	}
+}
+
+// deliverAll delivers msgs on up to Config.Workers workers and returns once
+// every one it handed out is done, with how many that was.
+func (r *Relay) deliverAll(ctx context.Context, msgs []Message) int {
+	if len(msgs) == 0 {
+		return 0
+	}
+	pool := workerpool.New[Message](len(msgs))
+	for range min(r.Config.Workers, len(msgs)) {
+		pool.AddWorker(func(m Message) { r.deliver(ctx, m) })
+	}
+	handed := 0
+	for _, m := range msgs {
+		// The queue holds the whole batch, so Delegate fails only once ctx
+		// is done. The rest are claimed again when their lease ends.
+		if err := pool.Delegate(ctx, m); err != nil {
+			break
+		}
+		handed++
+	}
+	pool.Stop()
+	return handed
 }
 
 func (r *Relay) deliver(ctx context.Context, m Message) {

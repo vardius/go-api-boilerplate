@@ -99,7 +99,7 @@ func TestLoggerRedactsCredentials(t *testing.T) {
 func TestTextFormat(t *testing.T) {
 	var out bytes.Buffer
 	obs.NewLogger(&out, obs.Config{Format: obs.FormatText}).Info("hello", "password", "p1")
-	if got := out.String(); !strings.Contains(got, "msg=hello") || !strings.Contains(got, "password=[redacted]") {
+	if got := out.String(); !strings.Contains(got, " INFO  hello password=[redacted]\n") {
 		t.Errorf("text output = %q", got)
 	}
 }

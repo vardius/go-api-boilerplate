@@ -13,7 +13,7 @@ Everything here uses the standard library and OpenTelemetry. There is no vendor 
 Both services log JSON lines with `log/slog`. Each line inside a request carries `request_id`, and `trace_id` and `span_id` when a trace is active, so you can go from a log line to its trace and back.
 
 - `LOG_LEVEL` sets the level (`debug`, `info`, `warn`, `error`; default `info`).
-- `LOG_FORMAT` is `json` (default) or `text`, which is easier to read in a terminal.
+- `LOG_FORMAT` is `json` (default) or `text`: one line per record for a terminal, written by [golog](https://vardius.github.io/golog/).
 
 Every HTTP request gets one line, `request`, with `method`, `pattern`, `status`, `bytes`, `duration` and the request ID, plus `err` when the handler failed. A `5xx` logs at error level, and a client that left before the response at debug. The route pattern, such as `/v1/clients/{id}`, is logged instead of the raw path, so IDs in paths don't explode your log index. The gateway's access log keeps the path without its query string, so the sign-in codes in mailed links stay out of it.
 
@@ -48,9 +48,11 @@ The readiness checks cover what the service needs to serve, such as its database
 
 ## Shutdown
 
-On `SIGINT` or `SIGTERM` a service:
+On `SIGINT`, `SIGTERM` or `SIGHUP`, or when a server fails, a service:
 
 1. flips `/readyz` to `503`, so load balancers stop sending it traffic;
 2. waits `SHUTDOWN_DELAY` (default `5s`) for them to notice;
 3. shuts down every server and worker concurrently, allowing `SHUTDOWN_TIMEOUT` (default `20s`) for requests in flight to finish;
 4. exits non-zero if anything failed to stop cleanly.
+
+A second signal ends the process at once, for a shutdown that hangs. The signal handling is [shutdown](https://vardius.github.io/shutdown/)'s `GracefulStop`.

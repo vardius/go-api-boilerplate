@@ -17,7 +17,10 @@ tooling to keep it that way.
 - **Three stores, one contract.** Memory, MySQL or MongoDB, picked at build
   time; every backend passes the same contract suites.
 - **Standard library first.** Plain `net/http` handlers on
-  [gorouter](https://github.com/vardius/gorouter), `log/slog`, OpenTelemetry,
+  [gorouter](https://github.com/vardius/gorouter), `log/slog` with
+  [golog](https://github.com/vardius/golog) for terminals,
+  [shutdown](https://github.com/vardius/shutdown) and
+  [worker-pool](https://github.com/vardius/worker-pool), OpenTelemetry,
   Connect between the services, RFC 9457 errors.
 - **Ready for AI-assisted work.** `AGENTS.md` in every area, code
   standards, recipes for common changes, and import rules enforced by a
