@@ -76,8 +76,8 @@ export function revokeSession(id: string) {
   return request(`${auth}/sessions/${encodeURIComponent(id)}`, { method: 'DELETE', schema: emptyBody });
 }
 
-export function listClients(offset: number, signal?: AbortSignal) {
-  const query = offset > 0 ? `?offset=${offset}` : '';
+export function listClients(cursor: string | undefined, signal?: AbortSignal) {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
   return request(`${auth}/clients${query}`, { schema: clientPageSchema, signal });
 }
 

@@ -16,7 +16,7 @@ const app = {
 describe('OAuth apps', () => {
   it('creates an app and shows its secret once, with a warning and a copy button', async () => {
     const api = mockApi({
-      [list]: [json(200, { clients: [], limit: 20, offset: 0 }), json(200, { clients: [app], limit: 20, offset: 0 })],
+      [list]: [json(200, { clients: [], limit: 20 }), json(200, { clients: [app], limit: 20 })],
       [create]: json(201, { client: app, client_secret: 's3cr3t-value' }),
     });
     const { user } = renderApp('/apps');
@@ -50,7 +50,7 @@ describe('OAuth apps', () => {
   });
 
   it('checks the form before sending it', async () => {
-    const api = mockApi({ [list]: json(200, { clients: [], limit: 20, offset: 0 }) });
+    const api = mockApi({ [list]: json(200, { clients: [], limit: 20 }) });
     const { user } = renderApp('/apps');
 
     await user.click(await screen.findByRole('button', { name: 'Register an app' }));
@@ -67,7 +67,7 @@ describe('OAuth apps', () => {
 
   it("puts the server's field errors on their fields", async () => {
     mockApi({
-      [list]: json(200, { clients: [], limit: 20, offset: 0 }),
+      [list]: json(200, { clients: [], limit: 20 }),
       [create]: problem(400, { errors: { 'redirect_uris[0]': 'must use https outside localhost' } }),
     });
     const { user } = renderApp('/apps');
@@ -84,7 +84,7 @@ describe('OAuth apps', () => {
 
   it('deletes an app only after confirming', async () => {
     const api = mockApi({
-      [list]: [json(200, { clients: [app], limit: 20, offset: 0 }), json(200, { clients: [], limit: 20, offset: 0 })],
+      [list]: [json(200, { clients: [app], limit: 20 }), json(200, { clients: [], limit: 20 })],
       'DELETE /api/auth/v1/clients/client-1': empty(204),
     });
     const { user } = renderApp('/apps');
@@ -104,13 +104,13 @@ describe('OAuth apps', () => {
     expect(api.callsTo('DELETE /api/auth/v1/clients/client-1')).toHaveLength(1);
   });
 
-  it('loads the next page when the first one is full', async () => {
+  it('loads the next page while there is a next cursor', async () => {
     const second = { ...app, id: 'client-2', name: 'Acme Tasks' };
     const third = { ...app, id: 'client-3', name: 'Acme Mail' };
     const api = mockApi({
-      [list]: json(200, { clients: [app, second], limit: 2, offset: 0 }),
-      // A short page is the last one.
-      'GET /api/auth/v1/clients?offset=2': json(200, { clients: [third], limit: 2, offset: 2 }),
+      [list]: json(200, { clients: [app, second], limit: 2, next_cursor: 'after/2' }),
+      // A page without a next cursor is the last one.
+      'GET /api/auth/v1/clients?cursor=after%2F2': json(200, { clients: [third], limit: 2 }),
     });
     const { user } = renderApp('/apps');
 
@@ -119,6 +119,6 @@ describe('OAuth apps', () => {
     expect(await screen.findByRole('heading', { level: 3, name: 'Acme Mail' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: 'Acme Notes' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Show more apps' })).not.toBeInTheDocument();
-    expect(api.callsTo('GET /api/auth/v1/clients?offset=2')).toHaveLength(1);
+    expect(api.callsTo('GET /api/auth/v1/clients?cursor=after%2F2')).toHaveLength(1);
   });
 });

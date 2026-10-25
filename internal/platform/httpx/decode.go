@@ -57,13 +57,16 @@ func decodeProblem(err error) error {
 	return apperr.New(apperr.ErrInvalid, "The request body could not be read.")
 }
 
-// Page is a window into a list.
+// Page is a window into a list: up to Limit items after Cursor, which is
+// "" for the first page and otherwise the next cursor of the page before.
+// The cursor is the list's to decode.
 type Page struct {
-	Limit, Offset int
+	Limit  int
+	Cursor string
 }
 
-// ParsePage reads ?limit= and ?offset=. A missing limit is defaultLimit; a
-// limit outside 1..maxLimit or a negative offset is a ValidationError.
+// ParsePage reads ?limit= and ?cursor=. A missing limit is defaultLimit; a
+// limit outside 1..maxLimit is a ValidationError.
 func ParsePage(r *http.Request, defaultLimit, maxLimit int) (Page, error) {
 	q := r.URL.Query()
 	p := Page{Limit: defaultLimit}
@@ -75,13 +78,7 @@ func ParsePage(r *http.Request, defaultLimit, maxLimit int) (Page, error) {
 		}
 		p.Limit = n
 	}
-	if q.Has("offset") {
-		n, err := strconv.Atoi(q.Get("offset"))
-		if err != nil || n < 0 {
-			fields["offset"] = "must be a whole number, 0 or more"
-		}
-		p.Offset = n
-	}
+	p.Cursor = q.Get("cursor")
 	if len(fields) > 0 {
 		return Page{}, &apperr.ValidationError{Fields: fields}
 	}

@@ -185,12 +185,18 @@ func (s *Store) Client(ctx context.Context, id string) (store.Client, error) {
 }
 
 // Clients implements store.Store.
-func (s *Store) Clients(ctx context.Context, owner uuid.UUID, limit, offset int) ([]store.Client, error) {
+func (s *Store) Clients(ctx context.Context, owner uuid.UUID, after store.ClientKey, limit int) ([]store.Client, error) {
+	filter := bson.D{{Key: "owner_id", Value: binaryUUID(owner)}}
+	if after != (store.ClientKey{}) {
+		filter = append(filter, bson.E{Key: "$or", Value: bson.A{
+			bson.D{{Key: "created_at", Value: bson.D{{Key: "$gt", Value: after.CreatedAt}}}},
+			bson.D{{Key: "created_at", Value: after.CreatedAt}, {Key: "_id", Value: bson.D{{Key: "$gt", Value: after.ID}}}},
+		}})
+	}
 	opts := options.Find().
 		SetSort(bson.D{{Key: "created_at", Value: 1}, {Key: "_id", Value: 1}}).
-		SetSkip(int64(offset)).
 		SetLimit(int64(limit))
-	cur, err := s.clients.Find(ctx, bson.D{{Key: "owner_id", Value: binaryUUID(owner)}}, opts)
+	cur, err := s.clients.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, fmt.Errorf("mongodb: list clients: %w", err)
 	}

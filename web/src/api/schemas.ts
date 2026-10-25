@@ -56,7 +56,7 @@ export type Client = z.output<typeof clientSchema>;
 export const clientPageSchema = z.object({
   clients: z.array(clientSchema),
   limit: z.number().int().positive(),
-  offset: z.number().int().nonnegative(),
+  next_cursor: z.string().min(1).optional(),
 });
 export type ClientPage = z.output<typeof clientPageSchema>;
 

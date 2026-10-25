@@ -56,3 +56,9 @@ Then move it onto the outbox:
 3. Make the handler idempotent by message ID, because the relay delivers at least once.
 
 The read model now lags by the relay's poll interval, and the web app has to live with that. [Outbox and side effects](../outbox-and-side-effects/) covers delivery and retries.
+
+Keep such a read model disposable: fed only by events, idempotent, and rebuildable from the streams. A new or corrupted copy (a fresh search index, or one held in memory on a pod) then fills by replaying events from a checkpoint, the last event it applied, rather than from a backup of its own. Replaying every stream in order needs a feed the event store doesn't offer yet, so add that, with its rules in the `estest` contract suite, before you rely on a rebuild.
+
+## Spreading streams across pods
+
+Writes don't need an owner: two pods writing one stream are caught by the [version check](../event-store-and-concurrency/), and one of them gets a `409`. An owner per group of streams matters only for a consumer that keeps state between events, such as a read model held in memory. Give each group one owner at a time with a lease, the way the outbox relay claims messages, and pick the group from a hash of the stream ID. Stream IDs are stored in events forever, so never put a shard number into new IDs to route them later.

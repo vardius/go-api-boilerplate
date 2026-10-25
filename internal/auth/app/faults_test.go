@@ -40,11 +40,11 @@ func (f *faulty) Client(ctx context.Context, id string) (store.Client, error) {
 	return f.Store.Client(ctx, id)
 }
 
-func (f *faulty) Clients(ctx context.Context, owner uuid.UUID, limit, offset int) ([]store.Client, error) {
+func (f *faulty) Clients(ctx context.Context, owner uuid.UUID, after store.ClientKey, limit int) ([]store.Client, error) {
 	if f.broken("Clients") {
 		return nil, errBoom
 	}
-	return f.Store.Clients(ctx, owner, limit, offset)
+	return f.Store.Clients(ctx, owner, after, limit)
 }
 
 func (f *faulty) DeleteClient(ctx context.Context, owner uuid.UUID, id string) error {
@@ -233,7 +233,7 @@ func TestStoreFailuresAreServerErrors(t *testing.T) {
 		}},
 		{"Clients", "list clients", func(t *testing.T, x *fixture, arm func()) error {
 			arm()
-			_, err := x.s.Clients(t.Context(), x.user, 10, 0)
+			_, err := x.s.Clients(t.Context(), x.user, 10, "")
 			return err
 		}},
 		{"DeleteClient", "delete a client", func(t *testing.T, x *fixture, arm func()) error {

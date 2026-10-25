@@ -51,6 +51,17 @@ type Client struct {
 	CreatedAt  time.Time
 }
 
+// ClientKey is a client's place in its owner's list. Clients sort by
+// CreatedAt, then ID, so no two share a place and a page boundary never
+// moves when clients are added.
+type ClientKey struct {
+	CreatedAt time.Time
+	ID        string
+}
+
+// Key returns c's place in its owner's list.
+func (c Client) Key() ClientKey { return ClientKey{CreatedAt: c.CreatedAt, ID: c.ID} }
+
 // Grant is a user's consent to a client, with a family of refresh tokens.
 // A session of the web app is a grant to the first-party client.
 type Grant struct {
@@ -113,9 +124,9 @@ type Store interface {
 	CreateClient(ctx context.Context, c Client) error
 	// Client returns the client with id.
 	Client(ctx context.Context, id string) (Client, error)
-	// Clients returns owner's clients, oldest first, limit of them from
-	// offset.
-	Clients(ctx context.Context, owner uuid.UUID, limit, offset int) ([]Client, error)
+	// Clients returns up to limit of owner's clients, oldest first, that
+	// come after the place after, or from the first for the zero ClientKey.
+	Clients(ctx context.Context, owner uuid.UUID, after ClientKey, limit int) ([]Client, error)
 	// DeleteClient deletes owner's client id with its grants, refresh
 	// tokens, authorization requests and codes. Another owner's client is
 	// apperr.ErrNotFound.

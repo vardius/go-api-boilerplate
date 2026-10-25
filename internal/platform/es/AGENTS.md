@@ -14,3 +14,12 @@ Event sourcing. Stored events are kept forever, so:
   one twice on the same events leaves the same rows.
 - A concurrent writer is an `es.ErrConcurrency`, which reaches clients as a
   409. Don't retry it inside a store.
+- Stream IDs are plain UUIDs and say nothing about where a stream lives.
+  If streams ever need one owner per group (a sharded processor, a
+  partitioned consumer), route by a hash of the stream ID, never by bits
+  added to new IDs: the old IDs live in stored events forever.
+- A read model kept outside the append transaction (in memory, in a search
+  index) is fed only by events, applies them idempotently, and can be
+  thrown away and rebuilt. Rebuilding needs an ordered feed of every
+  stream with a checkpoint, which `Store` doesn't have: add it, with its
+  rules in `estest`, before such a read model.

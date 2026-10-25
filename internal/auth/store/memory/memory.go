@@ -102,24 +102,26 @@ func (s *Store) Client(ctx context.Context, id string) (store.Client, error) {
 }
 
 // Clients implements store.Store.
-func (s *Store) Clients(ctx context.Context, owner uuid.UUID, limit, offset int) ([]store.Client, error) {
+func (s *Store) Clients(ctx context.Context, owner uuid.UUID, after store.ClientKey, limit int) ([]store.Client, error) {
 	var out []store.Client
 	err := s.read(ctx, func() error {
 		var owned []store.Client
 		for _, c := range s.clients {
-			if c.OwnerID == owner {
+			if c.OwnerID == owner && (after == store.ClientKey{} || compareKeys(c.Key(), after) > 0) {
 				owned = append(owned, c)
 			}
 		}
-		slices.SortFunc(owned, func(a, b store.Client) int {
-			return cmp.Or(a.CreatedAt.Compare(b.CreatedAt), cmp.Compare(a.ID, b.ID))
-		})
-		for _, c := range owned[min(offset, len(owned)):min(offset+limit, len(owned))] {
+		slices.SortFunc(owned, func(a, b store.Client) int { return compareKeys(a.Key(), b.Key()) })
+		for _, c := range owned[:min(limit, len(owned))] {
 			out = append(out, cloneClient(c))
 		}
 		return nil
 	})
 	return out, err
+}
+
+func compareKeys(a, b store.ClientKey) int {
+	return cmp.Or(a.CreatedAt.Compare(b.CreatedAt), cmp.Compare(a.ID, b.ID))
 }
 
 // DeleteClient implements store.Store.

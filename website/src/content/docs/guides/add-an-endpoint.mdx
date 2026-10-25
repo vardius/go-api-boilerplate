@@ -4,7 +4,7 @@ description: Add a REST route with the right authentication and scope, document 
 ---
 
 import { Aside, Code, Steps } from '@astrojs/starlight/components';
-import { userActor, userEmailChangeHandler, userMatrixRows, userRequestEmailChange } from '../../../lib/samples';
+import { authClientsPage, authClientsQuery, userActor, userEmailChangeHandler, userMatrixRows, userRequestEmailChange } from '../../../lib/samples';
 
 Every public route has four parts that change together: the handler, its OpenAPI entry, its row in the authorization matrix, and the web app's schema for its response. Tests fail when the route, its document or its row is missing, which is the point: a route nobody thought about authorizing is how the 2022 layout got its worst bugs.
 
@@ -53,6 +53,20 @@ The `add-endpoint` skill in `.agents/skills/` holds these steps as a checklist.
    ```
 
 </Steps>
+
+## Lists page with a cursor
+
+A list returns a page and a `next_cursor`, and the caller passes it back as `cursor` for the page after. An offset would be simpler, but it counts rows: a client added or deleted between two requests shifts every later page, so a row is shown twice or never, and a deep page makes the database read and skip every row before it.
+
+A cursor marks a place instead. Sort on a key no two rows share, here the creation time and then the ID, and put the last row's key in the cursor. The next page is the rows after that key, which the index in the same order finds directly however deep the page is. Fetching one row more than the page says whether another page follows. `GET /v1/clients` works this way:
+
+<Code {...authClientsPage} />
+
+Each store asks for the rows after the key, on its `(owner_id, created_at, id)` index:
+
+<Code {...authClientsQuery} />
+
+When a row is costly to build, such as one assembled from several tables, pick the page with only each row's ID and sort value, then build just the rows on the page.
 
 ## Cookies and cross-site requests
 

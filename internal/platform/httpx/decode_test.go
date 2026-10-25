@@ -111,14 +111,13 @@ func TestParsePage(t *testing.T) {
 		fields map[string]string
 	}{
 		{"", httpx.Page{Limit: 20}, nil},
-		{"?limit=50&offset=100", httpx.Page{Limit: 50, Offset: 100}, nil},
+		{"?limit=50&cursor=MjAyNg", httpx.Page{Limit: 50, Cursor: "MjAyNg"}, nil},
 		{"?limit=1", httpx.Page{Limit: 1}, nil},
 		{"?limit=100", httpx.Page{Limit: 100}, nil},
 		{"?limit=0", httpx.Page{}, map[string]string{"limit": "must be a whole number from 1 to 100"}},
 		{"?limit=101", httpx.Page{}, map[string]string{"limit": "must be a whole number from 1 to 100"}},
 		{"?limit=", httpx.Page{}, map[string]string{"limit": "must be a whole number from 1 to 100"}},
-		{"?limit=ten&offset=-1", httpx.Page{}, map[string]string{"limit": "must be a whole number from 1 to 100", "offset": "must be a whole number, 0 or more"}},
-		{"?offset=99999999999999999999", httpx.Page{}, map[string]string{"offset": "must be a whole number, 0 or more"}},
+		{"?limit=ten&cursor=MjAyNg", httpx.Page{}, map[string]string{"limit": "must be a whole number from 1 to 100"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.query, func(t *testing.T) {

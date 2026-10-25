@@ -162,7 +162,12 @@ func testClientRoundTrip(t *testing.T, s store.Store) {
 func testClientsList(t *testing.T, s store.Store) {
 	owner, other := uuid.NewV7(), uuid.NewV7()
 	first, second, third := newClient(owner, t0), newClient(owner, t0.Add(time.Second)), newClient(owner, t0.Add(2*time.Second))
-	for _, c := range []store.Client{third, newClient(other, t0), first, second} {
+	// A twin shares second's time, so only the ID decides which comes first.
+	twin := newClient(owner, second.CreatedAt)
+	if twin.ID < second.ID {
+		twin, second = second, twin
+	}
+	for _, c := range []store.Client{third, newClient(other, t0), first, twin, second} {
 		must(t, s.CreateClient(t.Context(), c))
 	}
 	ids := func(cs []store.Client) []string {
@@ -173,27 +178,41 @@ func testClientsList(t *testing.T, s store.Store) {
 		return out
 	}
 	tests := []struct {
-		limit, offset int
-		want          []string
+		name  string
+		after store.ClientKey
+		limit int
+		want  []string
 	}{
-		{10, 0, []string{first.ID, second.ID, third.ID}},
-		{2, 0, []string{first.ID, second.ID}},
-		{2, 2, []string{third.ID}},
-		{2, 5, []string{}},
+		{"all", store.ClientKey{}, 10, []string{first.ID, second.ID, twin.ID, third.ID}},
+		{"first page", store.ClientKey{}, 2, []string{first.ID, second.ID}},
+		{"after a tie", second.Key(), 2, []string{twin.ID, third.ID}},
+		{"after the last", third.Key(), 2, []string{}},
+		{"after a place no client holds", store.ClientKey{CreatedAt: t0.Add(1500 * time.Millisecond), ID: first.ID}, 10, []string{third.ID}},
 	}
 	for _, tt := range tests {
-		got, err := s.Clients(t.Context(), owner, tt.limit, tt.offset)
+		got, err := s.Clients(t.Context(), owner, tt.after, tt.limit)
 		must(t, err)
 		if !reflect.DeepEqual(ids(got), tt.want) {
-			t.Errorf("Clients(limit %d, offset %d) = %v, want %v", tt.limit, tt.offset, ids(got), tt.want)
+			t.Errorf("%s: Clients = %v, want %v", tt.name, ids(got), tt.want)
 		}
 	}
-	got, err := s.Clients(t.Context(), owner, 1, 0)
+	got, err := s.Clients(t.Context(), owner, store.ClientKey{}, 1)
 	must(t, err)
 	if len(got) == 1 {
 		equal(t, "listed client", got[0], first)
 	}
-	none, err := s.Clients(t.Context(), uuid.NewV7(), 10, 0)
+
+	// A page boundary is a place, not a position: adding a client before
+	// it or deleting the one at it doesn't move the next page.
+	must(t, s.CreateClient(t.Context(), newClient(owner, t0.Add(-time.Hour))))
+	must(t, s.DeleteClient(t.Context(), owner, second.ID))
+	next, err := s.Clients(t.Context(), owner, second.Key(), 10)
+	must(t, err)
+	if want := []string{twin.ID, third.ID}; !reflect.DeepEqual(ids(next), want) {
+		t.Errorf("after a deleted boundary: Clients = %v, want %v", ids(next), want)
+	}
+
+	none, err := s.Clients(t.Context(), uuid.NewV7(), store.ClientKey{}, 10)
 	must(t, err)
 	if len(none) != 0 {
 		t.Errorf("a user with no clients has %d", len(none))

@@ -3,6 +3,7 @@ package httpapi_test
 import (
 	"bytes"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -46,21 +47,29 @@ func TestClients(t *testing.T) {
 	r.e.Clock.Advance(time.Millisecond)
 	createClient(t, owner, "user:read")
 
-	var list struct {
-		Clients       []clientJSON `json:"clients"`
-		Limit, Offset int
+	type page struct {
+		Clients    []clientJSON `json:"clients"`
+		Limit      int          `json:"limit"`
+		NextCursor string       `json:"next_cursor"`
 	}
-	res := owner.expect(http.MethodGet, "/v1/clients?limit=1&offset=1", nil, http.StatusOK)
-	res.decode(t, &list)
-	if len(list.Clients) != 1 || list.Clients[0].ID == c.ID || list.Limit != 1 || list.Offset != 1 {
-		t.Fatalf("second page = %s", res.body)
+	var first, second page
+	res := owner.expect(http.MethodGet, "/v1/clients?limit=1", nil, http.StatusOK)
+	res.decode(t, &first)
+	if len(first.Clients) != 1 || first.Clients[0].ID != c.ID || first.Limit != 1 || first.NextCursor == "" {
+		t.Fatalf("first page = %s", res.body)
 	}
+	res = owner.expect(http.MethodGet, "/v1/clients?limit=1&cursor="+url.QueryEscape(first.NextCursor), nil, http.StatusOK)
+	res.decode(t, &second)
+	if len(second.Clients) != 1 || second.Clients[0].ID == c.ID || bytes.Contains(res.body, []byte("next_cursor")) {
+		t.Fatalf("last page = %s", res.body)
+	}
+	var list page
 	res = owner.expect(http.MethodGet, "/v1/clients", nil, http.StatusOK)
 	res.decode(t, &list)
-	if len(list.Clients) != 2 || list.Limit != 20 || list.Offset != 0 || bytes.Contains(res.body, []byte(secret)) || bytes.Contains(res.body, []byte("argon2")) {
+	if len(list.Clients) != 2 || list.Limit != 20 || list.NextCursor != "" || bytes.Contains(res.body, []byte(secret)) || bytes.Contains(res.body, []byte("argon2")) {
 		t.Fatalf("list = %s", res.body)
 	}
-	for _, q := range []string{"limit=0", "limit=101", "offset=-1", "limit=x"} {
+	for _, q := range []string{"limit=0", "limit=101", "limit=x", "cursor=nope"} {
 		owner.expect(http.MethodGet, "/v1/clients?"+q, nil, http.StatusBadRequest)
 	}
 

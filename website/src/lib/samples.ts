@@ -4,6 +4,8 @@ import { goDecls, yamlBlock } from './snippet';
 
 import aggregateGo from '../../../internal/platform/es/aggregate.go?raw';
 import apperrGo from '../../../internal/platform/apperr/apperr.go?raw';
+import authClientsGo from '../../../internal/auth/app/clients.go?raw';
+import authMysqlGo from '../../../internal/auth/store/mysql/mysql.go?raw';
 import bufGenYaml from '../../../buf.gen.yaml?raw';
 import bufYaml from '../../../buf.yaml?raw';
 import esGo from '../../../internal/platform/es/es.go?raw';
@@ -120,6 +122,9 @@ export const unitOfWork = go(uowGo, 'internal/platform/uow/uow.go', 'type Tx int
 export const outboxStore = go(outboxGo, 'internal/platform/outbox/outbox.go', 'type Message struct', 'type Store interface');
 export const outboxNewMessage = go(outboxGo, 'internal/platform/outbox/outbox.go', 'func NewMessage(');
 export const relayConfig = go(relayGo, 'internal/platform/outbox/relay.go', 'type Handler func', 'type RelayConfig struct');
+// A list that pages with a cursor: the use case and the query behind it.
+export const authClientsPage = go(authClientsGo, 'internal/auth/app/clients.go', 'func (s *Service) Clients(', 'func encodeClientCursor(');
+export const authClientsQuery = go(authMysqlGo, 'internal/auth/store/mysql/mysql.go', 'func (s *Store) Clients(');
 export const relayBackoff = go(relayGo, 'internal/platform/outbox/relay.go', 'func Backoff(');
 export const relayMetrics = go(relayGo, 'internal/platform/outbox/relay.go', 'func (r *Relay) init()');
 export const relayRetryTest = go(relayTestGo, 'internal/platform/outbox/relay_test.go', 'func TestRelayRetriesUntilDelivered(');

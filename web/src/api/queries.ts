@@ -39,13 +39,13 @@ export function useSessions() {
   return useQuery({ queryKey: queryKeys.sessions, queryFn: ({ signal }) => listSessions(signal) });
 }
 
-/** The caller's OAuth clients, a page at a time. A short page is the last one. */
+/** The caller's OAuth clients, a page at a time. A page without a next cursor is the last one. */
 export function useClients() {
   return useInfiniteQuery({
     queryKey: queryKeys.clients,
     queryFn: ({ pageParam, signal }) => listClients(pageParam, signal),
-    initialPageParam: 0,
-    getNextPageParam: (page) => (page.clients.length < page.limit ? undefined : page.offset + page.limit),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.next_cursor,
   });
 }
 

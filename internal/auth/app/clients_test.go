@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strings"
@@ -125,27 +126,48 @@ func TestClientsListsTheOwnersOnly(t *testing.T) {
 	}
 	newClient(t, e, uuid.NewV7(), "user:read")
 
-	tests := []struct {
-		limit, offset, want int
-		first               string
-	}{
-		{20, 0, 20, "0"},
-		{20, 100, 5, "100"},
-		{1000, 0, app.MaxClientsPage, "0"},
-		{0, -3, 1, "0"},
-		{10, 200, 0, ""},
-	}
-	for _, tt := range tests {
-		got := must(e.Service.Clients(t.Context(), owner, tt.limit, tt.offset))(t)
-		if len(got) != tt.want || len(got) > 0 && got[0].Name != tt.first {
-			t.Errorf("Clients(%d, %d) gave %d from %v, want %d from %s", tt.limit, tt.offset, len(got), got[0:min(1, len(got))], tt.want, tt.first)
+	t.Run("pages follow each other to the last", func(t *testing.T) {
+		var names []string
+		cursor, pages := "", 0
+		for {
+			page := must(e.Service.Clients(t.Context(), owner, 20, cursor))(t)
+			pages++
+			for _, c := range page.Clients {
+				if c.OwnerID != owner {
+					t.Fatalf("listed another owner's client %s", c.ID)
+				}
+				names = append(names, c.Name)
+			}
+			if page.Next == "" {
+				break
+			}
+			cursor = page.Next
 		}
-		for _, c := range got {
-			if c.OwnerID != owner {
-				t.Fatalf("listed another owner's client %s", c.ID)
+		if pages != 6 || len(names) != 105 || names[0] != "0" || names[104] != "104" {
+			t.Errorf("%d pages of %d clients, from %s to %s; want 6 pages of 105 from 0 to 104", pages, len(names), names[0], names[len(names)-1])
+		}
+	})
+	t.Run("limit is clamped", func(t *testing.T) {
+		for limit, want := range map[int]int{1000: app.MaxClientsPage, 0: 1, -3: 1} {
+			if page := must(e.Service.Clients(t.Context(), owner, limit, ""))(t); len(page.Clients) != want || page.Next == "" {
+				t.Errorf("limit %d gave %d clients, next %q; want %d and a next page", limit, len(page.Clients), page.Next, want)
 			}
 		}
-	}
+	})
+	t.Run("another owner's cursor shows only your clients", func(t *testing.T) {
+		next := must(e.Service.Clients(t.Context(), owner, 1, ""))(t).Next
+		if page := must(e.Service.Clients(t.Context(), uuid.NewV7(), 20, next))(t); len(page.Clients) != 0 {
+			t.Errorf("a stranger listed %d of the owner's clients", len(page.Clients))
+		}
+	})
+	t.Run("a cursor that isn't one is invalid", func(t *testing.T) {
+		for _, cursor := range []string{"not base64!", base64.RawURLEncoding.EncodeToString([]byte("2026-10-24T09:00:00Z")), base64.RawURLEncoding.EncodeToString([]byte("yesterday " + uuid.New().String())), base64.RawURLEncoding.EncodeToString([]byte("2026-10-24T09:00:00Z not-an-id"))} {
+			_, err := e.Service.Clients(t.Context(), owner, 20, cursor)
+			if _, ok := errors.AsType[*apperr.ValidationError](err); !ok {
+				t.Errorf("cursor %q: err = %v, want a ValidationError", cursor, err)
+			}
+		}
+	})
 }
 
 func TestDeleteClient(t *testing.T) {

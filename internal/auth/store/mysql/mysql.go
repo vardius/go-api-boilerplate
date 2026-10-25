@@ -167,10 +167,15 @@ func (s *Store) Client(ctx context.Context, id string) (store.Client, error) {
 }
 
 // Clients implements store.Store.
-func (s *Store) Clients(ctx context.Context, owner uuid.UUID, limit, offset int) ([]store.Client, error) {
-	rows, err := s.db.QueryContext(ctx,
-		"SELECT "+clientColumns+" FROM "+clientsTable+" WHERE owner_id = ? ORDER BY created_at, id LIMIT ? OFFSET ?",
-		owner[:], limit, offset)
+func (s *Store) Clients(ctx context.Context, owner uuid.UUID, after store.ClientKey, limit int) ([]store.Client, error) {
+	query, args := "SELECT "+clientColumns+" FROM "+clientsTable+" WHERE owner_id = ?", []any{owner[:]}
+	if after != (store.ClientKey{}) {
+		// Spelled out rather than as a row comparison, so the range reads
+		// plainly against the (owner_id, created_at, id) index.
+		query += " AND (created_at > ? OR (created_at = ? AND id > ?))"
+		args = append(args, after.CreatedAt, after.CreatedAt, after.ID)
+	}
+	rows, err := s.db.QueryContext(ctx, query+" ORDER BY created_at, id LIMIT ?", append(args, limit)...)
 	if err != nil {
 		return nil, fmt.Errorf("mysql: list clients: %w", err)
 	}

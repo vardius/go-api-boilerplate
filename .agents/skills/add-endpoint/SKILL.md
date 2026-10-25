@@ -18,6 +18,12 @@ explains why; this is the checklist. `<svc>` is `user` or `auth`.
    the handler in `httpx.Handle` so errors become problem details through the
    one table in `httpx`. Decode bodies with `httpx.DecodeJSON` and pages with
    `httpx.ParsePage`. A public write needs a rate limit.
+   - **A list pages with a cursor, never an offset.** Sort on a unique key
+     (the sort field, then ID), return `next_cursor` from the last row's
+     key, query rows after it on an index in the same order, and fetch one
+     extra row to know whether a next page exists. `GET /v1/clients` is the
+     model. When rows are costly to build, pick the page's IDs and sort
+     values first and build only those rows.
    - **user**: a route with a caller is wrapped in `identify`; without it
      `app.Actor` sees no identity and every call is a 401. The app checks
      the scope. Cross-origin checks are router middleware already.

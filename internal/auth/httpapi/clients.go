@@ -24,9 +24,9 @@ func newClientJSON(c store.Client) clientJSON {
 }
 
 type clientsResponse struct {
-	Clients []clientJSON `json:"clients"`
-	Limit   int          `json:"limit"`
-	Offset  int          `json:"offset"`
+	Clients    []clientJSON `json:"clients"`
+	Limit      int          `json:"limit"`
+	NextCursor string       `json:"next_cursor,omitzero"`
 }
 
 // defaultClientsPage is how many clients a page holds unless ?limit= says.
@@ -38,12 +38,12 @@ func (h *handler) clients(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	list, err := h.app.Clients(r.Context(), id.UserID, page.Limit, page.Offset)
+	list, err := h.app.Clients(r.Context(), id.UserID, page.Limit, page.Cursor)
 	if err != nil {
 		return err
 	}
-	out := clientsResponse{Clients: make([]clientJSON, len(list)), Limit: page.Limit, Offset: page.Offset}
-	for i, c := range list {
+	out := clientsResponse{Clients: make([]clientJSON, len(list.Clients)), Limit: page.Limit, NextCursor: list.Next}
+	for i, c := range list.Clients {
 		out.Clients[i] = newClientJSON(c)
 	}
 	return httpx.WriteJSON(w, http.StatusOK, out)

@@ -174,15 +174,20 @@ paths:
       tags: [clients]
       operationId: listClients
       summary: The OAuth clients the user registered.
-      description: Oldest first. A client's secret is never shown again.
+      description: |
+        Oldest first, then by ID. A client's secret is never shown again.
+        Each page but the last carries `next_cursor`: pass it as `cursor`
+        for the page after. A cursor marks a place in the list, so clients
+        added or deleted meanwhile never shift or repeat a page.
       security: [{ cookie: [] }, { bearer: [clients:read] }]
       parameters:
         - name: limit
           in: query
           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
-        - name: offset
+        - name: cursor
           in: query
-          schema: { type: integer, minimum: 0, default: 0 }
+          description: The `next_cursor` of the page before; leave it out for the first page.
+          schema: { type: string }
       responses:
         "200":
           description: A page of clients.
@@ -618,11 +623,13 @@ components:
         created_at: { type: string, format: date-time }
     ClientList:
       type: object
-      required: [clients, limit, offset]
+      required: [clients, limit]
       properties:
         clients: { type: array, items: { $ref: "#/components/schemas/Client" } }
         limit: { type: integer }
-        offset: { type: integer }
+        next_cursor:
+          type: string
+          description: Opaque. Absent on the last page.
     NewClient:
       type: object
       required: [name, redirect_uris, scopes]

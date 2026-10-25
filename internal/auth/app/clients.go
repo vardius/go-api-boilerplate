@@ -2,11 +2,13 @@ package app
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/url"
 	"slices"
 	"strings"
+	"time"
 	"unicode/utf8"
 	"uuid"
 
@@ -119,16 +121,58 @@ func redirectURIProblem(raw string) string {
 	}
 }
 
-// Clients returns limit of owner's clients from offset, oldest first.
-// limit is capped at MaxClientsPage.
-func (s *Service) Clients(ctx context.Context, owner uuid.UUID, limit, offset int) ([]store.Client, error) {
+// ClientsPage is a page of an owner's clients, oldest first.
+type ClientsPage struct {
+	Clients []store.Client
+	// Next is the cursor of the page after this one, "" on the last page.
+	Next string
+}
+
+// Clients returns a page of up to limit of owner's clients, capped at
+// MaxClientsPage. cursor is "" for the first page, or the Next of the page
+// before; anything else is a ValidationError.
+func (s *Service) Clients(ctx context.Context, owner uuid.UUID, limit int, cursor string) (ClientsPage, error) {
 	limit = min(max(limit, 1), MaxClientsPage)
-	offset = max(offset, 0)
-	cs, err := s.store.Clients(ctx, owner, limit, offset)
+	after, err := decodeClientCursor(cursor)
 	if err != nil {
-		return nil, fmt.Errorf("list clients: %w", err)
+		return ClientsPage{}, err
 	}
-	return cs, nil
+	// The one past the page says whether another page follows.
+	cs, err := s.store.Clients(ctx, owner, after, limit+1)
+	if err != nil {
+		return ClientsPage{}, fmt.Errorf("list clients: %w", err)
+	}
+	if len(cs) <= limit {
+		return ClientsPage{Clients: cs}, nil
+	}
+	cs = cs[:limit]
+	return ClientsPage{Clients: cs, Next: encodeClientCursor(cs[limit-1].Key())}, nil
+}
+
+// A cursor holds the place of the last client on a page, not its position,
+// so clients added or deleted before it don't shift the next page. It is
+// opaque to callers, and holds nothing they can't already read: the owner
+// filter still decides which clients a page shows.
+func encodeClientCursor(k store.ClientKey) string {
+	return base64.RawURLEncoding.EncodeToString([]byte(k.CreatedAt.UTC().Format(time.RFC3339Nano) + " " + k.ID))
+}
+
+const badCursor = "must be the next_cursor of an earlier page"
+
+func decodeClientCursor(cursor string) (store.ClientKey, error) {
+	if cursor == "" {
+		return store.ClientKey{}, nil
+	}
+	raw, err := base64.RawURLEncoding.DecodeString(cursor)
+	if err != nil {
+		return store.ClientKey{}, apperr.Invalid("cursor", badCursor)
+	}
+	at, id, ok := strings.Cut(string(raw), " ")
+	created, err := time.Parse(time.RFC3339Nano, at)
+	if !ok || err != nil || !validClientID(id) {
+		return store.ClientKey{}, apperr.Invalid("cursor", badCursor)
+	}
+	return store.ClientKey{CreatedAt: created, ID: id}, nil
 }
 
 // DeleteClient deletes owner's client id, revoking every grant to it.

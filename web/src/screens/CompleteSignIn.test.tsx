@@ -25,7 +25,7 @@ describe('Complete sign-in', () => {
     const api = mockApi({
       ...signedOut,
       [sessions]: created,
-      'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20, offset: 0 }),
+      'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20 }),
     });
     const { router } = renderApp('/sign-in/complete?state=own-state&code=abc&next=%2Fapps');
 
@@ -39,7 +39,7 @@ describe('Complete sign-in', () => {
     const api = mockApi({
       [me]: json(200, apiUser({ email: 'ada@example.com' })),
       [sessions]: created,
-      'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20, offset: 0 }),
+      'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20 }),
     });
     const { user, router } = renderApp('/sign-in/complete?state=own-state&code=abc&next=%2Fapps');
 
@@ -76,7 +76,7 @@ describe('Complete sign-in', () => {
     expect(await screen.findByRole('button', { name: 'Try again' })).toBeInTheDocument();
     expect(api.callsTo(sessions)).toHaveLength(0);
 
-    api.on('GET /api/auth/v1/clients', json(200, { clients: [], limit: 20, offset: 0 }));
+    api.on('GET /api/auth/v1/clients', json(200, { clients: [], limit: 20 }));
     await user.click(screen.getByRole('button', { name: 'Try again' }));
 
     expect(await screen.findByRole('heading', { level: 1, name: 'OAuth apps' })).toBeInTheDocument();
@@ -145,7 +145,7 @@ describe('Complete sign-in', () => {
       const api = mockApi({
         ...signedOut,
         [sessions]: created,
-        'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20, offset: 0 }),
+        'GET /api/auth/v1/clients': json(200, { clients: [], limit: 20 }),
       });
       const { user, router } = renderApp('/sign-in/complete?code=abc&next=%2Fapps');
 
