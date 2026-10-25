@@ -13,10 +13,10 @@ require (
 	github.com/testcontainers/testcontainers-go v0.44.0
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.44.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0
-	github.com/vardius/golog/v2 v2.0.0-20261024103851-fb07a85199d3
+	github.com/vardius/golog/v2 v2.0.0
 	github.com/vardius/gorouter/v5 v5.0.0
-	github.com/vardius/shutdown/v2 v2.0.0-20261024103154-b0d0c6b3060d
-	github.com/vardius/worker-pool/v3 v3.0.0-20261024103306-504c0a8f5d01
+	github.com/vardius/shutdown/v2 v2.0.0
+	github.com/vardius/worker-pool/v3 v3.0.0
 	go.mongodb.org/mongo-driver/v2 v2.9.2
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0
 	go.opentelemetry.io/otel v1.47.0
