@@ -3,7 +3,7 @@
 # both services' OpenTelemetry exporters at it. Grafana: http://localhost:3000
 services:
   lgtm:
-    image: grafana/otel-lgtm:0.38.0
+    image: grafana/otel-lgtm:0.38.1
     restart: unless-stopped
     ports:
       - "3000:3000"
