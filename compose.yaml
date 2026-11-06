@@ -78,7 +78,7 @@ services:
         - { action: rebuild, path: ./web/src }
 
   mailpit:
-    image: axllent/mailpit:v1.32.0
+    image: axllent/mailpit:v1.33.0
     restart: unless-stopped
     ports:
       - "8025:8025"
