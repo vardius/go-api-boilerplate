@@ -5,7 +5,7 @@
 # STORE picks the persistence build tag; memory is the default because no
 # build constraint mentions persistence_memory.
 
-FROM --platform=$BUILDPLATFORM golang:1.27.3-trixie AS build
+FROM --platform=$BUILDPLATFORM golang:1.27.4-trixie AS build
 ARG SERVICE
 ARG STORE=memory
 ARG VERSION=dev
